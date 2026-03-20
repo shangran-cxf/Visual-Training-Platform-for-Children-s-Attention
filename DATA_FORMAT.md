@@ -1,4 +1,4 @@
-# MediaPipe Face Mesh 数据格式说明
+# MediaPipe Face Mesh 视觉模型导出数据格式说明
 摄像头按帧进行拍摄,最后输出若干帧
 其中,每帧都包含以下三个方面:
 faceLandmarks（面部关键点） :包含478个关键点,输出xyz坐标
