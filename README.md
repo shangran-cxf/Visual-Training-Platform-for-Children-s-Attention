@@ -4,7 +4,7 @@
 
 ### 优化了页面加载速度
 
-game.html 在 <head> 中同步加载了大量大型 JavaScript 库
+game.html 在 \<head> 中同步加载了大量大型 JavaScript 库
 
 ### 修改文件
 
