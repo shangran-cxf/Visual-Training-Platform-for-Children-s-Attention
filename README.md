@@ -14,5 +14,5 @@ game.html 在 \<head> 中同步加载了大量大型 JavaScript 库
 - ./frontend/history.html
 - ./frontend/js/history.js
 
-##3.28更新
+## 3.28更新
 完成了综合训练的前四个训练和训练模块的前五个训练,补全了训练逻辑和前端美化
