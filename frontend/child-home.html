@@ -623,10 +623,10 @@
                                 <button class="btn" onclick="startGame('sun-tracking')">开始训练</button>
                             </div>
                             <div class="game-card">
-                                <div class="icon">🕵️</div>
-                                <h4>多目标追踪小侦探</h4>
+                                <div class="icon">🐾</div>
+                                <h4>动物追踪</h4>
                                 <p>提升注意力分配能力</p>
-                                <button class="btn" onclick="startGame('multi-target')">开始训练</button>
+                                <button class="btn" onclick="startGame('animal-searching')">开始训练</button>
                             </div>
                         </div>
                     </div>
@@ -1011,7 +1011,7 @@
                             break;
                         case 'sun-tracking':
                         case 'magic-maze':
-                        case 'multi-target':
+                        case 'animal-searching':
                             dimension = 1; // 视觉追踪
                             break;
                         case 'card-matching':
@@ -1103,11 +1103,11 @@
                         difficulty: isYoung ? '低速度' : '中速度'
                     },
                     {
-                        name: '多目标追踪小侦探',
+                        name: '动物追踪',
                         description: '提升你的注意力分配能力！',
-                        icon: '🕵️',
-                        gameName: 'multi-target',
-                        difficulty: isYoung ? '1个目标' : '2个目标'
+                        icon: '🐾',
+                        gameName: 'animal-searching',
+                        difficulty: isYoung ? '简单' : '中等'
                     }
                 ],
                 2: [ // 工作记忆
