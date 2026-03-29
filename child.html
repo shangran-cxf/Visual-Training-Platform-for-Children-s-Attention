@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儿童版评估报告 - 注意力全能小侦探</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .medal-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .medal {
+            display: inline-block;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .medal.gold {
+            background-color: #ffd700;
+        }
+
+        .medal.silver {
+            background-color: #c0c0c0;
+        }
+
+        .medal.bronze {
+            background-color: #cd7f32;
+        }
+
+        .medal.normal {
+            background-color: #e0e0e0;
+        }
+
+        .medal-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .encouragement {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .encouragement h2 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .encouragement p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .weakness-section {
+            margin-bottom: 50px;
+        }
+
+        .weakness-section h2 {
+            text-align: center;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .weakness-items {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .weakness-item {
+            width: 150px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .weakness-item .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .weakness-item p {
+            font-size: 14px;
+        }
+
+        .progress-section {
+            margin-bottom: 50px;
+        }
+
+        .progress-section h2 {
+            text-align: center;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background-color: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 15px;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';" onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>我的侦探报告</h1>
+            <p>恭喜你完成了注意力全能小侦探的挑战！</p>
+        </div>
+        <div class="medal-section">
+            <div class="medal" id="medal">🏆</div>
+            <div class="medal-text" id="medal-text">金牌侦探</div>
+        </div>
+        <div class="encouragement">
+            <h2>侦探鼓励语</h2>
+            <p id="encouragement-text">你太棒了！在这次挑战中表现出色，展现了出色的注意力能力。继续保持，你会成为更厉害的小侦探！</p>
+        </div>
+        <div class="weakness-section">
+            <h2>需要加强的能力</h2>
+            <div class="weakness-items" id="weakness-items">
+                <!-- 薄弱维度将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        <div class="progress-section">
+            <h2>进步进度</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 75%;">75%</div>
+            </div>
+            <p style="text-align: center; margin-top: 10px;">距离下一等级还需努力！</p>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="window.location.href='../training/index.html'">开始训练</button>
+            <button class="btn" onclick="window.location.href='../child-home.html'">返回孩子端</button>
+            <button class="btn btn-secondary" onclick="window.location.href='index.html'">返回</button>
+        </div>
+        <div class="footer">
+            <p>© 2026 注意力训练平台</p>
+        </div>
+    </div>
+    <script src="../utils.js"></script>
+    <script>
+        // 获取检测数据
+        const detectionData = StorageUtil.getItem('detection_data');
+
+        if (detectionData) {
+            // 设置isFirstTime为false，标记首次检测已完成
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (userInfo) {
+                userInfo.isFirstTime = false;
+                StorageUtil.setItem('userInfo', userInfo);
+            }
+
+            // 设置勋章等级
+            const totalScore = detectionData.total_score;
+            let medalType = 'normal';
+            let medalText = '普通侦探';
+            let encouragement = '继续努力，你会成为更厉害的小侦探！';
+
+            if (totalScore >= 90) {
+                medalType = 'gold';
+                medalText = '金牌侦探';
+                encouragement = '你太棒了！在这次挑战中表现出色，展现了出色的注意力能力。继续保持，你会成为更厉害的小侦探！';
+            } else if (totalScore >= 75) {
+                medalType = 'silver';
+                medalText = '银牌侦探';
+                encouragement = '很好！你在挑战中表现不错，继续努力，争取成为金牌侦探！';
+            } else if (totalScore >= 60) {
+                medalType = 'bronze';
+                medalText = '铜牌侦探';
+                encouragement = '不错的尝试！继续训练，你会越来越厉害的！';
+            }
+
+            document.getElementById('medal').className = `medal ${medalType}`;
+            document.getElementById('medal-text').textContent = medalText;
+            document.getElementById('encouragement-text').textContent = encouragement;
+
+            // 设置进步进度
+            document.getElementById('progress-fill').style.width = `${totalScore}%`;
+            document.getElementById('progress-fill').textContent = `${totalScore}%`;
+
+            // 识别薄弱维度
+            const dimensions = [
+                { name: '选择性注意', score: detectionData.selective_attention, icon: '🔍' },
+                { name: '持续性注意', score: detectionData.sustained_attention, icon: '👀' },
+                { name: '视觉追踪', score: detectionData.visual_tracking, icon: '🏃' },
+                { name: '工作记忆', score: detectionData.working_memory, icon: '🧠' },
+                { name: '抑制控制', score: detectionData.inhibitory_control, icon: '🛑' }
+            ];
+
+            // 找出得分低于60的维度
+            const weakDimensions = dimensions.filter(dim => dim.score < 60);
+
+            // 生成薄弱维度展示
+            const weaknessItems = document.getElementById('weakness-items');
+            if (weakDimensions.length > 0) {
+                weakDimensions.forEach(dim => {
+                    const item = document.createElement('div');
+                    item.className = 'weakness-item';
+                    item.innerHTML = `
+                        <div class="icon">${dim.icon}</div>
+                        <p>${dim.name}</p>
+                    `;
+                    weaknessItems.appendChild(item);
+                });
+            } else {
+                weaknessItems.innerHTML = '<p>太棒了！所有维度都表现良好！</p>';
+            }
+        } else {
+            // 没有检测数据
+            alert('请先完成综合检测');
+            window.location.href = '../detect/index.html';
+        }
+    </script>
+</body>
+
+</html>

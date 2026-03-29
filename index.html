@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注意力训练平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #4CAF50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+        .nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .nav button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .nav button:hover {
+            background-color: #45a049;
+        }
+        .content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>注意力全能小侦探</h1>
+            <p>专为6-12岁儿童设计的注意力训练平台</p>
+        </div>
+        <div class="nav">
+            <button onclick="window.location.href='login.html'">登录</button>
+        </div>
+        <div class="content">
+            <div id="home" class="section">
+                <h2>欢迎使用注意力全能小侦探</h2>
+                <p>专为6-12岁儿童设计的注意力训练平台</p>
+                <p>请登录后开始使用系统</p>
+                <button class="btn-primary" onclick="window.location.href='login.html'">立即登录</button>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2026 注意力训练平台</p>
+        </div>
+    </div>
+    <script src="utils.js"></script>
+    <script src="components.js"></script>
+    <script>
+        // 页面加载时检查用户登录状态
+        window.onload = function() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (userInfo) {
+                // 如果已登录，根据角色跳转到对应主页
+                if (userInfo.role === 'child') {
+                    window.location.href = 'child-home.html';
+                } else if (userInfo.role === 'parent') {
+                    window.location.href = 'parent-home.html';
+                }
+            }
+        };
+    </script>
+</body>
+</html>
