@@ -767,7 +767,7 @@
                     if (password === userInfo.password) {
                         userInfo.role = 'parent';
                         StorageUtil.setItem('userInfo', userInfo);
-                        window.location.href = 'parent-home.html';
+                        window.location.href = 'profile.html';
                     } else {
                         showPasswordModal('密码错误', '密码错误，无法切换', function () { }, true);
                     }

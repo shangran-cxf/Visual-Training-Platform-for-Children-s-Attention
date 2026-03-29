@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家长论坛 - 儿童注意力训练平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(90deg, #4caf50 0%, #81c784 99%, #81c784 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="40" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.3)"/></svg>');
+            animation: float 20s linear infinite;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(100px, 100px); }
+        }
+        .header h1 {
+            font-size: 2.2em;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.03); }
+        }
+        .nav {
+            background-color: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .nav li {
+            display: inline;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 12px 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        .nav a:hover::before {
+            left: 100%;
+        }
+        .nav a:hover {
+            background-color: #4caf50;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        .nav a.active {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            color: white;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        .container {
+            flex: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 30px 60px;
+        }
+        .footer {
+            background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+            color: white;
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .footer p {
+            margin: 0;
+            font-size: 16px;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+        @media (max-width: 768px) {
+            .nav ul { gap: 10px; }
+            .nav a { font-size: 14px; padding: 10px 15px; }
+            .header h1 { font-size: 1.8em; }
+            .container { padding: 20px; }
+        }
+
+        .forum-section {
+            background-color: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            width: 1300px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .forum-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #4caf50, #81c784, #a5d6a7, #c8e6c9);
+        }
+        .forum-section h2 {
+            color: #2e7d32;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            animation: bounce 1s ease-in-out infinite alternate;
+        }
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+        .forum-posts {
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        .new-post-container {
+            margin-bottom: 30px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .new-post-btn {
+            width: 150px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+            transform-origin: center;
+        }
+        .new-post-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .new-post-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        .new-post-btn:hover::before {
+            left: 100%;
+        }
+        .new-post-btn:active {
+            transform: translateY(-1px);
+        }
+        .new-post-btn.expanded {
+            border-radius: 15px 15px 0 0;
+            background: #45a049;
+            width: 100%;
+        }
+        .new-post-form {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            border-radius: 0 0 15px 15px;
+            padding: 0 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .new-post-form.show {
+            max-height: 500px;
+            padding: 25px;
+            opacity: 1;
+            transform: scaleY(1);
+        }
+        .forum-posts {
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+        .forum-post {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            width: 100%;
+            min-width: 800px;
+        }
+        .forum-post::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .forum-post:hover::before {
+            transform: scaleX(1);
+        }
+        .forum-post:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .forum-post h3 {
+            color: #333;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        .forum-post:hover h3 {
+            color: #2e7d32;
+        }
+        .forum-post p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .forum-post .post-content {
+            transition: all 0.3s ease;
+        }
+        .forum-post .post-content.hidden {
+            display: none;
+        }
+        .forum-post .post-meta {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        .post-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .action-btn {
+            background: none;
+            border: 1px solid #4caf50;
+            color: #4caf50;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .action-btn:hover {
+            background-color: #4caf50;
+            color: white;
+        }
+        .action-btn.liked {
+            background-color: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+        .action-btn.disliked {
+            background-color: #f44336;
+            border-color: #f44336;
+            color: white;
+        }
+        .action-btn.dislike-btn {
+            border-color: #f44336;
+            color: #f44336;
+        }
+        .action-btn.dislike-btn:hover {
+            background-color: #f44336;
+            color: white;
+        }
+        .action-btn.delete-btn {
+            border-color: #ff9800;
+            color: #ff9800;
+        }
+        .action-btn.delete-btn:hover {
+            background-color: #ff9800;
+            color: white;
+        }
+        .post-comments {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: none;
+        }
+        .post-comments.show {
+            display: block;
+        }
+        .comment {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .comment .comment-meta {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .comment-form {
+            margin-top: 20px;
+        }
+        .comment-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+        .comment-form textarea:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+        .btn {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        .btn:hover::before {
+            left: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #4caf50;
+            background: white;
+            color: #4caf50;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .pagination button:hover {
+            background: #4caf50;
+            color: white;
+        }
+        .pagination button.active {
+            background: #4caf50;
+            color: white;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        @media (max-width: 768px) {
+            .forum-section {
+                width: 100%;
+                padding: 20px;
+                border-radius: 15px;
+            }
+            .forum-post {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>儿童注意力训练平台</h1>
+    </div>
+    <nav class="nav">
+        <ul>
+            <li><a href="knowledge.html">科普知识</a></li>
+            <li><a href="forum.html" class="active">家长论坛</a></li>
+            <li><a href="profile.html">个人中心</a></li>
+            <li id="admin-nav-item" style="display: none;"><a href="admin.html">管理</a></li>
+            <li><a href="#" onclick="switchToChild()">切换到孩子端</a></li>
+            <li><a href="login.html" onclick="logout()">退出登录</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div class="forum-section">
+            <h2>家长论坛</h2>
+            <div class="new-post-container">
+                <button class="new-post-btn" id="new-post-btn" onclick="toggleNewPostForm()">
+                    发布帖子
+                </button>
+                <div class="new-post-form" id="new-post-form">
+                    <div class="form-group">
+                        <label for="post-title">标题</label>
+                        <input type="text" id="post-title" placeholder="请输入帖子标题">
+                    </div>
+                    <div class="form-group">
+                        <label for="post-content">内容</label>
+                        <textarea id="post-content" placeholder="请输入帖子内容"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" onclick="createPost()">发布</button>
+                        <button class="btn" style="background-color: #666;" onclick="toggleNewPostForm()">取消</button>
+                    </div>
+                </div>
+            </div>
+            <div class="forum-posts" id="forum-posts">
+            </div>
+            <div class="pagination" id="forum-pagination">
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <p>© 2026 注意力训练平台</p>
+    </div>
+
+    <script src="utils.js"></script>
+    <script>
+        let currentPage = 1;
+        const perPage = 10;
+
+        function logout() {
+            StorageUtil.removeItem('userInfo');
+        }
+
+        function switchToChild() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (userInfo) {
+                userInfo.role = 'child';
+                StorageUtil.setItem('userInfo', userInfo);
+                window.location.href = 'child-home.html';
+            }
+        }
+
+        function checkAuth() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || (userInfo.role !== 'parent' && userInfo.role !== 'admin')) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return userInfo;
+        }
+
+        function toggleNewPostForm() {
+            const btn = document.getElementById('new-post-btn');
+            const form = document.getElementById('new-post-form');
+            
+            if (form.classList.contains('show')) {
+                form.classList.remove('show');
+                btn.classList.remove('expanded');
+                btn.textContent = '发布帖子';
+            } else {
+                form.classList.add('show');
+                btn.classList.add('expanded');
+                btn.textContent = '收起';
+            }
+        }
+
+        async function loadPosts(page = 1) {
+            currentPage = page;
+            try {
+                const response = await fetch(`/api/forum/posts?page=${page}&per_page=${perPage}`);
+                const data = await response.json();
+                
+                const postsContainer = document.getElementById('forum-posts');
+                
+                if (data.posts && data.posts.length > 0) {
+                    const userInfo = StorageUtil.getItem('userInfo');
+                    
+                    postsContainer.innerHTML = data.posts.map(post => `
+                        <div class="forum-post" onclick="togglePostContent(${post.id})">
+                            <h3>${post.title}</h3>
+                            <div class="post-meta">
+                                <span>作者: ${post.author_name}</span> | 
+                                <span>发布时间: ${post.created_at}</span> |
+                                <span>浏览: ${post.view_count || 0}</span> |
+                                <span>评论: ${post.comment_count || 0}</span>
+                            </div>
+                            <div class="post-content hidden" id="post-content-${post.id}">
+                                <p>${post.content}</p>
+                                <div class="post-actions" onclick="event.stopPropagation();">
+                                    <button class="action-btn ${post.user_vote === 1 ? 'liked' : ''}" id="like-btn-${post.id}" onclick="likePost(${post.id})">
+                                        👍 ${post.like_count || 0}
+                                    </button>
+                                    <button class="action-btn dislike-btn ${post.user_vote === -1 ? 'disliked' : ''}" id="dislike-btn-${post.id}" onclick="dislikePost(${post.id})">
+                                        👎 ${post.dislike_count || 0}
+                                    </button>
+                                    ${userInfo && (userInfo.parent_id === post.parent_id || userInfo.role === 'admin') ? `
+                                        <button class="action-btn delete-btn" onclick="deletePost(${post.id})">
+                                            🗑️ 删除
+                                        </button>
+                                    ` : ''}
+                                    <button class="action-btn" onclick="toggleComments(${post.id})">
+                                        💬 评论
+                                    </button>
+                                </div>
+                                <div class="post-comments" id="comments-${post.id}">
+                                    <div id="comments-list-${post.id}"></div>
+                                    <div class="comment-form">
+                                        <textarea id="comment-content-${post.id}" placeholder="写下你的评论..."></textarea>
+                                        <button class="btn" onclick="addComment(${post.id})">发表评论</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    postsContainer.innerHTML = '<p style="text-align: center; color: #999;">暂无帖子，快来发布第一个吧！</p>';
+                }
+                
+                renderPagination(data.total, page);
+            } catch (error) {
+                console.error('加载帖子失败:', error);
+                document.getElementById('forum-posts').innerHTML = '<p style="text-align: center; color: #f44336;">加载失败，请稍后再试</p>';
+            }
+        }
+
+        function renderPagination(total, current) {
+            const totalPages = Math.ceil(total / perPage);
+            const pagination = document.getElementById('forum-pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            if (current > 1) {
+                html += `<button onclick="loadPosts(${current - 1})">上一页</button>`;
+            }
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === current) {
+                    html += `<button class="active">${i}</button>`;
+                } else if (i === 1 || i === totalPages || (i >= current - 2 && i <= current + 2)) {
+                    html += `<button onclick="loadPosts(${i})">${i}</button>`;
+                } else if (i === current - 3 || i === current + 3) {
+                    html += `<span>...</span>`;
+                }
+            }
+            
+            if (current < totalPages) {
+                html += `<button onclick="loadPosts(${current + 1})">下一页</button>`;
+            }
+            
+            pagination.innerHTML = html;
+        }
+
+        function togglePostContent(postId) {
+            const content = document.getElementById(`post-content-${postId}`);
+            content.classList.toggle('hidden');
+        }
+
+        async function createPost() {
+            const title = document.getElementById('post-title').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+            
+            if (!title || !content) {
+                alert('请填写标题和内容');
+                return;
+            }
+            
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || !userInfo.parent_id) {
+                alert('请先登录');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/forum/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id,
+                        title: title,
+                        content: content
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('post-title').value = '';
+                    document.getElementById('post-content').value = '';
+                    toggleNewPostForm();
+                    loadPosts(1);
+                } else {
+                    alert(result.error || '发布失败');
+                }
+            } catch (error) {
+                console.error('发布帖子失败:', error);
+                alert('发布失败，请稍后再试');
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('确定要删除这篇帖子吗？')) return;
+            
+            const userInfo = StorageUtil.getItem('userInfo');
+            
+            try {
+                const response = await fetch(`/api/forum/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    loadPosts(currentPage);
+                } else {
+                    alert(result.error || '删除失败');
+                }
+            } catch (error) {
+                console.error('删除帖子失败:', error);
+                alert('删除失败，请稍后再试');
+            }
+        }
+
+        async function toggleComments(postId) {
+            const commentsDiv = document.getElementById(`comments-${postId}`);
+            commentsDiv.classList.toggle('show');
+            
+            if (commentsDiv.classList.contains('show')) {
+                loadComments(postId);
+            }
+        }
+
+        async function loadComments(postId) {
+            try {
+                const response = await fetch(`/api/forum/comments/${postId}`);
+                const data = await response.json();
+                
+                const commentsList = document.getElementById(`comments-list-${postId}`);
+                const userInfo = StorageUtil.getItem('userInfo');
+                
+                if (data.comments && data.comments.length > 0) {
+                    commentsList.innerHTML = data.comments.map(comment => `
+                        <div class="comment">
+                            <div class="comment-meta">
+                                <strong>${comment.author_name}</strong> | ${comment.created_at}
+                            </div>
+                            <p>${comment.content}</p>
+                            <div class="comment-actions">
+                                <button class="action-btn ${comment.user_vote === 1 ? 'liked' : ''}" onclick="likeComment(${comment.id})">
+                                    👍 ${comment.like_count || 0}
+                                </button>
+                                <button class="action-btn dislike-btn ${comment.user_vote === -1 ? 'disliked' : ''}" onclick="dislikeComment(${comment.id})">
+                                    👎 ${comment.dislike_count || 0}
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    commentsList.innerHTML = '<p style="color: #999; font-size: 14px;">暂无评论</p>';
+                }
+            } catch (error) {
+                console.error('加载评论失败:', error);
+            }
+        }
+
+        async function likePost(postId) {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || !userInfo.parent_id) return;
+            
+            try {
+                await fetch('/api/forum/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id,
+                        post_id: postId,
+                        vote_type: 1
+                    })
+                });
+                loadPosts(currentPage);
+            } catch (error) {
+                console.error('点赞失败:', error);
+            }
+        }
+
+        async function dislikePost(postId) {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || !userInfo.parent_id) return;
+            
+            try {
+                await fetch('/api/forum/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id,
+                        post_id: postId,
+                        vote_type: -1
+                    })
+                });
+                loadPosts(currentPage);
+            } catch (error) {
+                console.error('踩失败:', error);
+            }
+        }
+
+        async function likeComment(commentId) {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || !userInfo.parent_id) return;
+            
+            try {
+                await fetch('/api/forum/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id,
+                        comment_id: commentId,
+                        vote_type: 1
+                    })
+                });
+            } catch (error) {
+                console.error('点赞失败:', error);
+            }
+        }
+
+        async function dislikeComment(commentId) {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || !userInfo.parent_id) return;
+            
+            try {
+                await fetch('/api/forum/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id,
+                        comment_id: commentId,
+                        vote_type: -1
+                    })
+                });
+            } catch (error) {
+                console.error('踩失败:', error);
+            }
+        }
+
+        async function addComment(postId) {
+            const commentContent = document.getElementById(`comment-content-${postId}`).value.trim();
+            
+            if (!commentContent) {
+                alert('请输入评论内容');
+                return;
+            }
+            
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || !userInfo.parent_id) {
+                alert('请先登录');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/forum/comments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        post_id: postId,
+                        parent_id: userInfo.parent_id,
+                        content: commentContent
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById(`comment-content-${postId}`).value = '';
+                    loadComments(postId);
+                    loadPosts(currentPage);
+                } else {
+                    alert(result.error || '评论失败');
+                }
+            } catch (error) {
+                console.error('评论失败:', error);
+                alert('评论失败，请稍后再试');
+            }
+        }
+
+        window.onload = function() {
+            const userInfo = checkAuth();
+            if (userInfo) {
+                if (userInfo.role === 'admin') {
+                    document.getElementById('admin-nav-item').style.display = 'inline';
+                }
+                loadPosts(1);
+            }
+        };
+    </script>
+</body>
+
+</html>

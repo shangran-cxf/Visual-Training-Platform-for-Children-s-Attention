@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理面板 - 儿童注意力训练平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(90deg, #4caf50 0%, #81c784 99%, #81c784 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="40" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.3)"/></svg>');
+            animation: float 20s linear infinite;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(100px, 100px); }
+        }
+        .header h1 {
+            font-size: 2.2em;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.03); }
+        }
+        .nav {
+            background-color: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .nav li {
+            display: inline;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 12px 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        .nav a:hover::before {
+            left: 100%;
+        }
+        .nav a:hover {
+            background-color: #4caf50;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        .nav a.active {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            color: white;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        .container {
+            flex: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 30px 60px;
+        }
+        .footer {
+            background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+            color: white;
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .footer p {
+            margin: 0;
+            font-size: 16px;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+        @media (max-width: 768px) {
+            .nav ul { gap: 10px; }
+            .nav a { font-size: 14px; padding: 10px 15px; }
+            .header h1 { font-size: 1.8em; }
+            .container { padding: 20px; }
+        }
+
+        .admin-section-container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            width: 1300px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .admin-section-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #ff9800, #f57c00);
+        }
+        .admin-section-container h2 {
+            color: #2e7d32;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            animation: bounce 1s ease-in-out infinite alternate;
+        }
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+        .admin-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+        .admin-tab {
+            padding: 12px 24px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        .admin-tab:hover {
+            background: #e0e0e0;
+        }
+        .admin-tab.active {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+        .admin-tab-content {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .admin-form-card {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .admin-form-card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .admin-list-card {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 25px;
+        }
+        .admin-list-card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .admin-list-card h3 span {
+            color: #999;
+            font-weight: normal;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        .form-group.half {
+            flex: 1;
+        }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .admin-article-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .admin-article-item:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .admin-article-info h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .admin-article-meta {
+            color: #666;
+            font-size: 13px;
+        }
+        .admin-article-meta span {
+            margin-right: 15px;
+        }
+        .admin-post-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .admin-post-item:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .admin-post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .admin-post-header h4 {
+            color: #333;
+        }
+        .admin-post-content {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .admin-post-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #999;
+            font-size: 13px;
+        }
+        .btn {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        .btn-secondary {
+            background: #607d8b;
+        }
+        .btn-secondary:hover {
+            background: #455a64;
+        }
+        .action-btn {
+            background: none;
+            border: 1px solid #ff9800;
+            color: #ff9800;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .action-btn:hover {
+            background-color: #ff9800;
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .admin-section-container {
+                width: 100%;
+                padding: 20px;
+            }
+            .admin-tabs {
+                flex-wrap: wrap;
+            }
+            .admin-tab {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>儿童注意力训练平台</h1>
+    </div>
+    <nav class="nav">
+        <ul>
+            <li><a href="knowledge.html">科普知识</a></li>
+            <li><a href="forum.html">家长论坛</a></li>
+            <li><a href="profile.html">个人中心</a></li>
+            <li><a href="admin.html" class="active">管理</a></li>
+            <li><a href="#" onclick="switchToChild()">切换到孩子端</a></li>
+            <li><a href="login.html" onclick="logout()">退出登录</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div class="admin-section-container">
+            <h2>管理面板</h2>
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="showAdminTab('knowledge-manage-tab')">科普知识管理</button>
+                <button class="admin-tab" onclick="showAdminTab('forum-manage-tab')">论坛管理</button>
+            </div>
+            
+            <div id="knowledge-manage-tab" class="admin-tab-content">
+                <div class="admin-form-card">
+                    <h3>添加新文章</h3>
+                    <div class="form-group">
+                        <label>标题 *</label>
+                        <input type="text" id="admin-knowledge-title" placeholder="请输入标题">
+                    </div>
+                    <div class="form-group">
+                        <label>内容 *</label>
+                        <textarea id="admin-knowledge-content" placeholder="请输入内容" rows="6"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>分类</label>
+                            <select id="admin-knowledge-category">
+                                <option value="发展心理学">发展心理学</option>
+                                <option value="训练方法">训练方法</option>
+                                <option value="家庭教育">家庭教育</option>
+                                <option value="注意力类型">注意力类型</option>
+                                <option value="感知训练">感知训练</option>
+                                <option value="认知能力">认知能力</option>
+                                <option value="自控能力">自控能力</option>
+                                <option value="学习关联">学习关联</option>
+                                <option value="现代挑战">现代挑战</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label>难度级别</label>
+                            <select id="admin-knowledge-difficulty">
+                                <option value="初级">初级</option>
+                                <option value="中级" selected>中级</option>
+                                <option value="高级">高级</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>标签 (用逗号分隔)</label>
+                        <input type="text" id="admin-knowledge-tags" placeholder="例如: 注意力, 儿童发展, 关键期">
+                    </div>
+                    <div class="form-group">
+                        <label>摘要</label>
+                        <textarea id="admin-knowledge-summary" placeholder="文章摘要" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>作者</label>
+                            <input type="text" id="admin-knowledge-author" value="管理员">
+                        </div>
+                        <div class="form-group half">
+                            <label>阅读时间(分钟)</label>
+                            <input type="number" id="admin-knowledge-reading-time" value="3" min="1">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn" onclick="addKnowledgeArticle()">添加文章</button>
+                        <button class="btn btn-secondary" onclick="resetKnowledgeForm()">清空表单</button>
+                    </div>
+                </div>
+                <div class="admin-list-card">
+                    <h3>已有文章 <span id="knowledge-count"></span></h3>
+                    <div id="admin-knowledge-list">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="forum-manage-tab" class="admin-tab-content" style="display: none;">
+                <div class="admin-list-card">
+                    <h3>帖子管理 <span id="post-count"></span></h3>
+                    <div id="admin-forum-list">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <p>© 2026 注意力训练平台</p>
+    </div>
+
+    <script src="utils.js"></script>
+    <script>
+        function logout() {
+            StorageUtil.removeItem('userInfo');
+        }
+
+        function switchToChild() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (userInfo) {
+                userInfo.role = 'child';
+                StorageUtil.setItem('userInfo', userInfo);
+                window.location.href = 'child-home.html';
+            }
+        }
+
+        function checkAuth() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || (userInfo.role !== 'parent' && userInfo.role !== 'admin')) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return userInfo;
+        }
+
+        function showAdminTab(tabId) {
+            document.querySelectorAll('.admin-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabId).style.display = 'block';
+            event.target.classList.add('active');
+            
+            if (tabId === 'knowledge-manage-tab') {
+                loadAdminKnowledgeList();
+            } else if (tabId === 'forum-manage-tab') {
+                loadAdminForumList();
+            }
+        }
+
+        async function loadAdminKnowledgeList() {
+            try {
+                const response = await fetch('/api/knowledge/articles');
+                const data = await response.json();
+                const articles = Array.isArray(data) ? data : (data.articles || []);
+                
+                document.getElementById('knowledge-count').textContent = `(${articles.length}篇)`;
+                
+                const listContainer = document.getElementById('admin-knowledge-list');
+                if (articles.length === 0) {
+                    listContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">暂无文章</p>';
+                    return;
+                }
+                
+                listContainer.innerHTML = articles.map(article => `
+                    <div class="admin-article-item">
+                        <div class="admin-article-info">
+                            <h4>${article.title}</h4>
+                            <div class="admin-article-meta">
+                                <span>📁 ${article.category || '未分类'}</span>
+                                <span>👤 ${article.author || '未知'}</span>
+                                <span>📅 ${article.date || '-'}</span>
+                                <span>📊 ${article.difficulty || '未指定'}</span>
+                            </div>
+                        </div>
+                        <button class="action-btn" onclick="deleteKnowledgeArticle(${article.id})">
+                            🗑️ 删除
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载文章列表失败:', error);
+            }
+        }
+
+        async function addKnowledgeArticle() {
+            const title = document.getElementById('admin-knowledge-title').value.trim();
+            const content = document.getElementById('admin-knowledge-content').value.trim();
+            const category = document.getElementById('admin-knowledge-category').value;
+            const summary = document.getElementById('admin-knowledge-summary').value.trim();
+            const difficulty = document.getElementById('admin-knowledge-difficulty').value;
+            const tags = document.getElementById('admin-knowledge-tags').value.trim();
+            const author = document.getElementById('admin-knowledge-author').value.trim() || '管理员';
+            const readingTime = parseInt(document.getElementById('admin-knowledge-reading-time').value) || 3;
+            
+            if (!title || !content) {
+                alert('请填写标题和内容');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/knowledge/articles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        category: category,
+                        summary: summary,
+                        difficulty: difficulty,
+                        tags: tags ? tags.split(',').map(t => t.trim()) : [],
+                        author: author,
+                        reading_time: readingTime,
+                        date: new Date().toISOString().split('T')[0]
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resetKnowledgeForm();
+                    loadAdminKnowledgeList();
+                    alert('添加成功');
+                } else {
+                    alert(result.error || '添加失败');
+                }
+            } catch (error) {
+                console.error('添加文章失败:', error);
+                alert('添加失败，请稍后再试');
+            }
+        }
+
+        function resetKnowledgeForm() {
+            document.getElementById('admin-knowledge-title').value = '';
+            document.getElementById('admin-knowledge-content').value = '';
+            document.getElementById('admin-knowledge-summary').value = '';
+            document.getElementById('admin-knowledge-tags').value = '';
+            document.getElementById('admin-knowledge-author').value = '管理员';
+            document.getElementById('admin-knowledge-reading-time').value = '3';
+            document.getElementById('admin-knowledge-category').value = '发展心理学';
+            document.getElementById('admin-knowledge-difficulty').value = '中级';
+        }
+
+        async function deleteKnowledgeArticle(articleId) {
+            if (!confirm('确定要删除这篇文章吗？')) return;
+            
+            try {
+                const response = await fetch(`/api/knowledge/articles/${articleId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    loadAdminKnowledgeList();
+                    alert('删除成功');
+                } else {
+                    alert(result.error || '删除失败');
+                }
+            } catch (error) {
+                console.error('删除文章失败:', error);
+                alert('删除失败，请稍后再试');
+            }
+        }
+
+        async function loadAdminForumList() {
+            try {
+                const response = await fetch('/api/forum/posts?per_page=100');
+                const data = await response.json();
+                const posts = data.posts || [];
+                
+                document.getElementById('post-count').textContent = `(${data.total}篇)`;
+                
+                const listContainer = document.getElementById('admin-forum-list');
+                if (posts.length === 0) {
+                    listContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">暂无帖子</p>';
+                    return;
+                }
+                
+                listContainer.innerHTML = posts.map(post => `
+                    <div class="admin-post-item">
+                        <div class="admin-post-header">
+                            <h4>${post.title}</h4>
+                            <button class="action-btn" onclick="adminDeletePost(${post.id})">
+                                🗑️ 删除
+                            </button>
+                        </div>
+                        <div class="admin-post-content">${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}</div>
+                        <div class="admin-post-footer">
+                            <div>
+                                <span>👤 ${post.author_name}</span>
+                                <span style="margin-left: 15px;">📅 ${post.created_at}</span>
+                            </div>
+                            <div>
+                                <span>👁️ ${post.view_count || 0}</span>
+                                <span style="margin-left: 10px;">💬 ${post.comment_count || 0}</span>
+                                <span style="margin-left: 10px;">👍 ${post.like_count || 0}</span>
+                                <span style="margin-left: 10px;">👎 ${post.dislike_count || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载帖子列表失败:', error);
+            }
+        }
+
+        async function adminDeletePost(postId) {
+            if (!confirm('确定要删除这篇帖子吗？')) return;
+            
+            const userInfo = StorageUtil.getItem('userInfo');
+            
+            try {
+                const response = await fetch(`/api/forum/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    loadAdminForumList();
+                    alert('删除成功');
+                } else {
+                    alert(result.error || '删除失败');
+                }
+            } catch (error) {
+                console.error('删除帖子失败:', error);
+                alert('删除失败，请稍后再试');
+            }
+        }
+
+        window.onload = function() {
+            const userInfo = checkAuth();
+            if (userInfo) {
+                if (userInfo.role !== 'admin') {
+                    window.location.href = 'profile.html';
+                    return;
+                }
+                loadAdminKnowledgeList();
+            }
+        };
+    </script>
+</body>
+
+</html>

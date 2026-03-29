@@ -329,9 +329,18 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    successMessage.textContent = '注册成功！正在跳转到登录页面...';
+                    const userInfo = {
+                        parent_id: result.parent_id,
+                        uid: result.uid,
+                        username: username,
+                        email: email,
+                        role: 'parent',
+                        children: children
+                    };
+                    StorageUtil.setItem('userInfo', userInfo);
+                    successMessage.textContent = '注册成功！正在跳转到个人中心...';
                     setTimeout(() => {
-                        window.location.href = 'login.html';
+                        window.location.href = 'profile.html';
                     }, 1500);
                 } else {
                     errorMessage.textContent = result.error || '注册失败';
