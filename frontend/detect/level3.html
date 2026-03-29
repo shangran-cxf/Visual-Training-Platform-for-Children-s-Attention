@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关卡3：追踪嫌疑人 - 注意力全能小侦探</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('../images/ground4.png');
+            background-size: cover;
+            background-position: center;
+            color: #333;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.4em;
+            color: white;
+        }
+
+        .game-area {
+            width: 800px;
+            height: 500px;
+            background-image: url('../images/grass.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .suspect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .suspect img {
+            width: 120px;
+            height: auto;
+        }
+
+        .click-effect {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .click-effect img {
+            width: 90px;
+            height: auto;
+        }
+
+        .target {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: rgba(76, 175, 80, 0.5);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .stats {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .timer {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: none;
+        }
+
+        .feedback h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='index.html'" style="
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>关卡3：追踪嫌疑人</h1>
+            <p>请跟随嫌疑人的移动，尽可能准确地点击嫌疑人</p>
+        </div>
+        <div class="game-area" id="game-area">
+            <div class="timer">时间：0s</div>
+            <div class="suspect" id="suspect"><img src="../images/thief.png" alt="嫌疑人"></div>
+            <div class="stats">
+                <div>精准度：<span id="accuracy">0</span>px</div>
+                <div>脱靶次数：<span id="off-target">0</span></div>
+                <div>滞后时间：<span id="lag-time">0</span>ms</div>
+            </div>
+            <div class="feedback" id="feedback">
+                <h3>关卡完成！</h3>
+                <p>追踪精准度：<span id="final-accuracy">0</span>px</p>
+                <p>追踪脱靶次数：<span id="final-off-target">0</span></p>
+                <p>追踪滞后时间：<span id="final-lag-time">0</span>ms</p>
+                <button class="btn" onclick="nextLevel()">下一关</button>
+            </div>
+        </div>
+
+    </div>
+    <script src="../utils.js"></script>
+    <script>
+        let suspect = document.getElementById('suspect');
+        let gameArea = document.getElementById('game-area');
+        let isGameStarted = false;
+        let isPaused = false;
+        let gameTime = 0;
+        let maxTime = 45; // 45秒
+        let startTime = 0;
+        let timeInterval;
+        let positions = [];
+        let currentPositionIndex = 0;
+        let accuracySum = 0;
+        let accuracyCount = 0;
+        let offTargetCount = 0;
+        let lagTimes = [];
+        let lastMoveTime = 0;
+        let gameInterval;
+
+        // 生成移动路径
+        function generatePath() {
+            positions = [];
+            const width = gameArea.offsetWidth;
+            const height = gameArea.offsetHeight;
+            const stepCount = 225; // 45秒，每秒5步
+            const suspectWidth = 120; // thief图片宽度
+            const suspectHeight = 120; // 预估thief图片高度
+
+            // 计算边界，确保嫌疑人不会超出背景边缘
+            const minX = suspectWidth / 2;
+            const maxX = width - suspectWidth / 2;
+            const minY = suspectHeight / 2;
+            const maxY = height - suspectHeight / 2;
+
+            // 每次都随机出现在背景上的某个地方
+            for (let i = 0; i < stepCount; i++) {
+                const x = Math.random() * (maxX - minX) + minX;
+                const y = Math.random() * (maxY - minY) + minY;
+                positions.push({ x, y });
+            }
+        }
+
+        // 移动嫌疑人
+        function moveSuspect() {
+            if (!isGameStarted || isPaused) return;
+
+            if (currentPositionIndex < positions.length) {
+                const pos = positions[currentPositionIndex];
+                // 使用requestAnimationFrame实现更流畅的动画
+                requestAnimationFrame(() => {
+                    suspect.style.left = `${pos.x}px`;
+                    suspect.style.top = `${pos.y}px`;
+                });
+                currentPositionIndex++;
+                lastMoveTime = Date.now();
+            } else {
+                endGame();
+            }
+        }
+
+        // 更新计时器
+        function updateTimer() {
+            if (!isGameStarted || isPaused) return;
+
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            document.querySelector('.timer').textContent = `时间：${currentTime}s`;
+            requestAnimationFrame(updateTimer);
+        }
+
+        // 处理点击
+        function handleClick(e) {
+            if (!isGameStarted || isPaused) return;
+
+            const rect = gameArea.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // 添加点击效果
+            const clickEffect = document.createElement('div');
+            clickEffect.className = 'click-effect';
+            clickEffect.innerHTML = '<img src="../images/click.png" alt="点击效果">';
+            clickEffect.style.left = `${clickX}px`;
+            clickEffect.style.top = `${clickY}px`;
+            gameArea.appendChild(clickEffect);
+
+            // 1秒后移除点击效果
+            setTimeout(() => {
+                if (clickEffect.parentNode) {
+                    clickEffect.parentNode.removeChild(clickEffect);
+                }
+            }, 1000);
+
+            const suspectRect = suspect.getBoundingClientRect();
+            const suspectX = suspectRect.left - rect.left + suspectRect.width / 2;
+            const suspectY = suspectRect.top - rect.top + suspectRect.height / 2;
+
+            // 计算距离
+            const distance = Math.sqrt(Math.pow(clickX - suspectX, 2) + Math.pow(clickY - suspectY, 2));
+            accuracySum += distance;
+            accuracyCount++;
+
+            // 计算滞后时间
+            const lagTime = Date.now() - lastMoveTime;
+            lagTimes.push(lagTime);
+
+            // 检查是否脱靶
+            if (distance > 60) {
+                offTargetCount++;
+            }
+
+            // 更新统计信息
+            updateStats();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
+            const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
+
+            document.getElementById('accuracy').textContent = avgAccuracy;
+            document.getElementById('off-target').textContent = offTargetCount;
+            document.getElementById('lag-time').textContent = avgLagTime;
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (isGameStarted) return;
+
+            // 重置游戏状态
+            generatePath();
+            currentPositionIndex = 0;
+            accuracySum = 0;
+            accuracyCount = 0;
+            offTargetCount = 0;
+            lagTimes = [];
+            gameTime = 0;
+
+            isGameStarted = true;
+            isPaused = false;
+            startTime = Date.now();
+            lastMoveTime = Date.now(); // 初始化lastMoveTime，修复滞后时间显示错误
+
+            // 添加点击事件
+            gameArea.addEventListener('click', handleClick);
+
+            // 开始移动嫌疑人（每1000ms移动一次）
+            gameInterval = setInterval(moveSuspect, 1000);
+
+            // 开始更新计时器
+            updateTimer();
+        }
+
+        // 暂停游戏
+        function pauseGame() {
+            if (!isGameStarted) return;
+
+            isPaused = !isPaused;
+        }
+
+        // 结束游戏
+        function endGame() {
+            isGameStarted = false;
+            clearInterval(gameInterval);
+
+            // 移除点击事件
+            gameArea.removeEventListener('click', handleClick);
+
+            // 计算结果
+            const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
+            const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
+
+            // 显示反馈
+            document.getElementById('final-accuracy').textContent = avgAccuracy;
+            document.getElementById('final-off-target').textContent = offTargetCount;
+            document.getElementById('final-lag-time').textContent = avgLagTime;
+            document.getElementById('feedback').style.display = 'block';
+
+            // 保存数据
+            const data = {
+                visual_tracking: 100 - Math.min(100, avgAccuracy), // 转换为0-100分
+                off_target_count: offTargetCount,
+                lag_time: avgLagTime
+            };
+            StorageUtil.setItem('level3_data', data);
+        }
+
+        // 下一关
+        function nextLevel() {
+            window.location.href = 'level4.html';
+        }
+
+        // 页面加载时自动开始游戏
+        window.onload = function () {
+            startGame();
+        };
+    </script>
+</body>
+
+</html>
