@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儿童注意力训练平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #4caf50 0%, #81c784 99%, #81c784 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="40" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.3)"/></svg>');
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(100px, 100px);
+            }
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.03);
+            }
+        }
+
+        .nav {
+            background-color: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav li {
+            display: inline;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 12px 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav a:hover::before {
+            left: 100%;
+        }
+
+        .nav a:hover {
+            background-color: #4caf50;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+
+        .nav a.active {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            color: white;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .forum-section,
+        .report-section,
+        .profile-section,
+        .knowledge-section {
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .forum-section::before,
+        .report-section::before,
+        .profile-section::before,
+        .knowledge-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #4caf50, #81c784, #a5d6a7, #c8e6c9);
+        }
+
+        .section h2 {
+            color: #2e7d32;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            animation: bounce 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .forum-posts {
+            margin-bottom: 30px;
+        }
+
+        .new-post-form {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .new-post-form h3 {
+            color: #2e7d32;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+
+        .forum-post {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .forum-post::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .forum-post:hover::before {
+            transform: scaleX(1);
+        }
+
+        .forum-post:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .forum-post h3 {
+            color: #333;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .forum-post:hover h3 {
+            color: #2e7d32;
+        }
+
+        .forum-post p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .forum-post .post-meta {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid #4caf50;
+            color: #4caf50;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn:hover {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .action-btn.liked {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .action-btn.disliked {
+            background-color: #f44336;
+            border-color: #f44336;
+            color: white;
+        }
+
+        .post-comments {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: none;
+        }
+
+        .post-comments.show {
+            display: block;
+        }
+
+        .comment {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .comment .comment-meta {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .comment-form {
+            margin-top: 20px;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .comment-form textarea:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+
+        .report-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .report-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .report-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .report-card:hover h3 {
+            color: #2e7d32;
+        }
+
+        .report-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .report-card .report-date {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .profile-info {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-info:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-info h3 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #4caf50;
+            padding-bottom: 10px;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .profile-info:hover h3 {
+            color: #2e7d32;
+            transform: scale(1.05);
+        }
+
+        .profile-info .info-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(76, 175, 80, 0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .profile-info .info-item:hover {
+            background-color: rgba(76, 175, 80, 0.1);
+            transform: translateX(5px);
+        }
+
+        .profile-info .info-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .profile-info .info-value {
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .knowledge-articles {
+            margin-bottom: 30px;
+        }
+
+        .knowledge-article {
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .knowledge-article::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .knowledge-article:hover::before {
+            transform: scaleX(1);
+        }
+
+        .knowledge-article:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .knowledge-article h3 {
+            color: #333;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .knowledge-article:hover h3 {
+            color: #2e7d32;
+        }
+
+        .knowledge-article p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .knowledge-article .article-meta {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .footer {
+            background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+            color: white;
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer p {
+            margin: 0;
+            font-size: 16px;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        @media (max-width: 768px) {
+            .nav ul {
+                gap: 10px;
+            }
+
+            .nav a {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .section h2 {
+                font-size: 1.6em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>儿童注意力训练平台</h1>
+    </div>
+    <nav class="nav">
+        <ul>
+            <li><a href="#knowledge" class="active" onclick="showSection('knowledge')">科普知识</a></li>
+            <li><a href="#forum" onclick="showSection('forum')">家长论坛</a></li>
+            <li><a href="#report" onclick="showSection('report')">孩子报告</a></li>
+            <li><a href="#profile" onclick="showSection('profile')">个人资料</a></li>
+            <li><a href="#" onclick="switchToChild()">切换到孩子端</a></li>
+            <li><a href="login.html" onclick="logout()">退出登录</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div id="knowledge" class="section active">
+            <div class="knowledge-section">
+                <h2>注意力科普知识</h2>
+                <div class="knowledge-articles">
+                    <div class="knowledge-article">
+                        <h3>注意力发展的关键期</h3>
+                        <p>6-12岁是儿童注意力发展的关键时期，这个阶段的注意力训练对孩子的学习和生活有着重要影响。科学研究表明，通过有针对性的训练，可以显著提升孩子的注意力水平。</p>
+                        <div class="article-meta">发布时间: 2026-03-01</div>
+                    </div>
+                    <div class="knowledge-article">
+                        <h3>注意力训练的科学方法</h3>
+                        <p>注意力训练应该遵循科学的方法，包括选择性注意、持续性注意、视觉追踪、工作记忆和抑制控制五个维度的训练。通过游戏化的方式，让孩子在愉快的氛围中提升注意力。</p>
+                        <div class="article-meta">发布时间: 2026-02-15</div>
+                    </div>
+                    <div class="knowledge-article">
+                        <h3>家庭环境对注意力的影响</h3>
+                        <p>家庭环境对孩子的注意力发展有着重要影响。家长应该为孩子创造一个安静、有序的学习环境，减少干扰，同时培养孩子的良好习惯，如规律作息、适当运动等。</p>
+                        <div class="article-meta">发布时间: 2026-02-01</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="forum" class="section">
+            <div class="forum-section">
+                <h2>家长论坛</h2>
+
+                <!-- 新帖子表单 -->
+                <div class="new-post-form">
+                    <h3>发布新帖子</h3>
+                    <div class="form-group">
+                        <label for="post-title">标题</label>
+                        <input type="text" id="post-title" placeholder="请输入帖子标题">
+                    </div>
+                    <div class="form-group">
+                        <label for="post-content">内容</label>
+                        <textarea id="post-content" placeholder="请输入帖子内容"></textarea>
+                    </div>
+                    <button class="btn" onclick="createPost()">发布帖子</button>
+                </div>
+
+                <div class="forum-posts" id="forum-posts">
+                    <div class="forum-post" data-post-id="1">
+                        <h3>孩子注意力不集中怎么办？</h3>
+                        <p>我家孩子今年8岁，上课总是注意力不集中，容易走神，请问有什么好的训练方法吗？</p>
+                        <div class="post-meta">发帖人: 家长1 | 发布时间: 2026-03-20</div>
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="toggleComments(1)">
+                                💬 查看评论 (2)
+                            </button>
+                            <button class="action-btn" onclick="likePost(1)">
+                                👍 点赞 (5)
+                            </button>
+                            <button class="action-btn" onclick="dislikePost(1)">
+                                👎 踩 (0)
+                            </button>
+                        </div>
+                        <div class="post-comments" id="comments-1">
+                            <div class="comment">
+                                <div class="comment-meta">家长2 | 2026-03-21</div>
+                                <p>我家孩子也有类似问题，后来使用了舒尔特方格训练，效果不错，建议试试！</p>
+                            </div>
+                            <div class="comment">
+                                <div class="comment-meta">家长3 | 2026-03-22</div>
+                                <p>要注意孩子的作息时间，保证充足的睡眠对注意力也很重要。</p>
+                            </div>
+                            <div class="comment-form">
+                                <textarea id="comment-content-1" placeholder="写下你的评论..."></textarea>
+                                <button class="btn" onclick="addComment(1)">发表评论</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="forum-post" data-post-id="2">
+                        <h3>训练效果分享</h3>
+                        <p>我家孩子使用这个平台训练了一个月，注意力明显提升，现在做作业更加专注了，感谢平台！</p>
+                        <div class="post-meta">发帖人: 家长2 | 发布时间: 2026-03-15</div>
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="toggleComments(2)">
+                                💬 查看评论 (1)
+                            </button>
+                            <button class="action-btn" onclick="likePost(2)">
+                                👍 点赞 (8)
+                            </button>
+                            <button class="action-btn" onclick="dislikePost(2)">
+                                👎 踩 (0)
+                            </button>
+                        </div>
+                        <div class="post-comments" id="comments-2">
+                            <div class="comment">
+                                <div class="comment-meta">家长1 | 2026-03-16</div>
+                                <p>恭喜！请问你家孩子每天训练多长时间？</p>
+                            </div>
+                            <div class="comment-form">
+                                <textarea id="comment-content-2" placeholder="写下你的评论..."></textarea>
+                                <button class="btn" onclick="addComment(2)">发表评论</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="forum-post" data-post-id="3">
+                        <h3>如何平衡训练和学习时间？</h3>
+                        <p>孩子每天作业很多，如何合理安排训练时间，既不影响学习，又能达到训练效果？</p>
+                        <div class="post-meta">发帖人: 家长3 | 发布时间: 2026-03-10</div>
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="toggleComments(3)">
+                                💬 查看评论 (0)
+                            </button>
+                            <button class="action-btn" onclick="likePost(3)">
+                                👍 点赞 (3)
+                            </button>
+                            <button class="action-btn" onclick="dislikePost(3)">
+                                👎 踩 (0)
+                            </button>
+                        </div>
+                        <div class="post-comments" id="comments-3">
+                            <div class="comment-form">
+                                <textarea id="comment-content-3" placeholder="写下你的评论..."></textarea>
+                                <button class="btn" onclick="addComment(3)">发表评论</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="report" class="section">
+            <div class="report-section">
+                <h2>孩子报告</h2>
+                <div class="report-card">
+                    <h3>综合评估报告</h3>
+                    <p>孩子在五个维度的注意力水平评估，包括选择性注意、持续性注意、视觉追踪、工作记忆和抑制控制。</p>
+                    <div class="report-date">生成时间: 2026-03-25</div>
+                    <button class="btn" onclick="viewReport('assessment/parent.html')">查看详细报告</button>
+                </div>
+                <div class="report-card">
+                    <h3>训练进度报告</h3>
+                    <p>孩子最近的训练情况，包括训练次数、完成情况和进步趋势。</p>
+                    <div class="report-date">生成时间: 2026-03-20</div>
+                    <button class="btn">查看详细报告</button>
+                </div>
+            </div>
+        </div>
+        <div id="profile" class="section">
+            <div class="profile-section">
+                <h2>个人资料</h2>
+                <div class="profile-info">
+                    <h3>家长信息</h3>
+                    <div class="info-item">
+                        <span class="info-label">用户名:</span>
+                        <span class="info-value">parent1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">邮箱:</span>
+                        <span class="info-value">parent1@example.com</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">孩子姓名:</span>
+                        <span class="info-value" id="child-name">小明</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">孩子年龄:</span>
+                        <span class="info-value" id="child-age">8岁</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">注册时间:</span>
+                        <span class="info-value">2026-01-01</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <p>© 2026 注意力训练平台</p>
+    </div>
+    <script src="utils.js"></script>
+    <script>
+        // 显示指定板块
+        function showSection(sectionId) {
+            // 隐藏所有板块
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            // 显示选中的板块
+            document.getElementById(sectionId).classList.add('active');
+
+            // 更新导航栏状态
+            document.querySelectorAll('.nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`.nav a[href="#${sectionId}"]`).classList.add('active');
+        }
+
+        // 查看报告
+        function viewReport(url) {
+            window.location.href = url;
+        }
+
+        // 退出登录
+        function logout() {
+            StorageUtil.removeItem('userInfo');
+        }
+
+        // 切换到孩子端
+        function switchToChild() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (userInfo) {
+                showPasswordModal('切换到孩子端', '请输入密码以切换到孩子端：', function (password) {
+                    if (password === userInfo.password) {
+                        userInfo.role = 'child';
+                        StorageUtil.setItem('userInfo', userInfo);
+
+                        // 直接跳转到孩子端主页，不再检查isFirstTime
+                        // 综合检测现在作为孩子端的一个版块
+                        window.location.href = 'child-home.html';
+                    } else {
+                        showPasswordModal('密码错误', '密码错误，无法切换', function () { }, true);
+                    }
+                });
+            }
+        }
+
+        // 论坛功能
+
+        // 初始化论坛数据
+        function initForum() {
+            const posts = StorageUtil.getItem('forum_posts') || [];
+            if (posts.length > 0) {
+                const forumPosts = document.getElementById('forum-posts');
+                forumPosts.innerHTML = '';
+                posts.forEach(post => {
+                    const postHTML = `
+                        <div class="forum-post" data-post-id="${post.id}">
+                            <h3>${post.title}</h3>
+                            <p>${post.content}</p>
+                            <div class="post-meta">发帖人: ${post.username} | 发布时间: ${post.date}</div>
+                            <div class="post-actions">
+                                <button class="action-btn" onclick="toggleComments(${post.id})">&nbsp;💬 查看评论 (${post.comments.length})&nbsp;</button>
+                                <button class="action-btn" onclick="likePost(${post.id})">&nbsp;👍 点赞 (${post.likes})&nbsp;</button>
+                                <button class="action-btn" onclick="dislikePost(${post.id})">&nbsp;👎 踩 (${post.dislikes})&nbsp;</button>
+                            </div>
+                            <div class="post-comments" id="comments-${post.id}">
+                                ${post.comments.map(comment => `
+                                    <div class="comment">
+                                        <div class="comment-meta">${comment.username} | ${comment.date}</div>
+                                        <p>${comment.content}</p>
+                                    </div>
+                                `).join('')}
+                                <div class="comment-form">
+                                    <textarea id="comment-content-${post.id}" placeholder="写下你的评论..."></textarea>
+                                    <button class="btn" onclick="addComment(${post.id})">&nbsp;发表评论&nbsp;</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    forumPosts.insertAdjacentHTML('afterbegin', postHTML);
+                });
+            }
+        }
+
+        // 保存论坛数据
+        function saveForumData() {
+            const posts = [];
+            document.querySelectorAll('.forum-post').forEach(post => {
+                const postId = post.dataset.postId;
+                const title = post.querySelector('h3').textContent;
+                const content = post.querySelector('p').textContent;
+                const meta = post.querySelector('.post-meta').textContent;
+                const username = meta.split(' | ')[0].replace('发帖人: ', '');
+                const date = meta.split(' | ')[1].replace('发布时间: ', '');
+                const likeBtn = post.querySelector('.action-btn:nth-child(2)');
+                const dislikeBtn = post.querySelector('.action-btn:nth-child(3)');
+                const likeCount = parseInt(likeBtn.textContent.match(/\d+/)[0]);
+                const dislikeCount = parseInt(dislikeBtn.textContent.match(/\d+/)[0]);
+                const comments = [];
+                post.querySelectorAll('.comment').forEach(comment => {
+                    const commentMeta = comment.querySelector('.comment-meta').textContent;
+                    const commentUsername = commentMeta.split(' | ')[0];
+                    const commentDate = commentMeta.split(' | ')[1];
+                    const commentContent = comment.querySelector('p').textContent;
+                    comments.push({
+                        username: commentUsername,
+                        date: commentDate,
+                        content: commentContent
+                    });
+                });
+                posts.push({
+                    id: postId,
+                    title: title,
+                    content: content,
+                    username: username,
+                    date: date,
+                    likes: likeCount,
+                    dislikes: dislikeCount,
+                    comments: comments
+                });
+            });
+            StorageUtil.setItem('forum_posts', posts);
+        }
+
+        // 创建新帖子
+        function createPost() {
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+
+            if (!title || !content) {
+                alert('请填写标题和内容');
+                return;
+            }
+
+            const userInfo = StorageUtil.getItem('userInfo');
+            const username = userInfo ? userInfo.username : '家长';
+            const now = new Date();
+            const dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
+            const postId = Date.now();
+
+            const postHTML = `
+                <div class="forum-post" data-post-id="${postId}">
+                    <h3>${title}</h3>
+                    <p>${content}</p>
+                    <div class="post-meta">发帖人: ${username} | 发布时间: ${dateStr}</div>
+                    <div class="post-actions">
+                        <button class="action-btn" onclick="toggleComments(${postId})">&nbsp;💬 查看评论 (0)&nbsp;</button>
+                        <button class="action-btn" onclick="likePost(${postId})">&nbsp;👍 点赞 (0)&nbsp;</button>
+                        <button class="action-btn" onclick="dislikePost(${postId})">&nbsp;👎 踩 (0)&nbsp;</button>
+                    </div>
+                    <div class="post-comments" id="comments-${postId}">
+                        <div class="comment-form">
+                            <textarea id="comment-content-${postId}" placeholder="写下你的评论..."></textarea>
+                            <button class="btn" onclick="addComment(${postId})">&nbsp;发表评论&nbsp;</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('forum-posts').insertAdjacentHTML('afterbegin', postHTML);
+
+            // 保存数据
+            saveForumData();
+
+            // 清空表单
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-content').value = '';
+        }
+
+        // 切换评论显示/隐藏
+        function toggleComments(postId) {
+            const commentsDiv = document.getElementById(`comments-${postId}`);
+            commentsDiv.classList.toggle('show');
+        }
+
+        // 点赞帖子
+        function likePost(postId) {
+            const post = document.querySelector(`.forum-post[data-post-id="${postId}"]`);
+            const likeBtn = post.querySelector('.action-btn:nth-child(2)');
+            const dislikeBtn = post.querySelector('.action-btn:nth-child(3)');
+
+            // 移除踩的状态
+            dislikeBtn.classList.remove('disliked');
+
+            // 切换点赞状态
+            likeBtn.classList.toggle('liked');
+
+            // 更新点赞数
+            const likeText = likeBtn.textContent;
+            let likeCount = parseInt(likeText.match(/\d+/)[0]);
+            if (likeBtn.classList.contains('liked')) {
+                likeCount++;
+            } else {
+                likeCount--;
+            }
+            likeBtn.innerHTML = `👍 点赞 (${likeCount})`;
+
+            // 保存数据
+            saveForumData();
+        }
+
+        // 踩帖子
+        function dislikePost(postId) {
+            const post = document.querySelector(`.forum-post[data-post-id="${postId}"]`);
+            const likeBtn = post.querySelector('.action-btn:nth-child(2)');
+            const dislikeBtn = post.querySelector('.action-btn:nth-child(3)');
+
+            // 移除点赞的状态
+            likeBtn.classList.remove('liked');
+
+            // 切换踩状态
+            dislikeBtn.classList.toggle('disliked');
+
+            // 更新踩数
+            const dislikeText = dislikeBtn.textContent;
+            let dislikeCount = parseInt(dislikeText.match(/\d+/)[0]);
+            if (dislikeBtn.classList.contains('disliked')) {
+                dislikeCount++;
+            } else {
+                dislikeCount--;
+            }
+            dislikeBtn.innerHTML = `👎 踩 (${dislikeCount})`;
+
+            // 保存数据
+            saveForumData();
+        }
+
+        // 添加评论
+        function addComment(postId) {
+            const commentContent = document.getElementById(`comment-content-${postId}`).value;
+
+            if (!commentContent) {
+                alert('请输入评论内容');
+                return;
+            }
+
+            const userInfo = StorageUtil.getItem('userInfo');
+            const username = userInfo ? userInfo.username : '家长';
+            const now = new Date();
+            const dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
+            const commentHTML = `
+                <div class="comment">
+                    <div class="comment-meta">${username} | ${dateStr}</div>
+                    <p>${commentContent}</p>
+                </div>
+            `;
+
+            const commentsDiv = document.getElementById(`comments-${postId}`);
+            const commentForm = commentsDiv.querySelector('.comment-form');
+            const commentDiv = document.createElement('div');
+            commentDiv.innerHTML = commentHTML;
+            commentsDiv.insertBefore(commentDiv, commentForm);
+
+            // 清空评论输入框
+            document.getElementById(`comment-content-${postId}`).value = '';
+
+            // 更新评论数
+            const post = document.querySelector(`.forum-post[data-post-id="${postId}"]`);
+            const commentBtn = post.querySelector('.action-btn:nth-child(1)');
+            const commentText = commentBtn.textContent;
+            let commentCount = parseInt(commentText.match(/\d+/)[0]);
+            commentCount++;
+            commentBtn.innerHTML = `💬 查看评论 (${commentCount})`;
+
+            // 显示评论区
+            commentsDiv.classList.add('show');
+
+            // 保存数据
+            saveForumData();
+        }
+
+        // 显示密码输入弹窗
+        function showPasswordModal(title, message, callback, isError = false) {
+            // 创建弹窗容器
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease-in-out;
+            `;
+
+            // 创建弹窗内容
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+                border-radius: 20px;
+                padding: 40px;
+                width: 90%;
+                max-width: 400px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                position: relative;
+                animation: bounceIn 0.5s ease-in-out;
+                border: 4px solid #4caf50;
+            `;
+
+            // 创建标题
+            const modalTitle = document.createElement('h3');
+            modalTitle.textContent = title;
+            modalTitle.style.cssText = `
+                color: ${isError ? '#f44336' : '#2e7d32'};
+                margin-bottom: 20px;
+                text-align: center;
+                font-size: 1.8em;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+                animation: pulse 1.5s ease-in-out infinite alternate;
+            `;
+
+            // 创建消息
+            const modalMessage = document.createElement('p');
+            modalMessage.textContent = message;
+            modalMessage.style.cssText = `
+                color: #333;
+                margin-bottom: 30px;
+                text-align: center;
+                font-size: 1.1em;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            `;
+
+            // 创建密码输入框
+            const passwordInput = document.createElement('input');
+            passwordInput.type = 'password';
+            passwordInput.placeholder = '请输入密码';
+            passwordInput.style.cssText = `
+                width: 100%;
+                padding: 15px;
+                border: 3px solid #f0f0f0;
+                border-radius: 15px;
+                font-size: 16px;
+                margin-bottom: 20px;
+                text-align: center;
+                transition: all 0.3s ease;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            `;
+
+            passwordInput.onfocus = function () {
+                this.borderColor = '#4caf50';
+                this.boxShadow = '0 0 10px rgba(76, 175, 80, 0.3)';
+            };
+
+            // 创建按钮容器
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.cssText = `
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+            `;
+
+            // 创建确认按钮
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = isError ? '确定' : '确认';
+            confirmButton.style.cssText = `
+                background: linear-gradient(90deg, ${isError ? '#f44336' : '#4caf50'}, ${isError ? '#ef5350' : '#81c784'});
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 30px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                animation: pulse 2s ease-in-out infinite alternate;
+            `;
+
+            confirmButton.onmouseover = function () {
+                this.transform = 'translateY(-3px) scale(1.05)';
+                this.boxShadow = `0 5px 15px rgba(${isError ? '244, 67, 54' : '76, 175, 80'}, 0.4)`;
+            };
+
+            // 创建取消按钮（仅在非错误模式下显示）
+            if (!isError) {
+                const cancelButton = document.createElement('button');
+                cancelButton.textContent = '取消';
+                cancelButton.style.cssText = `
+                    background: linear-gradient(90deg, #9e9e9e, #bdbdbd);
+                    color: white;
+                    border: none;
+                    padding: 12px 30px;
+                    border-radius: 30px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                `;
+
+                cancelButton.onmouseover = function () {
+                    this.transform = 'translateY(-3px) scale(1.05)';
+                    this.boxShadow = '0 5px 15px rgba(158, 158, 158, 0.4)';
+                };
+
+                cancelButton.onclick = function () {
+                    document.body.removeChild(modal);
+                };
+
+                buttonContainer.appendChild(cancelButton);
+            }
+
+            // 确认按钮点击事件
+            confirmButton.onclick = function () {
+                if (isError) {
+                    document.body.removeChild(modal);
+                } else {
+                    const password = passwordInput.value;
+                    document.body.removeChild(modal);
+                    callback(password);
+                }
+            };
+
+            // 按Enter键确认
+            passwordInput.onkeypress = function (e) {
+                if (e.key === 'Enter' && !isError) {
+                    const password = passwordInput.value;
+                    document.body.removeChild(modal);
+                    callback(password);
+                }
+            };
+
+            // 添加元素到弹窗
+            modalContent.appendChild(modalTitle);
+            modalContent.appendChild(modalMessage);
+            if (!isError) {
+                modalContent.appendChild(passwordInput);
+            }
+            modalContent.appendChild(buttonContainer);
+            buttonContainer.appendChild(confirmButton);
+            modal.appendChild(modalContent);
+
+            // 添加到页面
+            document.body.appendChild(modal);
+
+            // 自动聚焦密码输入框
+            if (!isError) {
+                passwordInput.focus();
+            }
+        }
+
+        // 页面加载时检查用户登录状态
+        window.onload = function () {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || userInfo.role !== 'parent') {
+                window.location.href = 'login.html';
+            } else {
+                // 显示孩子信息
+                if (userInfo.childName) {
+                    document.getElementById('child-name').textContent = userInfo.childName;
+                }
+                if (userInfo.childAge) {
+                    document.getElementById('child-age').textContent = userInfo.childAge + '岁';
+                }
+                // 初始化论坛数据
+                initForum();
+            }
+        };
+    </script>
+</body>
+
+</html>
