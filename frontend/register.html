@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f0f8ff;
@@ -20,7 +18,6 @@
             display: flex;
             flex-direction: column;
         }
-
         .container {
             flex: 1;
             display: flex;
@@ -29,48 +26,40 @@
             justify-content: center;
             padding: 20px;
         }
-
         .header {
             text-align: center;
             margin-bottom: 40px;
         }
-
         .header h1 {
             color: #4CAF50;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
-
         .header p {
             font-size: 1.2em;
             color: #666;
         }
-
         .register-card {
             background-color: white;
             border-radius: 15px;
             padding: 40px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
         }
-
         .register-card h2 {
             color: #4CAF50;
             margin-bottom: 30px;
             text-align: center;
         }
-
         .form-group {
             margin-bottom: 20px;
         }
-
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
-
         .form-group input {
             width: 100%;
             padding: 12px;
@@ -78,55 +67,69 @@
             border-radius: 10px;
             font-size: 16px;
         }
-
         .form-group input:focus {
             outline: none;
             border-color: #4CAF50;
         }
-
-        .role-selection {
-            margin-bottom: 30px;
+        .children-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
         }
-
-        .role-selection h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .role-options {
-            display: flex;
-            gap: 20px;
-        }
-
-        .role-option {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #f0f0f0;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .role-option:hover {
-            border-color: #4CAF50;
-        }
-
-        .role-option.selected {
-            border-color: #4CAF50;
-            background-color: #f9f9f9;
-        }
-
-        .role-option h4 {
+        .children-section h3 {
             color: #4CAF50;
-            margin-bottom: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-
-        .role-option p {
+        .children-section h3 button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-size: 14px;
-            color: #666;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-
+        .children-section h3 button:hover {
+            background-color: #45a049;
+        }
+        .child-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .child-item .remove-child {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .child-item .remove-child:hover {
+            background-color: #d32f2f;
+        }
+        .child-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .child-fields .form-group {
+            margin-bottom: 0;
+        }
         .btn {
             width: 100%;
             background-color: #4CAF50;
@@ -137,26 +140,28 @@
             font-size: 18px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-top: 20px;
         }
-
         .btn:hover {
             background-color: #45a049;
         }
-
         .footer {
             text-align: center;
             margin-top: 30px;
             color: #666;
         }
-
         .error-message {
             color: #f44336;
             margin-bottom: 20px;
             text-align: center;
         }
+        .success-message {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
@@ -164,31 +169,49 @@
             <p>专为6-12岁儿童设计的注意力训练平台</p>
         </div>
         <div class="register-card">
-            <h2>注册</h2>
+            <h2>家长注册</h2>
             <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+            
             <div class="form-group">
-                <label for="username">用户名</label>
+                <label for="username">用户名 *</label>
                 <input type="text" id="username" placeholder="请输入用户名">
             </div>
             <div class="form-group">
-                <label for="password">密码</label>
+                <label for="email">邮箱</label>
+                <input type="email" id="email" placeholder="请输入邮箱（选填）">
+            </div>
+            <div class="form-group">
+                <label for="password">密码 *</label>
                 <input type="password" id="password" placeholder="请输入密码">
             </div>
             <div class="form-group">
-                <label for="confirm-password">确认密码</label>
+                <label for="confirm-password">确认密码 *</label>
                 <input type="password" id="confirm-password" placeholder="请再次输入密码">
             </div>
-            <div class="child-info">
-                <h3>孩子信息</h3>
-                <div class="form-group">
-                    <label for="child-name">孩子姓名</label>
-                    <input type="text" id="child-name" placeholder="请输入孩子姓名">
-                </div>
-                <div class="form-group">
-                    <label for="child-age">孩子年龄</label>
-                    <input type="number" id="child-age" placeholder="请输入孩子年龄" min="6" max="12">
+            
+            <div class="children-section">
+                <h3>
+                    <span>孩子信息</span>
+                    <button onclick="addChild()">+ 添加孩子</button>
+                </h3>
+                <div id="children-container">
+                    <div class="child-item" data-index="0">
+                        <button class="remove-child" onclick="removeChild(this)" style="display: none;">×</button>
+                        <div class="child-fields">
+                            <div class="form-group">
+                                <label>孩子姓名 *</label>
+                                <input type="text" class="child-name" placeholder="请输入孩子姓名">
+                            </div>
+                            <div class="form-group">
+                                <label>孩子年龄 *</label>
+                                <input type="number" class="child-age" placeholder="年龄" min="6" max="12">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
             <button class="btn" onclick="register()">注册</button>
             <p style="text-align: center; margin-top: 20px;">已有账号？<a href="login.html">立即登录</a></p>
         </div>
@@ -198,34 +221,99 @@
     </div>
     <script src="utils.js"></script>
     <script>
-        // 注册函数
+        let childCount = 1;
+        
+        function addChild() {
+            const container = document.getElementById('children-container');
+            const childItem = document.createElement('div');
+            childItem.className = 'child-item';
+            childItem.dataset.index = childCount;
+            childItem.innerHTML = `
+                <button class="remove-child" onclick="removeChild(this)">×</button>
+                <div class="child-fields">
+                    <div class="form-group">
+                        <label>孩子姓名</label>
+                        <input type="text" class="child-name" placeholder="请输入孩子姓名">
+                    </div>
+                    <div class="form-group">
+                        <label>孩子年龄</label>
+                        <input type="number" class="child-age" placeholder="年龄" min="6" max="12">
+                    </div>
+                </div>
+            `;
+            container.appendChild(childItem);
+            childCount++;
+            updateRemoveButtons();
+        }
+        
+        function removeChild(button) {
+            const childItem = button.parentElement;
+            childItem.remove();
+            updateRemoveButtons();
+        }
+        
+        function updateRemoveButtons() {
+            const items = document.querySelectorAll('.child-item');
+            items.forEach((item, index) => {
+                const removeBtn = item.querySelector('.remove-child');
+                removeBtn.style.display = items.length > 1 ? 'flex' : 'none';
+            });
+        }
+        
+        function getChildrenData() {
+            const children = [];
+            const items = document.querySelectorAll('.child-item');
+            items.forEach(item => {
+                const name = item.querySelector('.child-name').value.trim();
+                const age = item.querySelector('.child-age').value;
+                if (name && age) {
+                    children.push({ name: name, age: parseInt(age) });
+                }
+            });
+            return children;
+        }
+        
         async function register() {
-            const username = document.getElementById('username').value;
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
-            const childName = document.getElementById('child-name').value;
-            const childAge = document.getElementById('child-age').value;
             const errorMessage = document.getElementById('error-message');
-
-            // 简单验证
-            if (!username || !password || !confirmPassword || !childName || !childAge) {
-                errorMessage.textContent = '请填写所有字段';
+            const successMessage = document.getElementById('success-message');
+            
+            errorMessage.textContent = '';
+            successMessage.textContent = '';
+            
+            if (!username || !password || !confirmPassword) {
+                errorMessage.textContent = '请填写所有必填字段';
                 return;
             }
-
+            
             if (password !== confirmPassword) {
                 errorMessage.textContent = '两次输入的密码不一致';
                 return;
             }
-
-            if (childAge < 6 || childAge > 12) {
-                errorMessage.textContent = '孩子年龄必须在6-12岁之间';
+            
+            if (password.length < 6) {
+                errorMessage.textContent = '密码长度至少6位';
                 return;
             }
-
+            
+            const children = getChildrenData();
+            if (children.length === 0) {
+                errorMessage.textContent = '请至少添加一个孩子信息';
+                return;
+            }
+            
+            for (let child of children) {
+                if (child.age < 6 || child.age > 12) {
+                    errorMessage.textContent = '孩子年龄必须在6-12岁之间';
+                    return;
+                }
+            }
+            
             try {
-                // 调用后端API进行注册
-                const response = await fetch('http://localhost:5000/api/register', {
+                const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -233,19 +321,19 @@
                     body: JSON.stringify({
                         username: username,
                         password: password,
-                        role: 'parent',
-                        child_name: childName,
-                        child_age: childAge
+                        email: email,
+                        children: children
                     })
                 });
-
+                
                 const result = await response.json();
-
+                
                 if (response.ok) {
-                    // 注册成功，跳转到登录页面
-                    window.location.href = 'login.html';
+                    successMessage.textContent = '注册成功！正在跳转到登录页面...';
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
                 } else {
-                    // 注册失败
                     errorMessage.textContent = result.error || '注册失败';
                 }
             } catch (error) {
@@ -255,5 +343,4 @@
         }
     </script>
 </body>
-
 </html>

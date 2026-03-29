@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f0f8ff;
@@ -20,7 +18,6 @@
             display: flex;
             flex-direction: column;
         }
-
         .container {
             flex: 1;
             display: flex;
@@ -29,23 +26,19 @@
             justify-content: center;
             padding: 20px;
         }
-
         .header {
             text-align: center;
             margin-bottom: 40px;
         }
-
         .header h1 {
             color: #4CAF50;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
-
         .header p {
             font-size: 1.2em;
             color: #666;
         }
-
         .login-card {
             background-color: white;
             border-radius: 15px;
@@ -54,23 +47,19 @@
             width: 100%;
             max-width: 400px;
         }
-
         .login-card h2 {
             color: #4CAF50;
             margin-bottom: 30px;
             text-align: center;
         }
-
         .form-group {
             margin-bottom: 20px;
         }
-
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
-
         .form-group input {
             width: 100%;
             padding: 12px;
@@ -78,55 +67,10 @@
             border-radius: 10px;
             font-size: 16px;
         }
-
         .form-group input:focus {
             outline: none;
             border-color: #4CAF50;
         }
-
-        .role-selection {
-            margin-bottom: 30px;
-        }
-
-        .role-selection h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .role-options {
-            display: flex;
-            gap: 20px;
-        }
-
-        .role-option {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #f0f0f0;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .role-option:hover {
-            border-color: #4CAF50;
-        }
-
-        .role-option.selected {
-            border-color: #4CAF50;
-            background-color: #f9f9f9;
-        }
-
-        .role-option h4 {
-            color: #4CAF50;
-            margin-bottom: 5px;
-        }
-
-        .role-option p {
-            font-size: 14px;
-            color: #666;
-        }
-
         .btn {
             width: 100%;
             background-color: #4CAF50;
@@ -138,25 +82,90 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-
         .btn:hover {
             background-color: #45a049;
         }
-
         .footer {
             text-align: center;
             margin-top: 30px;
             color: #666;
         }
-
         .error-message {
             color: #f44336;
             margin-bottom: 20px;
             text-align: center;
         }
+        .role-selection-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .role-selection-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .role-options {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .role-option {
+            flex: 1;
+            padding: 20px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .role-option:hover {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+        }
+        .role-option.selected {
+            border-color: #4CAF50;
+            background-color: #f9f9f9;
+        }
+        .role-option h4 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .role-option p {
+            font-size: 14px;
+            color: #666;
+        }
+        .child-selection {
+            margin-bottom: 20px;
+        }
+        .child-item {
+            padding: 15px;
+            border: 2px solid #f0f0f0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .child-item:hover {
+            border-color: #4CAF50;
+        }
+        .child-item.selected {
+            border-color: #4CAF50;
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
@@ -174,7 +183,6 @@
                 <label for="password">密码</label>
                 <input type="password" id="password" placeholder="请输入密码">
             </div>
-
             <button class="btn" onclick="login()">登录</button>
             <p style="text-align: center; margin-top: 20px;">还没有账号？<a href="register.html">立即注册</a></p>
         </div>
@@ -184,21 +192,18 @@
     </div>
     <script src="utils.js"></script>
     <script>
-        // 登录函数
         async function login() {
-            const username = document.getElementById('username').value;
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('error-message');
-
-            // 简单验证
+            
             if (!username || !password) {
                 errorMessage.textContent = '请输入用户名和密码';
                 return;
             }
-
+            
             try {
-                // 调用后端API进行登录
-                const response = await fetch('http://localhost:5000/api/login', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -208,23 +213,22 @@
                         password: password
                     })
                 });
-
+                
                 const result = await response.json();
-
+                
                 if (response.ok) {
-                    // 登录成功，保存用户信息
                     const userInfo = {
-                        username: username,
-                        password: password,
-                        childName: result.child_name || '孩子',
-                        childAge: result.child_age || '8',
-                        isFirstTime: true // 模拟首次登录
+                        parent_id: result.parent_id,
+                        uid: result.uid,
+                        username: result.username,
+                        email: result.email,
+                        serverRole: result.role,
+                        children: result.children,
+                        password: password
                     };
-
-                    // 显示角色选择界面
+                    
                     showRoleSelection(userInfo);
                 } else {
-                    // 登录失败
                     errorMessage.textContent = result.error || '用户名或密码错误';
                 }
             } catch (error) {
@@ -232,75 +236,94 @@
                 errorMessage.textContent = '登录失败，请稍后再试';
             }
         }
-
-        // 显示角色选择界面
+        
         function showRoleSelection(userInfo) {
-            // 创建角色选择弹窗
             const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            overlay.style.display = 'flex';
-            overlay.style.justifyContent = 'center';
-            overlay.style.alignItems = 'center';
-            overlay.style.zIndex = '1000';
-
+            overlay.className = 'role-selection-overlay';
+            
             const selectionCard = document.createElement('div');
-            selectionCard.style.backgroundColor = 'white';
-            selectionCard.style.borderRadius = '15px';
-            selectionCard.style.padding = '40px';
-            selectionCard.style.width = '100%';
-            selectionCard.style.maxWidth = '400px';
-            selectionCard.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-
+            selectionCard.className = 'role-selection-card';
+            
             selectionCard.innerHTML = `
                 <h2 style="color: #4CAF50; margin-bottom: 30px; text-align: center;">选择角色</h2>
-                <div style="display: flex; gap: 20px; margin-bottom: 30px;">
-                    <div class="role-option" data-role="parent" style="flex: 1; padding: 15px; border: 2px solid #f0f0f0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease;">
-                        <h4 style="color: #4CAF50; margin-bottom: 5px;">家长</h4>
-                        <p style="font-size: 14px; color: #666;">查看报告和管理</p>
+                <div class="role-options">
+                    <div class="role-option" data-role="parent">
+                        <h4>👨‍👩‍👧 家长</h4>
+                        <p>查看报告和管理</p>
                     </div>
-                    <div class="role-option" data-role="child" style="flex: 1; padding: 15px; border: 2px solid #f0f0f0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s ease;">
-                        <h4 style="color: #4CAF50; margin-bottom: 5px;">孩子</h4>
-                        <p style="font-size: 14px; color: #666;">进入游戏和训练</p>
+                    <div class="role-option" data-role="child">
+                        <h4>👧 孩子</h4>
+                        <p>进入游戏和训练</p>
                     </div>
                 </div>
             `;
-
+            
             overlay.appendChild(selectionCard);
             document.body.appendChild(overlay);
-
-            // 添加角色选择事件
-            const roleOptions = overlay.querySelectorAll('.role-option');
+            
+            const roleOptions = selectionCard.querySelectorAll('.role-option');
             roleOptions.forEach(option => {
-                option.addEventListener('click', function () {
+                option.addEventListener('click', function() {
                     const selectedRole = this.dataset.role;
-                    userInfo.role = selectedRole;
-                    StorageUtil.setItem('userInfo', userInfo);
-
-                    // 移除弹窗
-                    document.body.removeChild(overlay);
-
-                    // 跳转到对应主页
+                    
                     if (selectedRole === 'child') {
-                        if (userInfo.isFirstTime) {
-                            // 首次登录，跳转到综合检测
-                            window.location.href = 'detect/index.html';
+                        if (userInfo.children && userInfo.children.length > 0) {
+                            showChildSelection(userInfo, overlay, selectionCard);
                         } else {
-                            // 非首次登录，跳转到孩子端主页
-                            window.location.href = 'child-home.html';
+                            alert('您还没有添加孩子信息，请先在家长端添加');
                         }
                     } else {
-                        // 家长端，跳转到家长端主页
+                        const serverRole = userInfo.serverRole || userInfo.role;
+                        if (serverRole === 'admin') {
+                            userInfo.role = 'admin';
+                        } else {
+                            userInfo.role = 'parent';
+                        }
+                        StorageUtil.setItem('userInfo', userInfo);
+                        document.body.removeChild(overlay);
                         window.location.href = 'parent-home.html';
                     }
                 });
             });
         }
+        
+        function showChildSelection(userInfo, overlay, selectionCard) {
+            selectionCard.innerHTML = `
+                <h2 style="color: #4CAF50; margin-bottom: 30px; text-align: center;">选择孩子</h2>
+                <div class="child-selection">
+                    ${userInfo.children.map(child => `
+                        <div class="child-item" data-child-id="${child.id}" data-child-name="${child.name}" data-child-age="${child.age}">
+                            <strong>${child.name}</strong>
+                            <span style="color: #666; margin-left: 10px;">${child.age}岁</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="btn" style="background-color: #666; margin-top: 10px;" onclick="backToRoleSelection()">返回</button>
+            `;
+            
+            const childItems = selectionCard.querySelectorAll('.child-item');
+            childItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const childId = this.dataset.childId;
+                    const childName = this.dataset.childName;
+                    const childAge = this.dataset.childAge;
+                    
+                    userInfo.role = 'child';
+                    userInfo.child_id = parseInt(childId);
+                    userInfo.child_name = childName;
+                    userInfo.child_age = parseInt(childAge);
+                    
+                    StorageUtil.setItem('userInfo', userInfo);
+                    document.body.removeChild(overlay);
+                    window.location.href = 'child-home.html';
+                });
+            });
+            
+            window.backToRoleSelection = function() {
+                document.body.removeChild(overlay);
+                showRoleSelection(userInfo);
+            };
+        }
     </script>
 </body>
-
 </html>
