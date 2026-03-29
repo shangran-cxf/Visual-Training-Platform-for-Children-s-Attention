@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>倒述数字/词汇 - 注意力训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .game-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item h3 {
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .display-area {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .display-text {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-area {
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .game-controls {
+            margin-top: 20px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 10px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .instructions {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .instructions h2 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            text-align: left;
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>倒述数字/词汇</h1>
+            <p>提升语音工作记忆广度</p>
+        </div>
+
+        <div class="instructions">
+            <h2>游戏说明</h2>
+            <ul>
+                <li>游戏会显示一组数字或词汇</li>
+                <li>你需要在显示结束后，按照相反的顺序输入这些数字或词汇</li>
+                <li>每轮游戏的难度会逐渐增加，内容长度会变长</li>
+                <li>正确倒述得分，错误则游戏结束</li>
+            </ul>
+        </div>
+
+        <div class="game-container">
+            <div class="game-info">
+                <div class="info-item">
+                    <h3>关卡</h3>
+                    <p id="level">1</p>
+                </div>
+                <div class="info-item">
+                    <h3>得分</h3>
+                    <p id="score">0</p>
+                </div>
+                <div class="info-item">
+                    <h3>时间</h3>
+                    <p id="time">30</p>
+                </div>
+            </div>
+
+            <div class="display-area">
+                <div class="display-text" id="displayText">点击开始游戏</div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="请输入倒述内容" disabled>
+            </div>
+
+            <div class="game-controls">
+                <button class="btn" id="startBtn">开始游戏</button>
+                <button class="btn" id="submitBtn" disabled>提交答案</button>
+                <button class="btn btn-secondary" onclick="window.location.href='../child-home.html'">返回游戏库</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 注意力训练平台</p>
+        </div>
+    </div>
+
+    <script src="../utils.js"></script>
+    <script>
+        // 游戏变量
+        let score = 0;
+        let level = 1;
+        let time = 30;
+        let gameState = 'ready'; // ready, displaying, input, gameOver
+        let currentSequence = [];
+        let timeInterval;
+
+        // 游戏配置
+        const config = {
+            sequenceLength: 3,
+            displayTime: 2000,
+            inputTime: 5000
+        };
+
+        // 词汇库
+        const wordList = ['苹果', '香蕉', '猫', '狗', '红色', '蓝色', '学校', '家庭', '朋友', '快乐'];
+
+        // 初始化游戏
+        function initGame() {
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+            document.getElementById('userInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (gameState === 'ready' || gameState === 'gameOver') {
+                score = 0;
+                level = 1;
+                time = 30;
+                gameState = 'displaying';
+
+                updateUI();
+                generateSequence();
+                displaySequence();
+
+                // 开始计时
+                timeInterval = setInterval(() => {
+                    time--;
+                    updateUI();
+                    if (time <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+        }
+
+        // 生成序列
+        function generateSequence() {
+            currentSequence = [];
+            const isWordRound = Math.random() > 0.5;
+
+            for (let i = 0; i < config.sequenceLength; i++) {
+                if (isWordRound) {
+                    // 生成词汇
+                    const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+                    currentSequence.push(randomWord);
+                } else {
+                    // 生成数字
+                    const randomNumber = Math.floor(Math.random() * 10);
+                    currentSequence.push(randomNumber.toString());
+                }
+            }
+        }
+
+        // 显示序列
+        function displaySequence() {
+            const displayText = document.getElementById('displayText');
+            displayText.textContent = currentSequence.join(' ');
+
+            // 禁用输入
+            document.getElementById('userInput').disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+
+            // 显示一段时间后隐藏
+            setTimeout(() => {
+                displayText.textContent = '请输入倒述内容';
+                gameState = 'input';
+
+                // 启用输入
+                document.getElementById('userInput').disabled = false;
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('userInput').focus();
+                document.getElementById('userInput').value = '';
+            }, config.displayTime);
+        }
+
+        // 检查答案
+        function checkAnswer() {
+            if (gameState === 'input') {
+                const userInput = document.getElementById('userInput').value.trim();
+                const correctAnswer = currentSequence.reverse().join(' ');
+
+                if (userInput === correctAnswer) {
+                    score += 10;
+                    level++;
+
+                    // 增加难度
+                    if (level % 3 === 0) {
+                        config.sequenceLength++;
+                    }
+
+                    gameState = 'displaying';
+                    generateSequence();
+                    displaySequence();
+                } else {
+                    endGame();
+                }
+            }
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState = 'gameOver';
+            clearInterval(timeInterval);
+
+            // 保存游戏数据
+            const gameData = {
+                gameName: 'reverse-memory',
+                score: score,
+                level: level,
+                timestamp: new Date().toISOString()
+            };
+
+            // 保存到本地存储
+            const trainingHistory = StorageUtil.getItem('training_history') || [];
+            trainingHistory.push(gameData);
+            StorageUtil.setItem('training_history', trainingHistory);
+
+            // 显示游戏结束信息
+            alert(`游戏结束！\n得分：${score}\n关卡：${level}`);
+        }
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('time').textContent = time;
+        }
+
+        // 页面加载时初始化游戏
+        window.onload = function () {
+            initGame();
+        };
+    </script>
+</body>
+
+</html>

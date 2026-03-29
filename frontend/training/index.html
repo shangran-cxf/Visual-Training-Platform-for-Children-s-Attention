@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专项训练 - 注意力全能小侦探</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .training-categories {
+            margin-bottom: 50px;
+        }
+
+        .category {
+            margin-bottom: 40px;
+        }
+
+        .category h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .game-card .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .game-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .game-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .recommended-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 50px;
+        }
+
+        .recommended-section h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>专项训练</h1>
+            <p>根据评估结果，选择适合的训练游戏</p>
+        </div>
+        <div class="recommended-section">
+            <h2>我的专属训练</h2>
+            <div class="games-grid" id="recommended-games">
+                <!-- 推荐游戏将通过JavaScript动态生成 -->
+                <div class="game-card">
+                    <div class="icon">🎯</div>
+                    <h3>分阶舒尔特方格</h3>
+                    <p>提升视觉搜索速度和目标筛选能力</p>
+                    <button class="btn" onclick="startGame('schulte')">开始训练</button>
+                </div>
+                <div class="game-card">
+                    <div class="icon">🌟</div>
+                    <h3>魔法迷宫</h3>
+                    <p>提升注意力持续时间和空间认知</p>
+                    <button class="btn" onclick="startGame('magic-maze')">开始训练</button>
+                </div>
+            </div>
+        </div>
+        <div class="training-categories">
+            <div class="category">
+                <h2>选择性注意训练</h2>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <div class="icon">🎯</div>
+                        <h3>分阶舒尔特方格</h3>
+                        <p>提升视觉搜索速度和目标筛选能力</p>
+                        <button class="btn" onclick="startGame('schulte')">开始训练</button>
+                    </div>
+                    <div class="game-card">
+                        <div class="icon">1️⃣</div>
+                        <h3>圈圈数字</h3>
+                        <p>提升视觉搜索能力和抗干扰能力</p>
+                        <button class="btn" onclick="startGame('find-numbers')">开始训练</button>
+                    </div>
+                </div>
+            </div>
+            <div class="category">
+                <h2>持续性注意训练</h2>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <div class="icon">🌟</div>
+                        <h3>魔法迷宫</h3>
+                        <p>提升注意力持续时间和空间认知</p>
+                        <button class="btn" onclick="startGame('magic-maze')">开始训练</button>
+                    </div>
+                    <div class="game-card">
+                        <div class="icon">📹</div>
+                        <h3>监控摄像头（进阶版）</h3>
+                        <p>提升目标持续识别能力</p>
+                        <button class="btn" onclick="startGame('water-plants')">开始训练</button>
+                    </div>
+                </div>
+            </div>
+            <div class="category">
+                <h2>视觉追踪训练</h2>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <div class="icon">☀️</div>
+                        <h3>追光小能手</h3>
+                        <p>提升视觉追踪精准度和眼动控制</p>
+                        <button class="btn" onclick="startGame('sun-tracking')">开始训练</button>
+                    </div>
+                    <div class="game-card">
+                        <div class="icon">🕵️</div>
+                        <h3>多目标追踪小侦探</h3>
+                        <p>提升注意力分配能力</p>
+                        <button class="btn" onclick="startGame('multi-target')">开始训练</button>
+                    </div>
+                </div>
+            </div>
+            <div class="category">
+                <h2>工作记忆训练</h2>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <div class="icon">🔢</div>
+                        <h3>倒述数字/词汇</h3>
+                        <p>提升语音工作记忆广度</p>
+                        <button class="btn" onclick="startGame('reverse-memory')">开始训练</button>
+                    </div>
+                    <div class="game-card">
+                        <div class="icon">🃏</div>
+                        <h3>卡牌配对记忆</h3>
+                        <p>提升视觉工作记忆能力</p>
+                        <button class="btn" onclick="startGame('card-matching')">开始训练</button>
+                    </div>
+                </div>
+            </div>
+            <div class="category">
+                <h2>抑制控制训练</h2>
+                <div class="games-grid">
+                    <div class="game-card">
+                        <div class="icon">🚦</div>
+                        <h3>红绿灯任务切换</h3>
+                        <p>提升抑制控制能力和减少冲动</p>
+                        <button class="btn" onclick="startGame('traffic-light')">开始训练</button>
+                    </div>
+                    <div class="game-card">
+                        <div class="icon">🎮</div>
+                        <h3>指令闯关大冒险</h3>
+                        <p>提升指令执行和认知灵活性</p>
+                        <button class="btn" onclick="startGame('command-adventure')">开始训练</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="window.location.href='../index.html'">返回首页</button>
+        </div>
+        <div class="footer">
+            <p>© 2026 注意力训练平台</p>
+        </div>
+    </div>
+    <script src="../utils.js"></script>
+    <script>
+        function startGame(gameName) {
+            // 根据游戏名称跳转到对应游戏页面
+            window.location.href = `${gameName}.html`;
+        }
+
+        // 生成推荐游戏
+        function generateRecommendedGames() {
+            // 获取检测数据
+            const detectionData = StorageUtil.getItem('detection_data');
+            if (detectionData) {
+                // 识别薄弱维度
+                const dimensions = [
+                    { name: '选择性注意', score: detectionData.selective_attention, games: ['schulte', 'find-numbers'] },
+                    { name: '持续性注意', score: detectionData.sustained_attention, games: ['magic-maze', 'water-plants'] },
+                    { name: '视觉追踪', score: detectionData.visual_tracking, games: ['sun-tracking', 'multi-target'] },
+                    { name: '工作记忆', score: detectionData.working_memory, games: ['reverse-memory', 'card-matching'] },
+                    { name: '抑制控制', score: detectionData.inhibitory_control, games: ['traffic-light', 'command-adventure'] }
+                ];
+
+                // 按得分排序，找出最薄弱的2个维度
+                const weakDimensions = [...dimensions].sort((a, b) => a.score - b.score).slice(0, 2);
+
+                // 生成推荐游戏
+                const recommendedGames = document.getElementById('recommended-games');
+                recommendedGames.innerHTML = '';
+
+                weakDimensions.forEach(dim => {
+                    // 为每个薄弱维度推荐一个游戏
+                    const gameName = dim.games[0];
+                    let gameTitle = '';
+                    let gameDescription = '';
+                    let gameIcon = '';
+
+                    switch (gameName) {
+                        case 'schulte':
+                            gameTitle = '分阶舒尔特方格';
+                            gameDescription = '提升视觉搜索速度和目标筛选能力';
+                            gameIcon = '🎯';
+                            break;
+                        case 'find-numbers':
+                            gameTitle = '圈圈数字';
+                            gameDescription = '提升视觉搜索能力和抗干扰能力';
+                            gameIcon = '1️⃣';
+                            break;
+                        case 'magic-maze':
+                            gameTitle = '魔法迷宫';
+                            gameDescription = '提升注意力持续时间和空间认知';
+                            gameIcon = '🌟';
+                            break;
+                        case 'water-plants':
+                            gameTitle = '监控摄像头（进阶版）';
+                            gameDescription = '提升目标持续识别能力';
+                            gameIcon = '📹';
+                            break;
+                        case 'sun-tracking':
+                            gameTitle = '追光小能手';
+                            gameDescription = '提升视觉追踪精准度和眼动控制';
+                            gameIcon = '☀️';
+                            break;
+                        case 'multi-target':
+                            gameTitle = '多目标追踪小侦探';
+                            gameDescription = '提升注意力分配能力';
+                            gameIcon = '🕵️';
+                            break;
+                        case 'reverse-memory':
+                            gameTitle = '倒述数字/词汇';
+                            gameDescription = '提升语音工作记忆广度';
+                            gameIcon = '1️⃣';
+                            break;
+                        case 'card-matching':
+                            gameTitle = '卡牌配对记忆';
+                            gameDescription = '提升视觉工作记忆能力';
+                            gameIcon = '🃏';
+                            break;
+                        case 'traffic-light':
+                            gameTitle = '红绿灯任务切换';
+                            gameDescription = '提升抑制控制能力和减少冲动';
+                            gameIcon = '🚦';
+                            break;
+                        case 'command-adventure':
+                            gameTitle = '指令闯关大冒险';
+                            gameDescription = '提升指令执行和认知灵活性';
+                            gameIcon = '🎮';
+                            break;
+                    }
+
+                    const gameCard = document.createElement('div');
+                    gameCard.className = 'game-card';
+                    gameCard.innerHTML = `
+                        <div class="icon">${gameIcon}</div>
+                        <h3>${gameTitle}</h3>
+                        <p>${gameDescription}</p>
+                        <button class="btn" onclick="startGame('${gameName}')">开始训练</button>
+                    `;
+                    recommendedGames.appendChild(gameCard);
+                });
+            }
+        }
+
+        // 页面加载时生成推荐游戏
+        window.onload = function () {
+            generateRecommendedGames();
+        };
+    </script>
+</body>
+
+</html>

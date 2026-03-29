@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红绿灯任务切换 - 注意力训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .game-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item h3 {
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .display-area {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 60px;
+            margin-bottom: 30px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .light-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .light {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .light.red {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .light.green {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .instruction {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .game-controls {
+            margin-top: 20px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 10px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .instructions {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .instructions h2 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            text-align: left;
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>红绿灯任务切换</h1>
+            <p>提升抑制控制能力和减少冲动</p>
+        </div>
+
+        <div class="instructions">
+            <h2>游戏说明</h2>
+            <ul>
+                <li>当看到绿灯时，点击屏幕或按空格键</li>
+                <li>当看到红灯时，不要点击屏幕或按空格键</li>
+                <li>反应越快得分越高，但错误会扣分</li>
+                <li>游戏会逐渐加快速度，挑战你的反应能力</li>
+            </ul>
+        </div>
+
+        <div class="game-container">
+            <div class="game-info">
+                <div class="info-item">
+                    <h3>得分</h3>
+                    <p id="score">0</p>
+                </div>
+                <div class="info-item">
+                    <h3>正确</h3>
+                    <p id="correct">0</p>
+                </div>
+                <div class="info-item">
+                    <h3>错误</h3>
+                    <p id="error">0</p>
+                </div>
+            </div>
+
+            <div class="display-area" id="displayArea">
+                <div class="light-container">
+                    <div class="light" id="light">点击开始游戏</div>
+                    <div class="instruction" id="instruction">准备就绪</div>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <button class="btn" id="startBtn">开始游戏</button>
+                <button class="btn btn-secondary" onclick="window.location.href='../child-home.html'">返回游戏库</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 注意力训练平台</p>
+        </div>
+    </div>
+
+    <script src="../utils.js"></script>
+    <script>
+        // 游戏变量
+        let score = 0;
+        let correct = 0;
+        let error = 0;
+        let gameState = 'ready'; // ready, playing, gameOver
+        let currentLight = 'none';
+        let lightInterval;
+        let gameTimer;
+
+        // 游戏配置
+        const config = {
+            gameDuration: 30000, // 30秒
+            initialLightDuration: 1000,
+            minLightDuration: 300,
+            lightSpeedDecrease: 50
+        };
+
+        // 初始化游戏
+        function initGame() {
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('displayArea').addEventListener('click', handleClick);
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (gameState === 'ready' || gameState === 'gameOver') {
+                // 重置游戏
+                score = 0;
+                correct = 0;
+                error = 0;
+                gameState = 'playing';
+
+                // 更新UI
+                updateUI();
+
+                // 开始游戏循环
+                startLightCycle();
+
+                // 设置游戏结束计时器
+                gameTimer = setTimeout(endGame, config.gameDuration);
+            }
+        }
+
+        // 开始灯光循环
+        function startLightCycle() {
+            let lightDuration = config.initialLightDuration;
+
+            lightInterval = setInterval(() => {
+                if (gameState !== 'playing') return;
+
+                // 随机生成红灯或绿灯
+                const isGreen = Math.random() > 0.3; // 70% 概率绿灯
+                currentLight = isGreen ? 'green' : 'red';
+
+                // 更新灯光显示
+                const lightElement = document.getElementById('light');
+                const instructionElement = document.getElementById('instruction');
+
+                lightElement.className = `light ${currentLight}`;
+                lightElement.textContent = currentLight === 'green' ? '🟢' : '🔴';
+                instructionElement.textContent = currentLight === 'green' ? '点击！' : '不要点击！';
+
+                // 逐渐加快速度
+                lightDuration = Math.max(config.minLightDuration, lightDuration - config.lightSpeedDecrease);
+
+                // 清除当前定时器并设置新的
+                clearInterval(lightInterval);
+                lightInterval = setInterval(arguments.callee, lightDuration);
+            }, lightDuration);
+        }
+
+        // 处理点击
+        function handleClick() {
+            if (gameState === 'playing') {
+                if (currentLight === 'green') {
+                    // 正确反应
+                    score += 10;
+                    correct++;
+                } else if (currentLight === 'red') {
+                    // 错误反应
+                    score -= 5;
+                    error++;
+                }
+                updateUI();
+            }
+        }
+
+        // 处理按键
+        function handleKeyPress(e) {
+            if (e.code === 'Space') {
+                handleClick();
+            }
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState = 'gameOver';
+            clearInterval(lightInterval);
+            clearTimeout(gameTimer);
+
+            // 更新显示
+            const lightElement = document.getElementById('light');
+            const instructionElement = document.getElementById('instruction');
+
+            lightElement.className = 'light';
+            lightElement.textContent = '游戏结束';
+            instructionElement.textContent = '';
+
+            // 保存游戏数据
+            const gameData = {
+                gameName: 'traffic-light',
+                score: score,
+                correct: correct,
+                error: error,
+                timestamp: new Date().toISOString()
+            };
+
+            // 保存到本地存储
+            const trainingHistory = StorageUtil.getItem('training_history') || [];
+            trainingHistory.push(gameData);
+            StorageUtil.setItem('training_history', trainingHistory);
+
+            // 显示游戏结束信息
+            alert(`游戏结束！\n得分：${score}\n正确：${correct}\n错误：${error}`);
+        }
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('correct').textContent = correct;
+            document.getElementById('error').textContent = error;
+        }
+
+        // 页面加载时初始化游戏
+        window.onload = function () {
+            initGame();
+        };
+    </script>
+</body>
+
+</html>

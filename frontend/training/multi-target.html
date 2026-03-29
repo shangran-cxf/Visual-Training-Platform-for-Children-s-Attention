@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>森林精灵追踪战 - 注意力训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('../images/ground14.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2E7D32;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(46, 125, 50, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .game-area {
+            background-image: url('../images/ground3.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(64, 166, 255, 0.3);
+            margin-bottom: 30px;
+            border: 1px solid rgba(85, 176, 255, 0.3);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            border: 2px solid #81C784;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item h3 {
+            color: #2E7D32;
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        canvas {
+            background-image: url('../images/ground1.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .game-controls {
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #9E9E9E, #BDBDBD);
+            box-shadow: 0 4px 15px rgba(158, 158, 158, 0.4);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(158, 158, 158, 0.6);
+        }
+
+        .instructions {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px solid #81C784;
+        }
+
+        .instructions h2 {
+            color: #2E7D32;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            text-align: left;
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: linear-gradient(135deg, #4CAF50, #81C784);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)'" ;
+                onmouseout="this.style.transform='scale(1) rotate(0deg)'">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>森林Angela追踪战</h1>
+            <p>化身森林小侦探，守护发光Angela，锻炼注意力分配能力！</p>
+        </div>
+
+        <div class="instructions">
+            <h2>游戏说明</h2>
+            <ul>
+                <li>游戏开始时，会有几只发光Angela短暂闪烁，让你记住它们的位置</li>
+                <li>所有小动物（含Angela）开始在森林里无规则乱跑</li>
+                <li>移动停止后，点击你记住的发光Angela</li>
+                <li>正确识别的Angela越多，得分越高</li>
+                <li>随着关卡提升，Angela数量变多、移动速度变快、小动物总数增加</li>
+            </ul>
+        </div>
+
+        <div class="game-container">
+            <div class="game-info">
+                <div class="info-item">
+                    <h3>关卡</h3>
+                    <p id="level">1</p>
+                </div>
+                <div class="info-item">
+                    <h3>得分</h3>
+                    <p id="score">0</p>
+                </div>
+                <div class="info-item">
+                    <h3>时间</h3>
+                    <p id="time">30</p>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+            </div>
+
+            <div class="game-controls">
+                <button class="btn" id="startBtn">开始游戏</button>
+                <button class="btn btn-secondary" onclick="window.location.href='../child-home.html'">返回游戏库</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 注意力训练平台</p>
+        </div>
+    </div>
+
+    <script src="../utils.js"></script>
+    <script>
+        // 游戏变量
+        let canvas, ctx;
+        let objects = [];
+        let targetObjects = [];
+        let score = 0;
+        let level = 1;
+        let time = 30;
+        let gameState = 'ready'; // ready, highlighting, moving, selecting, gameOver
+        let animationId;
+        let startTime;
+        let timeInterval;
+        let particles = [];
+
+        // 游戏配置
+        const config = {
+            objectCount: 10,
+            targetCount: 3,
+            objectSize: 40,
+            objectSpeed: 2,
+            highlightDuration: 2000,
+            moveDuration: 5000,
+            selectDuration: 10000
+        };
+
+        // 物体类型
+        const objectTypes = {
+            angela: {
+                name: 'angela',
+                color: '#FFD700',
+                glowColor: '#FFEB3B',
+                size: 40,
+                image: '../images/angela.png'
+            },
+            rabbit: {
+                name: 'rabbit',
+                color: '#F44336',
+                size: 35,
+                image: '../images/rabbit.png'
+            },
+            fox: {
+                name: 'fox',
+                color: '#E65100',
+                size: 35,
+                image: '../images/fox.png'
+            },
+            squirrel: {
+                name: 'squirrel',
+                color: '#FF9800',
+                size: 30,
+                image: '../images/squrriel.png'
+            },
+            hedgehog: {
+                name: 'hedgehog',
+                color: '#795548',
+                size: 25,
+                image: '../images/hedgehog.png'
+            },
+            bird: {
+                name: 'bird',
+                color: '#2196F3',
+                size: 20,
+                image: '../images/bird.png'
+            }
+        };
+
+        // 预加载图片
+        const images = {};
+        for (const typeName in objectTypes) {
+            const type = objectTypes[typeName];
+            if (type.image) {
+                images[typeName] = new Image();
+                images[typeName].src = type.image;
+            }
+        }
+
+        // 初始化游戏
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            canvas.addEventListener('click', handleCanvasClick);
+
+            resetGame();
+        }
+
+        // 重置游戏
+        function resetGame() {
+            score = 0;
+            level = 1;
+            time = 30;
+            gameState = 'ready';
+            particles = [];
+
+            updateUI();
+            drawGame();
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (gameState === 'ready' || gameState === 'gameOver') {
+                resetGame();
+                gameState = 'highlighting';
+
+                // 生成物体
+                generateObjects();
+
+                // 高亮目标
+                setTimeout(() => {
+                    gameState = 'moving';
+                    startTime = Date.now();
+                    animate();
+                }, config.highlightDuration);
+
+                // 开始计时
+                timeInterval = setInterval(() => {
+                    time--;
+                    updateUI();
+                    if (time <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+        }
+
+        // 生成物体
+        function generateObjects() {
+            objects = [];
+            targetObjects = [];
+
+            // 生成所有物体
+            for (let i = 0; i < config.objectCount; i++) {
+                let type;
+                if (i < config.targetCount) {
+                    type = objectTypes.angela;
+                } else {
+                    const types = [objectTypes.rabbit, objectTypes.fox, objectTypes.squirrel, objectTypes.hedgehog, objectTypes.bird];
+                    type = types[Math.floor(Math.random() * types.length)];
+                }
+
+                const object = {
+                    x: Math.random() * (canvas.width - type.size),
+                    y: Math.random() * (canvas.height - type.size),
+                    vx: (Math.random() - 0.5) * config.objectSpeed,
+                    vy: (Math.random() - 0.5) * config.objectSpeed,
+                    type: type,
+                    isTarget: (i < config.targetCount),
+                    isSelected: false,
+                    glow: false,
+                    glowTime: 0
+                };
+                objects.push(object);
+                if (object.isTarget) {
+                    targetObjects.push(object);
+                }
+            }
+        }
+
+        // 动画循环
+        function animate() {
+            if (gameState === 'moving') {
+                // 移动物体
+                objects.forEach(obj => {
+                    obj.x += obj.vx;
+                    obj.y += obj.vy;
+
+                    // 边界检测
+                    if (obj.x < 0 || obj.x > canvas.width - obj.type.size) {
+                        obj.vx *= -1;
+                    }
+                    if (obj.y < 0 || obj.y > canvas.height - obj.type.size) {
+                        obj.vy *= -1;
+                    }
+
+                    // 随机改变方向
+                    if (Math.random() < 0.01) {
+                        obj.vx = (Math.random() - 0.5) * config.objectSpeed;
+                        obj.vy = (Math.random() - 0.5) * config.objectSpeed;
+                    }
+                });
+
+                // 检查移动时间
+                if (Date.now() - startTime > config.moveDuration) {
+                    gameState = 'selecting';
+                }
+
+                // 更新粒子
+                updateParticles();
+
+                drawGame();
+                animationId = requestAnimationFrame(animate);
+            } else if (gameState === 'selecting') {
+                // 更新粒子
+                updateParticles();
+                drawGame();
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+
+        // 处理画布点击
+        function handleCanvasClick(e) {
+            if (gameState === 'selecting') {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // 检查点击的物体
+                objects.forEach(obj => {
+                    if (!obj.isSelected &&
+                        x >= obj.x && x <= obj.x + obj.type.size &&
+                        y >= obj.y && y <= obj.y + obj.type.size) {
+
+                        obj.isSelected = true;
+                        if (obj.isTarget) {
+                            score += 10;
+                            createParticles(obj.x + obj.type.size / 2, obj.y + obj.type.size / 2);
+                        }
+
+                        // 检查是否所有目标都被选择
+                        const allTargetsSelected = targetObjects.every(obj => obj.isSelected);
+                        if (allTargetsSelected) {
+                            levelUp();
+                        }
+                    }
+                });
+
+                drawGame();
+            }
+        }
+
+        // 升级
+        function levelUp() {
+            level++;
+            time += 5;
+
+            // 增加难度
+            if (level % 2 === 0) {
+                config.objectCount += 2;
+            }
+            if (level % 3 === 0) {
+                config.targetCount += 1;
+            }
+            if (level % 4 === 0) {
+                config.objectSpeed += 0.5;
+            }
+
+            gameState = 'highlighting';
+            generateObjects();
+
+            // 高亮目标
+            setTimeout(() => {
+                gameState = 'moving';
+                startTime = Date.now();
+                animate();
+            }, config.highlightDuration);
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState = 'gameOver';
+            clearInterval(timeInterval);
+            cancelAnimationFrame(animationId);
+
+            // 保存游戏数据
+            const gameData = {
+                gameName: 'multi-target',
+                score: score,
+                level: level,
+                timestamp: new Date().toISOString()
+            };
+
+            // 保存到本地存储
+            const trainingHistory = StorageUtil.getItem('training_history') || [];
+            trainingHistory.push(gameData);
+            StorageUtil.setItem('training_history', trainingHistory);
+
+            // 显示游戏结束信息
+            alert(`游戏结束！\n得分：${score}\n关卡：${level}`);
+        }
+
+        // 创建粒子效果
+        function createParticles(x, y) {
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    size: Math.random() * 5 + 2,
+                    color: '#FFEB3B',
+                    life: 1.0,
+                    decay: 0.02
+                });
+            }
+        }
+
+        // 更新粒子
+        function updateParticles() {
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+            });
+        }
+
+        // 绘制粒子
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        // 绘制游戏
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制背景
+            const background = new Image();
+            background.src = '../images/ground1.png';
+            ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+            // 绘制物体
+            objects.forEach(obj => {
+                // 绘制发光效果（仅Angela）
+                if (obj.isTarget && (gameState === 'highlighting' || obj.glow)) {
+                    const gradient = ctx.createRadialGradient(
+                        obj.x + obj.type.size / 2,
+                        obj.y + obj.type.size / 2,
+                        0,
+                        obj.x + obj.type.size / 2,
+                        obj.y + obj.type.size / 2,
+                        obj.type.size * 1.5
+                    );
+                    gradient.addColorStop(0, obj.type.glowColor + '80');
+                    gradient.addColorStop(1, obj.type.glowColor + '00');
+                    ctx.beginPath();
+                    ctx.arc(obj.x + obj.type.size / 2, obj.y + obj.type.size / 2, obj.type.size * 1.5, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                }
+
+                // 绘制物体
+                const image = images[obj.type.name];
+                if (image && image.complete) {
+                    // 绘制图片
+                    ctx.drawImage(image, obj.x, obj.y, obj.type.size, obj.type.size);
+                } else {
+                    // 后备绘制（如果图片未加载完成）
+                    ctx.beginPath();
+                    ctx.arc(obj.x + obj.type.size / 2, obj.y + obj.type.size / 2, obj.type.size / 2, 0, Math.PI * 2);
+                    ctx.fillStyle = obj.type.color;
+                    ctx.fill();
+                }
+
+                // 绘制选中状态
+                if (obj.isSelected) {
+                    ctx.beginPath();
+                    ctx.arc(obj.x + obj.type.size / 2, obj.y + obj.type.size / 2, obj.type.size / 2 + 5, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#4CAF50';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+            });
+
+            // 绘制粒子
+            drawParticles();
+
+            // 绘制游戏状态
+            if (gameState === 'highlighting') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('记住这些发光Angela！', canvas.width / 2, canvas.height / 2);
+            } else if (gameState === 'selecting') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, 50);
+                ctx.fillStyle = 'white';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('点击你记住的发光Angela！', canvas.width / 2, 30);
+            }
+        }
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('time').textContent = time;
+        }
+
+        // 页面加载时初始化游戏
+        window.onload = function () {
+            initGame();
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字 / 符号划消 - 注意力训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('../images/ground8.png');
+            background-size: cover;
+            background-position: center;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #005403;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #116500;
+        }
+
+        .game-area {
+            background-image: url('../images/ground7.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px solid #ffffff;
+            min-height: 600px;
+            position: relative;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border: 2px solid #b8e3ff;
+            border-radius: 25px;
+            background-color: rgb(154, 245, 255);
+            color: rgb(32, 121, 181);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-btn.active {
+            background-color: rgb(154, 245, 255);
+            color: rgb(32, 121, 181);
+        }
+
+        .target-info {
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #146607;
+        }
+
+        .matrix-container {
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .matrix {
+            display: grid;
+            gap: 5px;
+            margin: 0 auto;
+        }
+
+        .matrix-cell {
+            width: 50px;
+            height: 50px;
+            background-color: transparent;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .matrix-cell:hover {
+            background-color: transparent;
+        }
+
+        .matrix-cell.target {
+            background-color: transparent;
+            color: #666;
+            font-family: 'Comic Sans MS', sans-serif;
+        }
+
+        .matrix-cell:not(.target) {
+            color: #4CAF50;
+            font-family: 'Comic Sans MS', sans-serif;
+        }
+
+        .matrix-cell.marked {
+            background-color: #d4edda !important;
+            color: #155724 !important;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .matrix-cell.marked.error {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes starEffect {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        .star {
+            position: absolute;
+            color: #ffd700;
+            font-size: 20px;
+            animation: starEffect 0.8s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 16px;
+            gap: 15px;
+            flex-wrap: wrap;
+            background-color: rgba(44, 124, 47, 0.5);
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .feedback {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+
+        .btn {
+            background-color: #5a4010;
+            color: white;
+            font-weight: bold;
+            border: none;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px #5a4010, transparent 0.4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: #B79173;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .literature {
+            font-size: 12px;
+            color: #666;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: white;
+                color: #1a7505;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+                font-weight: 200000;
+                font-family: 'Arial Rounded MT Bold', 'Comic Sans MS', sans-serif;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>垃圾小卫士：清理数字垃圾</h1>
+            <p>花园里掉进了很多垃圾，其他是小花、小草和小石头。小朋友当垃圾小卫士，把所有垃圾圈出来吧！</p>
+        </div>
+        <div class="game-area">
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" onclick="setDifficulty(1)">简单 (单目标)</button>
+                <button class="difficulty-btn" onclick="setDifficulty(2)">中等 (双目标)</button>
+                <button class="difficulty-btn" onclick="setDifficulty(3)">困难 (动态刷新)</button>
+            </div>
+            <div class="target-info" id="target-info">准备就绪，点击开始按钮</div>
+            <div class="stats" style="visibility: hidden;">
+                <div>正确：<span id="correct">0</span></div>
+                <div>遗漏：<span id="missed">0</span></div>
+                <div>误划：<span id="errors">0</span></div>
+                <div>时间：<span id="time">0</span>s</div>
+            </div>
+            <div class="feedback" id="feedback" style="visibility: hidden;">准备就绪，点击开始按钮</div>
+            <div class="matrix-container">
+                <div class="matrix" id="matrix"></div>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="startGame()">开始游戏</button>
+            </div>
+        </div>
+        <div class="literature">
+            <p>文献依据：神经心理学经典范式，用于 ADHD、脑损伤注意力评估与训练</p>
+        </div>
+    </div>
+
+    <script>
+        let currentDifficulty = 1;
+        let targetNumbers = [5];
+        let currentGarbageImages = [];
+        let matrix = [];
+        let correctCount = 0;
+        let missedCount = 0;
+        let errorCount = 0;
+        let totalTargets = 0;
+        let startTime = 0;
+        let isGameStarted = false;
+        let timeInterval;
+        let refreshInterval;
+
+        const correctSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
+        const errorSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
+
+        correctSound.volume = 0.5;
+        errorSound.volume = 0.5;
+
+        function createStarEffect(element) {
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = '⭐';
+                const x = Math.random() * 40 - 20;
+                const y = Math.random() * 40 - 20;
+                star.style.left = `calc(50% + ${x}px)`;
+                star.style.top = `calc(50% + ${y}px)`;
+                element.appendChild(star);
+                setTimeout(() => star.remove(), 800);
+            }
+        }
+
+        function handleCellClick(e) {
+            if (!isGameStarted) return;
+            const row = parseInt(e.currentTarget.dataset.row);
+            const col = parseInt(e.currentTarget.dataset.col);
+            const cell = matrix[row][col];
+            const cellElement = e.currentTarget;
+
+            if (cell.isMarked) return;
+            cell.isMarked = true;
+
+            if (cell.isTarget) {
+                cellElement.classList.add('marked');
+                correctCount++;
+                document.getElementById('correct').textContent = correctCount;
+                document.getElementById('feedback').textContent = '太棒啦!找到了垃圾!';
+                setTimeout(() => document.getElementById('feedback').textContent = '', 1000);
+                try { correctSound.cloneNode().play(); } catch (e) { }
+                createStarEffect(cellElement);
+                if (correctCount === totalTargets) endGame();
+            } else {
+                cellElement.classList.add('marked', 'error');
+                errorCount++;
+                document.getElementById('errors').textContent = errorCount;
+                document.getElementById('feedback').textContent = '这不是垃圾哦';
+                try { errorSound.cloneNode().play(); } catch (e) { }
+                setTimeout(() => document.getElementById('feedback').textContent = '', 1000);
+            }
+        }
+
+        function generateMatrix() {
+            const matrixElement = document.getElementById('matrix');
+            matrixElement.innerHTML = '';
+            matrix = [];
+            let size = currentDifficulty === 3 ? 10 : 8;
+            matrixElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            totalTargets = 0;
+
+            for (let i = 0; i < size; i++) {
+                matrix[i] = [];
+                for (let j = 0; j < size; j++) {
+                    let num = Math.floor(Math.random() * 9) + 1;
+                    if (Math.random() < 0.2) {
+                        num = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
+                    }
+                    const isTarget = targetNumbers.includes(num);
+                    if (isTarget) totalTargets++;
+                    matrix[i][j] = { value: num, isTarget, isMarked: false };
+
+                    const cell = document.createElement('div');
+                    cell.className = 'matrix-cell';
+                    if (isTarget) {
+                        cell.classList.add('target');
+                        // 目标数字：使用当前垃圾图片
+                        let garbageImage;
+                        if (currentDifficulty === 1 && currentGarbageImages.length > 0) {
+                            // 简单模式：使用第一个垃圾图片
+                            garbageImage = currentGarbageImages[0];
+                        } else if (currentDifficulty === 2 && currentGarbageImages.length > 1) {
+                            // 中等模式：随机使用两个垃圾图片中的一个
+                            garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+                        } else {
+                            // 困难模式或未初始化：随机使用垃圾图片
+                            const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+                            garbageImage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                        }
+                        cell.style.backgroundImage = `url('../images/${garbageImage}')`;
+                        cell.style.backgroundSize = 'contain';
+                        cell.style.backgroundRepeat = 'no-repeat';
+                        cell.style.backgroundPosition = 'center';
+                    } else {
+                        // 非目标数字：随机使用flower、stone或grass图片
+                        const nonTargetImages = ['flower1.png', 'flower2.png', 'flower3.png', 'stone1.png', 'stone2.png', 'grass1.png', 'grass2.png'];
+                        const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
+                        cell.style.backgroundImage = `url('../images/${randomImage}')`;
+                        cell.style.backgroundSize = 'contain';
+                        cell.style.backgroundRepeat = 'no-repeat';
+                        cell.style.backgroundPosition = 'center';
+                    }
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', handleCellClick);
+                    matrixElement.appendChild(cell);
+                }
+            }
+        }
+
+        function setDifficulty(difficulty) {
+            currentDifficulty = difficulty;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            resetGame();
+        }
+
+        function generateRandomTargets() {
+            if (currentDifficulty === 1) {
+                const target = Math.floor(Math.random() * 9) + 1;
+                targetNumbers = [target];
+                // 简单模式：使用一个垃圾图片
+                const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+                const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                currentGarbageImages = [randomGarbage];
+                document.getElementById('target-info').innerHTML = `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
+            } else if (currentDifficulty === 2) {
+                let t1 = Math.floor(Math.random() * 9) + 1;
+                let t2 = Math.floor(Math.random() * 9) + 1;
+                while (t2 === t1) t2 = Math.floor(Math.random() * 9) + 1;
+                targetNumbers = [t1, t2];
+                // 中等模式：使用两个垃圾图片
+                const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+                const randomGarbage1 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                let randomGarbage2 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                while (randomGarbage2 === randomGarbage1) {
+                    randomGarbage2 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                }
+                currentGarbageImages = [randomGarbage1, randomGarbage2];
+                document.getElementById('target-info').innerHTML = `目标：圈出所有垃圾 <img src="../images/${randomGarbage1}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;"> 和 <img src="../images/${randomGarbage2}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
+            } else {
+                targetNumbers = Math.random() > 0.5 ? [2, 4, 6, 8] : [1, 3, 5, 7, 9];
+                const type = targetNumbers[0] % 2 === 0 ? '偶数' : '奇数';
+                document.getElementById('target-info').innerHTML = `目标：圈出所有垃圾数字（${type}数字）`;
+            }
+        }
+
+        function startGame() {
+            if (isGameStarted) return;
+            document.querySelector('.btn').style.display = 'none';
+            generateRandomTargets();
+            generateMatrix();
+
+            correctCount = 0;
+            missedCount = 0;
+            errorCount = 0;
+            document.getElementById('correct').textContent = 0;
+            document.getElementById('missed').textContent = 0;
+            document.getElementById('errors').textContent = 0;
+            document.getElementById('time').textContent = '0';
+            document.getElementById('feedback').textContent = '游戏开始！圈出所有垃圾';
+            document.getElementById('feedback').style.visibility = 'visible';
+            document.querySelector('.stats').style.visibility = 'visible';
+
+            isGameStarted = true;
+            startTime = Date.now();
+            updateTimer();
+
+            if (currentDifficulty === 3) {
+                refreshInterval = setInterval(() => {
+                    generateRandomTargets();
+                    generateMatrix();
+                }, 10000);
+            }
+        }
+
+        function resetGame() {
+            isGameStarted = false;
+            clearInterval(timeInterval);
+            clearInterval(refreshInterval);
+            correctCount = 0;
+            missedCount = 0;
+            errorCount = 0;
+            document.getElementById('correct').textContent = 0;
+            document.getElementById('missed').textContent = 0;
+            document.getElementById('errors').textContent = 0;
+            document.getElementById('time').textContent = '0';
+            document.getElementById('feedback').textContent = '准备就绪，点击开始按钮';
+            document.getElementById('feedback').style.visibility = 'hidden';
+            document.getElementById('target-info').textContent = '准备就绪，点击开始按钮';
+            document.getElementById('matrix').innerHTML = '';
+            document.querySelector('.stats').style.visibility = 'hidden';
+            document.querySelector('.btn').style.display = 'flex';
+        }
+
+        function updateTimer() {
+            if (!isGameStarted) return;
+            const t = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('time').textContent = t;
+            timeInterval = setTimeout(updateTimer, 1000);
+        }
+
+        function endGame() {
+            isGameStarted = false;
+            clearInterval(timeInterval);
+            clearInterval(refreshInterval);
+            const totalTime = Math.floor((Date.now() - startTime) / 1000);
+            missedCount = totalTargets - correctCount;
+            document.getElementById('missed').textContent = missedCount;
+            document.getElementById('feedback').textContent = `完成！用时 ${totalTime}秒，正确${correctCount}个，遗漏${missedCount}个，误划${errorCount}个`;
+
+            setTimeout(() => {
+                resetGame();
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>
