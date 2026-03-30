@@ -11,6 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Comic Sans MS', 'Arial', sans-serif;
             background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
@@ -19,6 +20,7 @@
             display: flex;
             flex-direction: column;
         }
+
         .header {
             background: linear-gradient(90deg, #4caf50 0%, #81c784 99%, #81c784 100%);
             color: white;
@@ -28,6 +30,7 @@
             position: relative;
             overflow: hidden;
         }
+
         .header::before {
             content: '';
             position: absolute;
@@ -38,10 +41,17 @@
             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="40" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.3)"/></svg>');
             animation: float 20s linear infinite;
         }
+
         @keyframes float {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(100px, 100px); }
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(100px, 100px);
+            }
         }
+
         .header h1 {
             font-size: 2.2em;
             margin: 0;
@@ -50,10 +60,17 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             animation: pulse 2s ease-in-out infinite alternate;
         }
+
         @keyframes pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.03); }
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.03);
+            }
         }
+
         .nav {
             background-color: white;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
@@ -62,6 +79,7 @@
             top: 0;
             z-index: 100;
         }
+
         .nav ul {
             display: flex;
             justify-content: center;
@@ -69,9 +87,11 @@
             gap: 20px;
             flex-wrap: wrap;
         }
+
         .nav li {
             display: inline;
         }
+
         .nav a {
             text-decoration: none;
             color: #333;
@@ -84,6 +104,7 @@
             overflow: hidden;
             display: inline-block;
         }
+
         .nav a::before {
             content: '';
             position: absolute;
@@ -94,26 +115,31 @@
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transition: left 0.5s;
         }
+
         .nav a:hover::before {
             left: 100%;
         }
+
         .nav a:hover {
             background-color: #4caf50;
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
         }
+
         .nav a.active {
             background: linear-gradient(90deg, #4caf50, #81c784);
             color: white;
             box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
         }
+
         .container {
             flex: 1;
             max-width: 1800px;
             margin: 0 auto;
             padding: 30px 60px;
         }
+
         .footer {
             background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
             color: white;
@@ -122,16 +148,30 @@
             margin-top: 40px;
             box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
         }
+
         .footer p {
             margin: 0;
             font-size: 16px;
             animation: pulse 2s ease-in-out infinite alternate;
         }
+
         @media (max-width: 768px) {
-            .nav ul { gap: 10px; }
-            .nav a { font-size: 14px; padding: 10px 15px; }
-            .header h1 { font-size: 1.8em; }
-            .container { padding: 20px; }
+            .nav ul {
+                gap: 10px;
+            }
+
+            .nav a {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .container {
+                padding: 20px;
+            }
         }
 
         .knowledge-section {
@@ -145,6 +185,7 @@
             max-width: 100%;
             margin: 0 auto;
         }
+
         .knowledge-section::before {
             content: '';
             position: absolute;
@@ -154,6 +195,7 @@
             height: 5px;
             background: linear-gradient(90deg, #4caf50, #81c784, #a5d6a7, #c8e6c9);
         }
+
         .knowledge-section h2 {
             color: #2e7d32;
             margin-bottom: 30px;
@@ -162,14 +204,22 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
             animation: bounce 1s ease-in-out infinite alternate;
         }
+
         @keyframes bounce {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-5px); }
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-5px);
+            }
         }
+
         .knowledge-articles {
             margin-bottom: 30px;
             width: 100%;
         }
+
         .knowledge-article {
             background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
             border-radius: 15px;
@@ -181,6 +231,7 @@
             overflow: hidden;
             width: 100%;
         }
+
         .knowledge-article::before {
             content: '';
             position: absolute;
@@ -192,30 +243,37 @@
             transform: scaleX(0);
             transition: transform 0.3s ease;
         }
+
         .knowledge-article:hover::before {
             transform: scaleX(1);
         }
+
         .knowledge-article:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
+
         .knowledge-article h3 {
             color: #333;
             margin-bottom: 10px;
             transition: all 0.3s ease;
         }
+
         .knowledge-article:hover h3 {
             color: #2e7d32;
         }
+
         .knowledge-article p {
             color: #666;
             margin-bottom: 15px;
             line-height: 1.5;
         }
+
         .knowledge-article .article-meta {
             font-size: 14px;
             color: #999;
         }
+
         #article-detail-modal {
             position: fixed;
             top: 0;
@@ -230,21 +288,30 @@
             animation: fadeIn 0.3s ease-in-out;
             padding: 10px;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
+
         @media (max-width: 768px) {
             .knowledge-section {
                 width: 100%;
                 padding: 20px;
                 border-radius: 15px;
             }
+
             #article-detail-modal {
                 padding: 5px;
                 align-items: flex-start;
             }
-            #article-detail-modal > div {
+
+            #article-detail-modal>div {
                 max-height: 95vh;
                 border-radius: 12px;
             }
@@ -336,7 +403,7 @@
 
         function displayKnowledgeArticles(articles) {
             const container = document.getElementById('knowledge-articles-container');
-            
+
             if (!articles || articles.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #999;">暂无知识文章</p>';
                 return;
@@ -347,23 +414,23 @@
             let articlesHTML = '';
             articles.forEach(article => {
                 const tagsString = article.tags ? article.tags.join(', ') : '';
-                
+
                 let difficultyBadge = '';
                 if (article.difficulty) {
                     let difficultyColor = '#9e9e9e';
                     if (article.difficulty === '初级') difficultyColor = '#4CAF50';
                     else if (article.difficulty === '中级') difficultyColor = '#FF9800';
                     else if (article.difficulty === '高级') difficultyColor = '#F44336';
-                    
+
                     difficultyBadge = `<span style="background-color: ${difficultyColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-right: 5px;">${article.difficulty}</span>`;
                 }
-                
+
                 const readingTimeString = article.reading_time ? `${article.reading_time}分钟阅读` : '';
-                
-                const previewContent = article.content.length > 100 
-                    ? article.content.substring(0, 100) + '...' 
+
+                const previewContent = article.content.length > 100
+                    ? article.content.substring(0, 100) + '...'
                     : article.content;
-                
+
                 articlesHTML += `
                     <div class="knowledge-article" onclick="showArticleDetail(${article.id})" style="cursor: pointer;">
                         <h3>${article.title}</h3>
@@ -401,26 +468,26 @@
                 console.error('未找到文章:', articleId);
                 return;
             }
-            
-            const tagsString = article.tags ? article.tags.map(tag => 
+
+            const tagsString = article.tags ? article.tags.map(tag =>
                 `<span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 15px; margin: 2px; display: inline-block;">${tag}</span>`
             ).join('') : '';
-            
+
             let difficultyBadge = '';
             if (article.difficulty) {
                 let difficultyColor = '#9e9e9e';
                 if (article.difficulty === '初级') difficultyColor = '#4CAF50';
                 else if (article.difficulty === '中级') difficultyColor = '#FF9800';
                 else if (article.difficulty === '高级') difficultyColor = '#F44336';
-                
+
                 difficultyBadge = `<span style="background-color: ${difficultyColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.9em;">${article.difficulty}</span>`;
             }
-            
+
             const formattedContent = formatArticleContent(article.content);
-            
+
             const modal = document.createElement('div');
             modal.id = 'article-detail-modal';
-            
+
             const modalContent = document.createElement('div');
             modalContent.style.cssText = `
                 background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
@@ -435,7 +502,7 @@
                 animation: bounceIn 0.5s ease-in-out;
                 border: 4px solid #4caf50;
             `;
-            
+
             const bodyContent = document.createElement('div');
             bodyContent.innerHTML = `
                 <button onclick="closeArticleDetail()" style="
@@ -470,17 +537,17 @@
                     ${formattedContent}
                 </div>
             `;
-            
+
             modalContent.appendChild(bodyContent);
             modal.appendChild(modalContent);
             document.body.appendChild(modal);
-            
-            modal.addEventListener('click', function(e) {
+
+            modal.addEventListener('click', function (e) {
                 if (e.target === modal) {
                     closeArticleDetail();
                 }
             });
-            
+
             document.addEventListener('keydown', function escHandler(e) {
                 if (e.key === 'Escape') {
                     closeArticleDetail();
@@ -496,7 +563,7 @@
             }
         }
 
-        window.onload = function() {
+        window.onload = function () {
             const userInfo = checkAuth();
             if (userInfo) {
                 if (userInfo.role === 'admin') {

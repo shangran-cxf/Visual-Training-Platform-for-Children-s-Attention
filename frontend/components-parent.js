@@ -1,5 +1,5 @@
 const ParentComponents = {
-    getStyles: function() {
+    getStyles: function () {
         return `
             * {
                 margin: 0;
@@ -131,7 +131,7 @@ const ParentComponents = {
         `;
     },
 
-    getHeader: function() {
+    getHeader: function () {
         return `
             <div class="header">
                 <h1>儿童注意力训练平台</h1>
@@ -139,22 +139,22 @@ const ParentComponents = {
         `;
     },
 
-    getNav: function(activePage) {
+    getNav: function (activePage) {
         const pages = [
             { id: 'knowledge', name: '科普知识', href: 'knowledge.html' },
             { id: 'forum', name: '家长论坛', href: 'forum.html' },
             { id: 'profile', name: '个人中心', href: 'profile.html' }
         ];
-        
+
         let navItems = pages.map(page => {
             const activeClass = page.id === activePage ? 'active' : '';
             return `<li><a href="${page.href}" class="${activeClass}">${page.name}</a></li>`;
         }).join('');
-        
+
         const userInfo = StorageUtil.getItem('userInfo');
         const isAdmin = userInfo && userInfo.role === 'admin';
         const adminItem = isAdmin ? '<li><a href="admin.html">管理</a></li>' : '';
-        
+
         return `
             <nav class="nav">
                 <ul>
@@ -167,7 +167,7 @@ const ParentComponents = {
         `;
     },
 
-    getFooter: function() {
+    getFooter: function () {
         return `
             <div class="footer">
                 <p>© 2026 注意力训练平台</p>
@@ -175,11 +175,11 @@ const ParentComponents = {
         `;
     },
 
-    logout: function() {
+    logout: function () {
         StorageUtil.removeItem('userInfo');
     },
 
-    switchToChild: function() {
+    switchToChild: function () {
         const userInfo = StorageUtil.getItem('userInfo');
         if (userInfo) {
             userInfo.role = 'child';
@@ -188,7 +188,7 @@ const ParentComponents = {
         }
     },
 
-    checkAuth: function() {
+    checkAuth: function () {
         const userInfo = StorageUtil.getItem('userInfo');
         if (!userInfo || (userInfo.role !== 'parent' && userInfo.role !== 'admin')) {
             window.location.href = 'login.html';
@@ -197,17 +197,17 @@ const ParentComponents = {
         return userInfo;
     },
 
-    initPage: function(activePage) {
+    initPage: function (activePage) {
         document.head.insertAdjacentHTML('beforeend', `<style>${this.getStyles()}</style>`);
-        
+
         const headerPlaceholder = document.getElementById('header-placeholder');
         const navPlaceholder = document.getElementById('nav-placeholder');
         const footerPlaceholder = document.getElementById('footer-placeholder');
-        
+
         if (headerPlaceholder) headerPlaceholder.innerHTML = this.getHeader();
         if (navPlaceholder) navPlaceholder.innerHTML = this.getNav(activePage);
         if (footerPlaceholder) footerPlaceholder.innerHTML = this.getFooter();
-        
+
         return this.checkAuth();
     }
 };
@@ -317,17 +317,17 @@ function showPasswordModal(title, message, callback, isError = false) {
             font-family: 'Comic Sans MS', 'Arial', sans-serif;
         `;
 
-        cancelButton.onclick = function() {
+        cancelButton.onclick = function () {
             document.body.removeChild(modal);
         };
 
-        confirmButton.onclick = function() {
+        confirmButton.onclick = function () {
             const password = passwordInput.value;
             document.body.removeChild(modal);
             callback(password);
         };
 
-        passwordInput.onkeypress = function(e) {
+        passwordInput.onkeypress = function (e) {
             if (e.key === 'Enter') {
                 const password = passwordInput.value;
                 document.body.removeChild(modal);
@@ -338,7 +338,7 @@ function showPasswordModal(title, message, callback, isError = false) {
         modalContent.appendChild(passwordInput);
         buttonContainer.appendChild(cancelButton);
     } else {
-        confirmButton.onclick = function() {
+        confirmButton.onclick = function () {
             document.body.removeChild(modal);
         };
     }

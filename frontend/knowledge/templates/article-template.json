@@ -5,7 +5,11 @@
   "author": "作者名称",
   "date": "YYYY-MM-DD",
   "category": "分类名称",
-  "tags": ["标签1", "标签2", "标签3"],
+  "tags": [
+    "标签1",
+    "标签2",
+    "标签3"
+  ],
   "summary": "文章摘要，简要概述文章主要内容",
   "difficulty": "初级",
   "reading_time": 5

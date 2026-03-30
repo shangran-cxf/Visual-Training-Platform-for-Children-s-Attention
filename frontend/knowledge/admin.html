@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,7 @@
             background: white;
             border-radius: 10px;
             padding: 30px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
@@ -159,33 +160,34 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>知识内容管理系统</h1>
-        
+
         <div id="notification" class="notification"></div>
-        
+
         <form id="articleForm">
             <div class="form-group">
                 <label for="title">标题 *</label>
                 <input type="text" id="title" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="content">内容 *</label>
                 <textarea id="content" required></textarea>
             </div>
-            
+
             <div class="form-group">
                 <label for="author">作者</label>
                 <input type="text" id="author" value="专业团队">
             </div>
-            
+
             <div class="form-group">
                 <label for="date">日期 (YYYY-MM-DD)</label>
                 <input type="date" id="date">
             </div>
-            
+
             <div class="form-group">
                 <label for="category">分类</label>
                 <select id="category">
@@ -201,18 +203,18 @@
                     <option value="其他">其他</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="tags">标签 (用逗号分隔)</label>
                 <input type="text" id="tags" placeholder="例如: 注意力, 儿童发展, 关键期">
                 <div id="tagsDisplay" class="tags-input"></div>
             </div>
-            
+
             <div class="form-group">
                 <label for="summary">摘要</label>
                 <input type="text" id="summary" placeholder="文章摘要，简要概述文章主要内容">
             </div>
-            
+
             <div class="form-group">
                 <label for="difficulty">难度级别</label>
                 <select id="difficulty">
@@ -221,19 +223,19 @@
                     <option value="高级">高级</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label for="reading_time">预计阅读时间 (分钟)</label>
                 <input type="number" id="reading_time" value="3" min="1">
             </div>
-            
+
             <div class="actions">
                 <button type="submit" class="btn">添加文章</button>
                 <button type="button" class="btn btn-secondary" onclick="loadArticles()">刷新列表</button>
                 <button type="button" class="btn btn-danger" onclick="resetForm()">清空表单</button>
             </div>
         </form>
-        
+
         <div class="articles-list">
             <h2>已有的知识文章</h2>
             <div id="articlesContainer"></div>
@@ -243,37 +245,37 @@
     <script>
         // 设置默认日期为今天
         document.getElementById('date').valueAsDate = new Date();
-        
+
         // 标签处理
         let currentTags = [];
-        
-        document.getElementById('tags').addEventListener('keypress', function(e) {
+
+        document.getElementById('tags').addEventListener('keypress', function (e) {
             if (e.key === 'Enter' || e.key === ',') {
                 e.preventDefault();
                 addTagFromInput();
             }
         });
-        
+
         function addTagFromInput() {
             const tagInput = document.getElementById('tags');
             const tagValue = tagInput.value.trim();
-            
+
             if (tagValue && !currentTags.includes(tagValue)) {
                 currentTags.push(tagValue);
                 updateTagsDisplay();
                 tagInput.value = '';
             }
         }
-        
+
         function removeTag(tag) {
             currentTags = currentTags.filter(t => t !== tag);
             updateTagsDisplay();
         }
-        
+
         function updateTagsDisplay() {
             const container = document.getElementById('tagsDisplay');
             container.innerHTML = '';
-            
+
             currentTags.forEach(tag => {
                 const tagElement = document.createElement('div');
                 tagElement.className = 'tag';
@@ -284,11 +286,11 @@
                 container.appendChild(tagElement);
             });
         }
-        
+
         // 表单提交
-        document.getElementById('articleForm').addEventListener('submit', async function(e) {
+        document.getElementById('articleForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             // 获取表单数据
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
@@ -298,13 +300,13 @@
             const summary = document.getElementById('summary').value;
             const difficulty = document.getElementById('difficulty').value;
             const readingTime = parseInt(document.getElementById('reading_time').value) || 3;
-            
+
             // 验证必填字段
             if (!title || !content) {
                 showNotification('标题和内容为必填项', 'error');
                 return;
             }
-            
+
             // 准备新文章对象
             const newArticle = {
                 title: title,
@@ -317,7 +319,7 @@
                 difficulty: difficulty,
                 reading_time: readingTime
             };
-            
+
             // 使用API保存到服务器
             try {
                 const response = await fetch('/api/knowledge/articles', {
@@ -327,9 +329,9 @@
                     },
                     body: JSON.stringify(newArticle)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (response.ok) {
                     showNotification('文章添加成功！', 'success');
                     resetForm();
@@ -342,7 +344,7 @@
                 showNotification('保存文章时出错: ' + error.message, 'error');
             }
         });
-        
+
         // 加载文章列表
         async function loadArticles() {
             try {
@@ -353,26 +355,26 @@
                 showNotification('加载文章列表时出错: ' + error.message, 'error');
             }
         }
-        
+
         // 从API加载文章
         async function loadArticlesFromJson() {
             const response = await fetch('/api/knowledge/articles');
             const data = await response.json();
             return data || [];
         }
-        
+
         // 显示文章列表
         function displayArticles(articles) {
             const container = document.getElementById('articlesContainer');
-            
+
             if (!articles || articles.length === 0) {
                 container.innerHTML = '<p>暂无文章</p>';
                 return;
             }
-            
+
             // 按日期排序（最新的在前）
             articles.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
+
             let html = '';
             articles.forEach(article => {
                 html += `
@@ -390,23 +392,23 @@
                     </div>
                 `;
             });
-            
+
             container.innerHTML = html;
         }
-        
+
         // 删除文章
         async function deleteArticle(id) {
             if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) {
                 return;
             }
-            
+
             try {
                 const response = await fetch(`/api/knowledge/articles/${id}`, {
                     method: 'DELETE'
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (response.ok) {
                     showNotification('文章删除成功！', 'success');
                     loadArticles(); // 刷新列表
@@ -418,7 +420,7 @@
                 showNotification('删除文章时出错: ' + error.message, 'error');
             }
         }
-        
+
         // 重置表单
         function resetForm() {
             document.getElementById('title').value = '';
@@ -433,22 +435,23 @@
             updateTagsDisplay();
             document.getElementById('tags').value = '';
         }
-        
+
         // 显示通知
         function showNotification(message, type) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type}`;
-            
+
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 5000);
         }
-        
+
         // 页面加载时初始化
-        window.onload = function() {
+        window.onload = function () {
             loadArticles();
         };
     </script>
 </body>
+
 </html>
