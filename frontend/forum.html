@@ -11,13 +11,11 @@
             padding: 0;
             box-sizing: border-box;
         }
-<<<<<<< HEAD
-
-=======
+        
         html, body {
             overflow-x: hidden;
         }
->>>>>>> 20050999082d607d14986d79a1610eb92caa06b4
+
         body {
             font-family: 'Comic Sans MS', 'Arial', sans-serif;
             background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
@@ -687,38 +685,37 @@
                     const userInfo = StorageUtil.getItem('userInfo');
 
                     postsContainer.innerHTML = data.posts.map(post => `
-                        <div class="forum-post" onclick="togglePostContent(${post.id})">
+                        <div class="forum-post" onclick="toggleComments(${post.id})">
                             <h3>${post.title}</h3>
                             <div class="post-meta">
                                 <span>作者: ${post.author_name}</span> | 
                                 <span>发布时间: ${post.created_at}</span> |
-                                <span>浏览: ${post.view_count || 0}</span> |
-                                <span>评论: ${post.comment_count || 0}</span>
+                                <span>浏览: ${post.view_count || 0}</span>
                             </div>
-                            <div class="post-content hidden" id="post-content-${post.id}">
+                            <div class="post-content" id="post-content-${post.id}">
                                 <p>${post.content}</p>
-                                <div class="post-actions" onclick="event.stopPropagation();">
-                                    <button class="action-btn ${post.user_vote === 1 ? 'liked' : ''}" id="like-btn-${post.id}" onclick="likePost(${post.id})">
-                                        👍 ${post.like_count || 0}
+                            </div>
+                            <div class="post-actions" onclick="event.stopPropagation();">
+                                <button class="action-btn" onclick="toggleComments(${post.id})">
+                                    💬 ${post.comment_count || 0}
+                                </button>
+                                <button class="action-btn ${post.user_vote === 1 ? 'liked' : ''}" id="like-btn-${post.id}" onclick="likePost(${post.id})">
+                                    👍 ${post.like_count || 0}
+                                </button>
+                                <button class="action-btn dislike-btn ${post.user_vote === -1 ? 'disliked' : ''}" id="dislike-btn-${post.id}" onclick="dislikePost(${post.id})">
+                                    👎 ${post.dislike_count || 0}
+                                </button>
+                                ${userInfo && (userInfo.parent_id === post.parent_id || userInfo.role === 'admin') ? `
+                                    <button class="action-btn delete-btn" onclick="deletePost(${post.id})">
+                                        🗑️ 删除
                                     </button>
-                                    <button class="action-btn dislike-btn ${post.user_vote === -1 ? 'disliked' : ''}" id="dislike-btn-${post.id}" onclick="dislikePost(${post.id})">
-                                        👎 ${post.dislike_count || 0}
-                                    </button>
-                                    ${userInfo && (userInfo.parent_id === post.parent_id || userInfo.role === 'admin') ? `
-                                        <button class="action-btn delete-btn" onclick="deletePost(${post.id})">
-                                            🗑️ 删除
-                                        </button>
-                                    ` : ''}
-                                    <button class="action-btn" onclick="toggleComments(${post.id})">
-                                        💬 评论
-                                    </button>
-                                </div>
-                                <div class="post-comments" id="comments-${post.id}">
-                                    <div id="comments-list-${post.id}"></div>
-                                    <div class="comment-form">
-                                        <textarea id="comment-content-${post.id}" placeholder="写下你的评论..."></textarea>
-                                        <button class="btn" onclick="addComment(${post.id})">发表评论</button>
-                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="post-comments" id="comments-${post.id}" onclick="event.stopPropagation();">
+                                <div id="comments-list-${post.id}"></div>
+                                <div class="comment-form">
+                                    <textarea id="comment-content-${post.id}" placeholder="写下你的评论..."></textarea>
+                                    <button class="btn" onclick="addComment(${post.id})">发表评论</button>
                                 </div>
                             </div>
                         </div>
@@ -855,14 +852,14 @@
 
         async function loadComments(postId) {
             try {
-                const response = await fetch(`/api/forum/comments/${postId}`);
+                const response = await fetch(`/api/forum/comments?post_id=${postId}`);
                 const data = await response.json();
 
                 const commentsList = document.getElementById(`comments-list-${postId}`);
                 const userInfo = StorageUtil.getItem('userInfo');
 
-                if (data.comments && data.comments.length > 0) {
-                    commentsList.innerHTML = data.comments.map(comment => `
+                if (data && data.length > 0) {
+                    commentsList.innerHTML = data.map(comment => `
                         <div class="comment">
                             <div class="comment-meta">
                                 <strong>${comment.author_name}</strong> | ${comment.created_at}
