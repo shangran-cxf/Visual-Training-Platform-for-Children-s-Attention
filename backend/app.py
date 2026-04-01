@@ -165,6 +165,89 @@ def init_db():
                 VALUES (?, ?, ?, ?, ?)
             ''', badge)
     
+    try:
+        cursor.execute('ALTER TABLE parents ADD COLUMN avatar TEXT DEFAULT \'\'')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE parents ADD COLUMN level INTEGER DEFAULT 1')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE parents ADD COLUMN experience INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        description TEXT,
+        icon TEXT,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    
+    cursor.execute("SELECT COUNT(*) FROM categories")
+    if cursor.fetchone()[0] == 0:
+        default_categories = [
+            ('育儿经验', '分享育儿心得和经验', '👶', 1),
+            ('注意力训练', '讨论注意力训练方法和技巧', '🎯', 2),
+            ('学习资源', '分享学习资料和资源', '📚', 3),
+            ('问题求助', '遇到问题寻求帮助', '❓', 4),
+            ('闲聊灌水', '轻松闲聊，分享生活', '💬', 5),
+        ]
+        for cat in default_categories:
+            cursor.execute('''
+                INSERT INTO categories (name, description, icon, sort_order)
+                VALUES (?, ?, ?, ?)
+            ''', cat)
+    
+    try:
+        cursor.execute('ALTER TABLE forum_posts ADD COLUMN category_id INTEGER')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE forum_posts ADD COLUMN is_pinned INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE forum_posts ADD COLUMN is_essential INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS favorites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        parent_id INTEGER NOT NULL,
+        post_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (parent_id) REFERENCES parents (id),
+        FOREIGN KEY (post_id) REFERENCES forum_posts (id),
+        UNIQUE(parent_id, post_id)
+    )
+    ''')
+    
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        parent_id INTEGER NOT NULL,
+        post_id INTEGER,
+        comment_id INTEGER,
+        reason TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (parent_id) REFERENCES parents (id),
+        FOREIGN KEY (post_id) REFERENCES forum_posts (id),
+        FOREIGN KEY (comment_id) REFERENCES forum_comments (id)
+    )
+    ''')
+    
     conn.commit()
     conn.close()
 
@@ -391,8 +474,8 @@ def get_post(post_id):
     execute_db('UPDATE forum_posts SET view_count = view_count + 1 WHERE id = ?', (post_id,))
     
     post = execute_db('''
-        SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id,
-               pr.username as author_name,
+        SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id, p.category_id, p.is_pinned, p.is_essential,
+               pr.username as author_name, pr.level as author_level,
                (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count,
                (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1) as dislike_count
         FROM forum_posts p
@@ -411,9 +494,13 @@ def get_post(post_id):
         'created_at': p[3],
         'view_count': p[4],
         'parent_id': p[5],
-        'author_name': p[6],
-        'like_count': p[7],
-        'dislike_count': p[8]
+        'category_id': p[6],
+        'is_pinned': p[7],
+        'is_essential': p[8],
+        'author_name': p[9],
+        'author_level': p[10],
+        'like_count': p[11],
+        'dislike_count': p[12]
     }), 200
 
 @app.route('/api/forum/posts/<int:post_id>', methods=['DELETE'])
@@ -805,6 +892,423 @@ def index():
 @app.route('/<path:path>')
 def static_files(path):
     return send_from_directory(frontend_dir, path)
+
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    result = execute_db('SELECT id, name, description, icon, sort_order FROM categories ORDER BY sort_order')
+    categories = [{'id': c[0], 'name': c[1], 'description': c[2], 'icon': c[3], 'sort_order': c[4]} for c in result]
+    return jsonify(categories), 200
+
+@app.route('/api/forum/posts/search', methods=['GET'])
+def search_posts():
+    keyword = request.args.get('keyword', '')
+    category_id = request.args.get('category_id')
+    sort_by = request.args.get('sort_by', 'latest')
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 10))
+    offset = (page - 1) * per_page
+    
+    if not keyword and not category_id:
+        return jsonify({'error': '请提供搜索关键词或分类'}), 400
+    
+    base_query = '''
+        SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id, p.category_id, p.is_pinned, p.is_essential,
+               pr.username as author_name, pr.avatar, pr.level,
+               (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
+               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count,
+               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1) as dislike_count
+        FROM forum_posts p
+        JOIN parents pr ON p.parent_id = pr.id
+        WHERE 1=1
+    '''
+    params = []
+    
+    if keyword:
+        base_query += ' AND (p.title LIKE ? OR p.content LIKE ?)'
+        params.extend([f'%{keyword}%', f'%{keyword}%'])
+    
+    if category_id:
+        base_query += ' AND p.category_id = ?'
+        params.append(category_id)
+    
+    if sort_by == 'hot':
+        base_query += ' ORDER BY p.is_pinned DESC, (p.view_count + (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) * 2) DESC, p.created_at DESC'
+    elif sort_by == 'essential':
+        base_query += ' ORDER BY p.is_pinned DESC, p.is_essential DESC, p.created_at DESC'
+    else:
+        base_query += ' ORDER BY p.is_pinned DESC, p.created_at DESC'
+    
+    base_query += ' LIMIT ? OFFSET ?'
+    params.extend([per_page, offset])
+    
+    posts = execute_db(base_query, params)
+    
+    count_query = 'SELECT COUNT(*) FROM forum_posts p WHERE 1=1'
+    count_params = []
+    if keyword:
+        count_query += ' AND (p.title LIKE ? OR p.content LIKE ?)'
+        count_params.extend([f'%{keyword}%', f'%{keyword}%'])
+    if category_id:
+        count_query += ' AND p.category_id = ?'
+        count_params.append(category_id)
+    
+    total = execute_db(count_query, count_params)[0][0]
+    
+    posts_data = [{
+        'id': p[0],
+        'title': p[1],
+        'content': p[2],
+        'created_at': p[3],
+        'view_count': p[4],
+        'parent_id': p[5],
+        'category_id': p[6],
+        'is_pinned': p[7],
+        'is_essential': p[8],
+        'author_name': p[9],
+        'author_avatar': p[10],
+        'author_level': p[11],
+        'comment_count': p[12],
+        'like_count': p[13],
+        'dislike_count': p[14]
+    } for p in posts]
+    
+    return jsonify({
+        'posts': posts_data,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total + per_page - 1) // per_page
+    }), 200
+
+@app.route('/api/forum/posts/<int:post_id>', methods=['PUT'])
+def update_post(post_id):
+    data = request.json
+    parent_id = data.get('parent_id')
+    title = data.get('title')
+    content = data.get('content')
+    category_id = data.get('category_id')
+    
+    if not parent_id:
+        return jsonify({'error': '用户ID不能为空'}), 400
+    
+    post_result = execute_db('SELECT parent_id FROM forum_posts WHERE id = ?', (post_id,))
+    if not post_result:
+        return jsonify({'error': '帖子不存在'}), 404
+    
+    user_result = execute_db('SELECT role FROM parents WHERE id = ?', (parent_id,))
+    if not user_result:
+        return jsonify({'error': '用户不存在'}), 404
+    
+    role = user_result[0][0]
+    if post_result[0][0] != parent_id and role != 'admin':
+        return jsonify({'error': '无权编辑此帖子'}), 403
+    
+    update_fields = []
+    update_params = []
+    
+    if title:
+        update_fields.append('title = ?')
+        update_params.append(title)
+    if content:
+        update_fields.append('content = ?')
+        update_params.append(content)
+    if category_id:
+        update_fields.append('category_id = ?')
+        update_params.append(category_id)
+    
+    if update_fields:
+        update_fields.append('updated_at = CURRENT_TIMESTAMP')
+        update_params.append(post_id)
+        execute_db(f'UPDATE forum_posts SET {", ".join(update_fields)} WHERE id = ?', update_params)
+    
+    return jsonify({'message': '更新成功'}), 200
+
+@app.route('/api/forum/favorites', methods=['POST'])
+def add_favorite():
+    data = request.json
+    parent_id = data.get('parent_id')
+    post_id = data.get('post_id')
+    
+    if not parent_id or not post_id:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    try:
+        execute_db('INSERT INTO favorites (parent_id, post_id) VALUES (?, ?)', (parent_id, post_id))
+        return jsonify({'message': '收藏成功'}), 201
+    except:
+        return jsonify({'error': '已收藏或帖子不存在'}), 400
+
+@app.route('/api/forum/favorites', methods=['DELETE'])
+def remove_favorite():
+    data = request.json
+    parent_id = data.get('parent_id')
+    post_id = data.get('post_id')
+    
+    if not parent_id or not post_id:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    execute_db('DELETE FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
+    return jsonify({'message': '取消收藏成功'}), 200
+
+@app.route('/api/forum/favorites/<int:parent_id>', methods=['GET'])
+def get_favorites(parent_id):
+    result = execute_db('''
+        SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id,
+               pr.username as author_name,
+               (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
+               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count
+        FROM favorites f
+        JOIN forum_posts p ON f.post_id = p.id
+        JOIN parents pr ON p.parent_id = pr.id
+        WHERE f.parent_id = ?
+        ORDER BY f.created_at DESC
+    ''', (parent_id,))
+    
+    favorites = [{
+        'id': f[0],
+        'title': f[1],
+        'content': f[2],
+        'created_at': f[3],
+        'view_count': f[4],
+        'parent_id': f[5],
+        'author_name': f[6],
+        'comment_count': f[7],
+        'like_count': f[8]
+    } for f in result]
+    
+    return jsonify(favorites), 200
+
+@app.route('/api/forum/favorites/check', methods=['GET'])
+def check_favorite():
+    parent_id = request.args.get('parent_id')
+    post_id = request.args.get('post_id')
+    
+    if not parent_id or not post_id:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    result = execute_db('SELECT id FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
+    return jsonify({'is_favorited': len(result) > 0}), 200
+
+@app.route('/api/forum/reports', methods=['POST'])
+def create_report():
+    data = request.json
+    parent_id = data.get('parent_id')
+    post_id = data.get('post_id')
+    comment_id = data.get('comment_id')
+    reason = data.get('reason')
+    
+    if not parent_id or not reason:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    if not post_id and not comment_id:
+        return jsonify({'error': '必须指定帖子或评论'}), 400
+    
+    execute_db('''
+        INSERT INTO reports (parent_id, post_id, comment_id, reason)
+        VALUES (?, ?, ?, ?)
+    ''', (parent_id, post_id, comment_id, reason))
+    
+    return jsonify({'message': '举报成功，我们会尽快处理'}), 201
+
+@app.route('/api/forum/posts/<int:post_id>/pin', methods=['POST'])
+def pin_post(post_id):
+    data = request.json
+    parent_id = data.get('parent_id')
+    is_pinned = data.get('is_pinned', 1)
+    
+    user_result = execute_db('SELECT role FROM parents WHERE id = ?', (parent_id,))
+    if not user_result or user_result[0][0] != 'admin':
+        return jsonify({'error': '无权操作'}), 403
+    
+    execute_db('UPDATE forum_posts SET is_pinned = ? WHERE id = ?', (is_pinned, post_id))
+    return jsonify({'message': '操作成功'}), 200
+
+@app.route('/api/forum/posts/<int:post_id>/essential', methods=['POST'])
+def essential_post(post_id):
+    data = request.json
+    parent_id = data.get('parent_id')
+    is_essential = data.get('is_essential', 1)
+    
+    user_result = execute_db('SELECT role FROM parents WHERE id = ?', (parent_id,))
+    if not user_result or user_result[0][0] != 'admin':
+        return jsonify({'error': '无权操作'}), 403
+    
+    execute_db('UPDATE forum_posts SET is_essential = ? WHERE id = ?', (is_essential, post_id))
+    return jsonify({'message': '操作成功'}), 200
+
+@app.route('/api/forum/posts/hot', methods=['GET'])
+def get_hot_posts():
+    limit = int(request.args.get('limit', 5))
+    
+    result = execute_db('''
+        SELECT p.id, p.title, p.view_count,
+               (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
+               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count
+        FROM forum_posts p
+        ORDER BY (p.view_count + (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) * 2 + 
+                  (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) * 3) DESC
+        LIMIT ?
+    ''', (limit,))
+    
+    hot_posts = [{
+        'id': h[0],
+        'title': h[1],
+        'view_count': h[2],
+        'comment_count': h[3],
+        'like_count': h[4]
+    } for h in result]
+    
+    return jsonify(hot_posts), 200
+
+@app.route('/api/upload/image', methods=['POST'])
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({'error': '没有上传图片'}), 400
+    
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'error': '没有选择文件'}), 400
+    
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return jsonify({'error': '不支持的文件格式'}), 400
+    
+    import uuid
+    filename = f"{uuid.uuid4().hex}.{file.filename.rsplit('.', 1)[1].lower()}"
+    upload_dir = os.path.join(frontend_dir, 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, filename)
+    file.save(file_path)
+    
+    return jsonify({'url': f'/uploads/{filename}'}), 200
+
+@app.route('/api/user/level/<int:parent_id>', methods=['GET'])
+def get_user_level(parent_id):
+    post_count = execute_db('SELECT COUNT(*) FROM forum_posts WHERE parent_id = ?', (parent_id))[0][0]
+    comment_count = execute_db('SELECT COUNT(*) FROM forum_comments WHERE parent_id = ?', (parent_id))[0][0]
+    like_received = execute_db('''
+        SELECT COUNT(*) FROM forum_votes v
+        JOIN forum_posts p ON v.post_id = p.id
+        WHERE p.parent_id = ? AND v.vote_type = 1
+    ''', (parent_id,))[0][0]
+    
+    experience = post_count * 10 + comment_count * 5 + like_received * 2
+    level = 1 + experience // 100
+    
+    return jsonify({
+        'post_count': post_count,
+        'comment_count': comment_count,
+        'like_received': like_received,
+        'experience': experience,
+        'level': level
+    }), 200
+
+@app.route('/api/knowledge/articles/search', methods=['GET'])
+def search_knowledge_articles():
+    import json
+    
+    keyword = request.args.get('keyword', '')
+    tag = request.args.get('tag', '')
+    
+    knowledge_file = os.path.join(frontend_dir, 'knowledge', 'knowledge-data.json')
+    
+    try:
+        with open(knowledge_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            articles = data.get('articles', [])
+        
+        if keyword:
+            articles = [a for a in articles if keyword.lower() in a.get('title', '').lower() or keyword.lower() in a.get('content', '').lower()]
+        
+        if tag:
+            articles = [a for a in articles if tag in a.get('tags', [])]
+        
+        articles.sort(key=lambda x: x.get('date', ''), reverse=True)
+        return jsonify(articles), 200
+    except FileNotFoundError:
+        return jsonify({'error': '知识文章文件不存在'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/knowledge/tags', methods=['GET'])
+def get_knowledge_tags():
+    import json
+    
+    knowledge_file = os.path.join(frontend_dir, 'knowledge', 'knowledge-data.json')
+    
+    try:
+        with open(knowledge_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            articles = data.get('articles', [])
+        
+        tags = set()
+        for article in articles:
+            for tag in article.get('tags', []):
+                tags.add(tag)
+        
+        return jsonify(list(tags)), 200
+    except FileNotFoundError:
+        return jsonify({'error': '知识文章文件不存在'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/user/change-password', methods=['POST'])
+def change_password():
+    data = request.json
+    parent_id = data.get('parent_id')
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    
+    if not parent_id or not old_password or not new_password:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    user = execute_db('SELECT id, password FROM parents WHERE id = ?', (parent_id,))
+    if not user:
+        return jsonify({'error': '用户不存在'}), 404
+    
+    if user[0][1] != old_password:
+        return jsonify({'error': '旧密码错误'}), 400
+    
+    execute_db('UPDATE parents SET password = ? WHERE id = ?', (new_password, parent_id))
+    return jsonify({'message': '密码修改成功'}), 200
+
+@app.route('/api/user/avatar', methods=['POST'])
+def update_avatar():
+    data = request.json
+    parent_id = data.get('parent_id')
+    avatar = data.get('avatar')
+    
+    if not parent_id or not avatar:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    execute_db('UPDATE parents SET avatar = ? WHERE id = ?', (avatar, parent_id))
+    return jsonify({'message': '头像更新成功'}), 200
+
+@app.route('/api/user/posts/<int:parent_id>', methods=['GET'])
+def get_user_posts(parent_id):
+    result = execute_db('''
+        SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.category_id, p.is_pinned, p.is_essential,
+               (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
+               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count
+        FROM forum_posts p
+        WHERE p.parent_id = ?
+        ORDER BY p.created_at DESC
+    ''', (parent_id,))
+    
+    posts = [{
+        'id': p[0],
+        'title': p[1],
+        'content': p[2],
+        'created_at': p[3],
+        'view_count': p[4],
+        'category_id': p[5],
+        'is_pinned': p[6],
+        'is_essential': p[7],
+        'comment_count': p[8],
+        'like_count': p[9]
+    } for p in result]
+    
+    return jsonify(posts), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

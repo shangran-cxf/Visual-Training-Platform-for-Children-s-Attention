@@ -12,9 +12,13 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            overflow-x: hidden;
+        }
+
         body {
-            font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
             color: #333;
             min-height: 100vh;
             display: flex;
@@ -22,59 +26,23 @@
         }
 
         .header {
-            background: linear-gradient(90deg, #4caf50 0%, #81c784 99%, #81c784 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px 0;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="40" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.3)"/></svg>');
-            animation: float 20s linear infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            100% {
-                transform: translate(100px, 100px);
-            }
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
         }
 
         .header h1 {
-            font-size: 2.2em;
+            font-size: 1.8em;
             margin: 0;
-            position: relative;
-            z-index: 1;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            animation: pulse 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            100% {
-                transform: scale(1.03);
-            }
+            font-weight: 600;
         }
 
         .nav {
             background-color: white;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 12px 0;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -84,309 +52,496 @@
             display: flex;
             justify-content: center;
             list-style: none;
-            gap: 20px;
+            gap: 15px;
             flex-wrap: wrap;
-        }
-
-        .nav li {
-            display: inline;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .nav a {
             text-decoration: none;
-            color: #333;
-            font-size: 16px;
-            font-weight: bold;
-            padding: 12px 20px;
-            border-radius: 30px;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-
-        .nav a::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .nav a:hover::before {
-            left: 100%;
         }
 
         .nav a:hover {
-            background-color: #4caf50;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+            background-color: #f0f0f0;
+            color: #333;
         }
 
         .nav a.active {
-            background: linear-gradient(90deg, #4caf50, #81c784);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
         }
 
         .container {
             flex: 1;
-            max-width: 1800px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 30px 60px;
-        }
-
-        .footer {
-            background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
-            color: white;
-            text-align: center;
-            padding: 25px 0;
-            margin-top: 40px;
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .footer p {
-            margin: 0;
-            font-size: 16px;
-            animation: pulse 2s ease-in-out infinite alternate;
-        }
-
-        @media (max-width: 768px) {
-            .nav ul {
-                gap: 10px;
-            }
-
-            .nav a {
-                font-size: 14px;
-                padding: 10px 15px;
-            }
-
-            .header h1 {
-                font-size: 1.8em;
-            }
-
-            .container {
-                padding: 20px;
-            }
-        }
-
-        .profile-report-container {
-            background-color: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-            width: 1300px;
-            max-width: 100%;
-            margin: 0 auto;
-        }
-
-        .profile-report-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
+            padding: 20px;
             width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #4caf50, #81c784, #a5d6a7, #c8e6c9);
         }
 
-        .profile-report-container h2 {
-            color: #2e7d32;
-            margin-bottom: 30px;
+        .profile-header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .avatar-section {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 4px solid #f0f0f0;
+        }
+
+        .avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-large:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .avatar-upload-hint {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 12px;
             text-align: center;
-            font-size: 2em;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-            animation: bounce 1s ease-in-out infinite alternate;
+            padding: 4px 0;
+            border-radius: 0 0 60px 60px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
 
-        @keyframes bounce {
-            0% {
-                transform: translateY(0);
-            }
-
-            100% {
-                transform: translateY(-5px);
-            }
+        .avatar-section:hover .avatar-upload-hint {
+            opacity: 1;
         }
 
-        .profile-report-content {
+        #avatar-input {
+            display: none;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-username {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .profile-email {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .profile-meta {
             display: flex;
             gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .profile-meta-item {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .profile-meta-item span {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 14px;
+            font-size: 13px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        .card-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .post-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .post-item:last-child {
+            border-bottom: none;
+        }
+
+        .post-item:hover {
+            background: #fafafa;
+            margin: 0 -20px;
+            padding: 12px 20px;
+        }
+
+        .post-item-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-item-title:hover {
+            color: #667eea;
+        }
+
+        .post-item-meta {
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            gap: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
         }
 
-        .profile-left {
+        .modal-actions button {
             flex: 1;
-            min-width: 0;
-        }
-
-        .report-right {
-            flex: 2;
-            min-width: 0;
-        }
-
-        .profile-info-card {
-            background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .profile-info-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .profile-info-card h3 {
-            color: #333;
-            margin-bottom: 20px;
-            border-bottom: 3px solid #4caf50;
-            padding-bottom: 10px;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-
-        .profile-info-card:hover h3 {
-            color: #2e7d32;
-            transform: scale(1.05);
-        }
-
-        .profile-info-card .info-item {
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: rgba(76, 175, 80, 0.05);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .profile-info-card .info-item:hover {
-            background-color: rgba(76, 175, 80, 0.1);
-            transform: translateX(5px);
-        }
-
-        .profile-info-card .info-label {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .profile-info-card .info-value {
-            color: #666;
-            margin-left: 10px;
-        }
-
-        .report-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .report-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #4caf50, #81c784);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .report-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .report-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .report-card h3 {
-            color: #333;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .report-card:hover h3 {
-            color: #2e7d32;
-        }
-
-        .report-card p {
-            color: #666;
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-
-        .report-card .report-date {
+            padding: 10px 20px;
             font-size: 14px;
-            color: #999;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            background: linear-gradient(90deg, #4caf50, #81c784);
-            color: white;
             border: none;
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            animation: pulse 2s ease-in-out infinite alternate;
         }
 
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
-        .btn:hover::before {
-            left: 100%;
+        .info-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
-        .btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .children-list {
+            margin-top: 10px;
+        }
+
+        .child-item {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .child-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .child-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .child-age {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .footer {
+            background: #333;
+            color: #999;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+
+        .footer p {
+            font-size: 13px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background: #e8e8e8;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
-            .profile-report-content {
+            .profile-header {
                 flex-direction: column;
-                gap: 15px;
+                text-align: center;
             }
 
-            .profile-left,
-            .report-right {
-                flex: none;
-                width: 100%;
+            .profile-meta {
+                justify-content: center;
             }
 
-            .profile-report-container {
-                width: 100%;
-                padding: 20px;
-                border-radius: 15px;
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .container {
+                padding: 15px;
             }
         }
     </style>
@@ -407,58 +562,126 @@
         </ul>
     </nav>
     <div class="container">
-        <div class="profile-report-container">
-            <h2>个人中心</h2>
-            <div class="profile-report-content">
-                <div class="profile-left">
-                    <div class="profile-info-card">
-                        <h3>账号信息</h3>
-                        <div class="info-item">
-                            <span class="info-label">UID:</span>
-                            <span class="info-value" id="profile-uid">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">用户名:</span>
-                            <span class="info-value" id="profile-username">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">邮箱:</span>
-                            <span class="info-value" id="profile-email">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">注册时间:</span>
-                            <span class="info-value" id="profile-created">-</span>
-                        </div>
-                    </div>
-                    <div class="profile-info-card" id="children-info-section">
-                        <h3>孩子信息</h3>
-                        <div id="children-info-list">
-                        </div>
+        <div class="profile-header">
+            <div class="avatar-section">
+                <div class="avatar-large" id="user-avatar" onclick="document.getElementById('avatar-input').click()">
+                    <span id="avatar-initial">U</span>
+                </div>
+                <div class="avatar-upload-hint">点击上传头像</div>
+                <input type="file" id="avatar-input" accept="image/*" onchange="uploadAvatar(event)">
+            </div>
+            <div class="profile-info">
+                <div class="profile-username" id="profile-username">加载中...</div>
+                <div class="profile-email" id="profile-email">-</div>
+                <div class="profile-meta">
+                    <div class="profile-meta-item">UID: <span id="profile-uid">-</span></div>
+                    <div class="profile-meta-item">注册时间: <span id="profile-created">-</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-posts">0</div>
+                <div class="stat-label">发帖数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-comments">0</div>
+                <div class="stat-label">评论数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-likes">0</div>
+                <div class="stat-label">获赞数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-favorites">0</div>
+                <div class="stat-label">收藏数</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">我的帖子</div>
+                </div>
+                <div class="card-body" id="my-posts-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">加载中...</div>
                     </div>
                 </div>
-                <div class="report-right">
-                    <div class="report-card">
-                        <h3>综合评估报告</h3>
-                        <p>孩子在五个维度的注意力水平评估，包括选择性注意、持续性注意、视觉追踪、工作记忆和抑制控制。</p>
-                        <div class="report-date">生成时间: 2026-03-25</div>
-                        <button class="btn" onclick="viewReport('assessment/parent.html')">查看详细报告</button>
-                    </div>
-                    <div class="report-card">
-                        <h3>训练进度报告</h3>
-                        <p>孩子最近的训练情况，包括训练次数、完成情况和进步趋势。</p>
-                        <div class="report-date">生成时间: 2026-03-20</div>
-                        <button class="btn">查看详细报告</button>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">我的收藏</div>
+                </div>
+                <div class="card-body" id="my-favorites-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⭐</div>
+                        <div class="empty-state-text">加载中...</div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="info-section">
+            <div class="card-header" style="padding: 0 0 15px 0; border-bottom: 2px solid #f0f0f0;">
+                <div class="card-title">账号设置</div>
+                <button class="btn-small btn-primary" onclick="showPasswordModal()">修改密码</button>
+            </div>
+            <div style="padding-top: 15px;">
+                <div class="info-item">
+                    <span class="info-label">用户名</span>
+                    <span class="info-value" id="info-username">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">邮箱</span>
+                    <span class="info-value" id="info-email">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section" id="children-section">
+            <div class="info-section-title">孩子信息</div>
+            <div class="children-list" id="children-list">
+                <div class="empty-state">
+                    <div class="empty-state-text">暂无孩子信息</div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="modal-overlay" id="password-modal">
+        <div class="modal">
+            <div class="modal-title">修改密码</div>
+            <div class="form-group">
+                <label for="old-password">原密码</label>
+                <input type="password" id="old-password" placeholder="请输入原密码">
+            </div>
+            <div class="form-group">
+                <label for="new-password">新密码</label>
+                <input type="password" id="new-password" placeholder="请输入新密码">
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">确认新密码</label>
+                <input type="password" id="confirm-password" placeholder="请再次输入新密码">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="hidePasswordModal()">取消</button>
+                <button class="btn-primary" onclick="changePassword()">确认修改</button>
+            </div>
+        </div>
+    </div>
+
     <div class="footer">
         <p>© 2026 注意力训练平台</p>
     </div>
 
     <script src="utils.js"></script>
     <script>
+        let currentUserInfo = null;
+
         function logout() {
             StorageUtil.removeItem('userInfo');
         }
@@ -481,52 +704,289 @@
             return userInfo;
         }
 
-        function viewReport(url) {
-            window.location.href = url;
-        }
-
-        function loadProfileInfo() {
+        async function loadUserInfo() {
             const userInfo = StorageUtil.getItem('userInfo');
             if (!userInfo) return;
 
+            currentUserInfo = userInfo;
+
             document.getElementById('profile-uid').textContent = userInfo.uid || '-';
-            document.getElementById('profile-username').textContent = userInfo.username || '-';
-            document.getElementById('profile-email').textContent = userInfo.email || '-';
+            document.getElementById('info-username').textContent = userInfo.username || '-';
 
             if (userInfo.role === 'admin') {
                 document.getElementById('admin-nav-item').style.display = 'inline';
             }
 
-            fetch(`/api/user/info?parent_id=${userInfo.parent_id}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.created_at) {
-                        document.getElementById('profile-created').textContent = data.created_at.split(' ')[0];
-                    }
-                })
-                .catch(err => console.error('获取用户信息失败:', err));
+            try {
+                const response = await fetch(`/api/user/info?parent_id=${userInfo.parent_id}`);
+                const data = await response.json();
 
-            const childrenInfoList = document.getElementById('children-info-list');
-            if (userInfo.children && userInfo.children.length > 0) {
-                childrenInfoList.innerHTML = userInfo.children.map(child => `
-                    <div class="info-item">
-                        <span class="info-label">孩子姓名:</span>
-                        <span class="info-value">${child.name}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">孩子年龄:</span>
-                        <span class="info-value">${child.age}岁</span>
-                    </div>
-                `).join('<hr style="border: none; border-top: 1px dashed #ddd; margin: 10px 0;">');
-            } else {
-                childrenInfoList.innerHTML = '<p style="color: #666;">暂无孩子信息</p>';
+                document.getElementById('profile-username').textContent = data.username || userInfo.username || '-';
+                document.getElementById('info-username').textContent = data.username || userInfo.username || '-';
+                document.getElementById('profile-email').textContent = data.email || '-';
+                document.getElementById('info-email').textContent = data.email || '-';
+
+                if (data.created_at) {
+                    document.getElementById('profile-created').textContent = data.created_at.split(' ')[0];
+                }
+
+                if (data.avatar) {
+                    document.getElementById('user-avatar').innerHTML = `<img src="${data.avatar}" alt="头像">`;
+                } else {
+                    const initial = (data.username || userInfo.username || 'U').charAt(0).toUpperCase();
+                    document.getElementById('avatar-initial').textContent = initial;
+                }
+            } catch (err) {
+                console.error('获取用户信息失败:', err);
+                const initial = (userInfo.username || 'U').charAt(0).toUpperCase();
+                document.getElementById('avatar-initial').textContent = initial;
             }
+        }
+
+        async function loadUserStats() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo) return;
+
+            try {
+                const response = await fetch(`/api/user/level/${userInfo.parent_id}`);
+                const data = await response.json();
+
+                document.getElementById('stat-posts').textContent = data.post_count || 0;
+                document.getElementById('stat-comments').textContent = data.comment_count || 0;
+                document.getElementById('stat-likes').textContent = data.like_received || 0;
+                document.getElementById('stat-favorites').textContent = data.favorite_count || 0;
+            } catch (err) {
+                console.error('获取用户统计失败:', err);
+            }
+        }
+
+        async function loadMyPosts() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo) return;
+
+            const container = document.getElementById('my-posts-list');
+
+            try {
+                const response = await fetch(`/api/user/posts/${userInfo.parent_id}`);
+                const posts = await response.json();
+
+                if (posts && posts.length > 0) {
+                    container.innerHTML = posts.map(post => `
+                        <div class="post-item" onclick="goToPost(${post.id})">
+                            <div class="post-item-title">${post.title}</div>
+                            <div class="post-item-meta">
+                                <span>💬 ${post.comment_count || 0}</span>
+                                <span>👍 ${post.like_count || 0}</span>
+                                <span>${post.created_at}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📝</div>
+                            <div class="empty-state-text">暂无发布的帖子</div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('获取我的帖子失败:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <div class="empty-state-text">加载失败</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadMyFavorites() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo) return;
+
+            const container = document.getElementById('my-favorites-list');
+
+            try {
+                const response = await fetch(`/api/forum/favorites/${userInfo.parent_id}`);
+                const favorites = await response.json();
+
+                if (favorites && favorites.length > 0) {
+                    container.innerHTML = favorites.map(item => `
+                        <div class="post-item" onclick="goToPost(${item.post_id})">
+                            <div class="post-item-title">${item.title}</div>
+                            <div class="post-item-meta">
+                                <span>💬 ${item.comment_count || 0}</span>
+                                <span>👍 ${item.like_count || 0}</span>
+                                <span>${item.created_at}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⭐</div>
+                            <div class="empty-state-text">暂无收藏的帖子</div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('获取我的收藏失败:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <div class="empty-state-text">加载失败</div>
+                    </div>
+                `;
+            }
+        }
+
+        function loadChildrenInfo() {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo) return;
+
+            const container = document.getElementById('children-list');
+
+            if (userInfo.children && userInfo.children.length > 0) {
+                container.innerHTML = userInfo.children.map(child => `
+                    <div class="child-item">
+                        <div class="child-name">${child.name}</div>
+                        <div class="child-age">${child.age}岁</div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-text">暂无孩子信息</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function uploadAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const uploadResponse = await fetch('/api/upload/image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const uploadResult = await uploadResponse.json();
+
+                if (!uploadResponse.ok) {
+                    alert(uploadResult.error || '上传图片失败');
+                    return;
+                }
+
+                const avatarUrl = uploadResult.url || uploadResult.path;
+
+                const updateResponse = await fetch('/api/user/avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id,
+                        avatar: avatarUrl
+                    })
+                });
+
+                const updateResult = await updateResponse.json();
+
+                if (updateResponse.ok) {
+                    document.getElementById('user-avatar').innerHTML = `<img src="${avatarUrl}" alt="头像">`;
+                    alert('头像更新成功');
+                } else {
+                    alert(updateResult.error || '更新头像失败');
+                }
+            } catch (err) {
+                console.error('上传头像失败:', err);
+                alert('上传头像失败，请稍后再试');
+            }
+
+            event.target.value = '';
+        }
+
+        function showPasswordModal() {
+            document.getElementById('password-modal').classList.add('show');
+        }
+
+        function hidePasswordModal() {
+            document.getElementById('password-modal').classList.remove('show');
+            document.getElementById('old-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+        }
+
+        async function changePassword() {
+            const oldPassword = document.getElementById('old-password').value.trim();
+            const newPassword = document.getElementById('new-password').value.trim();
+            const confirmPassword = document.getElementById('confirm-password').value.trim();
+
+            if (!oldPassword || !newPassword || !confirmPassword) {
+                alert('请填写所有密码字段');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('两次输入的新密码不一致');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('新密码长度至少6位');
+                return;
+            }
+
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo) return;
+
+            try {
+                const response = await fetch('/api/user/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id,
+                        old_password: oldPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('密码修改成功');
+                    hidePasswordModal();
+                } else {
+                    alert(result.error || '密码修改失败');
+                }
+            } catch (err) {
+                console.error('修改密码失败:', err);
+                alert('修改密码失败，请稍后再试');
+            }
+        }
+
+        function goToPost(postId) {
+            window.location.href = `forum-detail.html?id=${postId}`;
         }
 
         window.onload = function () {
             const userInfo = checkAuth();
             if (userInfo) {
-                loadProfileInfo();
+                loadUserInfo();
+                loadUserStats();
+                loadMyPosts();
+                loadMyFavorites();
+                loadChildrenInfo();
             }
         };
     </script>
