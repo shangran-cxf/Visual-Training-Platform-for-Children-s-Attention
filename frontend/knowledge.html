@@ -540,6 +540,7 @@
         function switchToChild() {
             const userInfo = StorageUtil.getItem('userInfo');
             if (userInfo) {
+                userInfo.original_role = userInfo.role;
                 userInfo.role = 'child';
                 StorageUtil.setItem('userInfo', userInfo);
                 window.location.href = 'child-home.html';
@@ -789,7 +790,7 @@
         window.onload = function () {
             const userInfo = checkAuth();
             if (userInfo) {
-                if (userInfo.role === 'admin') {
+                if (userInfo.original_role === 'admin' || userInfo.role === 'admin') {
                     document.getElementById('admin-nav-item').style.display = 'inline';
                 }
                 

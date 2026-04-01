@@ -469,6 +469,85 @@
             color: #ff9800;
         }
 
+        .post-stat-action {
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .post-stat-action:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            transform: translateY(-2px);
+        }
+
+        .post-stat-action:active {
+            transform: translateY(0);
+        }
+
+        .post-stat-action.like-action:hover {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .post-stat-action.dislike-action:hover {
+            background: rgba(244, 67, 54, 0.15);
+        }
+
+        .post-stat-action.comment-action:hover {
+            background: rgba(33, 150, 243, 0.15);
+        }
+
+        .post-stat-action.favorite-action:hover {
+            background: rgba(255, 152, 0, 0.15);
+        }
+
+        .post-stat-action.edit-action:hover {
+            background: rgba(76, 175, 80, 0.15);
+        }
+
+        .post-stat-action.delete-action:hover {
+            background: rgba(244, 67, 54, 0.15);
+        }
+
+        .post-stat-action.pin-action:hover {
+            background: rgba(255, 152, 0, 0.15);
+        }
+
+        .post-stat-action.essential-action:hover {
+            background: rgba(233, 30, 99, 0.15);
+        }
+
+        .post-footer {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .post-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .post-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .post-stat-readonly {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #999;
+        }
+
         .post-comments {
             margin-top: 15px;
             padding-top: 15px;
@@ -869,6 +948,7 @@
         function switchToChild() {
             const userInfo = StorageUtil.getItem('userInfo');
             if (userInfo) {
+                userInfo.original_role = userInfo.role;
                 userInfo.role = 'child';
                 StorageUtil.setItem('userInfo', userInfo);
                 window.location.href = 'child-home.html';
@@ -991,6 +1071,10 @@
                         const isPinned = post.is_pinned === 1;
                         const isEssential = post.is_essential === 1;
                         
+                        const isAdmin = userInfo && (userInfo.role === 'admin' || userInfo.original_role === 'admin');
+                        const isAuthor = userInfo && userInfo.parent_id === post.parent_id;
+                        const canEditDelete = isAuthor || isAdmin;
+                        
                         return `
                         <div class="forum-post ${isPinned ? 'pinned' : ''}" onclick="toggleComments(${post.id})">
                             <div class="post-header">
@@ -1011,35 +1095,39 @@
                             <div class="post-title" onclick="goToPost(${post.id}); event.stopPropagation();">${post.title}</div>
                             <div class="post-content">${post.content}</div>
                             <div class="post-footer" onclick="event.stopPropagation();">
-                                <div class="post-stat">
-                                    <span>👁</span> ${post.view_count || 0}
-                                </div>
-                                <div class="post-stat ${post.user_vote === 1 ? 'liked' : ''}" onclick="likePost(${post.id})" title="点赞">
-                                    <span>👍</span> ${post.like_count || 0}
-                                </div>
-                                <div class="post-stat ${post.user_vote === -1 ? 'disliked' : ''}" onclick="dislikePost(${post.id})" title="点踩">
-                                    <span>👎</span> ${post.dislike_count || 0}
-                                </div>
-                                <div class="post-stat" onclick="toggleComments(${post.id})" title="评论">
-                                    <span>💬</span> ${post.comment_count || 0}
-                                </div>
-                                <div class="post-stat" onclick="toggleFavorite(${post.id})" title="收藏">
-                                    <span>⭐</span>
-                                </div>
-                                ${userInfo && (userInfo.parent_id === post.parent_id || userInfo.role === 'admin') ? `
-                                    <div class="post-stat" onclick="editPost(${post.id})" title="编辑">
-                                        <span>✏️</span>
+                                <div class="post-footer-left">
+                                    <div class="post-stat-readonly">
+                                        <span>👁</span> ${post.view_count || 0}
                                     </div>
-                                    <div class="post-stat" onclick="deletePost(${post.id})" title="删除">
-                                        <span>🗑️</span>
+                                    <div class="post-stat post-stat-action like-action ${post.user_vote === 1 ? 'liked' : ''}" onclick="likePost(${post.id})" title="点赞">
+                                        <span>👍</span> ${post.like_count || 0}
                                     </div>
-                                ` : ''}
-                                ${userInfo && userInfo.role === 'admin' ? `
-                                    <div class="post-stat" onclick="pinPost(${post.id}, ${isPinned ? 0 : 1})" title="置顶">
-                                        <span>📌</span>
+                                    <div class="post-stat post-stat-action dislike-action ${post.user_vote === -1 ? 'disliked' : ''}" onclick="dislikePost(${post.id})" title="点踩">
+                                        <span>👎</span> ${post.dislike_count || 0}
                                     </div>
-                                    <div class="post-stat" onclick="essentialPost(${post.id}, ${isEssential ? 0 : 1})" title="精华">
-                                        <span>💎</span>
+                                    <div class="post-stat post-stat-action comment-action" onclick="toggleComments(${post.id})" title="评论">
+                                        <span>💬</span> ${post.comment_count || 0}
+                                    </div>
+                                    <div class="post-stat post-stat-action favorite-action" onclick="toggleFavorite(${post.id})" title="收藏">
+                                        <span>⭐</span>
+                                    </div>
+                                    ${canEditDelete ? `
+                                        <div class="post-stat post-stat-action edit-action" onclick="editPost(${post.id})" title="编辑">
+                                            <span>✏️</span>
+                                        </div>
+                                        <div class="post-stat post-stat-action delete-action" onclick="deletePost(${post.id})" title="删除">
+                                            <span>🗑️</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                ${isAdmin ? `
+                                    <div class="post-footer-right">
+                                        <div class="post-stat post-stat-action pin-action" onclick="pinPost(${post.id}, ${isPinned ? 0 : 1})" title="置顶">
+                                            <span>📌</span>
+                                        </div>
+                                        <div class="post-stat post-stat-action essential-action" onclick="essentialPost(${post.id}, ${isEssential ? 0 : 1})" title="精华">
+                                            <span>💎</span>
+                                        </div>
                                     </div>
                                 ` : ''}
                             </div>
@@ -1485,7 +1573,7 @@
         window.onload = function () {
             const userInfo = checkAuth();
             if (userInfo) {
-                if (userInfo.role === 'admin') {
+                if (userInfo.original_role === 'admin' || userInfo.role === 'admin') {
                     document.getElementById('admin-nav-item').style.display = 'inline';
                 }
                 loadCategories();

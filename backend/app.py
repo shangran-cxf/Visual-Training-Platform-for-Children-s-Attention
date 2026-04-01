@@ -180,6 +180,11 @@ def init_db():
     except:
         pass
     
+    try:
+        cursor.execute('ALTER TABLE parents ADD COLUMN is_banned INTEGER DEFAULT 0')
+    except:
+        pass
+    
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -309,14 +314,17 @@ def login():
         return jsonify({'error': '用户名和密码不能为空'}), 400
     
     result = execute_db(
-        'SELECT id, uid, email, role FROM parents WHERE username = ? AND password = ?',
+        'SELECT id, uid, email, role, is_banned FROM parents WHERE username = ? AND password = ?',
         (username, password)
     )
     
     if not result:
         return jsonify({'error': '用户名或密码错误'}), 401
     
-    parent_id, uid, email, role = result[0]
+    parent_id, uid, email, role, is_banned = result[0]
+    
+    if is_banned == 1:
+        return jsonify({'error': '账户已封禁'}), 403
     
     children = execute_db(
         'SELECT id, name, age FROM children WHERE parent_id = ?',
@@ -393,7 +401,7 @@ def get_user_info():
 @app.route('/api/admin/users', methods=['GET'])
 def get_all_users():
     result = execute_db('''
-        SELECT p.id, p.uid, p.username, p.email, p.role, p.created_at,
+        SELECT p.id, p.uid, p.username, p.email, p.role, p.created_at, p.is_banned,
                (SELECT COUNT(*) FROM children WHERE parent_id = p.id) as child_count
         FROM parents p
         ORDER BY p.uid ASC
@@ -406,10 +414,89 @@ def get_all_users():
         'email': u[3],
         'role': u[4],
         'created_at': u[5],
-        'child_count': u[6]
+        'is_banned': u[6],
+        'child_count': u[7]
     } for u in result]
     
     return jsonify(users), 200
+
+@app.route('/api/admin/ban_user', methods=['POST'])
+def ban_user():
+    data = request.json
+    user_id = data.get('user_id')
+    is_banned = data.get('is_banned')
+    
+    if user_id is None or is_banned is None:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    if is_banned not in [0, 1]:
+        return jsonify({'error': 'is_banned 参数必须为 0 或 1'}), 400
+    
+    user = execute_db('SELECT id, role FROM parents WHERE id = ?', (user_id,))
+    if not user:
+        return jsonify({'error': '用户不存在'}), 404
+    
+    if user[0][1] == 'admin':
+        return jsonify({'error': '不能封禁管理员账户'}), 403
+    
+    execute_db('UPDATE parents SET is_banned = ? WHERE id = ?', (is_banned, user_id))
+    
+    action = '封禁' if is_banned == 1 else '解封'
+    return jsonify({'message': f'用户{action}成功'}), 200
+
+@app.route('/api/admin/reset_password', methods=['POST'])
+def reset_password():
+    data = request.json
+    user_id = data.get('user_id')
+    
+    if user_id is None:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    user = execute_db('SELECT id FROM parents WHERE id = ?', (user_id,))
+    if not user:
+        return jsonify({'error': '用户不存在'}), 404
+    
+    execute_db('UPDATE parents SET password = ? WHERE id = ?', ('123456', user_id))
+    
+    return jsonify({'message': '密码已重置为 123456'}), 200
+
+@app.route('/api/admin/edit_user', methods=['POST'])
+def edit_user():
+    data = request.json
+    user_id = data.get('user_id')
+    username = data.get('username')
+    role = data.get('role')
+    
+    if user_id is None:
+        return jsonify({'error': '参数不完整'}), 400
+    
+    user = execute_db('SELECT id FROM parents WHERE id = ?', (user_id,))
+    if not user:
+        return jsonify({'error': '用户不存在'}), 404
+    
+    update_fields = []
+    update_params = []
+    
+    if username is not None:
+        existing = execute_db('SELECT id FROM parents WHERE username = ? AND id != ?', (username, user_id))
+        if existing:
+            return jsonify({'error': '用户名已存在'}), 400
+        update_fields.append('username = ?')
+        update_params.append(username)
+    
+    if role is not None:
+        if role not in ['user', 'admin']:
+            return jsonify({'error': '角色必须是 user 或 admin'}), 400
+        update_fields.append('role = ?')
+        update_params.append(role)
+    
+    if not update_fields:
+        return jsonify({'error': '没有需要更新的字段'}), 400
+    
+    update_params.append(user_id)
+    execute_db(f'UPDATE parents SET {", ".join(update_fields)} WHERE id = ?', update_params)
+    
+    return jsonify({'message': '用户信息更新成功'}), 200
 
 @app.route('/api/forum/posts', methods=['GET'])
 def get_posts():
@@ -1184,13 +1271,14 @@ def upload_image():
 
 @app.route('/api/user/level/<int:parent_id>', methods=['GET'])
 def get_user_level(parent_id):
-    post_count = execute_db('SELECT COUNT(*) FROM forum_posts WHERE parent_id = ?', (parent_id))[0][0]
-    comment_count = execute_db('SELECT COUNT(*) FROM forum_comments WHERE parent_id = ?', (parent_id))[0][0]
+    post_count = execute_db('SELECT COUNT(*) FROM forum_posts WHERE parent_id = ?', (parent_id,))[0][0]
+    comment_count = execute_db('SELECT COUNT(*) FROM forum_comments WHERE parent_id = ?', (parent_id,))[0][0]
     like_received = execute_db('''
         SELECT COUNT(*) FROM forum_votes v
         JOIN forum_posts p ON v.post_id = p.id
         WHERE p.parent_id = ? AND v.vote_type = 1
     ''', (parent_id,))[0][0]
+    favorite_count = execute_db('SELECT COUNT(*) FROM favorites WHERE parent_id = ?', (parent_id,))[0][0]
     
     experience = post_count * 10 + comment_count * 5 + like_received * 2
     level = 1 + experience // 100
@@ -1199,6 +1287,7 @@ def get_user_level(parent_id):
         'post_count': post_count,
         'comment_count': comment_count,
         'like_received': like_received,
+        'favorite_count': favorite_count,
         'experience': experience,
         'level': level
     }), 200

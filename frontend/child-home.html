@@ -769,7 +769,8 @@
             if (userInfo) {
                 showPasswordModal('切换到家长端', '请输入密码以切换到家长端：', function (password) {
                     if (password === userInfo.password) {
-                        userInfo.role = 'parent';
+                        userInfo.role = userInfo.original_role || 'parent';
+                        delete userInfo.original_role;
                         StorageUtil.setItem('userInfo', userInfo);
                         window.location.href = 'profile.html';
                     } else {

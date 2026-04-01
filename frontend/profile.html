@@ -749,6 +749,7 @@
         function switchToChild() {
             const userInfo = StorageUtil.getItem('userInfo');
             if (userInfo) {
+                userInfo.original_role = userInfo.role;
                 userInfo.role = 'child';
                 StorageUtil.setItem('userInfo', userInfo);
                 window.location.href = 'child-home.html';
@@ -773,7 +774,7 @@
             document.getElementById('profile-uid').textContent = userInfo.uid || '-';
             document.getElementById('info-username').textContent = userInfo.username || '-';
 
-            if (userInfo.role === 'admin') {
+            if (userInfo.original_role === 'admin' || userInfo.role === 'admin') {
                 document.getElementById('admin-nav-item').style.display = 'inline';
             }
 
