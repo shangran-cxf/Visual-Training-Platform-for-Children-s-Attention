@@ -908,9 +908,6 @@ def search_posts():
     per_page = int(request.args.get('per_page', 10))
     offset = (page - 1) * per_page
     
-    if not keyword and not category_id:
-        return jsonify({'error': '请提供搜索关键词或分类'}), 400
-    
     base_query = '''
         SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id, p.category_id, p.is_pinned, p.is_essential,
                pr.username as author_name, pr.avatar, pr.level,
@@ -924,14 +921,17 @@ def search_posts():
     params = []
     
     if keyword:
-        base_query += ' AND (p.title LIKE ? OR p.content LIKE ?)'
-        params.extend([f'%{keyword}%', f'%{keyword}%'])
+        base_query += ' AND (p.title LIKE ? OR p.content LIKE ? OR pr.username LIKE ?)'
+        params.extend([f'%{keyword}%', f'%{keyword}%', f'%{keyword}%'])
     
     if category_id:
         base_query += ' AND p.category_id = ?'
         params.append(category_id)
     
-    if sort_by == 'hot':
+    if sort_by == 'relevance' and keyword:
+        base_query += ' ORDER BY p.is_pinned DESC, CASE WHEN p.title LIKE ? THEN 100 WHEN pr.username LIKE ? THEN 80 ELSE 30 END DESC, p.created_at DESC'
+        params.extend([f'%{keyword}%', f'%{keyword}%'])
+    elif sort_by == 'hot':
         base_query += ' ORDER BY p.is_pinned DESC, (p.view_count + (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) * 2) DESC, p.created_at DESC'
     elif sort_by == 'essential':
         base_query += ' ORDER BY p.is_pinned DESC, p.is_essential DESC, p.created_at DESC'
@@ -1218,12 +1218,35 @@ def search_knowledge_articles():
             articles = data.get('articles', [])
         
         if keyword:
-            articles = [a for a in articles if keyword.lower() in a.get('title', '').lower() or keyword.lower() in a.get('content', '').lower()]
+            keyword_lower = keyword.lower()
+            scored_articles = []
+            for a in articles:
+                score = 0
+                title = a.get('title', '').lower()
+                content = a.get('content', '').lower()
+                author = a.get('author', '').lower()
+                
+                if keyword_lower in title:
+                    score += 100
+                if keyword_lower == title:
+                    score += 50
+                if keyword_lower in author:
+                    score += 80
+                if keyword_lower in content:
+                    score += 30
+                
+                if score > 0:
+                    scored_articles.append((score, a))
+            
+            scored_articles.sort(key=lambda x: x[0], reverse=True)
+            articles = [a for s, a in scored_articles]
         
         if tag:
             articles = [a for a in articles if tag in a.get('tags', [])]
         
-        articles.sort(key=lambda x: x.get('date', ''), reverse=True)
+        if not keyword:
+            articles.sort(key=lambda x: x.get('date', ''), reverse=True)
+        
         return jsonify(articles), 200
     except FileNotFoundError:
         return jsonify({'error': '知识文章文件不存在'}), 404

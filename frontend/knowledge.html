@@ -132,13 +132,33 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
-        .tag-tabs {
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            min-width: 70px;
+        }
+
+        .filter-options {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
 
-        .tag-tab {
+        .filter-btn {
             padding: 8px 16px;
             background: #f5f5f5;
             border: none;
@@ -149,11 +169,11 @@
             transition: all 0.3s ease;
         }
 
-        .tag-tab:hover {
+        .filter-btn:hover {
             background: #e8e8e8;
         }
 
-        .tag-tab.active {
+        .filter-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
@@ -464,8 +484,34 @@
                 <input type="text" id="search-input" placeholder="搜索知识文章...">
                 <button onclick="searchArticles()">搜索</button>
             </div>
-            <div class="tag-tabs" id="tag-tabs">
-                <button class="tag-tab active" data-tag="">全部</button>
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label class="filter-label">发布时间：</label>
+                    <div class="filter-options" id="date-filter">
+                        <button class="filter-btn active" data-value="">全部</button>
+                        <button class="filter-btn" data-value="week">最近一周</button>
+                        <button class="filter-btn" data-value="month">最近一月</button>
+                        <button class="filter-btn" data-value="quarter">最近三月</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">难度等级：</label>
+                    <div class="filter-options" id="difficulty-filter">
+                        <button class="filter-btn active" data-value="">全部</button>
+                        <button class="filter-btn" data-value="初级">初级</button>
+                        <button class="filter-btn" data-value="中级">中级</button>
+                        <button class="filter-btn" data-value="高级">高级</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">阅读时间：</label>
+                    <div class="filter-options" id="readtime-filter">
+                        <button class="filter-btn active" data-value="">全部</button>
+                        <button class="filter-btn" data-value="short">5分钟以内</button>
+                        <button class="filter-btn" data-value="medium">5-10分钟</button>
+                        <button class="filter-btn" data-value="long">10分钟以上</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -481,9 +527,11 @@
 
     <script src="utils.js"></script>
     <script>
-        let currentTag = '';
+        let currentDateFilter = '';
+        let currentDifficultyFilter = '';
+        let currentReadtimeFilter = '';
         let currentKeyword = '';
-        let tags = [];
+        let allArticles = [];
 
         function logout() {
             StorageUtil.removeItem('userInfo');
@@ -507,34 +555,9 @@
             return userInfo;
         }
 
-        async function loadTags() {
-            try {
-                const response = await fetch('/api/knowledge/tags');
-                tags = await response.json();
-                
-                const tabsContainer = document.getElementById('tag-tabs');
-                tabsContainer.innerHTML = '<button class="tag-tab active" data-tag="">全部</button>';
-                
-                tags.forEach(tag => {
-                    tabsContainer.innerHTML += `<button class="tag-tab" data-tag="${tag.name}">${tag.name}</button>`;
-                });
-                
-                document.querySelectorAll('.tag-tab').forEach(tab => {
-                    tab.addEventListener('click', function() {
-                        document.querySelectorAll('.tag-tab').forEach(t => t.classList.remove('active'));
-                        this.classList.add('active');
-                        currentTag = this.dataset.tag;
-                        loadKnowledgeArticles();
-                    });
-                });
-            } catch (error) {
-                console.error('加载标签失败:', error);
-            }
-        }
-
         async function searchArticles() {
             currentKeyword = document.getElementById('search-input').value.trim();
-            loadKnowledgeArticles();
+            applyFiltersAndDisplay();
         }
 
         async function loadKnowledgeArticles() {
@@ -544,12 +567,8 @@
             try {
                 let url = '/api/knowledge/articles';
                 
-                if (currentKeyword || currentTag) {
-                    url = '/api/knowledge/articles/search?';
-                    const params = [];
-                    if (currentKeyword) params.push(`keyword=${encodeURIComponent(currentKeyword)}`);
-                    if (currentTag) params.push(`tag=${encodeURIComponent(currentTag)}`);
-                    url += params.join('&');
+                if (currentKeyword) {
+                    url = '/api/knowledge/articles/search?keyword=' + encodeURIComponent(currentKeyword);
                 }
 
                 const response = await fetch(url);
@@ -557,8 +576,8 @@
                     throw new Error('网络响应失败: ' + response.status);
                 }
                 const data = await response.json();
-                const articles = Array.isArray(data) ? data : (data.articles || []);
-                displayKnowledgeArticles(articles);
+                allArticles = Array.isArray(data) ? data : (data.articles || []);
+                applyFiltersAndDisplay();
             } catch (error) {
                 console.error('加载知识文章时出错:', error);
                 try {
@@ -567,13 +586,76 @@
                         throw new Error('本地文件加载失败: ' + localResponse.status);
                     }
                     const localData = await localResponse.json();
-                    const articles = Array.isArray(localData) ? localData : (localData.articles || []);
-                    displayKnowledgeArticles(articles);
+                    allArticles = Array.isArray(localData) ? localData : (localData.articles || []);
+                    applyFiltersAndDisplay();
                 } catch (localError) {
                     console.error('本地文件加载也失败:', localError);
                     container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">加载知识内容失败，请稍后再试。</div></div>';
                 }
             }
+        }
+
+        function filterByDate(article) {
+            if (!currentDateFilter) return true;
+            
+            const articleDate = new Date(article.date);
+            const now = new Date();
+            const diffTime = now - articleDate;
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            
+            switch (currentDateFilter) {
+                case 'week':
+                    return diffDays <= 7;
+                case 'month':
+                    return diffDays <= 30;
+                case 'quarter':
+                    return diffDays <= 90;
+                default:
+                    return true;
+            }
+        }
+
+        function filterByDifficulty(article) {
+            if (!currentDifficultyFilter) return true;
+            return article.difficulty === currentDifficultyFilter;
+        }
+
+        function filterByReadtime(article) {
+            if (!currentReadtimeFilter) return true;
+            
+            const readTime = article.reading_time || article.readTime || 0;
+            
+            switch (currentReadtimeFilter) {
+                case 'short':
+                    return readTime <= 5;
+                case 'medium':
+                    return readTime > 5 && readTime <= 10;
+                case 'long':
+                    return readTime > 10;
+                default:
+                    return true;
+            }
+        }
+
+        function filterByKeyword(article) {
+            if (!currentKeyword) return true;
+            
+            const keyword = currentKeyword.toLowerCase();
+            return (article.title && article.title.toLowerCase().includes(keyword)) ||
+                   (article.summary && article.summary.toLowerCase().includes(keyword)) ||
+                   (article.content && article.content.toLowerCase().includes(keyword)) ||
+                   (article.tags && article.tags.some(tag => tag.toLowerCase().includes(keyword)));
+        }
+
+        function applyFiltersAndDisplay() {
+            let filteredArticles = allArticles.filter(article => {
+                return filterByDate(article) && 
+                       filterByDifficulty(article) && 
+                       filterByReadtime(article) &&
+                       filterByKeyword(article);
+            });
+            
+            displayKnowledgeArticles(filteredArticles);
         }
 
         function displayKnowledgeArticles(articles) {
@@ -710,10 +792,40 @@
                 if (userInfo.role === 'admin') {
                     document.getElementById('admin-nav-item').style.display = 'inline';
                 }
-                loadTags();
+                
+                initFilterListeners();
                 loadKnowledgeArticles();
             }
         };
+
+        function initFilterListeners() {
+            document.querySelectorAll('#date-filter .filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#date-filter .filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDateFilter = this.dataset.value;
+                    applyFiltersAndDisplay();
+                });
+            });
+
+            document.querySelectorAll('#difficulty-filter .filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#difficulty-filter .filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDifficultyFilter = this.dataset.value;
+                    applyFiltersAndDisplay();
+                });
+            });
+
+            document.querySelectorAll('#readtime-filter .filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#readtime-filter .filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentReadtimeFilter = this.dataset.value;
+                    applyFiltersAndDisplay();
+                });
+            });
+        }
     </script>
 </body>
 

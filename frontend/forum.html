@@ -975,13 +975,9 @@
             postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
             
             try {
-                let url = `/api/forum/posts?page=${page}&per_page=${perPage}`;
-                
-                if (currentKeyword || currentCategory) {
-                    url = `/api/forum/posts/search?page=${page}&per_page=${perPage}&sort_by=${currentSort}`;
-                    if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
-                    if (currentCategory) url += `&category_id=${currentCategory}`;
-                }
+                let url = `/api/forum/posts/search?page=${page}&per_page=${perPage}&sort_by=${currentSort}`;
+                if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
+                if (currentCategory) url += `&category_id=${currentCategory}`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
@@ -990,7 +986,7 @@
                     const userInfo = StorageUtil.getItem('userInfo');
 
                     postsContainer.innerHTML = data.posts.map(post => {
-                        const categoryName = categories.find(c => c.id === post.category_id);
+                        const categoryObj = categories.find(c => String(c.id) === String(post.category_id));
                         const initial = (post.author_name || '用户').charAt(0).toUpperCase();
                         const isPinned = post.is_pinned === 1;
                         const isEssential = post.is_essential === 1;
@@ -1009,7 +1005,7 @@
                                 <div class="post-badges">
                                     ${isPinned ? '<span class="badge badge-pinned">置顶</span>' : ''}
                                     ${isEssential ? '<span class="badge badge-essential">精华</span>' : ''}
-                                    ${categoryName ? `<span class="badge" style="background:#e8e8e8;color:#666;">${categoryName.icon} ${categoryName.name}</span>` : ''}
+                                    ${categoryObj ? `<span class="badge" style="background:#e8e8e8;color:#666;">${categoryObj.icon} ${categoryObj.name}</span>` : ''}
                                 </div>
                             </div>
                             <div class="post-title" onclick="goToPost(${post.id}); event.stopPropagation();">${post.title}</div>
@@ -1018,31 +1014,31 @@
                                 <div class="post-stat">
                                     <span>👁</span> ${post.view_count || 0}
                                 </div>
-                                <div class="post-stat ${post.user_vote === 1 ? 'liked' : ''}" onclick="likePost(${post.id})">
+                                <div class="post-stat ${post.user_vote === 1 ? 'liked' : ''}" onclick="likePost(${post.id})" title="点赞">
                                     <span>👍</span> ${post.like_count || 0}
                                 </div>
-                                <div class="post-stat ${post.user_vote === -1 ? 'disliked' : ''}" onclick="dislikePost(${post.id})">
+                                <div class="post-stat ${post.user_vote === -1 ? 'disliked' : ''}" onclick="dislikePost(${post.id})" title="点踩">
                                     <span>👎</span> ${post.dislike_count || 0}
                                 </div>
-                                <div class="post-stat" onclick="toggleComments(${post.id})">
+                                <div class="post-stat" onclick="toggleComments(${post.id})" title="评论">
                                     <span>💬</span> ${post.comment_count || 0}
                                 </div>
-                                <div class="post-stat" onclick="toggleFavorite(${post.id})">
+                                <div class="post-stat" onclick="toggleFavorite(${post.id})" title="收藏">
                                     <span>⭐</span>
                                 </div>
                                 ${userInfo && (userInfo.parent_id === post.parent_id || userInfo.role === 'admin') ? `
-                                    <div class="post-stat" onclick="editPost(${post.id})">
+                                    <div class="post-stat" onclick="editPost(${post.id})" title="编辑">
                                         <span>✏️</span>
                                     </div>
-                                    <div class="post-stat" onclick="deletePost(${post.id})">
+                                    <div class="post-stat" onclick="deletePost(${post.id})" title="删除">
                                         <span>🗑️</span>
                                     </div>
                                 ` : ''}
                                 ${userInfo && userInfo.role === 'admin' ? `
-                                    <div class="post-stat" onclick="pinPost(${post.id}, ${isPinned ? 0 : 1})">
+                                    <div class="post-stat" onclick="pinPost(${post.id}, ${isPinned ? 0 : 1})" title="置顶">
                                         <span>📌</span>
                                     </div>
-                                    <div class="post-stat" onclick="essentialPost(${post.id}, ${isEssential ? 0 : 1})">
+                                    <div class="post-stat" onclick="essentialPost(${post.id}, ${isEssential ? 0 : 1})" title="精华">
                                         <span>💎</span>
                                     </div>
                                 ` : ''}
