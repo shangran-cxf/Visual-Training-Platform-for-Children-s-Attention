@@ -12,9 +12,13 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            overflow-x: hidden;
+        }
+
         body {
-            font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
             color: #333;
             min-height: 100vh;
             display: flex;
@@ -22,59 +26,23 @@
         }
 
         .header {
-            background: linear-gradient(90deg, #4caf50 0%, #81c784 99%, #81c784 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px 0;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="40" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.3)"/></svg>');
-            animation: float 20s linear infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            100% {
-                transform: translate(100px, 100px);
-            }
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
         }
 
         .header h1 {
-            font-size: 2.2em;
+            font-size: 1.8em;
             margin: 0;
-            position: relative;
-            z-index: 1;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            animation: pulse 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            100% {
-                transform: scale(1.03);
-            }
+            font-weight: 600;
         }
 
         .nav {
             background-color: white;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 12px 0;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -84,194 +52,285 @@
             display: flex;
             justify-content: center;
             list-style: none;
-            gap: 20px;
+            gap: 15px;
             flex-wrap: wrap;
-        }
-
-        .nav li {
-            display: inline;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .nav a {
             text-decoration: none;
-            color: #333;
-            font-size: 16px;
-            font-weight: bold;
-            padding: 12px 20px;
-            border-radius: 30px;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-
-        .nav a::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .nav a:hover::before {
-            left: 100%;
         }
 
         .nav a:hover {
-            background-color: #4caf50;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+            background-color: #f0f0f0;
+            color: #333;
         }
 
         .nav a.active {
-            background: linear-gradient(90deg, #4caf50, #81c784);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
         }
 
         .container {
             flex: 1;
-            max-width: 1800px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 30px 60px;
+            padding: 20px;
+            width: 100%;
         }
 
-        .footer {
-            background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+        .knowledge-header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-bar button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            text-align: center;
-            padding: 25px 0;
-            margin-top: 40px;
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .footer p {
-            margin: 0;
-            font-size: 16px;
-            animation: pulse 2s ease-in-out infinite alternate;
+        .search-bar button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
-        @media (max-width: 768px) {
-            .nav ul {
-                gap: 10px;
-            }
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-            .nav a {
-                font-size: 14px;
-                padding: 10px 15px;
-            }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-            .header h1 {
-                font-size: 1.8em;
-            }
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            min-width: 70px;
+        }
 
-            .container {
-                padding: 20px;
-            }
+        .filter-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: #e8e8e8;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
 
         .knowledge-section {
-            background-color: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-            width: 1300px;
-            max-width: 100%;
-            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
-        .knowledge-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #4caf50, #81c784, #a5d6a7, #c8e6c9);
-        }
-
-        .knowledge-section h2 {
-            color: #2e7d32;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 2em;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-            animation: bounce 1s ease-in-out infinite alternate;
-        }
-
-        @keyframes bounce {
-            0% {
-                transform: translateY(0);
-            }
-
-            100% {
-                transform: translateY(-5px);
-            }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
         .knowledge-articles {
-            margin-bottom: 30px;
-            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
         }
 
-        .knowledge-article {
-            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
+        .knowledge-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f0f0f0;
             transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-            width: 100%;
+            cursor: pointer;
         }
 
-        .knowledge-article::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #4caf50, #81c784);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
+        .knowledge-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border-color: #667eea;
         }
 
-        .knowledge-article:hover::before {
-            transform: scaleX(1);
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
         }
 
-        .knowledge-article:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .knowledge-article h3 {
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
             color: #333;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
+            line-height: 1.4;
+            flex: 1;
         }
 
-        .knowledge-article:hover h3 {
-            color: #2e7d32;
+        .card-title:hover {
+            color: #667eea;
         }
 
-        .knowledge-article p {
-            color: #666;
-            margin-bottom: 15px;
-            line-height: 1.5;
+        .card-difficulty {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+            flex-shrink: 0;
+            margin-left: 10px;
         }
 
-        .knowledge-article .article-meta {
+        .difficulty-easy {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .difficulty-medium {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .difficulty-hard {
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .card-summary {
             font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .card-tag {
+            font-size: 12px;
+            padding: 4px 10px;
+            background: #f5f5f5;
+            color: #666;
+            border-radius: 12px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 12px;
             color: #999;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 15px;
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        .footer {
+            background: #333;
+            color: #999;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+
+        .footer p {
+            font-size: 13px;
         }
 
         #article-detail-modal {
@@ -285,35 +344,121 @@
             justify-content: center;
             align-items: center;
             z-index: 10000;
-            animation: fadeIn 0.3s ease-in-out;
             padding: 10px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
 
-            to {
-                opacity: 1;
-            }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-right: 40px;
+        }
+
+        .modal-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-meta-item {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .modal-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .modal-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+        }
+
+        .modal-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .modal-summary-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .modal-content-text {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .modal-content-text p {
+            margin-bottom: 15px;
+            text-indent: 2em;
         }
 
         @media (max-width: 768px) {
-            .knowledge-section {
+            .knowledge-articles {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .search-bar button {
                 width: 100%;
-                padding: 20px;
-                border-radius: 15px;
             }
 
-            #article-detail-modal {
-                padding: 5px;
-                align-items: flex-start;
-            }
-
-            #article-detail-modal>div {
-                max-height: 95vh;
-                border-radius: 12px;
+            .container {
+                padding: 15px;
             }
         }
     </style>
@@ -334,8 +479,44 @@
         </ul>
     </nav>
     <div class="container">
+        <div class="knowledge-header">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="搜索知识文章...">
+                <button onclick="searchArticles()">搜索</button>
+            </div>
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label class="filter-label">发布时间：</label>
+                    <div class="filter-options" id="date-filter">
+                        <button class="filter-btn active" data-value="">全部</button>
+                        <button class="filter-btn" data-value="week">最近一周</button>
+                        <button class="filter-btn" data-value="month">最近一月</button>
+                        <button class="filter-btn" data-value="quarter">最近三月</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">难度等级：</label>
+                    <div class="filter-options" id="difficulty-filter">
+                        <button class="filter-btn active" data-value="">全部</button>
+                        <button class="filter-btn" data-value="初级">初级</button>
+                        <button class="filter-btn" data-value="中级">中级</button>
+                        <button class="filter-btn" data-value="高级">高级</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">阅读时间：</label>
+                    <div class="filter-options" id="readtime-filter">
+                        <button class="filter-btn active" data-value="">全部</button>
+                        <button class="filter-btn" data-value="short">5分钟以内</button>
+                        <button class="filter-btn" data-value="medium">5-10分钟</button>
+                        <button class="filter-btn" data-value="long">10分钟以上</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="knowledge-section">
-            <h2>注意力科普知识</h2>
+            <div class="section-title">注意力科普知识</div>
             <div class="knowledge-articles" id="knowledge-articles-container">
             </div>
         </div>
@@ -346,6 +527,12 @@
 
     <script src="utils.js"></script>
     <script>
+        let currentDateFilter = '';
+        let currentDifficultyFilter = '';
+        let currentReadtimeFilter = '';
+        let currentKeyword = '';
+        let allArticles = [];
+
         function logout() {
             StorageUtil.removeItem('userInfo');
         }
@@ -353,6 +540,7 @@
         function switchToChild() {
             const userInfo = StorageUtil.getItem('userInfo');
             if (userInfo) {
+                userInfo.original_role = userInfo.role;
                 userInfo.role = 'child';
                 StorageUtil.setItem('userInfo', userInfo);
                 window.location.href = 'child-home.html';
@@ -368,44 +556,114 @@
             return userInfo;
         }
 
-        function loadKnowledgeArticles() {
-            fetch('/api/knowledge/articles')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('网络响应失败: ' + response.status);
+        async function searchArticles() {
+            currentKeyword = document.getElementById('search-input').value.trim();
+            applyFiltersAndDisplay();
+        }
+
+        async function loadKnowledgeArticles() {
+            const container = document.getElementById('knowledge-articles-container');
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+
+            try {
+                let url = '/api/knowledge/articles';
+                
+                if (currentKeyword) {
+                    url = '/api/knowledge/articles/search?keyword=' + encodeURIComponent(currentKeyword);
+                }
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('网络响应失败: ' + response.status);
+                }
+                const data = await response.json();
+                allArticles = Array.isArray(data) ? data : (data.articles || []);
+                applyFiltersAndDisplay();
+            } catch (error) {
+                console.error('加载知识文章时出错:', error);
+                try {
+                    const localResponse = await fetch('./knowledge/knowledge-data.json');
+                    if (!localResponse.ok) {
+                        throw new Error('本地文件加载失败: ' + localResponse.status);
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    const articles = Array.isArray(data) ? data : (data.articles || []);
-                    displayKnowledgeArticles(articles);
-                })
-                .catch(error => {
-                    console.error('加载知识文章时出错:', error);
-                    fetch('./knowledge/knowledge-data.json')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('本地文件加载失败: ' + response.status);
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            const articles = Array.isArray(data) ? data : (data.articles || []);
-                            displayKnowledgeArticles(articles);
-                        })
-                        .catch(localError => {
-                            console.error('本地文件加载也失败:', localError);
-                            const container = document.getElementById('knowledge-articles-container');
-                            container.innerHTML = '<p style="text-align: center; color: #f44336;">加载知识内容失败，请稍后再试。</p>';
-                        });
-                });
+                    const localData = await localResponse.json();
+                    allArticles = Array.isArray(localData) ? localData : (localData.articles || []);
+                    applyFiltersAndDisplay();
+                } catch (localError) {
+                    console.error('本地文件加载也失败:', localError);
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">加载知识内容失败，请稍后再试。</div></div>';
+                }
+            }
+        }
+
+        function filterByDate(article) {
+            if (!currentDateFilter) return true;
+            
+            const articleDate = new Date(article.date);
+            const now = new Date();
+            const diffTime = now - articleDate;
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            
+            switch (currentDateFilter) {
+                case 'week':
+                    return diffDays <= 7;
+                case 'month':
+                    return diffDays <= 30;
+                case 'quarter':
+                    return diffDays <= 90;
+                default:
+                    return true;
+            }
+        }
+
+        function filterByDifficulty(article) {
+            if (!currentDifficultyFilter) return true;
+            return article.difficulty === currentDifficultyFilter;
+        }
+
+        function filterByReadtime(article) {
+            if (!currentReadtimeFilter) return true;
+            
+            const readTime = article.reading_time || article.readTime || 0;
+            
+            switch (currentReadtimeFilter) {
+                case 'short':
+                    return readTime <= 5;
+                case 'medium':
+                    return readTime > 5 && readTime <= 10;
+                case 'long':
+                    return readTime > 10;
+                default:
+                    return true;
+            }
+        }
+
+        function filterByKeyword(article) {
+            if (!currentKeyword) return true;
+            
+            const keyword = currentKeyword.toLowerCase();
+            return (article.title && article.title.toLowerCase().includes(keyword)) ||
+                   (article.summary && article.summary.toLowerCase().includes(keyword)) ||
+                   (article.content && article.content.toLowerCase().includes(keyword)) ||
+                   (article.tags && article.tags.some(tag => tag.toLowerCase().includes(keyword)));
+        }
+
+        function applyFiltersAndDisplay() {
+            let filteredArticles = allArticles.filter(article => {
+                return filterByDate(article) && 
+                       filterByDifficulty(article) && 
+                       filterByReadtime(article) &&
+                       filterByKeyword(article);
+            });
+            
+            displayKnowledgeArticles(filteredArticles);
         }
 
         function displayKnowledgeArticles(articles) {
             const container = document.getElementById('knowledge-articles-container');
 
             if (!articles || articles.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #999;">暂无知识文章</p>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无知识文章</div></div>';
                 return;
             }
 
@@ -413,39 +671,34 @@
 
             let articlesHTML = '';
             articles.forEach(article => {
-                const tagsString = article.tags ? article.tags.join(', ') : '';
+                const tagsHTML = article.tags ? article.tags.map(tag => 
+                    `<span class="card-tag">${tag}</span>`
+                ).join('') : '';
 
-                let difficultyBadge = '';
-                if (article.difficulty) {
-                    let difficultyColor = '#9e9e9e';
-                    if (article.difficulty === '初级') difficultyColor = '#4CAF50';
-                    else if (article.difficulty === '中级') difficultyColor = '#FF9800';
-                    else if (article.difficulty === '高级') difficultyColor = '#F44336';
+                let difficultyClass = '';
+                if (article.difficulty === '初级') difficultyClass = 'difficulty-easy';
+                else if (article.difficulty === '中级') difficultyClass = 'difficulty-medium';
+                else if (article.difficulty === '高级') difficultyClass = 'difficulty-hard';
 
-                    difficultyBadge = `<span style="background-color: ${difficultyColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-right: 5px;">${article.difficulty}</span>`;
-                }
-
-                const readingTimeString = article.reading_time ? `${article.reading_time}分钟阅读` : '';
-
-                const previewContent = article.content.length > 100
-                    ? article.content.substring(0, 100) + '...'
-                    : article.content;
+                const summary = article.summary || (article.content.length > 120 
+                    ? article.content.substring(0, 120) + '...' 
+                    : article.content);
 
                 articlesHTML += `
-                    <div class="knowledge-article" onclick="showArticleDetail(${article.id})" style="cursor: pointer;">
-                        <h3>${article.title}</h3>
-                        ${article.summary ? `<p style="color: #666; font-style: italic;"><strong>摘要:</strong> ${article.summary}</p>` : ''}
-                        <p style="color: #888;">${previewContent}</p>
-                        <div class="article-meta">
-                            ${difficultyBadge}
-                            作者: ${article.author} | 
-                            发布时间: ${article.date} | 
-                            分类: ${article.category} |
-                            ${readingTimeString} |
-                            标签: ${tagsString}
+                    <div class="knowledge-card" onclick="showArticleDetail(${article.id})">
+                        <div class="card-header">
+                            <div class="card-title">${article.title}</div>
+                            ${article.difficulty ? `<span class="card-difficulty ${difficultyClass}">${article.difficulty}</span>` : ''}
                         </div>
-                        <div style="text-align: center; margin-top: 10px; color: #4CAF50; font-weight: bold;">
-                            点击查看完整内容 →
+                        <div class="card-summary">${summary}</div>
+                        ${tagsHTML ? `<div class="card-tags">${tagsHTML}</div>` : ''}
+                        <div class="card-footer">
+                            <div class="card-meta">
+                                <span>👤 ${article.author || '未知'}</span>
+                                <span>📅 ${article.date || '-'}</span>
+                                ${article.reading_time ? `<span>⏱️ ${article.reading_time}分钟</span>` : ''}
+                            </div>
+                            <span style="color: #667eea; font-weight: 500;">阅读全文 →</span>
                         </div>
                     </div>
                 `;
@@ -457,9 +710,9 @@
 
         function formatArticleContent(content) {
             let formatted = content
-                .replace(/\n\n/g, '</p><p style="text-indent: 2em; margin-bottom: 15px; line-height: 1.8;">')
+                .replace(/\n\n/g, '</p><p>')
                 .replace(/\n/g, '<br>');
-            return `<p style="text-indent: 2em; margin-bottom: 15px; line-height: 1.8;">${formatted}</p>`;
+            return `<p>${formatted}</p>`;
         }
 
         function showArticleDetail(articleId) {
@@ -469,77 +722,42 @@
                 return;
             }
 
-            const tagsString = article.tags ? article.tags.map(tag =>
-                `<span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 15px; margin: 2px; display: inline-block;">${tag}</span>`
+            const tagsHTML = article.tags ? article.tags.map(tag =>
+                `<span class="modal-tag">${tag}</span>`
             ).join('') : '';
 
-            let difficultyBadge = '';
-            if (article.difficulty) {
-                let difficultyColor = '#9e9e9e';
-                if (article.difficulty === '初级') difficultyColor = '#4CAF50';
-                else if (article.difficulty === '中级') difficultyColor = '#FF9800';
-                else if (article.difficulty === '高级') difficultyColor = '#F44336';
-
-                difficultyBadge = `<span style="background-color: ${difficultyColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.9em;">${article.difficulty}</span>`;
-            }
+            let difficultyClass = '';
+            if (article.difficulty === '初级') difficultyClass = 'difficulty-easy';
+            else if (article.difficulty === '中级') difficultyClass = 'difficulty-medium';
+            else if (article.difficulty === '高级') difficultyClass = 'difficulty-hard';
 
             const formattedContent = formatArticleContent(article.content);
 
             const modal = document.createElement('div');
             modal.id = 'article-detail-modal';
 
-            const modalContent = document.createElement('div');
-            modalContent.style.cssText = `
-                background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-                border-radius: 20px;
-                padding: 40px;
-                width: 90%;
-                max-width: 900px;
-                max-height: 85vh;
-                overflow-y: auto;
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-                position: relative;
-                animation: bounceIn 0.5s ease-in-out;
-                border: 4px solid #4caf50;
-            `;
-
-            const bodyContent = document.createElement('div');
-            bodyContent.innerHTML = `
-                <button onclick="closeArticleDetail()" style="
-                    position: absolute;
-                    top: 15px;
-                    right: 15px;
-                    background: linear-gradient(135deg, #f44336, #ef5350);
-                    color: white;
-                    border: none;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    font-size: 20px;
-                    cursor: pointer;
-                    box-shadow: 0 4px 10px rgba(244, 67, 54, 0.3);
-                    transition: all 0.3s ease;
-                    z-index: 10;
-                " onmouseover="this.style.transform='scale(1.1) rotate(90deg)';" onmouseout="this.style.transform='scale(1) rotate(0deg)';">×</button>
-                <h2 style="color: #2e7d32; margin-bottom: 20px; font-size: 1.8em; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); padding-right: 50px;">${article.title}</h2>
-                <div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 10px;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
-                        ${difficultyBadge}
-                        <span style="color: #666;">📁 ${article.category || '未分类'}</span>
-                        <span style="color: #666;">👤 ${article.author || '未知'}</span>
-                        <span style="color: #666;">📅 ${article.date || '-'}</span>
-                        ${article.reading_time ? `<span style="color: #666;">⏱️ ${article.reading_time}分钟</span>` : ''}
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <button class="modal-close" onclick="closeArticleDetail()">×</button>
+                    <h2 class="modal-title">${article.title}</h2>
+                    <div class="modal-meta">
+                        ${article.difficulty ? `<span class="card-difficulty ${difficultyClass}">${article.difficulty}</span>` : ''}
+                        <span class="modal-meta-item">📁 ${article.category || '未分类'}</span>
+                        <span class="modal-meta-item">👤 ${article.author || '未知'}</span>
+                        <span class="modal-meta-item">📅 ${article.date || '-'}</span>
+                        ${article.reading_time ? `<span class="modal-meta-item">⏱️ ${article.reading_time}分钟</span>` : ''}
                     </div>
-                    ${tagsString ? `<div style="margin-top: 10px;">${tagsString}</div>` : ''}
-                </div>
-                ${article.summary ? `<div style="background: #e8f5e9; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #4caf50;"><strong style="color: #2e7d32;">摘要：</strong><span style="color: #666;">${article.summary}</span></div>` : ''}
-                <div class="article-content" style="line-height: 1.8; color: #333; font-size: 1.05em;">
-                    ${formattedContent}
+                    ${tagsHTML ? `<div class="modal-tags">${tagsHTML}</div>` : ''}
+                    ${article.summary ? `
+                        <div class="modal-summary">
+                            <div class="modal-summary-label">摘要</div>
+                            <div>${article.summary}</div>
+                        </div>
+                    ` : ''}
+                    <div class="modal-content-text">${formattedContent}</div>
                 </div>
             `;
 
-            modalContent.appendChild(bodyContent);
-            modal.appendChild(modalContent);
             document.body.appendChild(modal);
 
             modal.addEventListener('click', function (e) {
@@ -563,15 +781,52 @@
             }
         }
 
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchArticles();
+            }
+        });
+
         window.onload = function () {
             const userInfo = checkAuth();
             if (userInfo) {
-                if (userInfo.role === 'admin') {
+                if (userInfo.original_role === 'admin' || userInfo.role === 'admin') {
                     document.getElementById('admin-nav-item').style.display = 'inline';
                 }
+                
+                initFilterListeners();
                 loadKnowledgeArticles();
             }
         };
+
+        function initFilterListeners() {
+            document.querySelectorAll('#date-filter .filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#date-filter .filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDateFilter = this.dataset.value;
+                    applyFiltersAndDisplay();
+                });
+            });
+
+            document.querySelectorAll('#difficulty-filter .filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#difficulty-filter .filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDifficultyFilter = this.dataset.value;
+                    applyFiltersAndDisplay();
+                });
+            });
+
+            document.querySelectorAll('#readtime-filter .filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#readtime-filter .filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentReadtimeFilter = this.dataset.value;
+                    applyFiltersAndDisplay();
+                });
+            });
+        }
     </script>
 </body>
 

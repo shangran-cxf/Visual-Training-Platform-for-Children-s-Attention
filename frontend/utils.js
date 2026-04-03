@@ -106,78 +106,12 @@ const AudioUtil = {
     }
 };
 
-// 游戏时间统计工具
-const GameTimeUtil = {
-    // 结束游戏并统计时间
-    endGame: (gameName) => {
-        // 从localStorage获取游戏开始时间
-        const gameStartTime = localStorage.getItem('gameStartTime');
-        const currentGame = localStorage.getItem('currentGame');
-        
-        if (gameStartTime) {
-            // 计算游戏使用时间
-            const gameEndTime = new Date().getTime();
-            const duration = Math.floor((gameEndTime - parseInt(gameStartTime)) / 1000); // 转换为秒
-            
-            // 获取今天的日期作为键
-            const today = new Date().toISOString().split('T')[0];
-            
-            // 从localStorage读取现有数据
-            const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-            
-            // 初始化今天的数据
-            if (!trainingData[today]) {
-                trainingData[today] = {
-                    totalTime: 0,
-                    comprehensiveTraining: 0,
-                    games: {}
-                };
-            }
-            
-            // 更新游戏时间
-            const gameKey = gameName || currentGame;
-            if (gameKey) {
-                if (!trainingData[today].games[gameKey]) {
-                    trainingData[today].games[gameKey] = 0;
-                }
-                trainingData[today].games[gameKey] += duration;
-            }
-            
-            // 更新总训练时间
-            trainingData[today].totalTime += duration;
-            
-            // 保存回localStorage
-            localStorage.setItem('trainingData', JSON.stringify(trainingData));
-            
-            // 清除游戏开始时间
-            localStorage.removeItem('gameStartTime');
-            localStorage.removeItem('currentGame');
-            
-            console.log('游戏时间已保存:', duration, '秒');
-            return duration;
-        }
-        return 0;
-    },
-    
-    // 获取今日游戏时间统计
-    getTodayStats: () => {
-        const today = new Date().toISOString().split('T')[0];
-        const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-        return trainingData[today] || {
-            totalTime: 0,
-            comprehensiveTraining: 0,
-            games: {}
-        };
-    }
-};
-
 // 导出工具函数
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         CanvasUtil,
         EventUtil,
         StorageUtil,
-        AudioUtil,
-        GameTimeUtil
+        AudioUtil
     };
 }

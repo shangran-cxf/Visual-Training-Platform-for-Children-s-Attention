@@ -108,12 +108,9 @@
         }
 
         @keyframes float {
-
-            0%,
-            100% {
+            0%, 100% {
                 transform: translate(0, 0) rotate(0deg);
             }
-
             50% {
                 transform: translate(30px, 30px) rotate(180deg);
             }
@@ -139,7 +136,7 @@
             position: relative;
             padding-bottom: 15px;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.3s ease;
+                        opacity 0.3s ease;
             opacity: 1;
             text-align: center;
         }
@@ -184,9 +181,9 @@
             overflow: hidden;
             visibility: hidden;
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                margin 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                        max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        margin 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .section-expanded .benefits-list {
@@ -205,7 +202,7 @@
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .section-expanded .benefits-list li {
@@ -213,21 +210,10 @@
             transform: translateY(0);
         }
 
-        .section-expanded .benefits-list li:nth-child(1) {
-            transition-delay: 0.15s;
-        }
-
-        .section-expanded .benefits-list li:nth-child(2) {
-            transition-delay: 0.25s;
-        }
-
-        .section-expanded .benefits-list li:nth-child(3) {
-            transition-delay: 0.35s;
-        }
-
-        .section-expanded .benefits-list li:nth-child(4) {
-            transition-delay: 0.45s;
-        }
+        .section-expanded .benefits-list li:nth-child(1) { transition-delay: 0.15s; }
+        .section-expanded .benefits-list li:nth-child(2) { transition-delay: 0.25s; }
+        .section-expanded .benefits-list li:nth-child(3) { transition-delay: 0.35s; }
+        .section-expanded .benefits-list li:nth-child(4) { transition-delay: 0.45s; }
 
         .benefits-list li::before {
             content: '✓';
@@ -263,9 +249,9 @@
             transform: translateY(20px);
             pointer-events: none;
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                background 0.3s ease,
-                box-shadow 0.3s ease;
+                        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        background 0.3s ease,
+                        box-shadow 0.3s ease;
         }
 
         .section-expanded .login-btn {
@@ -324,11 +310,11 @@
             bottom: 60px;
             left: var(--divider-position);
             width: 3px;
-            background: linear-gradient(to bottom,
-                    transparent 0%,
-                    rgba(255, 255, 255, 0.8) 20%,
-                    rgba(255, 255, 255, 0.8) 80%,
-                    transparent 100%);
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.8) 20%, 
+                rgba(255, 255, 255, 0.8) 80%, 
+                transparent 100%);
             z-index: 10;
             transform: translateX(-50%);
             transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -486,7 +472,7 @@
             leftTitle.classList.remove('vertical');
             rightTitle.classList.remove('vertical');
 
-            switch (state) {
+            switch(state) {
                 case 'left':
                     root.style.setProperty('--left-width', '70%');
                     root.style.setProperty('--right-width', '30%');
