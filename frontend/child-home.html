@@ -1379,14 +1379,15 @@
     // 检查密码
     function checkPassword() {
       const password = document.getElementById('parent-password').value;
-      // 这里可以设置正确的密码，例如 '123456'
+      const userInfo = StorageUtil.getItem('userInfo');
       if (password === '123456') {
-        // 停止计时
-        stopTimer();
-        // 密码正确，跳转到家长端界面
-        window.location.href = 'parent.html';
+        if (userInfo) {
+          userInfo.original_role = userInfo.role;
+          userInfo.role = 'parent';
+          StorageUtil.setItem('userInfo', userInfo);
+        }
+        window.location.href = 'profile.html';
       } else {
-        // 密码错误，显示提示
         alert('密码错误，请重试！');
         document.getElementById('parent-password').value = '';
       }
