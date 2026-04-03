@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>儿童注意力训练平台 - 今日训练</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #818CF8;
+      --secondary: #F97316;
+      --secondary-light: #FDBA74;
+      --bg-color: #EEF2FF;
+      --card-bg: #FFFFFF;
+      --text-dark: #1E1B4B;
+      --text-light: #6366F1;
+      --accent-green: #CEEFDD;
+      --accent-pink: #EC4899;
+      --accent-yellow: #F2E1C4;
+      --accent-cyan: #06B6D4;
+      --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
+      /* 图表配色，和参考图一致 */
+      --color-pink: #F5C9C7;
+      --color-beige: #F7E2C4;
+      --color-purple: #D7D2F6;
+      --color-green: #D4F4E1;
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
+      background: #fff4a2;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    /* 左侧导航栏 - 粘土风格 */
+    .sidebar {
+      width: 130px;
+      background: #62B4A5;
+      box-shadow: var(--shadow-soft);
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      border-radius: 32px;
+      position: relative;
+    }
+
+    .logo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 100px;
+    }
+
+    .logo-text {
+      font-size: 30px;
+      font-weight: 600;
+      color: #ffffff;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: -75px;
+      margin-top: 15px;
+      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive, sans-serif;
+    }
+
+    .nav-item {
+      width: 85px;
+      height: 85px;
+      margin-left: 12px;
+      margin-right: 12px;
+      margin-bottom: 12px;
+      border-radius: 24px;
+      background: #FFFFFF;
+      color: #000000;
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 3px solid transparent;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-item:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .nav-item.active {
+      background: #ffd387;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-item.active .nav-icon,
+    .nav-item.active .nav-label {
+      color: white;
+    }
+
+    .nav-icon {
+      width: 28px;
+      height: 28px;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover .nav-icon {
+      transform: scale(1.1);
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-top: 4px;
+      transition: color 0.3s ease;
+    }
+
+    .user-avatar-sidebar {
+      position: absolute;
+      bottom: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 3px solid var(--primary-light);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .user-avatar-sidebar:hover {
+      transform: scale(1.1);
+    }
+
+    .user-avatar-sidebar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: calc(100% - 134px);
+    }
+
+    /* 训练标题区 */
+    .title-section {
+      margin-bottom: 40px;
+      margin-top: 35px;
+    }
+
+    .page-title h1 {
+      font-size: 90px;
+      color: #51915f;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .page-title .subtitle {
+      font-size: 50px;
+      color: #51915f;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 4px;
+      margin-bottom: -30px;
+    }
+
+    /* 今日训练主布局：双栏容器 */
+    .today-training-container {
+      display: grid;
+      grid-template-columns: 1fr 0.5fr;
+      gap: 30px;
+      width: 100%;
+    }
+
+    /* 左侧：我的训练卡片 */
+    .my-training-card {
+      background: rgb(255, 255, 255, 0.9);
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: var(--shadow-card);
+      min-height: 550px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-title {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: -15px;
+    }
+
+    .divider {
+      width: 200px;
+      height: 2px;
+      background: #ccc;
+      margin-bottom: 0px;
+    }
+
+    /* 训练统计模块 */
+    .training-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+    }
+
+    /* 总时长展示区 */
+    .total-time-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .total-time-label {
+      font-size: 25px;
+      font-weight: 600;
+      color: #000000;
+    }
+
+    .total-time {
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+
+    .result-badge {
+      padding: 8px 15px;
+      background: #BFD7C9;
+      border-radius: 50px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+    }
+
+    .result-badge .emoji {
+      font-size: 28px;
+    }
+
+    /* 日历容器 */
+    .calendar-container {
+      width: 100%;
+      height: 420px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-top: -10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 日历头部 */
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-shrink: 0;
+    }
+
+    .calendar-nav {
+      background: none;
+      border: none;
+      font-size: 25px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .calendar-nav:hover {
+      background: #f0f0f0;
+    }
+
+    .calendar-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 0;
+    }
+
+    /* 星期标题 */
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 5px;
+      flex-shrink: 0;
+    }
+
+    .calendar-weekdays div {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      padding: 5px;
+    }
+
+    /* 日历网格 */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      row-gap: 8px;
+      flex: 1;
+      align-content: center;
+    }
+
+    /* 日期单元格 */
+    .calendar-day {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 auto;
+    }
+
+    .calendar-day:hover {
+      background: #f0f0f0;
+    }
+
+    /* 不同状态的日期 */
+    .calendar-day.past {
+      color: #ccc;
+    }
+
+    .calendar-day.today {
+      background: #F6E19B;
+      font-weight: 700;
+    }
+
+    .calendar-day.has-training {
+      background: #D5DFB0;
+      color: white;
+      font-weight: 700;
+    }
+
+    .calendar-day.has-training:hover {
+      background: #45a049;
+    }
+
+    /* 年月快速选择器 */
+    .date-picker {
+      background: linear-gradient(145deg, #f0f4f8 0%, #e8eef5 100%);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 15px;
+      animation: slideDown 0.3s ease;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .picker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 0 10px;
+    }
+
+    .picker-nav {
+      background: #fff;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .picker-nav:hover {
+      background: #5E83B8;
+      color: white;
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .picker-year {
+      font-size: 18px;
+      font-weight: 700;
+      color: #000000;
+      background: #fff;
+      padding: 8px 20px;
+      border-radius: 20px;
+    }
+
+    .picker-months {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .picker-month {
+      padding: 6px 4px;
+      text-align: center;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #fff;
+      border: 2px solid transparent;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .picker-month:hover {
+      background: #5E83B8;
+      color: white;
+      border-color: #5E83B8;
+      transform: translateY(-2px);
+    }
+
+    .picker-month.active {
+      background: #5E83B8;
+      color: white;
+      border-color: #5E83B8;
+      transform: scale(1.05);
+    }
+
+    /* 训练时长弹窗 */
+    .training-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .training-modal .modal-content {
+      background: #dcecb5;
+      border-radius: 20px;
+      padding: 20px;
+      width: 80%;
+      max-width: 300px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .training-modal .modal-content h4 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 15px;
+    }
+
+    .training-modal .modal-content p {
+      font-size: 17px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .training-modal .modal-content button {
+      background: #008e6b;
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .training-modal .modal-content button:hover {
+      transform: scale(1.1);
+    }
+
+    /* 右侧：推荐训练卡片 */
+    .recommend-training-card {
+      background: rgb(255, 255, 255, 0.9);
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: var(--shadow-card);
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .recommend-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .recommend-subtitle {
+      font-size: 16px;
+      color: var(--text-dark);
+      opacity: 0.7;
+      text-align: right;
+      margin-top: -10px;
+    }
+
+    .recommend-divider {
+      width: 100%;
+      height: 2px;
+      background: #ccc;
+      margin-bottom: 30px;
+      margin-top: -10px;
+    }
+
+    .recommend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .recommend-item {
+      width: 100%;
+      height: 120px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      background: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .recommend-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      background: #fff6a7;
+    }
+
+    /* 游戏卡片样式（沿用原代码） */
+    .game-card {
+      background: var(--card-bg);
+      border-radius: 28px;
+      padding: 24px;
+      min-height: 150px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: var(--shadow-card);
+    }
+
+    .game-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.2);
+    }
+
+    .game-card.beige {
+      background: linear-gradient(145deg, #f2c674 0%, #ecad64 100%);
+    }
+
+    .game-card.purple {
+      background: linear-gradient(145deg, #d9d3f0 0%, #a899c9 100%);
+    }
+
+    .game-card.blue {
+      background: linear-gradient(145deg, #b7d6e9 0%, #499bc0 100%);
+    }
+
+    .game-card.green {
+      background: linear-gradient(145deg, #c2ded0 0%, #a2c9ae 100%);
+    }
+
+    .game-card.pink {
+      background: linear-gradient(145deg, #F9c5c9 0%, #f7b0b8 100%);
+    }
+
+    .game-card.cyan {
+      background: linear-gradient(145deg, #b0dcd5 0%, #acdae0 100%);
+    }
+
+    /* 装饰元素 */
+    .floating-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .shape {
+      position: absolute;
+      opacity: 0.15;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .shape-1 {
+      top: 10%;
+      left: 5%;
+      width: 150px;
+      height: 150px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: 0s;
+    }
+
+    .shape-2 {
+      top: 60%;
+      right: 5%;
+      width: 180px;
+      height: 180px;
+      background: var(--secondary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -1s;
+    }
+
+    .shape-3 {
+      bottom: 20%;
+      left: 15%;
+      width: 130px;
+      height: 130px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -2s;
+    }
+
+    .shape-4 {
+      top: 30%;
+      right: 20%;
+      width: 160px;
+      height: 160px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -3s;
+    }
+
+    .shape-5 {
+      top: 20%;
+      right: 10%;
+      width: 140px;
+      height: 140px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: -4s;
+    }
+
+    .shape-6 {
+      bottom: 10%;
+      right: 15%;
+      width: 120px;
+      height: 120px;
+      background: var(--secondary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -5s;
+    }
+
+    .shape-7 {
+      top: 40%;
+      left: 10%;
+      width: 170px;
+      height: 170px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -6s;
+    }
+
+    .shape-8 {
+      bottom: 30%;
+      left: 25%;
+      width: 110px;
+      height: 110px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -7s;
+    }
+
+    .shape-9 {
+      top: 50%;
+      right: 25%;
+      width: 150px;
+      height: 150px;
+      background: var(--primary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -8s;
+    }
+
+    .shape-10 {
+      top: 15%;
+      left: 20%;
+      width: 130px;
+      height: 130px;
+      background: var(--secondary);
+      border-radius: 50%;
+      animation-delay: -9s;
+    }
+
+    .shape-11 {
+      bottom: 40%;
+      right: 10%;
+      width: 160px;
+      height: 160px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -10s;
+    }
+
+    .shape-12 {
+      top: 25%;
+      left: 30%;
+      width: 120px;
+      height: 120px;
+      background: var(--accent-pink);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -11s;
+    }
+
+    .shape-13 {
+      bottom: 15%;
+      left: 35%;
+      width: 140px;
+      height: 140px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: -12s;
+    }
+
+    .shape-14 {
+      top: 35%;
+      right: 30%;
+      width: 170px;
+      height: 170px;
+      background: var(--secondary);
+      border-radius: 50%;
+      animation-delay: -13s;
+    }
+
+    .shape-15 {
+      top: 45%;
+      left: 15%;
+      width: 110px;
+      height: 110px;
+      background: var(--accent-green);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -14s;
+    }
+
+    .shape-16 {
+      bottom: 25%;
+      right: 20%;
+      width: 150px;
+      height: 150px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -15s;
+    }
+
+    .shape-17 {
+      top: 55%;
+      left: 25%;
+      width: 130px;
+      height: 130px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: -16s;
+    }
+
+    .shape-18 {
+      bottom: 35%;
+      left: 40%;
+      width: 160px;
+      height: 160px;
+      background: var(--secondary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -17s;
+    }
+
+    .shape-19 {
+      top: 65%;
+      right: 35%;
+      width: 120px;
+      height: 120px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -18s;
+    }
+
+    .shape-20 {
+      top: 70%;
+      left: 10%;
+      width: 140px;
+      height: 140px;
+      background: var(--accent-pink);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -19s;
+    }
+
+    .shape-21 {
+      bottom: 5%;
+      left: 20%;
+      width: 170px;
+      height: 170px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: -20s;
+    }
+
+    .shape-22 {
+      top: 5%;
+      right: 15%;
+      width: 110px;
+      height: 110px;
+      background: var(--secondary);
+      border-radius: 50%;
+      animation-delay: -21s;
+    }
+
+    .shape-23 {
+      top: 75%;
+      right: 10%;
+      width: 150px;
+      height: 150px;
+      background: var(--accent-green);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -22s;
+    }
+
+    .shape-24 {
+      bottom: 50%;
+      left: 5%;
+      width: 130px;
+      height: 130px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -23s;
+    }
+
+    .shape-25 {
+      top: 60%;
+      left: 35%;
+      width: 160px;
+      height: 160px;
+      background: var(--primary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -24s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      25% {
+        transform: translateY(-20px) rotate(5deg);
+      }
+
+      50% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      75% {
+        transform: translateY(20px) rotate(-5deg);
+      }
+    }
+
+    /* 响应式 */
+    @media (max-width: 1200px) {
+      .today-training-container {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-bar {
+        width: 14%;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .chart-bar {
+        width: 15%;
+      }
+
+      .bar-label {
+        font-size: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        padding: 16px 20px;
+        gap: 12px;
+        border-radius: 24px;
+        position: relative;
+        overflow-x: auto;
+      }
+
+      .logo-section {
+        flex-direction: row;
+        margin-bottom: 0;
+        margin-right: 8px;
+      }
+
+      .logo-text {
+        display: none;
+      }
+
+      .user-avatar-sidebar {
+        position: static;
+        margin-left: auto;
+      }
+
+      .main-content {
+        max-width: 100%;
+      }
+
+      .page-title h1 {
+        font-size: 48px;
+      }
+
+      .page-title .subtitle {
+        font-size: 28px;
+      }
+
+      .today-training-container {
+        grid-template-columns: 1fr;
+      }
+
+      .total-time {
+        font-size: 40px;
+      }
+
+      .result-badge {
+        font-size: 24px;
+      }
+
+      .time-tabs {
+        flex-wrap: wrap;
+      }
+
+      .chart-container {
+        height: 250px;
+      }
+
+      .chart-bar {
+        width: 13%;
+      }
+
+      .bar-label {
+        font-size: 18px;
+      }
+    }
+
+    /* 家长端登录弹窗 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      background: #ffd38b;
+      padding: 40px 30px;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h3 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+      background: #fff;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .modal-content p {
+      font-size: 16px;
+      color: #fff;
+      margin-bottom: 30px;
+      opacity: 1;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 30px;
+      background: white;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .modal-content input:focus {
+      outline: none;
+      border-color: #ffd38b;
+      transform: translateY(-2px);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .modal-buttons button {
+      background: #ca6a16;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .modal-buttons button:hover {
+      transform: translateY(-2px);
+    }
+
+    .modal-buttons button:last-child {
+      background: #ca6a16;
+      color: #fff;
+    }
+
+    .modal-buttons button:last-child:hover {
+      transform: translateY(-2px);
+    }
+
+    /* 减少动画偏好 */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 浮动装饰元素 -->
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    <div class="shape shape-5"></div>
+    <div class="shape shape-6"></div>
+    <div class="shape shape-7"></div>
+    <div class="shape shape-8"></div>
+    <div class="shape shape-9"></div>
+    <div class="shape shape-10"></div>
+    <div class="shape shape-11"></div>
+    <div class="shape shape-12"></div>
+    <div class="shape shape-13"></div>
+    <div class="shape shape-14"></div>
+    <div class="shape shape-15"></div>
+    <div class="shape shape-16"></div>
+    <div class="shape shape-17"></div>
+    <div class="shape shape-18"></div>
+    <div class="shape shape-19"></div>
+    <div class="shape shape-20"></div>
+    <div class="shape shape-21"></div>
+    <div class="shape shape-22"></div>
+    <div class="shape shape-23"></div>
+    <div class="shape shape-24"></div>
+    <div class="shape shape-25"></div>
+  </div>
+
+  <!-- 侧边栏导航 -->
+  <nav class="sidebar">
+    <div class="logo-section">
+      <div class="logo-text">注意力<br>训练<br>平台</div>
+    </div>
+
+    <!-- 训练按钮：跳转到child-home.html -->
+    <div class="nav-item" onclick="window.location.href='child-home.html'" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+      </svg>
+      <span class="nav-label">训练</span>
+    </div>
+
+    <!-- 综合训练按钮：跳转到detect/index.html -->
+    <div class="nav-item" onclick="window.location.href='detect/index.html'" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
+      </svg>
+      <span class="nav-label">综合训练</span>
+    </div>
+
+    <!-- 今日训练：当前页面，激活状态 -->
+    <div class="nav-item active" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      <span class="nav-label">今日训练</span>
+    </div>
+
+    <div class="nav-item" onclick="window.location.href='medal-wall.html'" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="7" />
+        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+      </svg>
+      <span class="nav-label">勋章墙</span>
+    </div>
+
+    <div class="nav-item" onclick="showParentLogin()" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      <span class="nav-label">家长端</span>
+    </div>
+  </nav>
+
+  <!-- 家长端登录弹窗 -->
+  <div id="parent-login-modal" class="modal">
+    <div class="modal-content">
+      <h3>家长端登录</h3>
+      <p>请输入密码</p>
+      <input type="password" id="parent-password" placeholder="输入密码">
+      <div class="modal-buttons">
+        <button onclick="checkPassword()">确定</button>
+        <button onclick="closeLoginModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 训练标题 -->
+    <div class="title-section">
+      <div class="page-title">
+        <h1>今日训练</h1>
+        <div class="subtitle">TODAY TRAINING</div>
+      </div>
+    </div>
+
+    <!-- 今日训练双栏布局 -->
+    <div class="today-training-container">
+      <!-- 左侧：我的训练 -->
+      <div class="my-training-card">
+        <h2 class="card-title">我的训练</h2>
+        <div class="divider"></div>
+
+        <!-- 训练统计模块 -->
+        <div class="training-stats">
+          <!-- 总时长展示 -->
+          <div class="total-time-section">
+            <div class="total-time-label">今日训练：</div>
+            <div class="total-time" id="total-time">3.5h</div>
+            <div class="result-badge">
+              <span class="emoji">👍</span>
+              <span>Great result!</span>
+            </div>
+          </div>
+
+          <!-- 日历部分 -->
+          <div class="calendar-container">
+            <!-- 月份导航 -->
+            <div class="calendar-header">
+              <button class="calendar-nav" id="prev-month">‹</button>
+              <h3 class="calendar-title" id="current-month" style="cursor: pointer;">2020年2月</h3>
+              <button class="calendar-nav" id="next-month">›</button>
+            </div>
+
+            <!-- 年月快速选择器 -->
+            <div class="date-picker" id="date-picker" style="display: none;">
+              <div class="picker-header">
+                <button class="picker-nav" id="prev-year">‹</button>
+                <span class="picker-year" id="picker-year">2020年</span>
+                <button class="picker-nav" id="next-year">›</button>
+              </div>
+              <div class="picker-months" id="picker-months">
+                <!-- 月份会通过JS生成 -->
+              </div>
+            </div>
+
+            <!-- 星期标题 -->
+            <div class="calendar-weekdays">
+              <div>日</div>
+              <div>一</div>
+              <div>二</div>
+              <div>三</div>
+              <div>四</div>
+              <div>五</div>
+              <div>六</div>
+            </div>
+
+            <!-- 日历网格 -->
+            <div class="calendar-grid" id="calendar-grid">
+              <!-- 日期会通过JS动态生成 -->
+            </div>
+          </div>
+
+          <!-- 训练时长弹窗 -->
+          <div class="training-modal" id="training-modal">
+            <div class="modal-content">
+              <h4>训练时长</h4>
+              <p id="modal-date"></p>
+              <p id="modal-duration"></p>
+              <button id="close-modal">关闭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：推荐训练 -->
+      <div class="recommend-training-card">
+        <h2 class="recommend-title">推荐训练</h2>
+        <p class="recommend-subtitle">根据历史训练数据推荐</p>
+        <div class="recommend-divider"></div>
+        <div class="recommend-items">
+          <div class="recommend-item" onclick="startGame('recommend-1')">
+            <span>针对性训练1</span>
+          </div>
+          <div class="recommend-item" onclick="startGame('recommend-2')">
+            <span>针对性训练2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // 从localStorage读取训练数据
+    function getTrainingData() {
+      const data = JSON.parse(localStorage.getItem('trainingData') || '{}');
+      return data;
+    }
+
+    // 获取今日训练时间
+    function getTodayTrainingTime() {
+      const today = new Date().toISOString().split('T')[0];
+      const trainingData = getTrainingData();
+      if (trainingData[today] && trainingData[today].totalTime) {
+        const seconds = trainingData[today].totalTime;
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        if (hours > 0) {
+          return `${hours}.${Math.round(minutes / 6)}h`;
+        } else {
+          return `${minutes}分钟`;
+        }
+      }
+      return '0分钟';
+    }
+
+    // 获取指定日期的训练时间
+    function getTrainingTimeByDate(dateStr) {
+      const trainingData = getTrainingData();
+      if (trainingData[dateStr] && trainingData[dateStr].totalTime) {
+        const seconds = trainingData[dateStr].totalTime;
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        if (hours > 0) {
+          return `${hours}小时${minutes}分钟`;
+        } else {
+          return `${minutes}分钟`;
+        }
+      }
+      return '无训练记录';
+    }
+
+    // 中文月份名称
+    const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+
+    // 当前日期和月份
+    let currentDate = new Date(); // 当前日期
+    let pickerYear = currentDate.getFullYear();
+    let isPickerOpen = false;
+
+    // 初始化日历
+    function initCalendar() {
+      const calendarGrid = document.getElementById('calendar-grid');
+      const currentMonthEl = document.getElementById('current-month');
+
+      // 获取当前月份的信息
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      currentMonthEl.textContent = `${year}年${monthNames[month]}`;
+
+      // 清空日历网格
+      calendarGrid.innerHTML = '';
+
+      // 获取当月第一天是星期几
+      const firstDay = new Date(year, month, 1).getDay();
+      // 获取当月的天数
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      // 获取上个月的天数
+      const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+      // 获取训练数据
+      const trainingData = getTrainingData();
+
+      // 添加上个月的日期
+      for (let i = firstDay; i > 0; i--) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'calendar-day past';
+        dayEl.textContent = daysInPrevMonth - i + 1;
+        calendarGrid.appendChild(dayEl);
+      }
+
+      // 添加当月的日期
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dayEl = document.createElement('div');
+        const monthStr = month + 1 < 10 ? '0' + (month + 1) : month + 1;
+        const dayStr = i < 10 ? '0' + i : i;
+        const dateStr = `${year}-${monthStr}-${dayStr}`;
+
+        dayEl.className = 'calendar-day';
+
+        // 检查是否是今天
+        const today = new Date();
+        if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+          dayEl.classList.add('today');
+        }
+
+        // 检查是否有训练数据
+        if (trainingData[dateStr] && trainingData[dateStr].totalTime > 0) {
+          dayEl.classList.add('has-training');
+        }
+
+        dayEl.textContent = i;
+        dayEl.dataset.date = dateStr;
+
+        // 添加点击事件
+        dayEl.addEventListener('click', () => {
+          showTrainingModal(dateStr);
+        });
+
+        calendarGrid.appendChild(dayEl);
+      }
+    }
+
+    // 初始化年月选择器
+    function initDatePicker() {
+      const pickerYearEl = document.getElementById('picker-year');
+      const pickerMonthsEl = document.getElementById('picker-months');
+
+      pickerYearEl.textContent = `${pickerYear}年`;
+      pickerMonthsEl.innerHTML = '';
+
+      monthNames.forEach((monthName, index) => {
+        const monthEl = document.createElement('div');
+        monthEl.className = 'picker-month';
+        if (pickerYear === currentDate.getFullYear() && index === currentDate.getMonth()) {
+          monthEl.classList.add('active');
+        }
+        monthEl.textContent = monthName;
+        monthEl.addEventListener('click', () => {
+          currentDate.setFullYear(pickerYear);
+          currentDate.setMonth(index);
+          initCalendar();
+          toggleDatePicker();
+        });
+        pickerMonthsEl.appendChild(monthEl);
+      });
+    }
+
+    // 切换年月选择器显示
+    function toggleDatePicker() {
+      const datePicker = document.getElementById('date-picker');
+      isPickerOpen = !isPickerOpen;
+      datePicker.style.display = isPickerOpen ? 'block' : 'none';
+      if (isPickerOpen) {
+        pickerYear = currentDate.getFullYear();
+        initDatePicker();
+      }
+    }
+
+    // 切换年份
+    function prevYear() {
+      pickerYear--;
+      initDatePicker();
+    }
+
+    function nextYear() {
+      pickerYear++;
+      initDatePicker();
+    }
+
+    // 显示训练时长弹窗
+    function showTrainingModal(dateStr) {
+      const modal = document.getElementById('training-modal');
+      const modalDate = document.getElementById('modal-date');
+      const modalDuration = document.getElementById('modal-duration');
+
+      // 格式化日期显示
+      const date = new Date(dateStr);
+      const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
+
+      modalDate.textContent = formattedDate;
+      modalDuration.textContent = `训练时长：${getTrainingTimeByDate(dateStr)}`;
+
+      // 显示弹窗
+      modal.style.display = 'flex';
+    }
+
+    // 关闭弹窗
+    function closeModal() {
+      const modal = document.getElementById('training-modal');
+      modal.style.display = 'none';
+    }
+
+    // 切换到上个月
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      initCalendar();
+    }
+
+    // 切换到下个月
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      initCalendar();
+    }
+
+    // 页面加载初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      // 显示今日训练时间
+      const totalTimeEl = document.getElementById('total-time');
+      if (totalTimeEl) {
+        totalTimeEl.textContent = getTodayTrainingTime();
+      }
+
+      initCalendar();
+
+      // 添加事件监听器
+      document.getElementById('prev-month').addEventListener('click', prevMonth);
+      document.getElementById('next-month').addEventListener('click', nextMonth);
+      document.getElementById('close-modal').addEventListener('click', closeModal);
+      document.getElementById('current-month').addEventListener('click', toggleDatePicker);
+      document.getElementById('prev-year').addEventListener('click', prevYear);
+      document.getElementById('next-year').addEventListener('click', nextYear);
+
+      // 点击弹窗外部关闭
+      document.getElementById('training-modal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+          closeModal();
+        }
+      });
+    });
+
+    // 开始游戏
+    function startGame(gameName) {
+      alert('开始游戏：' + gameName);
+      // window.location.href = `training/${gameName}.html`;
+    }
+
+    // 键盘导航支持
+    document.querySelectorAll('.nav-item, .recommend-item').forEach(el => {
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.click();
+        }
+      });
+    });
+
+    // 显示家长端登录弹窗
+    function showParentLogin() {
+      document.getElementById('parent-login-modal').style.display = 'flex';
+    }
+
+    // 关闭家长端登录弹窗
+    function closeLoginModal() {
+      document.getElementById('parent-login-modal').style.display = 'none';
+      document.getElementById('parent-password').value = '';
+    }
+
+    // 检查密码
+    function checkPassword() {
+      const password = document.getElementById('parent-password').value;
+      // 这里可以设置正确的密码，例如 '123456'
+      if (password === '123456') {
+        // 密码正确，跳转到家长端界面
+        window.location.href = 'parent.html';
+      } else {
+        // 密码错误，显示提示
+        alert('密码错误，请重试！');
+        document.getElementById('parent-password').value = '';
+      }
+    }
+
+    // 点击弹窗外部关闭
+    document.addEventListener('DOMContentLoaded', function () {
+      const modal = document.getElementById('parent-login-modal');
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            closeLoginModal();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

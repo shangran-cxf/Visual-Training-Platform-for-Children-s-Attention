@@ -366,6 +366,9 @@
         function endGame() {
             isGameStarted = false;
 
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('level4');
+
             // 计算结果
             const accuracyRate = Math.round((accuracy / maxStages) * 100);
             const avgReactionTime = reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) : 0;
@@ -396,8 +399,6 @@
             startGame();
         };
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

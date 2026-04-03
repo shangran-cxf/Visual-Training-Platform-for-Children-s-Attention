@@ -277,6 +277,7 @@
             display: none;
         }
     </style>
+    <script src="../utils.js"></script>
 </head>
 
 <body>
@@ -684,6 +685,9 @@
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
+
+                // 统计游戏使用时间
+                GameTimeUtil.endGame('magic-maze');
             }
         }
 
@@ -945,9 +949,6 @@
         // 初始化游戏
         initGame();
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
-
 </body>
 
 </html>

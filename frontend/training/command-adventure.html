@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>指令闯关大冒险 - 注意力训练</title>
+    <title>冰雪王国小邮差</title>
     <style>
         * {
             margin: 0;
@@ -13,13 +13,17 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f8ff;
-            color: #333;
+            background-color: #e3f2fd;
+            color: #2A2C90;
+            background-image: url('../images/ground20.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            background-attachment: fixed;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -30,32 +34,48 @@
         }
 
         .header h1 {
-            color: #4CAF50;
+            color: #ffffff;
             font-size: 2.5em;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header p {
             font-size: 1.2em;
-            color: #666;
+            color: #0288d1;
+            margin-bottom: 5px;
+        }
+
+        .header .source {
+            font-size: 1em;
+            color: #0277bd;
+            font-style: italic;
         }
 
         .game-container {
-            background-color: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: transparent;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(237, 245, 247, 0.3);
             margin-bottom: 30px;
             text-align: center;
+            border: 2px solid #ffffff;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .game-info {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(255, 245, 248, 0.9);
+            border-radius: 15px;
+            border: 2px dashed #ffffff;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .info-item {
@@ -63,29 +83,41 @@
         }
 
         .info-item h3 {
-            color: #4CAF50;
+            color: #0277bd;
             margin-bottom: 5px;
+            font-size: 1.1em;
         }
 
         .info-item p {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
+            color: #0277bd;
         }
 
         .game-area {
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            padding: 40px;
-            margin-bottom: 30px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
             min-height: 400px;
             position: relative;
+            border: 3px solid #ffffff;
+            background-image: url('../images/ground21.png');
+            background-size: cover;
+            background-position: center;
+            max-width: 860px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .player {
-            width: 50px;
-            height: 50px;
-            background-color: #4CAF50;
-            border-radius: 50%;
+            width: 90px;
+            height: 90px;
+            background-image: url('../images/sender.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 10px;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -96,21 +128,27 @@
         .obstacle {
             width: 30px;
             height: 30px;
-            background-color: #f44336;
-            border-radius: 5px;
+            background-image: url('../images/obstacle.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 50%;
             position: absolute;
         }
 
         .goal {
-            width: 60px;
-            height: 60px;
-            background-color: #FFD700;
-            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            background-image: url('../images/house.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 15px;
             position: absolute;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 32px;
         }
 
         .command-area {
@@ -118,109 +156,139 @@
         }
 
         .command {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             margin-bottom: 20px;
             padding: 15px;
-            background-color: #e3f2fd;
-            border-radius: 10px;
+            background-color: rgba(255, 245, 248, 0.9);
+            border-radius: 15px;
+            border: 2px dashed #fcfcfc;
+            color: #3756B3;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .controls {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 10px;
-            max-width: 400px;
+            max-width: 300px;
             margin: 0 auto;
         }
 
         .control-btn {
-            background-color: #2196F3;
+            background: linear-gradient(135deg, #4FC3F7, #29B6F6);
             color: white;
             border: none;
-            padding: 15px;
+            padding: 10px 15px;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 3px 8px rgba(0, 172, 237, 0.3);
+            width: 70px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .control-btn:hover {
-            background-color: #1976D2;
+            background: linear-gradient(135deg, #29B6F6, #0288d1);
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 172, 237, 0.4);
         }
 
-        .control-btn:nth-child(2) {
-            grid-column: 2;
-            grid-row: 1;
-        }
-
-        .control-btn:nth-child(1) {
-            grid-column: 1;
-            grid-row: 2;
-        }
-
-        .control-btn:nth-child(3) {
-            grid-column: 3;
-            grid-row: 2;
-        }
-
-        .control-btn:nth-child(4) {
-            grid-column: 2;
-            grid-row: 2;
-        }
-
-        .game-controls {
-            margin-top: 20px;
-        }
-
-        .btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+        .controls .btn {
             margin: 0 10px;
         }
 
+        .btn {
+            background: linear-gradient(135deg, #4FC3F7, #29B6F6);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 3px 8px rgba(0, 172, 237, 0.3);
+        }
+
         .btn:hover {
-            background-color: #45a049;
+            background: linear-gradient(135deg, #29B6F6, #0288d1);
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 172, 237, 0.4);
         }
 
         .btn-secondary {
-            background-color: #999;
+            background: linear-gradient(135deg, #ffccdd, #ffb3cc);
+            color: #ff6699;
         }
 
         .btn-secondary:hover {
-            background-color: #777;
+            background: linear-gradient(135deg, #ffb3cc, #ff99bb);
         }
 
         .instructions {
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
+            background-color: rgba(255, 245, 248, 0.5);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #ffffff;
+            text-align: center;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .instructions h2 {
-            color: #4CAF50;
+            color: #3756B3;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .instructions h3 {
+            color: #0288d1;
+            margin: 15px 0 10px;
+            font-size: 1.4em;
+        }
+
+        .instructions p {
             margin-bottom: 10px;
+            line-height: 1.4;
+            font-size: 1.1em;
         }
 
         .instructions ul {
-            text-align: left;
-            margin-left: 20px;
+            text-align: center;
+            list-style-position: inside;
+            margin-bottom: 15px;
+            padding-left: 0;
         }
 
         .instructions li {
             margin-bottom: 10px;
+            font-size: 1.1em;
         }
 
         .footer {
             text-align: center;
-            color: #666;
+            color: #0277bd;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-10px);
+            }
         }
     </style>
 </head>
@@ -230,7 +298,7 @@
         <!-- 可爱的返回按钮 -->
         <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
             <button onclick="window.location.href='../child-home.html'" style="
-                background: linear-gradient(135deg, #4caf50, #81c784);
+                background: linear-gradient(135deg, #0288d1, #03a9f4);
                 color: white;
                 border: none;
                 border-radius: 50%;
@@ -238,7 +306,7 @@
                 height: 60px;
                 font-size: 24px;
                 cursor: pointer;
-                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                box-shadow: 0 4px 15px rgba(0, 172, 237, 0.4);
                 transition: all 0.3s ease;
                 display: flex;
                 align-items: center;
@@ -250,18 +318,13 @@
             </button>
         </div>
         <div class="header">
-            <h1>指令闯关大冒险</h1>
-            <p>根据指令完成任务，提升指令执行和认知灵活性</p>
+            <h1>冰雪王国小邮差</h1>
         </div>
 
         <div class="instructions">
-            <h2>游戏说明</h2>
-            <ul>
-                <li>根据屏幕上的指令，使用方向键或屏幕上的按钮控制角色移动</li>
-                <li>避开红色障碍物，到达黄色目标点</li>
-                <li>每关的指令可能会有所不同，需要仔细阅读</li>
-                <li>完成关卡后会自动进入下一关，难度逐渐增加</li>
-            </ul>
+            <p>冰雪王国的雪花信件要送给雪精灵！</p>
+            <p>你是可爱的冰雪小邮差，要按照指令穿过雪地，把信件送到黄色雪屋。路上有红色冰刺，千万不能碰到！</p>
+            <p>每关指令不同，要仔细阅读再行动。</p>
         </div>
 
         <div class="game-container">
@@ -290,15 +353,17 @@
             </div>
 
             <div class="controls">
-                <button class="control-btn" onclick="movePlayer('up')">↑</button>
-                <button class="control-btn" onclick="movePlayer('left')">←</button>
-                <button class="control-btn" onclick="movePlayer('right')">→</button>
-                <button class="control-btn" onclick="movePlayer('down')">↓</button>
-            </div>
-
-            <div class="game-controls">
-                <button class="btn" id="startBtn">开始游戏</button>
-                <button class="btn btn-secondary" onclick="window.location.href='index.html'">返回游戏库</button>
+                <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 5px;">
+                    <button class="control-btn" onclick="movePlayer('up')">↑</button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 8px;">
+                    <button class="control-btn" onclick="movePlayer('left')">←</button>
+                    <button class="control-btn" onclick="movePlayer('down')">↓</button>
+                    <button class="control-btn" onclick="movePlayer('right')">→</button>
+                </div>
+                <div style="width: 100%; display: flex; justify-content: center; margin-top: 10px;">
+                    <button class="btn" id="startBtn">开始游戏</button>
+                </div>
             </div>
         </div>
 
@@ -462,13 +527,13 @@
                     currentTop = Math.max(0, currentTop - config.playerSpeed);
                     break;
                 case 'down':
-                    currentTop = Math.min(config.gameAreaHeight - 50, currentTop + config.playerSpeed);
+                    currentTop = Math.min(config.gameAreaHeight - 90, currentTop + config.playerSpeed);
                     break;
                 case 'left':
                     currentLeft = Math.max(0, currentLeft - config.playerSpeed);
                     break;
                 case 'right':
-                    currentLeft = Math.min(config.gameAreaWidth - 50, currentLeft + config.playerSpeed);
+                    currentLeft = Math.min(config.gameAreaWidth - 90, currentLeft + config.playerSpeed);
                     break;
             }
 
@@ -538,6 +603,9 @@
             gameState = 'gameOver';
             clearInterval(timeInterval);
 
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('command-adventure');
+
             // 保存游戏数据
             const gameData = {
                 gameName: 'command-adventure',
@@ -552,7 +620,11 @@
             StorageUtil.setItem('training_history', trainingHistory);
 
             // 显示游戏结束信息
-            alert(`游戏结束！\n得分：${score}\n关卡：${level}`);
+            if (level > 5) {
+                alert(`🏆 恭喜你成为冰雪王国金牌小邮差！ 🏆\n\n你成功送达了所有雪花信件！\n得分：${score}\n闯过关卡：${level - 1}\n\n雪精灵为你的勇敢和智慧感到骄傲！`);
+            } else {
+                alert(`❄️ 游戏结束！ ❄️\n\n得分：${score}\n闯过关卡：${level - 1}\n\n别灰心，冰雪小邮差！\n再试一次，你一定能成功送达所有信件的！`);
+            }
         }
 
         // 更新UI
@@ -567,8 +639,6 @@
             initGame();
         };
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

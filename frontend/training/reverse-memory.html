@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>甜品店小帮工・反向点单任务 - 注意力训练</title>
+    <title>甜品店小帮工</title>
     <style>
         * {
             margin: 0;
@@ -578,6 +578,9 @@
             gameState = 'gameOver';
             clearInterval(timeInterval);
 
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('reverse-memory');
+
             // 调整按钮显示
             document.getElementById('startBtn').style.display = 'inline-block';
             document.getElementById('submitBtn').style.display = 'none';
@@ -618,8 +621,6 @@
             initGame();
         };
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

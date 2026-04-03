@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>儿童注意力训练平台 - 勋章墙</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #818CF8;
+      --secondary: #F97316;
+      --secondary-light: #FDBA74;
+      --bg-color: #EEF2FF;
+      --card-bg: #FFFFFF;
+      --text-dark: #1E1B4B;
+      --text-light: #6366F1;
+      --accent-green: #CEEFDD;
+      --accent-pink: #EC4899;
+      --accent-yellow: #F2E1C4;
+      --accent-cyan: #06B6D4;
+      --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
+      background: #fff4a2;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    /* 左侧导航栏 - 粘土风格 */
+    .sidebar {
+      width: 130px;
+      background: #62B4A5;
+      box-shadow: var(--shadow-soft);
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      border-radius: 32px;
+      position: relative;
+    }
+
+    .logo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 100px;
+    }
+
+    .logo-text {
+      font-size: 30px;
+      font-weight: 600;
+      color: #ffffff;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: -75px;
+      margin-top: 15px;
+      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive, sans-serif;
+    }
+
+    .nav-item {
+      width: 85px;
+      height: 85px;
+      margin-left: 12px;
+      margin-right: 12px;
+      margin-bottom: 12px;
+      border-radius: 24px;
+      background: #FFFFFF;
+      color: #000000;
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 3px solid transparent;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-item:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .nav-item.active {
+      background: #ffd387;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-item.active .nav-icon,
+    .nav-item.active .nav-label {
+      color: white;
+    }
+
+    .nav-icon {
+      width: 28px;
+      height: 28px;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover .nav-icon {
+      transform: scale(1.1);
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-top: 4px;
+      transition: color 0.3s ease;
+    }
+
+    .user-avatar-sidebar {
+      position: absolute;
+      bottom: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 3px solid var(--primary-light);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .user-avatar-sidebar:hover {
+      transform: scale(1.1);
+    }
+
+    .user-avatar-sidebar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: calc(100% - 134px);
+    }
+
+    /* 标题区 */
+    .title-section {
+      margin-bottom: 40px;
+      margin-top: 35px;
+    }
+
+    .page-title h1 {
+      font-size: 90px;
+      color: #51915f;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .page-title .subtitle {
+      font-size: 50px;
+      color: #51915f;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 4px;
+      margin-bottom: -30px;
+    }
+
+    /* 勋章展示区 */
+    .medal-showcase {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      margin-bottom: 17px;
+    }
+
+    .current-medal {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgb(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-card);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .current-medal img {
+      width: 130px;
+      height: 130px;
+      object-fit: contain;
+    }
+
+    /* 未解锁状态的勋章显示为灰色 */
+    .current-medal.locked img {
+      filter: grayscale(100%);
+      opacity: 0.6;
+    }
+
+    .current-medal:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .medal-desc-box {
+      flex: 1;
+      max-width: 300px;
+      padding: 10px 15px;
+      background: rgb(255, 255, 255, 0.7);
+      border-radius: 8px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    /* 勋章网格容器 */
+    .medal-grid-container {
+      background: rgb(255, 255, 255, 0.8);
+      border-radius: 30px;
+      height: 450px;
+      width: 900px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 勋章滚动容器 */
+    .medal-scroll-container {
+      display: flex;
+      gap: 40px;
+      transition: transform 0.5s ease;
+      padding: 0 20px;
+      width: max-content;
+      /* 确保容器宽度根据内容自动扩展 */
+    }
+
+    /* 勋章组 - 竖着排列 */
+    .medal-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: max-content;
+      /* 确保容器宽度根据内容自动扩展 */
+    }
+
+    .medal-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.5s ease;
+      cursor: pointer;
+      position: relative;
+      background: none;
+      border: none;
+      padding: 15px;
+    }
+
+    .medal-item:hover {
+      transform: scale(1.1) rotateY(360deg);
+    }
+
+    .medal-item img {
+      width: 130px;
+      height: 130px;
+      object-fit: contain;
+      transition: all 0.5s ease;
+    }
+
+    .medal-item:not(.unlocked) img {
+      filter: grayscale(100%);
+      opacity: 0.6;
+    }
+
+    /* 滚动按钮 */
+    .scroll-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .scroll-button:hover {
+      transform: translateY(-50%) scale(1.1);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .scroll-button.left {
+      left: 10px;
+    }
+
+    .scroll-button.left:hover {
+      transform: translateY(-50%) scale(1.1) translateX(-5px);
+    }
+
+    .scroll-button.right {
+      right: 10px;
+    }
+
+    .scroll-button.right:hover {
+      transform: translateY(-50%) scale(1.1) translateX(5px);
+    }
+
+    .scroll-button svg {
+      width: 30px;
+      height: 30px;
+      fill: #51915f;
+    }
+
+    /* 装饰元素 */
+    .floating-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .shape {
+      position: absolute;
+      opacity: 0.15;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .shape-1 {
+      top: 10%;
+      left: 5%;
+      width: 150px;
+      height: 150px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: 0s;
+    }
+
+    .shape-2 {
+      top: 60%;
+      right: 5%;
+      width: 180px;
+      height: 180px;
+      background: var(--secondary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -1s;
+    }
+
+    .shape-3 {
+      bottom: 20%;
+      left: 15%;
+      width: 130px;
+      height: 130px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -2s;
+    }
+
+    .shape-4 {
+      top: 30%;
+      right: 20%;
+      width: 160px;
+      height: 160px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -3s;
+    }
+
+    .shape-5 {
+      top: 20%;
+      right: 10%;
+      width: 140px;
+      height: 140px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: -4s;
+    }
+
+    .shape-6 {
+      bottom: 10%;
+      right: 15%;
+      width: 120px;
+      height: 120px;
+      background: var(--secondary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -5s;
+    }
+
+    .shape-7 {
+      top: 40%;
+      left: 10%;
+      width: 170px;
+      height: 170px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -6s;
+    }
+
+    .shape-8 {
+      bottom: 30%;
+      left: 25%;
+      width: 110px;
+      height: 110px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -7s;
+    }
+
+    .shape-9 {
+      top: 50%;
+      right: 25%;
+      width: 150px;
+      height: 150px;
+      background: var(--primary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -8s;
+    }
+
+    .shape-10 {
+      top: 15%;
+      left: 20%;
+      width: 130px;
+      height: 130px;
+      background: var(--secondary);
+      border-radius: 50%;
+      animation-delay: -9s;
+    }
+
+    .shape-11 {
+      bottom: 40%;
+      right: 10%;
+      width: 160px;
+      height: 160px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -10s;
+    }
+
+    .shape-12 {
+      top: 25%;
+      left: 30%;
+      width: 120px;
+      height: 120px;
+      background: var(--accent-pink);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -11s;
+    }
+
+    .shape-13 {
+      bottom: 15%;
+      left: 35%;
+      width: 140px;
+      height: 140px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: -12s;
+    }
+
+    .shape-14 {
+      top: 35%;
+      right: 30%;
+      width: 170px;
+      height: 170px;
+      background: var(--secondary);
+      border-radius: 50%;
+      animation-delay: -13s;
+    }
+
+    .shape-15 {
+      top: 45%;
+      left: 15%;
+      width: 110px;
+      height: 110px;
+      background: var(--accent-green);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -14s;
+    }
+
+    .shape-16 {
+      bottom: 25%;
+      right: 20%;
+      width: 150px;
+      height: 150px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -15s;
+    }
+
+    .shape-17 {
+      top: 55%;
+      left: 25%;
+      width: 130px;
+      height: 130px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: -16s;
+    }
+
+    .shape-18 {
+      bottom: 35%;
+      left: 40%;
+      width: 160px;
+      height: 160px;
+      background: var(--secondary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -17s;
+    }
+
+    .shape-19 {
+      top: 65%;
+      right: 35%;
+      width: 120px;
+      height: 120px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -18s;
+    }
+
+    .shape-20 {
+      top: 70%;
+      left: 10%;
+      width: 140px;
+      height: 140px;
+      background: var(--accent-pink);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -19s;
+    }
+
+    .shape-21 {
+      bottom: 5%;
+      left: 20%;
+      width: 170px;
+      height: 170px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: -20s;
+    }
+
+    .shape-22 {
+      top: 5%;
+      right: 15%;
+      width: 110px;
+      height: 110px;
+      background: var(--secondary);
+      border-radius: 50%;
+      animation-delay: -21s;
+    }
+
+    .shape-23 {
+      top: 75%;
+      right: 10%;
+      width: 150px;
+      height: 150px;
+      background: var(--accent-green);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -22s;
+    }
+
+    .shape-24 {
+      bottom: 50%;
+      left: 5%;
+      width: 130px;
+      height: 130px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -23s;
+    }
+
+    .shape-25 {
+      top: 60%;
+      left: 35%;
+      width: 160px;
+      height: 160px;
+      background: var(--primary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -24s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      25% {
+        transform: translateY(-20px) rotate(5deg);
+      }
+
+      50% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      75% {
+        transform: translateY(20px) rotate(-5deg);
+      }
+    }
+
+    /* 响应式 */
+    @media (max-width: 1200px) {
+      .medal-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 992px) {
+      .medal-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        padding: 16px 20px;
+        gap: 12px;
+        border-radius: 24px;
+        position: relative;
+        overflow-x: auto;
+      }
+
+      .logo-section {
+        flex-direction: row;
+        margin-bottom: 0;
+        margin-right: 8px;
+      }
+
+      .logo-text {
+        display: none;
+      }
+
+      .user-avatar-sidebar {
+        position: static;
+        margin-left: auto;
+      }
+
+      .main-content {
+        max-width: 100%;
+      }
+
+      .page-title h1 {
+        font-size: 48px;
+      }
+
+      .page-title .subtitle {
+        font-size: 28px;
+      }
+
+      .medal-showcase {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .medal-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 20px;
+        gap: 20px;
+      }
+    }
+
+    /* 家长端登录弹窗 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      background: #ffd38b;
+      padding: 40px 30px;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h3 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+      background: #fff;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .modal-content p {
+      font-size: 16px;
+      color: #fff;
+      margin-bottom: 30px;
+      opacity: 1;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 30px;
+      background: white;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .modal-content input:focus {
+      outline: none;
+      border-color: #ffd38b;
+      transform: translateY(-2px);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .modal-buttons button {
+      background: #ca6a16;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .modal-buttons button:hover {
+      transform: translateY(-2px);
+    }
+
+    .modal-buttons button:last-child {
+      background: #ca6a16;
+      color: #fff;
+    }
+
+    .modal-buttons button:last-child:hover {
+      transform: translateY(-2px);
+    }
+
+    /* 减少动画偏好 */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 浮动装饰元素 -->
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    <div class="shape shape-5"></div>
+    <div class="shape shape-6"></div>
+    <div class="shape shape-7"></div>
+    <div class="shape shape-8"></div>
+    <div class="shape shape-9"></div>
+    <div class="shape shape-10"></div>
+    <div class="shape shape-11"></div>
+    <div class="shape shape-12"></div>
+    <div class="shape shape-13"></div>
+    <div class="shape shape-14"></div>
+    <div class="shape shape-15"></div>
+    <div class="shape shape-16"></div>
+    <div class="shape shape-17"></div>
+    <div class="shape shape-18"></div>
+    <div class="shape shape-19"></div>
+    <div class="shape shape-20"></div>
+    <div class="shape shape-21"></div>
+    <div class="shape shape-22"></div>
+    <div class="shape shape-23"></div>
+    <div class="shape shape-24"></div>
+    <div class="shape shape-25"></div>
+  </div>
+
+  <!-- 侧边栏导航 -->
+  <nav class="sidebar">
+    <div class="logo-section">
+      <div class="logo-text">注意力<br>训练<br>平台</div>
+    </div>
+
+    <!-- 训练按钮：跳转到child-home.html -->
+    <div class="nav-item" onclick="window.location.href='child-home.html'" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+      </svg>
+      <span class="nav-label">训练</span>
+    </div>
+
+    <!-- 综合训练按钮：跳转到detect/index.html -->
+    <div class="nav-item" onclick="window.location.href='detect/index.html'" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
+      </svg>
+      <span class="nav-label">综合训练</span>
+    </div>
+
+    <!-- 今日训练按钮 -->
+    <div class="nav-item" onclick="window.location.href='today-training.html'" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      <span class="nav-label">今日训练</span>
+    </div>
+
+    <!-- 勋章墙：当前页面，激活状态 -->
+    <div class="nav-item active" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="7" />
+        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+      </svg>
+      <span class="nav-label">勋章墙</span>
+    </div>
+
+    <!-- 家长端按钮 -->
+    <div class="nav-item" onclick="showParentLogin()" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      <span class="nav-label">家长端</span>
+    </div>
+  </nav>
+
+  <!-- 家长端登录弹窗 -->
+  <div id="parent-login-modal" class="modal">
+    <div class="modal-content">
+      <h3>家长端登录</h3>
+      <p>请输入密码</p>
+      <input type="password" id="parent-password" placeholder="输入密码">
+      <div class="modal-buttons">
+        <button onclick="checkPassword()">确定</button>
+        <button onclick="closeLoginModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 标题区 -->
+    <div class="title-section">
+      <div class="page-title">
+        <h1>勋章墙</h1>
+        <div class="subtitle">MEDAL WALL</div>
+      </div>
+    </div>
+
+    <!-- 当前勋章展示区 -->
+    <div class="medal-showcase">
+      <div class="current-medal" id="current-medal">
+        <!-- 初始为空，点击勋章后显示 -->
+      </div>
+      <div class="medal-desc-box" id="medal-desc">
+        <!-- 初始为空，点击勋章后显示 -->
+      </div>
+    </div>
+
+    <!-- 勋章网格和狐狸勋章 -->
+    <div style="display: flex; align-items: flex-end; gap: 10px; position: relative;">
+      <!-- 勋章网格 -->
+      <div class="medal-grid-container">
+        <!-- 左滚动按钮 -->
+        <button class="scroll-button left" onclick="scrollMedals(-1)">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+
+        <!-- 勋章滚动容器 -->
+        <div class="medal-scroll-container" id="medal-scroll-container">
+          <!-- 第一组：太空小达人 + 垃圾小助手 -->
+          <div class="medal-group">
+            <div class="medal-item" data-medal="1" data-desc="太空小达人" data-howto="成功完成太空小火箭所有难度关卡">
+              <img src="medal-image/game1.png" alt="太空小达人" />
+            </div>
+            <div class="medal-item" data-medal="2" data-desc="垃圾小助手" data-howto="成功完成垃圾小卫士所有难度关卡">
+              <img src="medal-image/game2.png" alt="垃圾小助手" />
+            </div>
+          </div>
+          <!-- 第二组：魔法冒险家 + 植物守护者 -->
+          <div class="medal-group">
+            <div class="medal-item" data-medal="3" data-desc="魔法冒险家" data-howto="成功完成魔法迷宫所有难度关卡">
+              <img src="medal-image/game3.png" alt="魔法冒险家" />
+            </div>
+            <div class="medal-item" data-medal="4" data-desc="植物守护者" data-howto="成功完成植物浇水所有难度关卡">
+              <img src="medal-image/game4.png" alt="植物守护者" />
+            </div>
+          </div>
+          <!-- 第三组：太阳追踪者 + 动物追踪员 -->
+          <div class="medal-group">
+            <div class="medal-item" data-medal="5" data-desc="太阳追踪者" data-howto="成功完成追太阳所有难度关卡">
+              <img src="medal-image/game5.png" alt="太阳追踪者" />
+            </div>
+            <div class="medal-item" data-medal="6" data-desc="动物追踪员" data-howto="成功完成森林小动物追踪所有难度关卡">
+              <img src="medal-image/game6.png" alt="动物追踪员" />
+            </div>
+          </div>
+          <!-- 第四组：金牌甜品销售员 + 海底捉迷藏大师 -->
+          <div class="medal-group">
+            <div class="medal-item" data-medal="7" data-desc="金牌甜品销售员" data-howto="成功完成甜品店小帮工所有难度关卡">
+              <img src="medal-image/game7.png" alt="金牌甜品销售员" />
+            </div>
+            <div class="medal-item" data-medal="8" data-desc="海底捉迷藏大师" data-howto="成功完成海底捉迷藏所有难度关卡">
+              <img src="medal-image/game8.png" alt="海底捉迷藏大师" />
+            </div>
+          </div>
+          <!-- 第五组：分类小能手 + 冰雪信使 -->
+          <div class="medal-group">
+            <div class="medal-item" data-medal="9" data-desc="分类小能手" data-howto="成功完成环保小卫士所有难度关卡">
+              <img src="medal-image/game9.png" alt="分类小能手" />
+            </div>
+            <div class="medal-item" data-medal="10" data-desc="冰雪信使" data-howto="成功完成冰雪王国小邮差所有难度关卡">
+              <img src="medal-image/game10.png" alt="冰雪信使" />
+            </div>
+          </div>
+          <!-- 第六组：打卡小新星 + 坚持小勇士 -->
+          <div class="medal-group">
+            <div class="medal-item" data-medal="11" data-desc="打卡小新星" data-howto="连续打卡3天">
+              <img src="medal-image/3day.png" alt="打卡小新星" />
+            </div>
+            <div class="medal-item" data-medal="12" data-desc="坚持小勇士" data-howto="连续打卡7天">
+              <img src="medal-image/7day.png" alt="坚持小勇士" />
+            </div>
+          </div>
+          <!-- 第七组：专注小达人 + 自律小榜样 -->
+          <div class="medal-group">
+            <div class="medal-item" data-medal="13" data-desc="专注小达人" data-howto="连续打卡14天">
+              <img src="medal-image/14day.png" alt="专注小达人" />
+            </div>
+            <div class="medal-item" data-medal="14" data-desc="自律小榜样" data-howto="连续打卡30天">
+              <img src="medal-image/30day.png" alt="自律小榜样" />
+            </div>
+          </div>
+          <!-- 第八组：毅力小冠军 -->
+          <div class="medal-group">
+            <div class="medal-item" data-medal="15" data-desc="毅力小冠军" data-howto="连续打卡60天">
+              <img src="medal-image/60day.png" alt="毅力小冠军" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 右滚动按钮 -->
+        <button class="scroll-button right" onclick="scrollMedals(1)">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- 狐狸勋章 -->
+      <div style="position: absolute; right: 0; bottom: 0; z-index: 10;">
+        <img src="images/fox-medal.png" alt="狐狸勋章" style="height:450px; object-fit: contain;" />
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // 勋章点击交互
+    document.querySelectorAll('.medal-item').forEach(item => {
+      item.addEventListener('click', () => {
+        // 更新当前展示的勋章
+        const currentMedal = document.getElementById('current-medal');
+        const medalDesc = document.getElementById('medal-desc');
+
+        // 复制勋章图标
+        currentMedal.innerHTML = item.innerHTML;
+
+        // 检查是否已解锁
+        const isUnlocked = item.classList.contains('unlocked');
+
+        // 根据解锁状态设置current-medal的样式类
+        if (isUnlocked) {
+          currentMedal.classList.remove('locked');
+          // 已解锁：显示勋章名称
+          medalDesc.textContent = item.dataset.desc;
+        } else {
+          currentMedal.classList.add('locked');
+          // 未解锁：显示获得方法
+          medalDesc.textContent = item.dataset.howto;
+        }
+
+        // 高亮当前选中的勋章（移除放大效果）
+        document.querySelectorAll('.medal-item').forEach(i => i.style.borderColor = 'transparent');
+        item.style.borderColor = '#f9b39c';
+      });
+    });
+
+    // 页面加载时不默认选中任何勋章，因为所有勋章都未解锁
+    // document.querySelector('.medal-item[data-medal="1"]').click();
+
+    // 滚动勋章功能
+    let scrollPosition = 0;
+    const scrollStep = 10; // 每次滚动的距离（减小以实现平滑滚动）
+    let scrollInterval = null;
+    let scrollDirection = 0;
+
+    function scrollMedals(direction) {
+      const scrollContainer = document.getElementById('medal-scroll-container');
+      const container = scrollContainer.parentElement;
+
+      // 获取滚动容器的实际宽度
+      const scrollWidth = scrollContainer.offsetWidth;
+      const containerWidth = container.offsetWidth;
+      const maxScroll = Math.max(0, scrollWidth - containerWidth + 40); // 加上padding
+
+      scrollPosition += direction * scrollStep;
+
+      // 限制滚动范围
+      if (scrollPosition < 0) {
+        scrollPosition = 0;
+      }
+      if (scrollPosition > maxScroll) {
+        scrollPosition = maxScroll;
+      }
+
+      // 应用滚动
+      scrollContainer.style.transform = `translateX(-${scrollPosition}px)`;
+    }
+
+    // 鼠标悬浮时自动滚动
+    function startScroll(direction) {
+      scrollDirection = direction;
+      if (scrollInterval) clearInterval(scrollInterval);
+      scrollInterval = setInterval(() => {
+        scrollMedals(scrollDirection);
+      }, 30); // 每30毫秒滚动一次
+    }
+
+    function stopScroll() {
+      if (scrollInterval) {
+        clearInterval(scrollInterval);
+        scrollInterval = null;
+      }
+    }
+
+    // 为滚动按钮添加hover事件
+    document.addEventListener('DOMContentLoaded', function () {
+      const leftButton = document.querySelector('.scroll-button.left');
+      const rightButton = document.querySelector('.scroll-button.right');
+
+      if (leftButton) {
+        leftButton.addEventListener('mouseenter', () => startScroll(-1));
+        leftButton.addEventListener('mouseleave', stopScroll);
+      }
+
+      if (rightButton) {
+        rightButton.addEventListener('mouseenter', () => startScroll(1));
+        rightButton.addEventListener('mouseleave', stopScroll);
+      }
+    });
+
+    // 显示指定板块（预留跳转逻辑）
+    function showSection(sectionId) {
+      console.log('跳转到板块:', sectionId);
+      // 可根据需求补充家长端的跳转逻辑
+    }
+
+    // 键盘导航支持
+    document.querySelectorAll('.nav-item, .medal-item').forEach(el => {
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.click();
+        }
+      });
+    });
+
+    // 显示家长端登录弹窗
+    function showParentLogin() {
+      document.getElementById('parent-login-modal').style.display = 'flex';
+    }
+
+    // 关闭家长端登录弹窗
+    function closeLoginModal() {
+      document.getElementById('parent-login-modal').style.display = 'none';
+      document.getElementById('parent-password').value = '';
+    }
+
+    // 检查密码
+    function checkPassword() {
+      const password = document.getElementById('parent-password').value;
+      // 这里可以设置正确的密码，例如 '123456'
+      if (password === '123456') {
+        // 密码正确，跳转到家长端界面
+        window.location.href = 'parent.html';
+      } else {
+        // 密码错误，显示提示
+        alert('密码错误，请重试！');
+        document.getElementById('parent-password').value = '';
+      }
+    }
+
+    // 点击弹窗外部关闭
+    document.addEventListener('DOMContentLoaded', function () {
+      const modal = document.getElementById('parent-login-modal');
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            closeLoginModal();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

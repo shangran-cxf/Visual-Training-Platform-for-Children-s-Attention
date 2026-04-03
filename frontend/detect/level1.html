@@ -490,6 +490,9 @@
             isGameStarted = false;
             endTime = Date.now();
 
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('level1');
+
             // 计算结果
             const totalTime = Math.floor((endTime - startTime) / 1000);
             const correctTargets = selectedClues.filter(index => {
@@ -524,8 +527,6 @@
             startGame();
         };
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

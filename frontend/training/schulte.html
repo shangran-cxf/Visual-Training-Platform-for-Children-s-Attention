@@ -797,6 +797,9 @@
             endTime = Date.now();
             const totalTime = Math.floor((endTime - startTime) / 1000);
 
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('schulte');
+
             // 计算正确率
             const totalCells = currentDifficulty * currentDifficulty;
             const correctCount = totalCells - errorCount;
@@ -959,8 +962,6 @@
             // 页面加载时不生成游戏内容，等待用户点击开始按钮
         };
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

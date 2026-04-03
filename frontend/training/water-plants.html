@@ -655,13 +655,14 @@
             document.getElementById('final-interrupts').textContent = interruptCount;
             document.getElementById('success-message').classList.add('show');
             feedback.textContent = '恭喜！植物成功开花！';
+
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('water-plants');
         }
 
         // 游戏主循环
         setInterval(gameLoop, 100);
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

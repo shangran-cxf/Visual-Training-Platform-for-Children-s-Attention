@@ -377,6 +377,9 @@
             isGameStarted = false;
             clearInterval(gameInterval);
 
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('level3');
+
             // 移除点击事件
             gameArea.removeEventListener('click', handleClick);
 
@@ -409,8 +412,6 @@
             startGame();
         };
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

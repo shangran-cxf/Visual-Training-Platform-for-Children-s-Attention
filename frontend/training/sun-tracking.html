@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>追光小能手 - 注意力训练</title>
+    <title>追太阳</title>
     <style>
         * {
             margin: 0;
@@ -220,7 +220,7 @@
         </div>
 
         <div class="header">
-            <h1>追光小能手</h1>
+            <h1>追太阳</h1>
             <p>跟随移动的太阳，训练视觉追踪能力</p>
         </div>
 
@@ -386,6 +386,9 @@
             clearInterval(gameInterval);
             clearInterval(targetInterval);
 
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('sun-tracking');
+
             target.classList.remove('visible');
             document.getElementById('start-btn').classList.remove('hidden');
             feedback.textContent = `游戏结束！得分: ${score}, 错误: ${errorCount}`;
@@ -405,9 +408,6 @@
 
         target.addEventListener('click', handleTargetClick);
     </script>
-
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>环保小卫士 - 抑制控制训练游戏</title>
+    <title>环保小卫士</title>
     <style>
         * {
             margin: 0;
@@ -826,6 +826,9 @@
         function endGame() {
             active = false;
             if (timerInterval) clearInterval(timerInterval);
+
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('traffic-light');
             const accuracy = gameState.totalCount === 0 ? 0 : ((gameState.correctCount / gameState.totalCount) * 100).toFixed(1);
             const incongruentTrials = gameState.trialHistory.filter(t => t.isIncongruent === true);
             const incongAcc = incongruentTrials.length === 0 ? 0 : ((incongruentTrials.filter(t => t.isCorrect).length / incongruentTrials.length) * 100).toFixed(1);
@@ -873,9 +876,6 @@
         // 页面加载完成后初始化
         window.addEventListener('DOMContentLoaded', initGame);
     </script>
-
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

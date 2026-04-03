@@ -360,6 +360,9 @@
         function endGame() {
             isGameStarted = false;
 
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('level2');
+
             // 暂停视频
             if (videoElement) {
                 videoElement.pause();
@@ -401,8 +404,6 @@
             startGame();
         };
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

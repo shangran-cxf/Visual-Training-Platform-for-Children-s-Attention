@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>森林小精灵追踪战 - 注意力训练</title>
+    <title>森林动物追踪战</title>
     <style>
         * {
             margin: 0;
@@ -558,6 +558,9 @@
             finalScore.textContent = score;
             finalErrors.textContent = errors;
             gameOverModal.classList.add('show');
+
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('animal-searching');
         }
 
         // 重置游戏
@@ -574,8 +577,6 @@
 
         reset();
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数字 / 符号划消 - 注意力训练</title>
+    <title>垃圾小卫士</title>
     <style>
         * {
             margin: 0;
@@ -306,7 +306,7 @@
             </button>
         </div>
         <div class="header">
-            <h1>垃圾小卫士：清理数字垃圾</h1>
+            <h1>垃圾小卫士</h1>
             <p>花园里掉进了很多垃圾，其他是小花、小草和小石头。小朋友当垃圾小卫士，把所有垃圾圈出来吧！</p>
         </div>
         <div class="game-area">
@@ -551,6 +551,9 @@
             isGameStarted = false;
             clearInterval(timeInterval);
             clearInterval(refreshInterval);
+
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('find-numbers');
             const totalTime = Math.floor((Date.now() - startTime) / 1000);
             missedCount = totalTargets - correctCount;
             document.getElementById('missed').textContent = missedCount;
@@ -561,8 +564,6 @@
             }, 3000);
         }
     </script>
-    <!-- 专注力检测模块 -->
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

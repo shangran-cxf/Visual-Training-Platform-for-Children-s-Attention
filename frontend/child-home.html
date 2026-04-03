@@ -2,1303 +2,1479 @@
 <html lang="zh-CN">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>儿童注意力训练平台</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            overflow-x: hidden;
-        }
-
-        body {
-            font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            background: linear-gradient(90deg, #4caf50 0%, #81c784 99%, #81c784 100%);
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="40" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.3)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.3)"/></svg>');
-            animation: float 20s linear infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            100% {
-                transform: translate(100px, 100px);
-            }
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin: 0;
-            position: relative;
-            z-index: 1;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            animation: pulse 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            100% {
-                transform: scale(1.05);
-            }
-        }
-
-        .nav {
-            background-color: white;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            padding: 15px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav ul {
-            display: flex;
-            justify-content: center;
-            list-style: none;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .nav li {
-            display: inline;
-        }
-
-        .nav a {
-            text-decoration: none;
-            color: #333;
-            font-size: 18px;
-            font-weight: bold;
-            padding: 12px 25px;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-
-        .nav a::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .nav a:hover::before {
-            left: 100%;
-        }
-
-        .nav a:hover {
-            background-color: #4caf50;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-        }
-
-        .nav a.active {
-            background: linear-gradient(90deg, #4caf50, #81c784);
-            color: white;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-        }
-
-        .container {
-            flex: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
-
-        .section {
-            display: none;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        .training-section {
-            background-color: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .training-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #4caf50, #81c784, #a5d6a7, #c8e6c9);
-        }
-
-        .training-section h2 {
-            color: #2e7d32;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 2.2em;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-            animation: bounce 1s ease-in-out infinite alternate;
-        }
-
-        @keyframes bounce {
-            0% {
-                transform: translateY(0);
-            }
-
-            100% {
-                transform: translateY(-5px);
-            }
-        }
-
-        .training-categories {
-            display: flex;
-            overflow-x: auto;
-            gap: 30px;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            scrollbar-width: thin;
-            scrollbar-color: #4caf50 #f9f9f9;
-        }
-
-        .training-categories::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .training-categories::-webkit-scrollbar-track {
-            background: #f9f9f9;
-            border-radius: 10px;
-        }
-
-        .training-categories::-webkit-scrollbar-thumb {
-            background: #4caf50;
-            border-radius: 10px;
-        }
-
-        .training-categories::-webkit-scrollbar-thumb:hover {
-            background: #2e7d32;
-        }
-
-        .category {
-            min-width: 300px;
-            background-color: #f9f9f9;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .category::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            right: -10px;
-            width: 50px;
-            height: 50px;
-            background: rgba(76, 175, 80, 0.1);
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .category:hover {
-            transform: translateY(-5px) rotate(1deg);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .category:hover::after {
-            transform: scale(2);
-        }
-
-        .category h3 {
-            color: #2e7d32;
-            margin-bottom: 25px;
-            font-size: 1.5em;
-            border-bottom: 3px solid #4caf50;
-            padding-bottom: 10px;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-
-        .category:hover h3 {
-            transform: scale(1.05);
-        }
-
-        .games-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .game-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #4caf50, #81c784);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .game-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .game-card:hover {
-            transform: translateY(-8px) rotate(2deg);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .game-card .icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            animation: spin 3s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            50% {
-                transform: rotate(10deg);
-            }
-
-            100% {
-                transform: rotate(0deg);
-            }
-        }
-
-        .game-card:hover .icon {
-            transform: scale(1.3) rotate(15deg);
-        }
-
-        .game-card h4 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-            transition: all 0.3s ease;
-        }
-
-        .game-card:hover h4 {
-            color: #2e7d32;
-        }
-
-        .game-card p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 25px;
-            line-height: 1.4;
-        }
-
-        .btn {
-            background: linear-gradient(90deg, #4caf50, #81c784);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            animation: pulse 2s ease-in-out infinite alternate;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
-        }
-
-        .medal-section {
-            background-color: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .medal-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, #4caf50, #81c784);
-        }
-
-        .medal-section h2 {
-            color: #2e7d32;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 2.2em;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-            animation: bounce 1s ease-in-out infinite alternate;
-        }
-
-        .medals-grid {
-            display: flex;
-            overflow-x: auto;
-            gap: 25px;
-            padding-bottom: 20px;
-            scrollbar-width: thin;
-            scrollbar-color: #4caf50 #f9f9f9;
-        }
-
-        .medals-grid::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .medals-grid::-webkit-scrollbar-track {
-            background: #f9f9f9;
-            border-radius: 10px;
-        }
-
-        .medals-grid::-webkit-scrollbar-thumb {
-            background: #4caf50;
-            border-radius: 10px;
-        }
-
-        .medals-grid::-webkit-scrollbar-thumb:hover {
-            background: #2e7d32;
-        }
-
-        .medal-card {
-            min-width: 180px;
-            background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .medal-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #4caf50, #81c784);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .medal-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .medal-card:hover {
-            transform: translateY(-8px) rotate(5deg);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .medal-card .icon {
-            font-size: 70px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            animation: spin 4s ease-in-out infinite;
-        }
-
-        .medal-card:hover .icon {
-            transform: scale(1.3) rotate(360deg);
-        }
-
-        .medal-card h4 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-            transition: all 0.3s ease;
-        }
-
-        .medal-card:hover h4 {
-            color: #2e7d32;
-            transform: scale(1.1);
-        }
-
-        .medal-card p {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .footer {
-            background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
-            color: white;
-            text-align: center;
-            padding: 25px 0;
-            margin-top: 40px;
-            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .footer p {
-            margin: 0;
-            font-size: 16px;
-            animation: pulse 2s ease-in-out infinite alternate;
-        }
-
-        @media (max-width: 768px) {
-            .nav ul {
-                gap: 15px;
-            }
-
-            .nav a {
-                font-size: 16px;
-                padding: 10px 20px;
-            }
-
-            .header h1 {
-                font-size: 2em;
-            }
-
-            .training-section h2,
-            .medal-section h2 {
-                font-size: 1.8em;
-            }
-
-            .games-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .medals-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>儿童注意力训练平台</title>
+  <!-- 字体设置 -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #818CF8;
+      --secondary: #F97316;
+      --secondary-light: #FDBA74;
+      --bg-color: #EEF2FF;
+      --card-bg: #FFFFFF;
+      --text-dark: #1E1B4B;
+      --text-light: #6366F1;
+      --accent-green: #CEEFDD;
+      --accent-pink: #EC4899;
+      --accent-yellow: #F2E1C4;
+      --accent-cyan: #06B6D4;
+      --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
+      background: #fff4a2;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    /* 左侧导航栏 - 粘土风格 */
+    .sidebar {
+      width: 130px;
+      background: #62B4A5;
+      box-shadow: var(--shadow-soft);
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      border-radius: 32px;
+      position: relative;
+    }
+
+    .logo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 100px;
+    }
+
+    .logo-text {
+      font-size: 30px;
+      font-weight: 600;
+      color: #ffffff;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: -75px;
+      margin-top: 15px;
+      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive, sans-serif;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 28px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .logo:hover {
+      transform: translateY(-3px) scale(1.05);
+      /* box-shadow: 0 10px 30px rgba(79, 70, 229, 0.5); */
+    }
+
+    .nav-item {
+      width: 85px;
+      height: 85px;
+      margin-left: 12px;
+      margin-right: 12px;
+      margin-bottom: 12px;
+      border-radius: 24px;
+      background: #FFFFFF;
+      color: #000000;
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 3px solid transparent;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .nav-item:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .nav-item:hover::before {
+      opacity: 1;
+    }
+
+    .nav-item.active {
+      background: #ffd387;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    }
+
+    .nav-item.active .nav-icon {
+      filter: none;
+      color: white;
+    }
+
+    .nav-item.active .nav-label {
+      color: white;
+    }
+
+    .nav-icon {
+      width: 28px;
+      height: 28px;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover .nav-icon {
+      transform: scale(1.1);
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-top: 4px;
+      transition: color 0.3s ease;
+    }
+
+    .user-avatar-sidebar {
+      position: absolute;
+      bottom: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 3px solid var(--primary-light);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .user-avatar-sidebar:hover {
+      transform: scale(1.1);
+    }
+
+    .user-avatar-sidebar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: calc(100% - 134px);
+    }
+
+    /* 顶部欢迎区 */
+    .top-section {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      padding: 0;
+    }
+
+    .welcome-text {
+      font-size: 35px;
+      font-weight: 800;
+      color: #3D547A;
+    }
+
+    .welcome-text span {
+      color: #6BBFEA;
+      font-weight: 1000;
+    }
+
+    /* 训练标题区 */
+    .title-section {
+      margin-bottom: 40px;
+      margin-top: -35px;
+    }
+
+    .page-title h1 {
+      font-size: 90px;
+      color: #51915f;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .page-title .subtitle {
+      font-size: 50px;
+      color: #51915f;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* 分类标签 - 胶囊按钮 */
+    .category-tabs {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .category-tab {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-right: 10px;
+      padding: 25px 20px;
+      border-radius: 50px;
+      margin-top: -15px;
+      margin-bottom: -15px;
+      background: #f5c9b7;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 20px;
+      font-weight: 600;
+      min-width: 100px;
+      justify-content: flex-start;
+      border: none;
+      outline: none;
+    }
+
+    .category-tab:hover {
+      transform: translateY(-2px);
+    }
+
+    .category-tab.active {
+      background: #e99e80;
+      color: #FFFFFF;
+    }
+
+    .category-tab.active .category-icon {
+      background: #ffe2d5;
+      border-color: #ffffff;
+    }
+
+    .category-icon {
+      width: 75px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffe2d5;
+      border-radius: 70px;
+      font-size: 16px;
+      position: relative;
+      overflow: hidden;
+      margin-left: -15px;
+      margin-top: -25px;
+      margin-bottom: -25px;
+    }
+
+    .category-icon iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 50%;
+    }
+
+    .category-icon img {
+      width: 30px !important;
+      height: 30px !important;
+    }
+
+    /* 游戏卡片网格 */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .game-card {
+      background: var(--card-bg);
+      border-radius: 28px;
+      padding: 24px;
+      min-height: 450px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .game-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.2);
+    }
+
+    .game-card:hover::before {
+      opacity: 1;
+    }
+
+    .game-card.beige {
+      background: linear-gradient(145deg, #f2c674 0%, #ecad64 100%);
+    }
+
+    .game-card.purple {
+      background: linear-gradient(145deg, #d9d3f0 0%, #a899c9 100%);
+    }
+
+    .game-card.blue {
+      background: linear-gradient(145deg, #b7d6e9 0%, #499bc0 100%);
+    }
+
+    .game-card.green {
+      background: linear-gradient(145deg, #c2ded0 0%, #a2c9ae 100%);
+    }
+
+    .game-card.pink {
+      background: linear-gradient(145deg, #F9c5c9 0%, #f7b0b8 100%);
+    }
+
+    .game-card.cyan {
+      background: linear-gradient(145deg, #b0dcd5 0%, #acdae0 100%);
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .game-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: rgba(255, 242, 177, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .game-card:hover .game-icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .game-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .game-category {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dark);
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px 12px;
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .game-name {
+      font-size: 25px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      margin-left: 50px;
+      color: var(--text-dark);
+    }
+
+    .game-description {
+      font-size: 16px;
+      color: var(--text-dark);
+      opacity: 0.7;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .game-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-dark);
+      opacity: 0.8;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .game-stats span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn {
+      background: #fff6a7;
+      color: #465477;
+      border: none;
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      font-size: 20px;
+      font-weight: 1000;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      width: 140px;
+      height: 140px;
+      margin-left: 50px;
+      margin-bottom: 12px;
+      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      transition: left 0.5s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: var(--shadow-pressed);
+    }
+
+    /* 不同形状的按钮 */
+    .btn-shape-1 {
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    }
+
+    .btn-shape-2 {
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+
+    .btn-shape-3 {
+      border-radius: 50%;
+    }
+
+    .btn-shape-4 {
+      border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%;
+    }
+
+    .btn-shape-5 {
+      border-radius: 70% 30% 30% 70% / 50% 50% 50% 50%;
+    }
+
+    .btn-shape-6 {
+      border-radius: 60% 40% 70% 30% / 30% 60% 40% 70%;
+    }
+
+    .btn-shape-7 {
+      border-radius: 50% 50% 30% 70% / 50% 30% 70% 50%;
+    }
+
+    .btn-shape-8 {
+      border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
+    }
+
+    .btn-shape-9 {
+      border-radius: 30% 70% 40% 60% / 70% 30% 60% 40%;
+    }
+
+    .btn-shape-10 {
+      border-radius: 50% 50% 50% 50% / 60% 40% 60% 40%;
+    }
+
+    /* 待续卡片 */
+    .game-card.coming-soon {
+      background: linear-gradient(145deg, #F1F5F9 0%, #E2E8F0 100%);
+      border: 3px dashed #CBD5E1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 450px;
+    }
+
+    .coming-soon-text {
+      font-size: 40px;
+      font-weight: 700;
+      color: #94A3B8;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .coming-soon-icon {
+      width: 64px;
+      height: 64px;
+      opacity: 0.5;
+      margin-bottom: 16px;
+    }
+
+    /* 装饰元素 */
+    .floating-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .shape {
+      position: absolute;
+      opacity: 0.15;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .shape-1 {
+      top: 10%;
+      left: 5%;
+      width: 120px;
+      height: 120px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: 0s;
+    }
+
+    .shape-2 {
+      top: 60%;
+      right: 5%;
+      width: 140px;
+      height: 140px;
+      background: var(--secondary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -1s;
+    }
+
+    .shape-3 {
+      bottom: 20%;
+      left: 15%;
+      width: 100px;
+      height: 100px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -2s;
+    }
+
+    .shape-4 {
+      top: 30%;
+      right: 20%;
+      width: 130px;
+      height: 130px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -3s;
+    }
+
+    .shape-5 {
+      top: 70%;
+      left: 30%;
+      width: 110px;
+      height: 110px;
+      background: var(--accent-cyan);
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      animation-delay: -4s;
+    }
+
+    .shape-6 {
+      top: 20%;
+      left: 70%;
+      width: 125px;
+      height: 125px;
+      background: var(--primary-light);
+      border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%;
+      animation-delay: -5s;
+    }
+
+    .shape-7 {
+      bottom: 40%;
+      right: 30%;
+      width: 90px;
+      height: 90px;
+      background: var(--secondary-light);
+      border-radius: 50%;
+      animation-delay: -6s;
+    }
+
+    .shape-8 {
+      top: 50%;
+      left: 50%;
+      width: 150px;
+      height: 150px;
+      background: var(--accent-yellow);
+      border-radius: 30% 70% 50% 50% / 50% 30% 70% 50%;
+      animation-delay: -7s;
+    }
+
+    .shape-9 {
+      top: 10%;
+      right: 10%;
+      width: 105px;
+      height: 105px;
+      background: var(--primary);
+      border-radius: 70% 30% 40% 60% / 30% 40% 60% 70%;
+      animation-delay: -8s;
+    }
+
+    .shape-10 {
+      bottom: 10%;
+      left: 80%;
+      width: 115px;
+      height: 115px;
+      background: var(--accent-green);
+      border-radius: 50% 50% 30% 70% / 60% 40% 60% 40%;
+      animation-delay: -9s;
+    }
+
+    .shape-11 {
+      top: 40%;
+      left: 5%;
+      width: 120px;
+      height: 120px;
+      background: var(--primary-light);
+      border-radius: 60% 40% 70% 30% / 30% 60% 40% 70%;
+      animation-delay: -10s;
+    }
+
+    .shape-12 {
+      top: 80%;
+      left: 10%;
+      width: 100px;
+      height: 100px;
+      background: var(--accent-pink);
+      border-radius: 50% 50% 50% 50% / 60% 40% 60% 40%;
+      animation-delay: -11s;
+    }
+
+    .shape-13 {
+      top: 15%;
+      left: 15%;
+      width: 95px;
+      height: 95px;
+      background: var(--secondary);
+      border-radius: 70% 30% 40% 60% / 50% 70% 30% 50%;
+      animation-delay: -12s;
+    }
+
+    .shape-14 {
+      top: 65%;
+      left: 20%;
+      width: 125px;
+      height: 125px;
+      background: var(--accent-cyan);
+      border-radius: 40% 60% 30% 70% / 70% 30% 60% 40%;
+      animation-delay: -13s;
+    }
+
+    .shape-15 {
+      top: 25%;
+      left: 40%;
+      width: 110px;
+      height: 110px;
+      background: var(--primary);
+      border-radius: 50% 50% 70% 30% / 30% 60% 40% 70%;
+      animation-delay: -14s;
+    }
+
+    .shape-16 {
+      bottom: 30%;
+      right: 40%;
+      width: 500px;
+      height: 500px;
+      background: var(--accent-yellow);
+      border-radius: 60% 40% 40% 60% / 60% 60% 40% 40%;
+      animation-delay: -15s;
+    }
+
+    .shape-17 {
+      top: 75%;
+      right: 15%;
+      width: 115px;
+      height: 115px;
+      background: var(--primary-light);
+      border-radius: 70% 30% 50% 50% / 50% 70% 30% 50%;
+      animation-delay: -16s;
+    }
+
+    .shape-18 {
+      top: 35%;
+      left: 60%;
+      width: 120px;
+      height: 120px;
+      background: var(--accent-green);
+      border-radius: 40% 60% 60% 40% / 30% 30% 70% 70%;
+      animation-delay: -17s;
+    }
+
+    .shape-19 {
+      bottom: 50%;
+      left: 25%;
+      width: 100px;
+      height: 100px;
+      background: var(--secondary);
+      border-radius: 50% 50% 50% 50% / 70% 30% 70% 30%;
+      animation-delay: -18s;
+    }
+
+    .shape-20 {
+      top: 55%;
+      right: 25%;
+      width: 110px;
+      height: 110px;
+      background: var(--accent-pink);
+      border-radius: 30% 70% 40% 60% / 60% 30% 70% 40%;
+      animation-delay: -19s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      25% {
+        transform: translateY(-20px) rotate(5deg);
+      }
+
+      50% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      75% {
+        transform: translateY(20px) rotate(-5deg);
+      }
+    }
+
+    /* 响应式 */
+    @media (max-width: 1200px) {
+      .games-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 992px) {
+      .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        padding: 16px 20px;
+        gap: 12px;
+        border-radius: 24px;
+        position: relative;
+        overflow-x: auto;
+      }
+
+      .logo-section {
+        flex-direction: row;
+        margin-bottom: 0;
+        margin-right: 8px;
+      }
+
+      .logo-text {
+        display: none;
+      }
+
+      .user-avatar-sidebar {
+        position: static;
+        margin-left: auto;
+      }
+
+      .main-content {
+        max-width: 100%;
+      }
+
+      .top-section {
+        justify-content: center;
+        text-align: center;
+      }
+
+      .page-title h1 {
+        font-size: 40px;
+      }
+
+      .category-tabs {
+        justify-content: center;
+      }
+
+      .category-tab {
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+
+      .games-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 家长端登录弹窗 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      background: #ffd38b;
+      padding: 40px 30px;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-content h3 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+      background: #fff;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .modal-content p {
+      font-size: 16px;
+      color: #fff;
+      margin-bottom: 30px;
+      opacity: 1;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 30px;
+      background: white;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .modal-content input:focus {
+      outline: none;
+      border-color: #ffd38b;
+      transform: translateY(-2px);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .modal-buttons button {
+      background: #ca6a16;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .modal-buttons button:hover {
+      transform: translateY(-2px);
+    }
+
+    .modal-buttons button:last-child {
+      background: #ca6a16;
+      color: #fff;
+    }
+
+    .modal-buttons button:last-child:hover {
+      transform: translateY(-2px);
+    }
+
+    /* 减少动画偏好 */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
-    <div class="header">
-        <h1>儿童注意力训练平台</h1>
+  <!-- 浮动装饰元素 -->
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    <div class="shape shape-5"></div>
+    <div class="shape shape-6"></div>
+    <div class="shape shape-7"></div>
+    <div class="shape shape-8"></div>
+    <div class="shape shape-9"></div>
+    <div class="shape shape-10"></div>
+    <div class="shape shape-11"></div>
+    <div class="shape shape-12"></div>
+    <div class="shape shape-13"></div>
+    <div class="shape shape-14"></div>
+    <div class="shape shape-15"></div>
+    <div class="shape shape-16"></div>
+    <div class="shape shape-17"></div>
+    <div class="shape shape-18"></div>
+    <div class="shape shape-19"></div>
+    <div class="shape shape-20"></div>
+  </div>
+
+  <!-- 侧边栏导航 -->
+  <nav class="sidebar">
+    <div class="logo-section">
+      <div class="logo-text">注意力<br>训练<br>平台</div>
     </div>
-    <nav class="nav">
-        <ul>
-            <li><a href="#personalized" class="active" onclick="showSection('personalized')">专属训练</a></li>
-            <li><a href="#training" onclick="showSection('training')">训练</a></li>
-            <li><a href="#comprehensive" onclick="showSection('comprehensive')">综合训练</a></li>
-            <li><a href="#medals" onclick="showSection('medals')">勋章墙</a></li>
-            <li><a href="#" onclick="switchToParent()">切换到家长端</a></li>
-            <li><a href="login.html" onclick="logout()">退出登录</a></li>
-        </ul>
-    </nav>
-    <div class="container">
-        <div id="personalized" class="section active">
-            <div class="training-section">
-                <h2>我的专属训练</h2>
-                <div id="recommended-games" class="training-categories">
-                    <!-- 推荐游戏将通过JavaScript动态生成 -->
-                </div>
-            </div>
-        </div>
-        <div id="training" class="section">
-            <div class="training-section">
-                <h2>我的训练</h2>
-                <div class="training-categories">
-                    <div class="category">
-                        <h3>选择性注意训练</h3>
-                        <div class="games-grid">
-                            <div class="game-card">
-                                <div class="icon">🎯</div>
-                                <h4>分阶舒尔特方格</h4>
-                                <p>提升视觉搜索速度和目标筛选能力</p>
-                                <button class="btn" onclick="startGame('schulte')">开始训练</button>
-                            </div>
-                            <div class="game-card">
-                                <div class="icon">1️⃣</div>
-                                <h4>圈圈数字</h4>
-                                <p>提升视觉搜索能力和抗干扰能力</p>
-                                <button class="btn" onclick="startGame('find-numbers')">开始训练</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="category">
-                        <h3>持续性注意训练</h3>
-                        <div class="games-grid">
-                            <div class="game-card">
-                                <div class="icon">🌟</div>
-                                <h4>魔法迷宫</h4>
-                                <p>提升注意力持续时间和空间认知</p>
-                                <button class="btn" onclick="startGame('magic-maze')">开始训练</button>
-                            </div>
-                            <div class="game-card">
-                                <div class="icon">🌱</div>
-                                <h4>植物浇水</h4>
-                                <p>提升持续性注意力和跟随能力</p>
-                                <button class="btn" onclick="startGame('water-plants')">开始训练</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="category">
-                        <h3>视觉追踪训练</h3>
-                        <div class="games-grid">
-                            <div class="game-card">
-                                <div class="icon">☀️</div>
-                                <h4>追光小能手</h4>
-                                <p>提升视觉追踪精准度和眼动控制</p>
-                                <button class="btn" onclick="startGame('sun-tracking')">开始训练</button>
-                            </div>
-                            <div class="game-card">
-                                <div class="icon">🐾</div>
-                                <h4>动物追踪</h4>
-                                <p>提升注意力分配能力</p>
-                                <button class="btn" onclick="startGame('animal-searching')">开始训练</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="category">
-                        <h3>工作记忆训练</h3>
-                        <div class="games-grid">
-                            <div class="game-card">
-                                <div class="icon">🔢</div>
-                                <h4>倒述数字/词汇</h4>
-                                <p>提升语音工作记忆广度</p>
-                                <button class="btn" onclick="startGame('reverse-memory')">开始训练</button>
-                            </div>
-                            <div class="game-card">
-                                <div class="icon">🃏</div>
-                                <h4>卡牌配对记忆</h4>
-                                <p>提升视觉工作记忆能力</p>
-                                <button class="btn" onclick="startGame('card-matching')">开始训练</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="category">
-                        <h3>抑制控制训练</h3>
-                        <div class="games-grid">
-                            <div class="game-card">
-                                <div class="icon">🌱</div>
-                                <h4>环保小卫士</h4>
-                                <p>提升抑制控制能力和减少冲动</p>
-                                <button class="btn" onclick="startGame('traffic-light')">开始训练</button>
-                            </div>
-                            <div class="game-card">
-                                <div class="icon">🎮</div>
-                                <h4>指令闯关大冒险</h4>
-                                <p>提升指令执行和认知灵活性</p>
-                                <button class="btn" onclick="startGame('command-adventure')">开始训练</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="comprehensive" class="section">
-            <div class="training-section">
-                <h2>综合训练</h2>
-                <div class="training-categories">
-                    <div class="category">
-                        <h3>综合注意力检测</h3>
-                        <div class="games-grid">
-                            <div class="game-card">
-                                <div class="icon">🔍</div>
-                                <h4>综合注意力评估</h4>
-                                <p>全面评估你的注意力水平，包括选择性注意、持续性注意、视觉追踪、工作记忆和抑制控制五个维度</p>
-                                <button class="btn" onclick="startComprehensiveTest()">开始检测</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="medals" class="section">
-            <div class="medal-section">
-                <h2>我的勋章墙</h2>
-                <div class="medals-grid">
-                    <div class="medal-card">
-                        <div class="icon">🥇</div>
-                        <h4>初级侦探</h4>
-                        <p>完成第一次综合检测</p>
-                    </div>
-                    <div class="medal-card">
-                        <div class="icon">🥈</div>
-                        <h4>训练达人</h4>
-                        <p>完成10次训练</p>
-                    </div>
-                    <div class="medal-card">
-                        <div class="icon">🥉</div>
-                        <h4>注意力大师</h4>
-                        <p>在所有维度达到良好以上</p>
-                    </div>
-                    <div class="medal-card">
-                        <div class="icon">⭐</div>
-                        <h4>坚持不懈</h4>
-                        <p>连续7天进行训练</p>
-                    </div>
-                    <div class="medal-card">
-                        <div class="icon">🌟</div>
-                        <h4>完美表现</h4>
-                        <p>在一次训练中获得满分</p>
-                    </div>
-                    <div class="medal-card">
-                        <div class="icon">💎</div>
-                        <h4>全能冠军</h4>
-                        <p>在所有训练游戏中获得最高分</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+    <div class="nav-item active" onclick="showSection('training')" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+      </svg>
+      <span class="nav-label">训练</span>
     </div>
-    <div class="footer">
-        <p>© 2026 注意力训练平台</p>
+
+    <div class="nav-item" onclick="showSection('comprehensive')" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
+      </svg>
+      <span class="nav-label">综合训练</span>
     </div>
-    <script src="utils.js"></script>
-    <script>
-        // 显示指定板块
-        function showSection(sectionId) {
-            // 隐藏所有板块
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            // 显示选中的板块
-            document.getElementById(sectionId).classList.add('active');
 
-            // 更新导航栏状态
-            document.querySelectorAll('.nav a').forEach(link => {
-                link.classList.remove('active');
-            });
-            document.querySelector(`.nav a[href="#${sectionId}"]`).classList.add('active');
+    <div class="nav-item" onclick="showSection('today')" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      <span class="nav-label">今日训练</span>
+    </div>
+
+    <div class="nav-item" onclick="window.location.href='medal-wall.html'" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="7" />
+        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+      </svg>
+      <span class="nav-label">勋章墙</span>
+    </div>
+
+    <div class="nav-item" onclick="showSection('parent')" role="button" tabindex="0">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      <span class="nav-label">家长端</span>
+    </div>
+
+
+  </nav>
+
+  <!-- 家长端登录弹窗 -->
+  <div id="parent-login-modal" class="modal">
+    <div class="modal-content">
+      <h3>家长端登录</h3>
+      <p>请输入密码</p>
+      <input type="password" id="parent-password" placeholder="输入密码">
+      <div class="modal-buttons">
+        <button onclick="checkPassword()">确定</button>
+        <button onclick="closeLoginModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 顶部欢迎区 -->
+    <header class="top-section">
+      <div class="welcome-text">欢迎回来，<span id="child-name">小明同学</span> 继续训练吧！</div>
+    </header>
+
+    <!-- 训练标题 -->
+    <div class="title-section">
+      <div class="page-title">
+        <h1>训练</h1>
+        <div class="subtitle">TRAINING</div>
+      </div>
+    </div>
+
+    <!-- 分类标签 -->
+    <div class="category-tabs" role="tablist">
+      <button class="category-tab active" onclick="showCategory('selective')" role="tab" aria-selected="true">
+        <div class="category-icon">
+          <img src="images/icon1.png" alt="选择性注意" style="width: 40px; height: 40px;">
+        </div>
+        选择性注意
+      </button>
+      <button class="category-tab" onclick="showCategory('sustained')" role="tab" aria-selected="false">
+        <div class="category-icon">
+          <img src="images/icon2.png" alt="持续性注意" style="width: 40px; height: 40px;">
+        </div>
+        持续性注意
+      </button>
+      <button class="category-tab" onclick="showCategory('visual')" role="tab" aria-selected="false">
+        <div class="category-icon">
+          <img src="images/icon3.png" alt="视觉追踪" style="width: 40px; height: 40px;">
+        </div>
+        视觉追踪
+      </button>
+      <button class="category-tab" onclick="showCategory('memory')" role="tab" aria-selected="false">
+        <div class="category-icon">
+          <img src="images/icon4.png" alt="工作记忆" style="width: 40px; height: 40px;">
+        </div>
+        工作记忆
+      </button>
+      <button class="category-tab" onclick="showCategory('inhibition')" role="tab" aria-selected="false">
+        <div class="category-icon">
+          <img src="images/icon5.png" alt="抑制控制" style="width: 40px; height: 40px;">
+        </div>
+        抑制控制
+      </button>
+    </div>
+
+    <!-- 游戏卡片网格 -->
+    <div class="games-grid" id="games-grid">
+      <!-- 太空小火箭 -->
+      <article class="game-card blue" data-category="selective">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#F97316" stroke="none">
+              <path d="M12 2.5s-4 4.5-4 9c0 2.5 1.5 4.5 4 6.5 2.5-2 4-4 4-6.5 0-4.5-4-9-4-9z" />
+              <circle cx="12" cy="9" r="2" fill="white" />
+              <path d="M8 16c-2 1-3 3-3 5.5h6M16 16c2 1 3 3 3 5.5h-6" fill="#FDBA74" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">太空小火箭</h3>
+        <p class="game-description">小火箭点火起飞，我们一起去星际大冒险啦！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-1" onclick="startGame('schulte')">开始训练</button>
+      </article>
+
+      <!-- 垃圾小卫士 -->
+      <article class="game-card green" data-category="selective">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#8B5CF6" stroke="none">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" stroke="white" stroke-width="2" />
+              <line x1="14" y1="11" x2="14" y2="17" stroke="white" stroke-width="2" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">垃圾小卫士</h3>
+        <p class="game-description">垃圾小卫士上线，把垃圾通通送回家！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-2" onclick="startGame('find-numbers')">开始训练</button>
+      </article>
+
+      <!-- 魔法迷宫 -->
+      <article class="game-card purple" data-category="sustained" style="display: none;">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#3B82F6" stroke="none">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" opacity="0.5" />
+              <path d="M2 12l10 5 10-5" opacity="0.7" />
+              <circle cx="12" cy="12" r="3" fill="#FBBF24" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">魔法迷宫</h3>
+        <p class="game-description">穿过魔法迷宫，走到终点就能成功施展超厉害的魔法啦！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-3" onclick="startGame('magic-maze')">开始训练</button>
+      </article>
+
+      <!-- 植物浇水 -->
+      <article class="game-card green" data-category="sustained" style="display: none;">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#10B981" stroke="none">
+              <path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9z" />
+              <path d="M12 22c-4.97 0-9-4.03-9-9 4.97 0 9 4.03 9 9z" opacity="0.5" />
+              <path d="M12 13c3.5 0 6.5-3 6.5-7 0 0-3 2-6.5 2S5.5 6 5.5 6c0 4 3 7 6.5 7z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">植物浇水</h3>
+        <p class="game-description">照顾可爱的植物，让它们茁壮成长！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-4" onclick="startGame('water-plants')">开始训练</button>
+      </article>
+
+      <!-- 追太阳 -->
+      <article class="game-card beige" data-category="visual" style="display: none;">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#06B6D4" stroke="none">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">追太阳</h3>
+        <p class="game-description">追踪太阳，记录它在天际移动的每一刻！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-5" onclick="startGame('sun-tracking')">开始训练</button>
+      </article>
+
+      <!-- 森林小动物追踪 -->
+      <article class="game-card cyan" data-category="visual" style="display: none;">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#EC4899" stroke="none">
+              <path
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">森林小动物追踪</h3>
+        <p class="game-description">追踪森林里的小动物，跟着它们的足迹探索神秘大自然！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-6" onclick="startGame('animal-searching')">开始训练</button>
+      </article>
+
+      <!-- 甜品店小帮贡 -->
+      <article class="game-card pink" data-category="memory" style="display: none;">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#F97316" stroke="none">
+              <path
+                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">甜品店小帮工</h3>
+        <p class="game-description">化身甜品店小帮工，把甜蜜和温柔装进每一份点心里！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-7" onclick="startGame('reverse-memory')">开始训练</button>
+      </article>
+
+      <!-- 海底小管家 -->
+      <article class="game-card blue" data-category="memory" style="display: none;">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#3B82F6" stroke="none">
+              <path
+                d="M19 10c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-3.87 3.13-7 7-7s7 3.13 7 7zm-7-5c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">海底捉迷藏</h3>
+        <p class="game-description">在斑斓海底和海洋小伙伴玩一场温柔又神秘的捉迷藏。！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-8" onclick="startGame('card-matching')">开始训练</button>
+      </article>
+
+      <!-- 环保小卫士 -->
+      <article class="game-card cyan" data-category="inhibition" style="display: none;">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#10B981" stroke="none">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">环保小卫士</h3>
+        <p class="game-description">认真分类垃圾，让每一份废弃物都回到正确的家！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-9" onclick="startGame('traffic-light')">开始训练</button>
+      </article>
+
+      <!-- 冰雪王国小邮差 -->
+      <article class="game-card cyan" data-category="inhibition" style="display: none;">
+        <div class="game-header">
+          <div class="game-icon-wrapper">
+            <svg class="game-icon" viewBox="0 0 24 24" fill="#06B6D4" stroke="none">
+              <path
+                d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="game-name">冰雪王国小邮差</h3>
+        <p class="game-description">踏着雪花送信，把温暖与惊喜送到每一户！</p>
+        <div style="height: 40px;"></div>
+        <button class="btn btn-shape-10" onclick="startGame('command-adventure')">开始训练</button>
+      </article>
+
+      <!-- 待续卡片 -->
+      <article class="game-card coming-soon" data-category="selective">
+        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+        <div class="coming-soon-text">to be<br>continued</div>
+      </article>
+      <article class="game-card coming-soon" data-category="sustained">
+        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+        <div class="coming-soon-text">to be<br>continued</div>
+      </article>
+      <article class="game-card coming-soon" data-category="visual">
+        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+        <div class="coming-soon-text">to be<br>continued</div>
+      </article>
+      <article class="game-card coming-soon" data-category="memory">
+        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+        <div class="coming-soon-text">to be<br>continued</div>
+      </article>
+      <article class="game-card coming-soon" data-category="inhibition">
+        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+        <div class="coming-soon-text">to be<br>continued</div>
+      </article>
+    </div>
+  </main>
+
+  <script src="utils.js"></script>
+  <script>
+    // 显示指定板块
+    function showSection(sectionId) {
+      // 页面跳转
+      if (sectionId === 'comprehensive') {
+        window.location.href = 'detect/index.html';
+      } else if (sectionId === 'today') {
+        window.location.href = 'today-training.html';
+      } else if (sectionId === 'parent') {
+        // 显示家长端登录弹窗
+        document.getElementById('parent-login-modal').style.display = 'flex';
+      }
+    }
+
+    // 显示家长端登录弹窗
+    function showParentLogin() {
+      document.getElementById('parent-login-modal').style.display = 'flex';
+    }
+
+    // 关闭家长端登录弹窗
+    function closeLoginModal() {
+      document.getElementById('parent-login-modal').style.display = 'none';
+      document.getElementById('parent-password').value = '';
+    }
+
+    // 检查密码
+    function checkPassword() {
+      const password = document.getElementById('parent-password').value;
+      // 这里可以设置正确的密码，例如 '123456'
+      if (password === '123456') {
+        // 停止计时
+        stopTimer();
+        // 密码正确，跳转到家长端界面
+        window.location.href = 'parent.html';
+      } else {
+        // 密码错误，显示提示
+        alert('密码错误，请重试！');
+        document.getElementById('parent-password').value = '';
+      }
+    }
+
+    // 显示用户资料
+    function showProfile() {
+      console.log('显示用户资料');
+    }
+
+    // 开始游戏
+    function startGame(gameName) {
+      // 记录游戏开始时间
+      const gameStartTime = new Date().getTime();
+      // 存储到localStorage
+      localStorage.setItem('gameStartTime', gameStartTime);
+      localStorage.setItem('currentGame', gameName);
+      window.location.href = `training/${gameName}.html`;
+    }
+
+    // 显示指定分类
+    function showCategory(categoryId) {
+      // 更新分类标签状态
+      document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+        tab.setAttribute('aria-selected', 'false');
+      });
+
+      // 为对应的分类标签添加active类
+      const categoryTab = document.querySelector(`[onclick="showCategory('${categoryId}')"]`);
+      if (categoryTab) {
+        categoryTab.classList.add('active');
+        categoryTab.setAttribute('aria-selected', 'true');
+      }
+
+      // 筛选游戏卡片
+      const gameCards = document.querySelectorAll('.game-card');
+      gameCards.forEach(card => {
+        if (card.dataset.category === categoryId) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
         }
+      });
 
-        // 开始游戏
-        function startGame(gameName) {
-            window.location.href = `training/${gameName}.html`;
+      console.log('切换到分类:', categoryId);
+    }
+
+    // 页面加载时检查用户登录状态
+    window.onload = function () {
+      const userInfo = StorageUtil.getItem('userInfo');
+      if (!userInfo || userInfo.role !== 'child') {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // 更新欢迎标语中的孩子名字
+      const childNameElement = document.getElementById('child-name');
+      if (childNameElement && userInfo.username) {
+        childNameElement.textContent = userInfo.username + '同学';
+      }
+
+      // 默认显示选择性注意分类
+      showCategory('selective');
+    };
+
+    // 点击弹窗外部关闭
+    document.addEventListener('DOMContentLoaded', function () {
+      const modal = document.getElementById('parent-login-modal');
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            closeLoginModal();
+          }
+        });
+      }
+    });
+
+    // 键盘导航支持
+    document.querySelectorAll('.nav-item, .category-tab, .btn').forEach(el => {
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.click();
         }
-
-        // 开始综合检测
-        function startComprehensiveTest() {
-            window.location.href = 'detect/index.html';
-        }
-
-        // 退出登录
-        function logout() {
-            StorageUtil.removeItem('userInfo');
-        }
-
-        // 切换到家长端
-        function switchToParent() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (userInfo) {
-                showPasswordModal('切换到家长端', '请输入密码以切换到家长端：', function (password) {
-                    if (password === userInfo.password) {
-                        userInfo.role = userInfo.original_role || 'parent';
-                        delete userInfo.original_role;
-                        StorageUtil.setItem('userInfo', userInfo);
-                        window.location.href = 'profile.html';
-                    } else {
-                        showPasswordModal('密码错误', '密码错误，无法切换', function () { }, true);
-                    }
-                });
-            }
-        }
-
-        // 显示密码输入弹窗
-        function showPasswordModal(title, message, callback, isError = false) {
-            // 创建弹窗容器
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                animation: fadeIn 0.3s ease-in-out;
-            `;
-
-            // 创建弹窗内容
-            const modalContent = document.createElement('div');
-            modalContent.style.cssText = `
-                background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-                border-radius: 20px;
-                padding: 40px;
-                width: 90%;
-                max-width: 400px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-                position: relative;
-                animation: bounceIn 0.5s ease-in-out;
-                border: 4px solid #4caf50;
-            `;
-
-            // 创建标题
-            const modalTitle = document.createElement('h3');
-            modalTitle.textContent = title;
-            modalTitle.style.cssText = `
-                color: ${isError ? '#f44336' : '#2e7d32'};
-                margin-bottom: 20px;
-                text-align: center;
-                font-size: 1.8em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-                animation: pulse 1.5s ease-in-out infinite alternate;
-            `;
-
-            // 创建消息
-            const modalMessage = document.createElement('p');
-            modalMessage.textContent = message;
-            modalMessage.style.cssText = `
-                color: #333;
-                margin-bottom: 30px;
-                text-align: center;
-                font-size: 1.1em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            `;
-
-            // 创建密码输入框
-            const passwordInput = document.createElement('input');
-            passwordInput.type = 'password';
-            passwordInput.placeholder = '请输入密码';
-            passwordInput.style.cssText = `
-                width: 100%;
-                padding: 15px;
-                border: 3px solid #f0f0f0;
-                border-radius: 15px;
-                font-size: 16px;
-                margin-bottom: 20px;
-                text-align: center;
-                transition: all 0.3s ease;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            `;
-
-            passwordInput.onfocus = function () {
-                this.borderColor = '#4caf50';
-                this.boxShadow = '0 0 10px rgba(76, 175, 80, 0.3)';
-            };
-
-            // 创建按钮容器
-            const buttonContainer = document.createElement('div');
-            buttonContainer.style.cssText = `
-                display: flex;
-                gap: 15px;
-                justify-content: center;
-            `;
-
-            // 创建确认按钮
-            const confirmButton = document.createElement('button');
-            confirmButton.textContent = isError ? '确定' : '确认';
-            confirmButton.style.cssText = `
-                background: linear-gradient(90deg, ${isError ? '#f44336' : '#4caf50'}, ${isError ? '#ef5350' : '#81c784'});
-                color: white;
-                border: none;
-                padding: 12px 30px;
-                border-radius: 30px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                animation: pulse 2s ease-in-out infinite alternate;
-            `;
-
-            confirmButton.onmouseover = function () {
-                this.transform = 'translateY(-3px) scale(1.05)';
-                this.boxShadow = `0 5px 15px rgba(${isError ? '244, 67, 54' : '76, 175, 80'}, 0.4)`;
-            };
-
-            // 创建取消按钮（仅在非错误模式下显示）
-            if (!isError) {
-                const cancelButton = document.createElement('button');
-                cancelButton.textContent = '取消';
-                cancelButton.style.cssText = `
-                    background: linear-gradient(90deg, #9e9e9e, #bdbdbd);
-                    color: white;
-                    border: none;
-                    padding: 12px 30px;
-                    border-radius: 30px;
-                    font-size: 16px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                `;
-
-                cancelButton.onmouseover = function () {
-                    this.transform = 'translateY(-3px) scale(1.05)';
-                    this.boxShadow = '0 5px 15px rgba(158, 158, 158, 0.4)';
-                };
-
-                cancelButton.onclick = function () {
-                    document.body.removeChild(modal);
-                };
-
-                buttonContainer.appendChild(cancelButton);
-            }
-
-            // 确认按钮点击事件
-            confirmButton.onclick = function () {
-                if (isError) {
-                    document.body.removeChild(modal);
-                } else {
-                    const password = passwordInput.value;
-                    document.body.removeChild(modal);
-                    callback(password);
-                }
-            };
-
-            // 按Enter键确认
-            passwordInput.onkeypress = function (e) {
-                if (e.key === 'Enter' && !isError) {
-                    const password = passwordInput.value;
-                    document.body.removeChild(modal);
-                    callback(password);
-                }
-            };
-
-            // 添加元素到弹窗
-            modalContent.appendChild(modalTitle);
-            modalContent.appendChild(modalMessage);
-            if (!isError) {
-                modalContent.appendChild(passwordInput);
-            }
-            modalContent.appendChild(buttonContainer);
-            buttonContainer.appendChild(confirmButton);
-            modal.appendChild(modalContent);
-
-            // 添加到页面
-            document.body.appendChild(modal);
-
-            // 自动聚焦密码输入框
-            if (!isError) {
-                passwordInput.focus();
-            }
-        }
-
-        // 获取用户数据（从localStorage获取历史训练数据）
-        function getUserData() {
-            // 从localStorage获取历史训练数据
-            const historicalData = StorageUtil.getItem('historical_performance') || [];
-
-            // 计算历史表现指标
-            let historicalPerformance = {
-                completionRate: 75, // 默认值
-                accuracy: 65, // 默认值
-                focusLevel: 60 // 默认值
-            };
-
-            if (historicalData.length > 0) {
-                // 计算最近5次训练的平均指标
-                const recentData = historicalData.slice(-5);
-                historicalPerformance = {
-                    completionRate: Math.round(recentData.reduce((sum, data) => sum + (data.completion_rate || 0), 0) / recentData.length),
-                    accuracy: Math.round(recentData.reduce((sum, data) => sum + (data.accuracy || 0), 0) / recentData.length),
-                    focusLevel: Math.round(recentData.reduce((sum, data) => sum + (data.focus_level || 0), 0) / recentData.length)
-                };
-            }
-
-            // 获取今日训练数据
-            const today = new Date().toISOString().split('T')[0];
-            const todayData = historicalData.filter(data => {
-                const trainingDate = data.training_date || new Date().toISOString().split('T')[0];
-                return trainingDate === today;
-            });
-
-            // 确定核心薄弱维度（基于历史数据）
-            let weakDimensions = [0]; // 默认值
-            if (historicalData.length > 0) {
-                // 简单算法：计算每个维度的平均正确率，选择最低的
-                const dimensionScores = {
-                    0: 0, // 选择性注意
-                    1: 0, // 视觉追踪
-                    2: 0, // 工作记忆
-                    3: 0, // 抑制控制
-                    4: 0, // 持续性注意
-                };
-
-                const dimensionCounts = {
-                    0: 0,
-                    1: 0,
-                    2: 0,
-                    3: 0,
-                    4: 0,
-                };
-
-                historicalData.forEach(data => {
-                    const gameType = data.training_type;
-                    let dimension = 0;
-
-                    // 根据游戏类型映射到维度
-                    switch (gameType) {
-                        case 'schulte':
-                        case 'find-numbers':
-                            dimension = 0; // 选择性注意
-                            break;
-                        case 'sun-tracking':
-                        case 'magic-maze':
-                        case 'animal-searching':
-                            dimension = 1; // 视觉追踪
-                            break;
-                        case 'card-matching':
-                        case 'reverse-memory':
-                            dimension = 2; // 工作记忆
-                            break;
-                        case 'traffic-light':
-                        case 'command-adventure':
-                            dimension = 3; // 抑制控制
-                            break;
-                        case 'water-plants':
-                            dimension = 4; // 持续性注意
-                            break;
-                    }
-
-                    dimensionScores[dimension] += data.accuracy || 0;
-                    dimensionCounts[dimension]++;
-                });
-
-                // 计算每个维度的平均得分
-                const averageScores = Object.entries(dimensionScores).map(([dimension, score]) => {
-                    const count = dimensionCounts[dimension] || 1;
-                    return {
-                        dimension: parseInt(dimension),
-                        score: score / count
-                    };
-                });
-
-                // 按得分排序，选择最低的作为核心薄弱维度
-                averageScores.sort((a, b) => a.score - b.score);
-                weakDimensions = averageScores.slice(0, 2).map(item => item.dimension);
-            }
-
-            return {
-                age: 7, // 6-8岁为低龄，9-12岁为高龄（实际应从用户信息中获取）
-                weakDimensions: weakDimensions,
-                historicalPerformance: historicalPerformance,
-                todayTrainingCount: todayData.length
-            };
-        }
-
-        // 决策树推荐算法
-        function getRecommendedGames(userData) {
-            const { age, weakDimensions, historicalPerformance, todayTrainingCount } = userData;
-            const { completionRate, accuracy, focusLevel } = historicalPerformance;
-
-            const isYoung = age <= 8; // 6-8岁为低龄
-            const coreWeakDimension = weakDimensions[0]; // 取第一个核心薄弱维度
-            const secondaryWeakDimension = weakDimensions[1] || (coreWeakDimension + 1) % 5; // 第二个薄弱维度或轮换
-
-            let recommendations = [];
-
-            // 从localStorage获取历史训练数据
-            const historicalData = StorageUtil.getItem('historical_performance') || [];
-
-            // 获取今日训练的游戏类型
-            const today = new Date().toISOString().split('T')[0];
-            const todayGames = historicalData
-                .filter(data => {
-                    const trainingDate = data.training_date || new Date().toISOString().split('T')[0];
-                    return trainingDate === today;
-                })
-                .map(data => data.training_type);
-
-            // 游戏池，按维度分类
-            const gamePool = {
-                0: [ // 选择性注意
-                    {
-                        name: '分阶舒尔特方格',
-                        description: '提升你的视觉搜索能力！',
-                        icon: '🎯',
-                        gameName: 'schulte',
-                        difficulty: isYoung ? '4×4' : '5×5混合版'
-                    },
-                    {
-                        name: '圈圈数字',
-                        description: '提升你的细节观察力！',
-                        icon: '🔍',
-                        gameName: 'find-numbers',
-                        difficulty: '静态版'
-                    }
-                ],
-                1: [ // 视觉追踪
-                    {
-                        name: '追光小能手',
-                        description: '提升你的视觉追踪能力！',
-                        icon: '☀️',
-                        gameName: 'sun-tracking',
-                        difficulty: isYoung ? '低速度' : '中速度'
-                    },
-                    {
-                        name: '动物追踪',
-                        description: '提升你的注意力分配能力！',
-                        icon: '🐾',
-                        gameName: 'animal-searching',
-                        difficulty: isYoung ? '简单' : '中等'
-                    }
-                ],
-                2: [ // 工作记忆
-                    {
-                        name: '卡牌配对记忆',
-                        description: '提升你的记忆力！',
-                        icon: '🃏',
-                        gameName: 'card-matching',
-                        difficulty: '4×4'
-                    },
-                    {
-                        name: '倒述数字/词汇',
-                        description: '提升你的记忆能力！',
-                        icon: '🔢',
-                        gameName: 'reverse-memory',
-                        difficulty: isYoung ? '' : '进阶版'
-                    }
-                ],
-                3: [ // 抑制控制
-                    {
-                        name: '环保小卫士',
-                        description: '提升你的注意力控制能力！',
-                        icon: '🌱',
-                        gameName: 'traffic-light',
-                        difficulty: isYoung ? '入门版' : ''
-                    },
-                    {
-                        name: '指令闯关大冒险',
-                        description: '提升你的执行能力！',
-                        icon: '🎮',
-                        gameName: 'command-adventure',
-                        difficulty: ''
-                    }
-                ],
-                4: [ // 持续性注意
-                    {
-                        name: '魔法迷宫',
-                        description: '提升你的持续性注意力和空间认知！',
-                        icon: '🌟',
-                        gameName: 'magic-maze',
-                        difficulty: isYoung ? '简单' : '中等'
-                    },
-                    {
-                        name: '植物浇水',
-                        description: '提升你的持续性注意力和跟随能力！',
-                        icon: '🌱',
-                        gameName: 'water-plants',
-                        difficulty: '进阶版'
-                    }
-                ]
-            };
-
-            // 选择核心薄弱维度的游戏
-            const coreGames = gamePool[coreWeakDimension].filter(game => !todayGames.includes(game.gameName));
-            if (coreGames.length > 0) {
-                // 根据表现选择难度
-                let selectedCoreGame;
-                if (completionRate >= 80 && accuracy >= 70) {
-                    // 选择较难的游戏
-                    selectedCoreGame = coreGames[0];
-                } else {
-                    // 选择较简单的游戏
-                    selectedCoreGame = coreGames[coreGames.length - 1];
-                }
-
-                // 添加难度信息
-                selectedCoreGame.name = selectedCoreGame.name + (selectedCoreGame.difficulty ? `（${selectedCoreGame.difficulty}）` : '');
-                recommendations.push(selectedCoreGame);
-            } else {
-                // 如果今日已经玩过核心维度的所有游戏，选择其他维度
-                const otherDimensions = Object.keys(gamePool).filter(dim => {
-                    const dimInt = parseInt(dim);
-                    return dimInt !== coreWeakDimension && gamePool[dimInt].some(game => !todayGames.includes(game.gameName));
-                });
-
-                if (otherDimensions.length > 0) {
-                    const randomDim = parseInt(otherDimensions[Math.floor(Math.random() * otherDimensions.length)]);
-                    const availableGames = gamePool[randomDim].filter(game => !todayGames.includes(game.gameName));
-                    if (availableGames.length > 0) {
-                        const selectedGame = availableGames[0];
-                        selectedGame.name = selectedGame.name + (selectedGame.difficulty ? `（${selectedGame.difficulty}）` : '');
-                        recommendations.push(selectedGame);
-                    }
-                }
-            }
-
-            // 选择第二个推荐游戏（来自不同维度）
-            const remainingDimensions = Object.keys(gamePool).filter(dim => {
-                const dimInt = parseInt(dim);
-                return dimInt !== coreWeakDimension && gamePool[dimInt].some(game => !todayGames.includes(game.gameName));
-            });
-
-            if (remainingDimensions.length > 0) {
-                // 优先选择次薄弱维度
-                let selectedDim;
-                if (remainingDimensions.includes(secondaryWeakDimension.toString())) {
-                    selectedDim = secondaryWeakDimension;
-                } else {
-                    selectedDim = parseInt(remainingDimensions[Math.floor(Math.random() * remainingDimensions.length)]);
-                }
-
-                const availableGames = gamePool[selectedDim].filter(game => !todayGames.includes(game.gameName));
-                if (availableGames.length > 0) {
-                    const selectedGame = availableGames[0];
-                    selectedGame.name = selectedGame.name + (selectedGame.difficulty ? `（${selectedGame.difficulty}）` : '');
-                    recommendations.push(selectedGame);
-                }
-            }
-
-            // 如果推荐不足2个，补充其他游戏
-            while (recommendations.length < 2) {
-                const allGames = Object.values(gamePool).flat();
-                const availableGames = allGames.filter(game => !todayGames.includes(game.gameName) &&
-                    !recommendations.some(rec => rec.gameName === game.gameName));
-
-                if (availableGames.length > 0) {
-                    const selectedGame = availableGames[Math.floor(Math.random() * availableGames.length)];
-                    selectedGame.name = selectedGame.name + (selectedGame.difficulty ? `（${selectedGame.difficulty}）` : '');
-                    recommendations.push(selectedGame);
-                } else {
-                    // 如果所有游戏都玩过了，重置今日游戏列表
-                    break;
-                }
-            }
-
-            return recommendations;
-        }
-
-        // 显示推荐游戏
-        function displayRecommendedGames() {
-            const userData = getUserData();
-            const recommendations = getRecommendedGames(userData);
-            const container = document.getElementById('recommended-games');
-
-            container.innerHTML = '';
-
-            // 添加今日训练统计
-            const todayTrainingCount = userData.todayTrainingCount;
-            const statsCard = document.createElement('div');
-            statsCard.className = 'category';
-            statsCard.innerHTML = `
-                <h3>今日训练</h3>
-                <div class="games-grid">
-                    <div class="game-card">
-                        <div class="icon">📊</div>
-                        <h4>训练进度</h4>
-                        <p>今日已完成 ${todayTrainingCount} 次训练</p>
-                        <p>建议每日完成 2-3 次训练</p>
-                    </div>
-                </div>
-            `;
-            container.appendChild(statsCard);
-
-            // 显示推荐游戏
-            recommendations.forEach((game, index) => {
-                const gameCard = document.createElement('div');
-                gameCard.className = 'category';
-                gameCard.innerHTML = `
-                    <h3>${index === 0 ? '核心推荐' : '辅助推荐'}</h3>
-                    <div class="games-grid">
-                        <div class="game-card">
-                            <div class="icon">${game.icon}</div>
-                            <h4>${game.name}</h4>
-                            <p>${game.description}</p>
-                            <button class="btn" onclick="startGame('${game.gameName}')">开始训练</button>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(gameCard);
-            });
-        }
-
-        // 页面加载时检查用户登录状态并显示推荐游戏
-        window.onload = function () {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || userInfo.role !== 'child') {
-                window.location.href = 'login.html';
-            } else {
-                // 显示推荐游戏
-                displayRecommendedGames();
-
-                // 每30秒刷新一次推荐，确保实时更新
-                setInterval(displayRecommendedGames, 30000);
-            }
-        };
-    </script>
+      });
+    });
+  </script>
 </body>
 
 </html>
