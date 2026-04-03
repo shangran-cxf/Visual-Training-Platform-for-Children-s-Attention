@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太空小火箭：按顺序发射任务 - 注意力训练</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('../images/ground6.png');
+            background-size: cover;
+            background-position: center;
+            color: #333;
+            overflow: hidden;
+            position: relative;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                background-position: center 0%;
+            }
+
+            50% {
+                background-position: center 5%;
+            }
+
+            100% {
+                background-position: center 0%;
+            }
+        }
+
+        .container {
+            max-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #d4d4ff;
+            text-shadow: 0 0 10px rgba(160, 160, 255, 0.5);
+        }
+
+        .game-area {
+            background-image: url('../images/ground5.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(64, 166, 255, 0.3);
+            margin-bottom: 30px;
+            border: 1px solid rgba(85, 176, 255, 0.3);
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border: 2px solid #6ebeff;
+            border-radius: 25px;
+            background-color: white;
+            color: #6ebeff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-btn.active {
+            background-color: #6ebeff;
+            color: white;
+        }
+
+        .schulte-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .grid-3x3 {
+            grid-template-columns: repeat(3, 1fr);
+            width: 300px;
+            height: 300px;
+        }
+
+        .grid-4x4 {
+            grid-template-columns: repeat(4, 1fr);
+            width: 400px;
+            height: 400px;
+        }
+
+        .grid-5x5 {
+            grid-template-columns: repeat(5, 1fr);
+            width: 500px;
+            height: 500px;
+        }
+
+        .grid-7x7 {
+            grid-template-columns: repeat(7, 1fr);
+            width: 600px;
+            height: 600px;
+        }
+
+        .launch-pad {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .launch-pad:hover {
+            transform: scale(1.05);
+        }
+
+        .rocket {
+            width: 80px;
+            height: 80px;
+            background-image: url('../images/rocket.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: all 0.5s ease;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        .launch-pad.correct .rocket {
+            animation: rocketLaunch 1.5s ease-in-out forwards;
+        }
+
+        @keyframes rocketLaunch {
+            0% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+
+            25% {
+                transform: translateY(-30px) scale(0.9) rotate(2deg);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translateY(-80px) scale(0.8) rotate(-1deg);
+                opacity: 1;
+            }
+
+            75% {
+                transform: translateY(-150px) scale(0.6) rotate(1deg);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translateY(-300px) scale(0.3) rotate(0deg);
+                opacity: 0;
+            }
+        }
+
+        .launch-pad.error .rocket {
+            animation: rocketError 0.5s ease-in-out;
+        }
+
+        @keyframes rocketError {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* 火箭烟雾 */
+        .rocket::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background: rgba(200, 200, 200, 0.8);
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(200, 200, 200, 0.8);
+        }
+
+        .launch-pad.correct .rocket::after {
+            opacity: 1;
+            animation: smoke 1.5s ease-in-out;
+        }
+
+        @keyframes smoke {
+            0% {
+                transform: translateX(-50%) scale(0.5);
+                opacity: 0;
+            }
+
+            20% {
+                transform: translateX(-50%) scale(1.2);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translateX(-50%) scale(1.5);
+                opacity: 0.8;
+            }
+
+            80% {
+                transform: translateX(-50%) scale(2);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: translateX(-50%) scale(3);
+                opacity: 0;
+            }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .feedback {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #add8e6, #87ceeb);
+            color: white;
+            border: none;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(173, 216, 230, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(173, 216, 230, 0.8);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #999, #666);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 0 30px rgba(153, 153, 153, 0.8);
+        }
+
+        .literature {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #a0a0ff;
+            background-color: rgba(26, 26, 74, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(160, 160, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: white;
+                color: #005ca8;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+                font-weight: 200000;
+                font-family: 'Arial Rounded MT Bold', 'Comic Sans MS', sans-serif;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>太空小火箭：按顺序发射任务</h1>
+            <p>小朋友是太空发射指挥官，要按照数字从小到大的顺序，依次点击火箭发射按钮，让火箭按顺序升空！</p>
+        </div>
+        <div class="game-area">
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" onclick="setDifficulty(3)">简单 (3x3)</button>
+                <button class="difficulty-btn" onclick="setDifficulty(5)">中等 (5x5)</button>
+                <button class="difficulty-btn" onclick="setDifficulty(7)">困难 (7x7)</button>
+            </div>
+            <div class="stats">
+                <div>当前数字：<span id="current-number">1</span></div>
+                <div>时间：<span id="time">0</span>s</div>
+                <div>错误：<span id="errors">0</span></div>
+            </div>
+            <div class="feedback" id="feedback">准备就绪，点击开始按钮</div>
+            <div class="schulte-grid grid-3x3" id="schulte-grid">
+                <!-- 网格将通过JavaScript生成 -->
+            </div>
+            <div class="controls">
+                <button class="btn" id="start-button" onclick="startGame()">开始发射</button>
+            </div>
+        </div>
+        <div class="literature">
+            <p>文献依据：《中华养生保健》2023 舒尔特方格研究</p>
+        </div>
+    </div>
+    <script src="../utils.js"></script>
+    <script>
+        let currentDifficulty = 3;
+        let grid = [];
+        let currentNumber = 1;
+        let startTime = 0;
+        let endTime = 0;
+        let isGameStarted = false;
+        let errorCount = 0;
+        let timeInterval;
+        let focusLevel = 70; // 模拟专注度，实际应从前端采集
+        let采集间隔 = 10000; // 每10秒采集一次数据
+        let采集次数 = 0;
+        let连续不达标次数 = 0;
+
+        // Q-Learning参数
+        const learningRate = 0.1;
+        const discountFactor = 0.9;
+        const explorationRate = 0.1;
+
+        // 状态空间：游戏类型、难度、专注度、错误次数
+        // 动作空间：继续当前训练、切换同维度其他游戏、降低当前游戏难度
+        let qTable = {};
+
+        // 初始化Q表
+        function initializeQTable() {
+            qTable = {
+                'schulte_4_low_0': [0, 0, 0],
+                'schulte_4_low_1': [0, 0, 0],
+                'schulte_4_low_2': [0, 0, 0],
+                'schulte_4_high_0': [0, 0, 0],
+                'schulte_4_high_1': [0, 0, 0],
+                'schulte_4_high_2': [0, 0, 0],
+                'schulte_5_low_0': [0, 0, 0],
+                'schulte_5_low_1': [0, 0, 0],
+                'schulte_5_low_2': [0, 0, 0],
+                'schulte_5_high_1': [0, 0, 0],
+                'schulte_5_high_2': [0, 0, 0]
+            };
+        }
+
+        // 获取当前状态
+        function getCurrentState() {
+            const focusLevelCategory = focusLevel >= 60 ? 'high' : 'low';
+            const errorCategory = errorCount >= 3 ? '2' : (errorCount >= 1 ? '1' : '0');
+            return `schulte_${currentDifficulty}_${focusLevelCategory}_${errorCategory}`;
+        }
+
+        // 选择动作
+        function selectAction(state) {
+            if (Math.random() < explorationRate) {
+                // 探索：随机选择动作
+                return Math.floor(Math.random() * 3);
+            } else {
+                // 利用：选择Q值最大的动作
+                const qValues = qTable[state] || [0, 0, 0];
+                return qValues.indexOf(Math.max(...qValues));
+            }
+        }
+
+        // 计算奖励
+        function calculateReward() {
+            let reward = 0;
+            if (focusLevel >= 70) reward += 10;
+            if (errorCount <= 2) reward += 5;
+            if (isGameStarted && !isGameActive()) reward -= 8;
+            if (currentNumber > currentDifficulty * currentDifficulty) reward += 20;
+            return reward;
+        }
+
+        // 更新Q表
+        function updateQTable(state, action, reward, nextState) {
+            const currentQ = qTable[state] || [0, 0, 0];
+            const nextQ = qTable[nextState] || [0, 0, 0];
+            const maxNextQ = Math.max(...nextQ);
+            currentQ[action] = currentQ[action] + learningRate * (reward + discountFactor * maxNextQ - currentQ[action]);
+            qTable[state] = currentQ;
+        }
+
+        // 检查游戏是否活跃
+        function isGameActive() {
+            return isGameStarted && currentNumber <= currentDifficulty * currentDifficulty;
+        }
+
+        // 动态调整逻辑
+        function dynamicAdjustment() {
+            if (!isGameStarted) return;
+
+            const state = getCurrentState();
+            const reward = calculateReward();
+            const action = selectAction(state);
+
+            采集次数++;
+
+            // 检查是否需要调整
+            if (focusLevel < 55 && errorCount >= 3) {
+                连续不达标次数++;
+                if (连续不达标次数 >= 2) {
+                    // 执行动作2：切换同维度其他游戏
+                    showAdjustmentModal('换个游戏试试吧～', '即将切换到视觉找不同游戏');
+                    setTimeout(() => {
+                        window.location.href = 'find-diff.html';
+                    }, 2000);
+                }
+            } else if (focusLevel >= 70 && errorCount >= 3) {
+                // 执行动作3：降低难度
+                if (currentDifficulty > 4) {
+                    showAdjustmentModal('难度降低啦，加油！', `即将切换到${currentDifficulty - 1}x${currentDifficulty - 1}难度`);
+                    setTimeout(() => {
+                        setDifficulty(currentDifficulty - 1);
+                        startGame();
+                    }, 2000);
+                }
+            } else {
+                // 执行动作1：继续当前训练
+                连续不达标次数 = 0;
+                if (currentNumber % 5 === 0) {
+                    showPositiveFeedback('真棒！专注度保持得很好');
+                }
+            }
+
+            // 更新Q表
+            const nextState = getCurrentState();
+            updateQTable(state, action, reward, nextState);
+        }
+
+        // 显示调整弹窗
+        function showAdjustmentModal(title, message) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease-in-out;
+            `;
+
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
+                border-radius: 20px;
+                padding: 40px;
+                width: 90%;
+                max-width: 400px;
+                box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+                position: relative;
+                animation: bounceIn 0.5s ease-in-out;
+                border: 4px solid #4caf50;
+                text-align: center;
+            `;
+
+            const modalTitle = document.createElement('h3');
+            modalTitle.textContent = title;
+            modalTitle.style.cssText = `
+                color: #4CAF50;
+                margin-bottom: 20px;
+                font-size: 1.8em;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+                animation: pulse 1.5s ease-in-out infinite alternate;
+            `;
+
+            const modalMessage = document.createElement('p');
+            modalMessage.textContent = message;
+            modalMessage.style.cssText = `
+                color: #a0a0ff;
+                margin-bottom: 30px;
+                font-size: 1.1em;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            `;
+
+            modalContent.appendChild(modalTitle);
+            modalContent.appendChild(modalMessage);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+
+            setTimeout(() => {
+                document.body.removeChild(modal);
+            }, 2000);
+        }
+
+        // 显示正反馈
+        function showPositiveFeedback(message) {
+            const feedbackElement = document.getElementById('feedback');
+            feedbackElement.textContent = message;
+            feedbackElement.style.backgroundColor = 'rgba(76, 175, 80, 0.3)';
+            feedbackElement.style.color = '#4CAF50';
+
+            setTimeout(() => {
+                feedbackElement.textContent = '';
+                feedbackElement.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                feedbackElement.style.color = '#4CAF50';
+            }, 2000);
+        }
+
+        // 模拟专注度数据（实际应从前端采集）
+        function simulateFocusLevel() {
+            if (!isGameStarted) return;
+
+            // 模拟专注度波动
+            focusLevel = Math.max(30, Math.min(100, focusLevel + (Math.random() - 0.5) * 20));
+
+            // 每10秒采集一次数据
+            setTimeout(simulateFocusLevel, 10000);
+        }
+
+        // 设置难度
+        function setDifficulty(difficulty) {
+            currentDifficulty = difficulty;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const gridElement = document.getElementById('schulte-grid');
+            gridElement.className = `schulte-grid grid-${difficulty}x${difficulty}`;
+
+            // 清空网格，不生成游戏内容，等待用户点击开始按钮
+            gridElement.innerHTML = '';
+            document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
+
+            // 重置游戏状态
+            isGameStarted = false;
+            clearInterval(timeInterval);
+            currentNumber = 1;
+            errorCount = 0;
+            document.getElementById('current-number').textContent = currentNumber;
+            document.getElementById('time').textContent = '0';
+            document.getElementById('errors').textContent = errorCount;
+
+            // 显示开始按钮
+            const startButton = document.getElementById('start-button');
+            if (startButton) {
+                startButton.style.display = 'flex';
+                startButton.style.visibility = 'visible';
+                startButton.style.zIndex = '1000';
+            }
+
+            // 确保controls容器也可见
+            const controls = document.querySelector('.controls');
+            if (controls) {
+                controls.style.display = 'flex';
+                controls.style.visibility = 'visible';
+                controls.style.zIndex = '1000';
+            }
+        }
+
+        // 生成发射台网格
+        function generateGrid() {
+            const gridElement = document.getElementById('schulte-grid');
+            gridElement.innerHTML = '';
+
+            const size = currentDifficulty;
+            const totalCells = size * size;
+            const numbers = Array.from({ length: totalCells }, (_, i) => i + 1);
+
+            // 打乱数字
+            for (let i = numbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+            }
+
+            grid = numbers;
+
+            // 创建发射台
+            numbers.forEach(num => {
+                const launchPad = document.createElement('div');
+                launchPad.className = 'launch-pad';
+
+                const rocket = document.createElement('div');
+                rocket.className = 'rocket';
+
+                const number = document.createElement('div');
+                number.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #000080;
+                    z-index: 2;
+                    text-shadow: 0 0 10px rgba(0, 0, 128, 0.5);
+                    font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
+                    transition: all 1.5s ease-in-out;
+                `;
+                number.textContent = num;
+
+                rocket.appendChild(number);
+                launchPad.appendChild(rocket);
+                launchPad.addEventListener('click', () => handleLaunchPadClick(num));
+                gridElement.appendChild(launchPad);
+            });
+        }
+
+        // 创建音频对象
+        const correctSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
+        const errorSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
+
+        // 处理发射台点击
+        function handleLaunchPadClick(num) {
+            if (!isGameStarted) return;
+
+            if (num === currentNumber) {
+                // 正确点击
+                const launchPads = document.querySelectorAll('.launch-pad');
+                launchPads.forEach(pad => {
+                    const numberElement = pad.querySelector('div:not(.rocket)');
+                    if (parseInt(numberElement.textContent) === num) {
+                        pad.classList.add('correct');
+                    }
+                });
+
+                // 播放正确音效
+                correctSound.currentTime = 0;
+                correctSound.play().catch(e => console.log('Audio play failed:', e));
+
+                currentNumber++;
+                document.getElementById('current-number').textContent = currentNumber;
+
+                // 检查是否完成
+                if (currentNumber > currentDifficulty * currentDifficulty) {
+                    endGame();
+                }
+            } else {
+                // 错误点击
+                const launchPads = document.querySelectorAll('.launch-pad');
+                launchPads.forEach(pad => {
+                    const numberElement = pad.querySelector('div:not(.rocket)');
+                    if (parseInt(numberElement.textContent) === num) {
+                        pad.classList.add('error');
+                        setTimeout(() => {
+                            pad.classList.remove('error');
+                        }, 500);
+                    }
+                });
+
+                // 播放错误音效
+                errorSound.currentTime = 0;
+                errorSound.play().catch(e => console.log('Audio play failed:', e));
+
+                errorCount++;
+                document.getElementById('errors').textContent = errorCount;
+                document.getElementById('feedback').textContent = '按顺序哦～';
+                setTimeout(() => {
+                    document.getElementById('feedback').textContent = '';
+                }, 1000);
+            }
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (isGameStarted) return;
+
+            // 隐藏开始按钮
+            document.getElementById('start-button').style.display = 'none';
+
+            // 初始化Q表
+            initializeQTable();
+
+            generateGrid();
+            currentNumber = 1;
+            errorCount = 0;
+            document.getElementById('current-number').textContent = currentNumber;
+            document.getElementById('errors').textContent = errorCount;
+            document.getElementById('feedback').textContent = '任务开始！按顺序点击火箭发射';
+
+            isGameStarted = true;
+            startTime = Date.now();
+            updateTimer();
+
+            // 启动专注度模拟
+            simulateFocusLevel();
+
+            // 启动动态调整
+            setInterval(dynamicAdjustment, 采集间隔);
+        }
+
+        // 重置游戏
+        function resetGame() {
+            isGameStarted = false;
+            clearInterval(timeInterval);
+            currentNumber = 1;
+            errorCount = 0;
+            document.getElementById('current-number').textContent = currentNumber;
+            document.getElementById('time').textContent = '0';
+            document.getElementById('errors').textContent = errorCount;
+            document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
+            generateGrid();
+        }
+
+        // 更新计时器
+        function updateTimer() {
+            if (!isGameStarted) return;
+
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('time').textContent = currentTime;
+            timeInterval = setTimeout(updateTimer, 1000);
+        }
+
+        // 结束游戏
+        function endGame() {
+            isGameStarted = false;
+            clearInterval(timeInterval);
+            endTime = Date.now();
+            const totalTime = Math.floor((endTime - startTime) / 1000);
+
+            // 计算正确率
+            const totalCells = currentDifficulty * currentDifficulty;
+            const correctCount = totalCells - errorCount;
+            const accuracy = Math.round((correctCount / totalCells) * 100);
+
+            // 计算完成率
+            const completionRate = 100; // 游戏完成，完成率为100%
+
+            document.getElementById('feedback').textContent = `任务完成！用时 ${totalTime} 秒，错误 ${errorCount} 次，正确率 ${accuracy}%`;
+
+            // 保存训练数据
+            const trainingData = {
+                training_type: 'schulte',
+                difficulty: currentDifficulty,
+                accuracy: accuracy,
+                completion_rate: completionRate,
+                focus_level: focusLevel,
+                completion_time: totalTime,
+                error_count: errorCount,
+                training_date: new Date().toISOString().split('T')[0]
+            };
+            StorageUtil.setItem('training_schulte', trainingData);
+
+            // 上传数据到后端
+            fetch('http://localhost:5000/api/upload/training', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: 1, // 假设用户ID为1
+                    ...trainingData
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('训练数据上传成功:', data);
+                    // 训练后迭代优化
+                    postTrainingOptimization(trainingData);
+                })
+                .catch(error => console.error('训练数据上传失败:', error));
+
+            // 显示开始按钮
+            setTimeout(() => {
+                document.getElementById('start-button').style.display = 'flex';
+            }, 3000);
+        }
+
+        // 训练后迭代优化
+        function postTrainingOptimization(trainingData) {
+            const { completion_rate, accuracy, focus_level } = trainingData;
+
+            // 决策树规则迭代
+            if (completion_rate === 100 && accuracy >= 85) {
+                // 升级为进阶版
+                const nextDifficulty = Math.min(currentDifficulty + 1, 5);
+                showPostTrainingModal('太棒了！', `你的表现非常出色，下次将挑战${nextDifficulty}x${nextDifficulty}的进阶版！`, true);
+            } else if (completion_rate === 0) {
+                // 替换为更简单的游戏
+                showPostTrainingModal('别灰心！', '下次我们会为你推荐更适合的游戏，继续加油！', true);
+            } else {
+                // 显示专属训练推荐
+                showPostTrainingModal('训练完成！', '查看为你推荐的专属训练', true);
+            }
+
+            // 保存历史表现数据
+            const historicalData = StorageUtil.getItem('historical_performance') || [];
+            historicalData.push(trainingData);
+            // 只保留最近5次训练数据
+            if (historicalData.length > 5) {
+                historicalData.shift();
+            }
+            StorageUtil.setItem('historical_performance', historicalData);
+        }
+
+        // 显示训练后弹窗
+        function showPostTrainingModal(title, message, showRecommendation = false) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease-in-out;
+            `;
+
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
+                border-radius: 20px;
+                padding: 40px;
+                width: 90%;
+                max-width: 400px;
+                box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+                position: relative;
+                animation: bounceIn 0.5s ease-in-out;
+                border: 4px solid #4caf50;
+                text-align: center;
+            `;
+
+            const modalTitle = document.createElement('h3');
+            modalTitle.textContent = title;
+            modalTitle.style.cssText = `
+                color: #4CAF50;
+                margin-bottom: 20px;
+                font-size: 1.8em;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+                animation: pulse 1.5s ease-in-out infinite alternate;
+            `;
+
+            const modalMessage = document.createElement('p');
+            modalMessage.textContent = message;
+            modalMessage.style.cssText = `
+                color: #a0a0ff;
+                margin-bottom: 30px;
+                font-size: 1.1em;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            `;
+
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = '确定';
+            confirmButton.style.cssText = `
+                background: linear-gradient(90deg, #4caf50, #81c784);
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 30px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                animation: pulse 2s ease-in-out infinite alternate;
+            `;
+
+            confirmButton.onclick = function () {
+                document.body.removeChild(modal);
+                if (showRecommendation) {
+                    // 跳转到专属训练推荐页面
+                    window.location.href = '../child-home.html#personalized';
+                }
+            };
+
+            modalContent.appendChild(modalTitle);
+            modalContent.appendChild(modalMessage);
+            modalContent.appendChild(confirmButton);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+
+        // 页面加载时生成网格
+        window.onload = function () {
+            // 页面加载时不生成游戏内容，等待用户点击开始按钮
+        };
+    </script>
+    <!-- 专注力检测模块 -->
+    <script src="../attention-loader.js"></script>
+</body>
+
+</html>

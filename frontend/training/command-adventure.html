@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>指令闯关大冒险 - 注意力训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .game-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item h3 {
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .info-item p {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .game-area {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .player {
+            width: 50px;
+            height: 50px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .obstacle {
+            width: 30px;
+            height: 30px;
+            background-color: #f44336;
+            border-radius: 5px;
+            position: absolute;
+        }
+
+        .goal {
+            width: 60px;
+            height: 60px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .command-area {
+            margin-bottom: 30px;
+        }
+
+        .command {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 10px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .control-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .control-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .control-btn:nth-child(2) {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .control-btn:nth-child(1) {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .control-btn:nth-child(3) {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .control-btn:nth-child(4) {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .game-controls {
+            margin-top: 20px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 10px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .instructions {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .instructions h2 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            text-align: left;
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>指令闯关大冒险</h1>
+            <p>根据指令完成任务，提升指令执行和认知灵活性</p>
+        </div>
+
+        <div class="instructions">
+            <h2>游戏说明</h2>
+            <ul>
+                <li>根据屏幕上的指令，使用方向键或屏幕上的按钮控制角色移动</li>
+                <li>避开红色障碍物，到达黄色目标点</li>
+                <li>每关的指令可能会有所不同，需要仔细阅读</li>
+                <li>完成关卡后会自动进入下一关，难度逐渐增加</li>
+            </ul>
+        </div>
+
+        <div class="game-container">
+            <div class="game-info">
+                <div class="info-item">
+                    <h3>关卡</h3>
+                    <p id="level">1</p>
+                </div>
+                <div class="info-item">
+                    <h3>得分</h3>
+                    <p id="score">0</p>
+                </div>
+                <div class="info-item">
+                    <h3>时间</h3>
+                    <p id="time">60</p>
+                </div>
+            </div>
+
+            <div class="command-area">
+                <div class="command" id="command">使用方向键或按钮控制角色移动到黄色目标点</div>
+            </div>
+
+            <div class="game-area" id="gameArea">
+                <div class="player" id="player"></div>
+                <!-- 障碍物和目标将通过JavaScript动态生成 -->
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" onclick="movePlayer('up')">↑</button>
+                <button class="control-btn" onclick="movePlayer('left')">←</button>
+                <button class="control-btn" onclick="movePlayer('right')">→</button>
+                <button class="control-btn" onclick="movePlayer('down')">↓</button>
+            </div>
+
+            <div class="game-controls">
+                <button class="btn" id="startBtn">开始游戏</button>
+                <button class="btn btn-secondary" onclick="window.location.href='index.html'">返回游戏库</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 注意力训练平台</p>
+        </div>
+    </div>
+
+    <script src="../utils.js"></script>
+    <script>
+        // 游戏变量
+        let player;
+        let obstacles = [];
+        let goal;
+        let level = 1;
+        let score = 0;
+        let time = 60;
+        let gameState = 'ready'; // ready, playing, gameOver
+        let timeInterval;
+        let commandMapping = {
+            'up': 'up',
+            'down': 'down',
+            'left': 'left',
+            'right': 'right'
+        };
+
+        // 游戏配置
+        const config = {
+            playerSpeed: 20,
+            gameAreaWidth: 800,
+            gameAreaHeight: 400
+        };
+
+        // 初始化游戏
+        function initGame() {
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.addEventListener('keydown', handleKeyPress);
+
+            // 设置游戏区域大小
+            const gameArea = document.getElementById('gameArea');
+            gameArea.style.width = `${config.gameAreaWidth}px`;
+            gameArea.style.height = `${config.gameAreaHeight}px`;
+            gameArea.style.margin = '0 auto';
+
+            player = document.getElementById('player');
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (gameState === 'ready' || gameState === 'gameOver') {
+                // 重置游戏
+                level = 1;
+                score = 0;
+                time = 60;
+                gameState = 'playing';
+
+                // 生成第一关
+                generateLevel();
+
+                // 更新UI
+                updateUI();
+
+                // 开始计时
+                timeInterval = setInterval(() => {
+                    time--;
+                    updateUI();
+                    if (time <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+        }
+
+        // 生成关卡
+        function generateLevel() {
+            // 清除之前的障碍物和目标
+            obstacles.forEach(obstacle => obstacle.remove());
+            obstacles = [];
+            if (goal) goal.remove();
+
+            // 重置玩家位置
+            player.style.top = '50%';
+            player.style.left = '50%';
+
+            // 生成障碍物
+            const obstacleCount = level * 2 + 3;
+            for (let i = 0; i < obstacleCount; i++) {
+                const obstacle = document.createElement('div');
+                obstacle.className = 'obstacle';
+                obstacle.style.top = `${Math.random() * (config.gameAreaHeight - 30)}px`;
+                obstacle.style.left = `${Math.random() * (config.gameAreaWidth - 30)}px`;
+                document.getElementById('gameArea').appendChild(obstacle);
+                obstacles.push(obstacle);
+            }
+
+            // 生成目标
+            goal = document.createElement('div');
+            goal.className = 'goal';
+            goal.textContent = '🏁';
+            goal.style.top = `${Math.random() * (config.gameAreaHeight - 60)}px`;
+            goal.style.left = `${Math.random() * (config.gameAreaWidth - 60)}px`;
+            document.getElementById('gameArea').appendChild(goal);
+
+            // 生成指令
+            generateCommand();
+        }
+
+        // 生成指令
+        function generateCommand() {
+            const commandElement = document.getElementById('command');
+
+            // 随机生成指令类型
+            const commandType = Math.floor(Math.random() * 3);
+
+            switch (commandType) {
+                case 0:
+                    // 正常指令
+                    commandElement.textContent = '使用方向键或按钮控制角色移动到黄色目标点';
+                    commandMapping = {
+                        'up': 'up',
+                        'down': 'down',
+                        'left': 'left',
+                        'right': 'right'
+                    };
+                    break;
+                case 1:
+                    // 反向指令
+                    commandElement.textContent = '注意：方向相反！使用方向键或按钮控制角色移动到黄色目标点';
+                    commandMapping = {
+                        'up': 'down',
+                        'down': 'up',
+                        'left': 'right',
+                        'right': 'left'
+                    };
+                    break;
+                case 2:
+                    // 旋转指令
+                    commandElement.textContent = '注意：方向旋转！使用方向键或按钮控制角色移动到黄色目标点';
+                    commandMapping = {
+                        'up': 'right',
+                        'right': 'down',
+                        'down': 'left',
+                        'left': 'up'
+                    };
+                    break;
+            }
+        }
+
+        // 移动玩家
+        function movePlayer(direction) {
+            if (gameState !== 'playing') return;
+
+            // 应用指令映射
+            const mappedDirection = commandMapping[direction];
+
+            let currentTop = parseInt(player.style.top) || config.gameAreaHeight / 2;
+            let currentLeft = parseInt(player.style.left) || config.gameAreaWidth / 2;
+
+            switch (mappedDirection) {
+                case 'up':
+                    currentTop = Math.max(0, currentTop - config.playerSpeed);
+                    break;
+                case 'down':
+                    currentTop = Math.min(config.gameAreaHeight - 50, currentTop + config.playerSpeed);
+                    break;
+                case 'left':
+                    currentLeft = Math.max(0, currentLeft - config.playerSpeed);
+                    break;
+                case 'right':
+                    currentLeft = Math.min(config.gameAreaWidth - 50, currentLeft + config.playerSpeed);
+                    break;
+            }
+
+            player.style.top = `${currentTop}px`;
+            player.style.left = `${currentLeft}px`;
+
+            // 检查碰撞
+            checkCollision();
+        }
+
+        // 处理按键
+        function handleKeyPress(e) {
+            switch (e.key) {
+                case 'ArrowUp':
+                    movePlayer('up');
+                    break;
+                case 'ArrowDown':
+                    movePlayer('down');
+                    break;
+                case 'ArrowLeft':
+                    movePlayer('left');
+                    break;
+                case 'ArrowRight':
+                    movePlayer('right');
+                    break;
+            }
+        }
+
+        // 检查碰撞
+        function checkCollision() {
+            // 检查与障碍物碰撞
+            const playerRect = player.getBoundingClientRect();
+
+            for (const obstacle of obstacles) {
+                const obstacleRect = obstacle.getBoundingClientRect();
+                if (isColliding(playerRect, obstacleRect)) {
+                    // 碰撞障碍物，游戏结束
+                    endGame();
+                    return;
+                }
+            }
+
+            // 检查与目标碰撞
+            const goalRect = goal.getBoundingClientRect();
+            if (isColliding(playerRect, goalRect)) {
+                // 到达目标，进入下一关
+                score += 100;
+                level++;
+                time += 10;
+                generateLevel();
+                updateUI();
+            }
+        }
+
+        // 检查两个矩形是否碰撞
+        function isColliding(rect1, rect2) {
+            return (
+                rect1.left < rect2.right &&
+                rect1.right > rect2.left &&
+                rect1.top < rect2.bottom &&
+                rect1.bottom > rect2.top
+            );
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState = 'gameOver';
+            clearInterval(timeInterval);
+
+            // 保存游戏数据
+            const gameData = {
+                gameName: 'command-adventure',
+                score: score,
+                level: level,
+                timestamp: new Date().toISOString()
+            };
+
+            // 保存到本地存储
+            const trainingHistory = StorageUtil.getItem('training_history') || [];
+            trainingHistory.push(gameData);
+            StorageUtil.setItem('training_history', trainingHistory);
+
+            // 显示游戏结束信息
+            alert(`游戏结束！\n得分：${score}\n关卡：${level}`);
+        }
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('level').textContent = level;
+            document.getElementById('score').textContent = score;
+            document.getElementById('time').textContent = time;
+        }
+
+        // 页面加载时初始化游戏
+        window.onload = function () {
+            initGame();
+        };
+    </script>
+    <!-- 专注力检测模块 -->
+    <script src="../attention-loader.js"></script>
+</body>
+
+</html>

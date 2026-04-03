@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>甜品店小帮工・反向点单任务 - 注意力训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #fff0f5;
+            color: #333;
+            background: url('../images/ground17.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #cd4875;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #981d46;
+        }
+
+        .game-container {
+            background: #f5f5dc;
+            background-image: url('../images/ground16.png');
+            background-repeat: no-repeat;
+            background-position: center top;
+            background-size: cover;
+            border-radius: 20px;
+            padding: 60px 40px 40px;
+            box-shadow: 0 4px 20px rgba(255, 102, 153, 0.3);
+            margin-bottom: 30px;
+            text-align: center;
+            min-height: 700px;
+            border: 2px solid #ffccdd;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            margin-top: 20px;
+            margin-left: 20px;
+            margin-right: 20px;
+            padding: 5px;
+            background-color: #fff8e6;
+            border-radius: 15px;
+            border: 2px dashed #F4DD9B;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item h3 {
+            color: #7F5C4D;
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+
+        .info-item p {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #7F5C4D;
+        }
+
+        .display-area {
+            background-color: #fff8e6;
+            border-radius: 15px;
+            padding: 45px;
+            margin-bottom: 30px;
+            margin-left: 25px;
+            margin-right: 25px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #F4DD9B;
+        }
+
+        .display-text {
+            font-size: 36px;
+            font-weight: bold;
+            color: rgb(200, 77, 64);
+        }
+
+        .input-area {
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 15px;
+            font-size: 18px;
+            border: 3px solid #F4DD9B;
+            border-radius: 20px;
+            text-align: center;
+            background-color: #fff8e6;
+            outline: none;
+            caret-color: #ff6699;
+            text-shadow: 0 0 0 #ff6699;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        }
+
+        .difficulty-select {
+            margin: 40px 0 20px;
+            text-align: center;
+        }
+
+        .difficulty-btn {
+            margin: 0 10px;
+        }
+
+        .difficulty-btn.active {
+            background-color: #85362C;
+            transform: scale(1.05);
+        }
+
+        .game-controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #dessert-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .dessert-btn {
+            background-color: rgb(200, 77, 64);
+            color: white;
+            border: 3px solid rgb(160, 60, 50);
+            border-radius: 20px;
+            padding: 15px 25px;
+            margin: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 100px;
+        }
+
+        .dessert-btn:hover {
+            background-color: rgb(180, 67, 54);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(200, 77, 64, 0.4);
+        }
+
+        .dessert-btn:active {
+            background-color: #F4DD9B;
+            color: rgb(200, 77, 64);
+            transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(244, 221, 155, 0.4);
+        }
+
+        .btn {
+            background-color: rgb(200, 77, 64);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+            box-shadow: 0 4px 10px rgba(255, 102, 153, 0.3);
+        }
+
+        .btn:hover {
+            background-color: #F4DE9B;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background-color: #ffccdd;
+            color: #ff6699;
+        }
+
+        .btn-secondary:hover {
+            background-color: #ffb3cc;
+        }
+
+        .instructions {
+            background-color: rgba(255, 245, 248, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            width: 150%;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+            border: none;
+            text-align: center;
+        }
+
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.4;
+            font-size: 1.1em;
+        }
+
+        .footer {
+            text-align: center;
+            color: #9d0034;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: linear-gradient(135deg, #ff6699, #ff99cc);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(255, 102, 153, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+
+        <div class="header">
+            <h1>甜品店小帮工</h1>
+            <div class="instructions">
+                <p>欢迎来到彩虹甜品店！</p>
+                <p>店长阿姨记性不太好，每次听到小朋友点单，都要倒着重复一遍才能记牢。</p>
+                <p>你要来当最厉害的小帮工，认真听完一串点单内容，然后从最后一个往前说。</p>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <div class="difficulty-select">
+                <button class="btn difficulty-btn" data-level="easy">简单</button>
+                <button class="btn difficulty-btn" data-level="medium">中等</button>
+                <button class="btn difficulty-btn" data-level="hard">困难</button>
+            </div>
+
+            <div class="game-info">
+                <div class="info-item">
+                    <h3>关卡</h3>
+                    <p id="level">0</p>
+                </div>
+                <div class="info-item">
+                    <h3>甜品勋章</h3>
+                    <p id="score">0</p>
+                </div>
+                <div class="info-item">
+                    <h3>时间</h3>
+                    <p id="time">0</p>
+                </div>
+            </div>
+
+            <div class="display-area">
+                <div class="display-text" id="displayText"></div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="" disabled>
+                <div id="dessert-buttons" style="display: none;"></div>
+            </div>
+
+            <div class="game-controls">
+                <button class="btn" id="startBtn">开始工作</button>
+                <button class="btn" id="submitBtn" disabled style="display: none;">提交订单</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 注意力训练平台 - 彩虹甜品店</p>
+        </div>
+    </div>
+
+    <!-- 自定义游戏结束弹窗 -->
+    <div id="game-over-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; animation: fadeIn 0.3s ease-in-out;">
+        <div
+            style="background-color: #F4DD9B; border-radius: 20px; padding: 30px; text-align: center; max-width: 400px; box-shadow: 0 10px 30px rgba(255,102,153,0.4); border: 3px solid rgb(235, 135, 124); animation: popIn 0.4s ease-out;">
+            <h2 style="color: rgb(200, 77, 64); margin-bottom: 20px;">工作结束！
+            </h2>
+            <div style="background-color: #f2e9d0; border-radius: 15px; padding: 20px; margin-bottom: 20px;">
+                <p style="font-size: 18px; color: #333; margin: 10px 0;">获得甜品勋章：<span id="modal-score"
+                        style="font-weight: bold; color: #ff6699;"></span>枚</p>
+                <p style="font-size: 18px; color: #333; margin: 10px 0;">完成关卡：<span id="modal-level"
+                        style="font-weight: bold; color: #ff6699;"></span>关</p>
+            </div>
+            <button id="modal-close"
+                style="background-color: rgb(200, 77, 64); color: white; border: none; border-radius: 20px; padding: 12px 24px; font-size: 16px; cursor: pointer; transition: all 0.3s;">再来一次</button>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+
+    <script src="../utils.js"></script>
+    <script>
+        // 游戏变量
+        let score = 0;
+        let level = 1;
+        let time = 30;
+        let gameState = 'ready'; // ready, displaying, input, gameOver
+        let currentSequence = [];
+        let timeInterval;
+        let currentDifficulty = 'easy'; // 默认难度
+        let isWordRound = false; // 是否为词汇回合
+        let userSelection = []; // 用户选择的甜品
+        let round = 0; // 当前训练轮数
+        const maxRounds = 5; // 每轮训练的最大轮数
+
+        // 游戏配置
+        const config = {
+            sequenceLength: 3,
+            displayTime: 2000,
+            inputTime: 5000
+        };
+
+        // 难度配置
+        const difficultySettings = {
+            easy: 3,
+            medium: 5,
+            hard: 7
+        };
+
+        // 甜品词汇库
+        const wordList = ['蛋糕', '布丁', '奶茶', '冰淇淋', '饼干', '巧克力', '糖果', '果冻', '水果', '马卡龙', '甜甜圈', '奶昔', '华夫饼', '泡芙', '蛋挞'];
+
+        // 初始化游戏
+        function initGame() {
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+            document.getElementById('userInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+
+            // 难度选择按钮事件
+            const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    // 移除所有按钮的active类
+                    difficultyBtns.forEach(b => b.classList.remove('active'));
+                    // 添加当前按钮的active类
+                    this.classList.add('active');
+                    // 设置当前难度
+                    currentDifficulty = this.getAttribute('data-level');
+                    // 更新序列长度
+                    config.sequenceLength = difficultySettings[currentDifficulty];
+                });
+            });
+
+            // 默认选中简单难度
+            document.querySelector('[data-level="easy"]').classList.add('active');
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (gameState === 'ready' || gameState === 'gameOver') {
+                score = 0;
+                level = 1;
+                time = 30;
+                round = 0;
+                gameState = 'displaying';
+
+                // 确保使用当前选择的难度对应的序列长度
+                config.sequenceLength = difficultySettings[currentDifficulty];
+
+                // 调整按钮显示
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'inline-block';
+
+                updateUI();
+                generateSequence();
+                displaySequence();
+
+                // 开始计时
+                timeInterval = setInterval(() => {
+                    time--;
+                    updateUI();
+                    if (time <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+        }
+
+        // 生成序列
+        function generateSequence() {
+            currentSequence = [];
+            isWordRound = Math.random() > 0.5;
+
+            for (let i = 0; i < config.sequenceLength; i++) {
+                if (isWordRound) {
+                    // 生成甜品词汇
+                    const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+                    currentSequence.push(randomWord);
+                } else {
+                    // 生成数字
+                    const randomNumber = Math.floor(Math.random() * 10);
+                    currentSequence.push(randomNumber.toString());
+                }
+            }
+        }
+
+        // 显示序列
+        function displaySequence() {
+            // 清空输入框内容
+            document.getElementById('userInput').value = '';
+
+            const displayText = document.getElementById('displayText');
+            displayText.textContent = currentSequence.join(' ');
+
+            // 禁用输入
+            document.getElementById('userInput').disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('dessert-buttons').style.display = 'none';
+
+            // 显示一段时间后隐藏
+            setTimeout(() => {
+                displayText.textContent = isWordRound ? '请按倒序点击甜品' : '请输入倒述的订单内容';
+                gameState = 'input';
+                userSelection = [];
+
+                if (isWordRound) {
+                    // 显示甜品按钮
+                    document.getElementById('userInput').style.display = 'none';
+                    document.getElementById('dessert-buttons').style.display = 'flex';
+                    document.getElementById('submitBtn').disabled = true;
+                    createDessertButtons();
+                } else {
+                    // 显示输入框
+                    document.getElementById('userInput').style.display = 'block';
+                    document.getElementById('dessert-buttons').style.display = 'none';
+                    document.getElementById('userInput').disabled = false;
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('userInput').focus();
+                }
+            }, config.displayTime);
+        }
+
+        // 创建甜品按钮
+        function createDessertButtons() {
+            const container = document.getElementById('dessert-buttons');
+            container.innerHTML = '';
+
+            // 随机打乱序列顺序
+            const shuffledSequence = [...currentSequence].sort(() => Math.random() - 0.5);
+
+            shuffledSequence.forEach(dessert => {
+                const button = document.createElement('button');
+                button.className = 'dessert-btn';
+                button.textContent = dessert;
+                button.addEventListener('click', function () {
+                    userSelection.push(dessert);
+                    this.style.backgroundColor = '#F4DD9B';
+                    this.style.color = 'rgb(200, 77, 64)';
+                    this.disabled = true;
+
+                    // 检查是否已经选择了所有甜品
+                    if (userSelection.length === currentSequence.length) {
+                        // 启用提交按钮
+                        document.getElementById('submitBtn').disabled = false;
+                    }
+                });
+                container.appendChild(button);
+            });
+        }
+
+        // 检查答案
+        function checkAnswer() {
+            if (gameState === 'input') {
+                let userInput;
+                const correctAnswer = currentSequence.reverse();
+
+                if (isWordRound) {
+                    // 词汇回合，使用用户点击的顺序
+                    userInput = userSelection;
+                } else {
+                    // 数字回合，使用用户输入的文本
+                    userInput = document.getElementById('userInput').value.trim().split(' ').filter(item => item !== '');
+                }
+
+                // 检查答案是否正确
+                const isCorrect = userInput.length === correctAnswer.length &&
+                    userInput.every((item, index) => item === correctAnswer[index]);
+
+                if (isCorrect) {
+                    score += 10;
+                    level++;
+                }
+
+                // 增加轮数
+                round++;
+
+                // 检查是否完成所有轮数
+                if (round < maxRounds) {
+                    // 保持当前难度对应的序列长度
+                    config.sequenceLength = difficultySettings[currentDifficulty];
+
+                    gameState = 'displaying';
+                    generateSequence();
+                    displaySequence();
+                } else {
+                    endGame();
+                }
+            }
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState = 'gameOver';
+            clearInterval(timeInterval);
+
+            // 调整按钮显示
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('submitBtn').style.display = 'none';
+
+            // 保存游戏数据
+            const gameData = {
+                gameName: 'reverse-memory',
+                score: score,
+                level: level,
+                timestamp: new Date().toISOString()
+            };
+
+            // 保存到本地存储
+            const trainingHistory = StorageUtil.getItem('training_history') || [];
+            trainingHistory.push(gameData);
+            StorageUtil.setItem('training_history', trainingHistory);
+
+            // 显示自定义游戏结束弹窗
+            document.getElementById('modal-score').textContent = score / 10;
+            document.getElementById('modal-level').textContent = level;
+            document.getElementById('game-over-modal').style.display = 'flex';
+        }
+
+        // 初始化弹窗关闭按钮
+        document.getElementById('modal-close').addEventListener('click', function () {
+            document.getElementById('game-over-modal').style.display = 'none';
+        });
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('time').textContent = time;
+        }
+
+        // 页面加载时初始化游戏
+        window.onload = function () {
+            initGame();
+        };
+    </script>
+    <!-- 专注力检测模块 -->
+    <script src="../attention-loader.js"></script>
+</body>
+
+</html>

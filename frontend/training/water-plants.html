@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>植物浇水 - 注意力训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('../images/ground10.png');
+            background-size: cover;
+            background-position: center;
+            color: #045207;
+            overflow-y: auto;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.5em;
+            color: #065e09;
+            font-weight: bold;
+        }
+
+        .game-area {
+            background-image: url('../images/ground4.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            text-align: center;
+            border: 2px solid #8FD7FB;
+            min-height: 600px;
+            position: relative;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background-color: rgba(255, 255, 255, 0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+            min-width: 120px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #4CAF50;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            margin-bottom: 30px;
+        }
+
+        .progress-label {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #085b06;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #81c784, #4CAF50);
+            width: 0%;
+            transition: width 0.1s linear;
+            border-radius: 15px;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .game-scene {
+            width: 100%;
+            height: 400px;
+            background-color: transparent;
+            border-radius: 15px;
+            position: relative;
+            margin-bottom: 5px;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 5px;
+        }
+
+        .plant-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .plant {
+            width: 150px;
+            height: 150px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .plant.visible {
+            opacity: 1;
+        }
+
+        .plant.stage-0 {
+            background-image: url('../images/plant1.png');
+            transform: scale(0.6);
+        }
+
+        .plant.stage-1 {
+            background-image: url('../images/plant2.png');
+            transform: scale(0.8);
+        }
+
+        .plant.stage-2 {
+            background-image: url('../images/plant3.png');
+        }
+
+        .plant.stage-3 {
+            background-image: url('../images/plant4.png');
+        }
+
+        .plant.stage-4 {
+            background-image: url('../images/plant5.png');
+        }
+
+        .feedback {
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #0b660e;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 100;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-message h2 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .success-message p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #4caf50, #81c784);
+            color: white;
+            border: none;
+            padding: 0;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s ease;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+
+        .start-btn:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .watering-can {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background-image: url('../images/water.png');
+            background-size: cover;
+            cursor: pointer;
+            user-select: none;
+            top: 70px;
+            left: 205px;
+            transform: rotate(-15deg);
+            transition: transform 0.1s ease;
+            z-index: 10;
+        }
+
+        .watering-can.moving {
+            animation: autoMoveLeftRight 3s ease-in-out infinite;
+        }
+
+        .watering-can.active {
+            transform: rotate(-25deg) scale(1.1);
+        }
+
+        @keyframes autoMoveLeftRight {
+
+            0%,
+            100% {
+                left: 10px;
+            }
+
+            50% {
+                left: calc(100% - 90px);
+            }
+        }
+
+        .water-effect {
+            position: absolute;
+            width: 4px;
+            height: 15px;
+            background: linear-gradient(180deg, #4FC3F7, #2196F3);
+            border-radius: 2px;
+            opacity: 0;
+            pointer-events: none;
+            animation: waterDrop 0.5s linear infinite;
+        }
+
+        @keyframes waterDrop {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scaleY(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(60px) scaleY(0.5);
+            }
+        }
+
+        .instruction {
+            margin-bottom: 30px;
+            line-height: 1.6;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .instruction-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #4CAF50;
+        }
+
+        .literature {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+
+        <div class="header">
+            <h1>植物浇水</h1>
+        </div>
+
+        <div class="instruction">
+            <div>当鼠标在水壶上时，长按鼠标进行浇水，进度条会上涨</div>
+            <div>松开鼠标或移开水壶，浇水停止。坚持浇水30秒，植物就会开花！</div>
+        </div>
+
+        <div class="game-area">
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">有效浇水时长</div>
+                    <div class="stat-value"><span id="watering-time">0</span>s</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">中断次数</div>
+                    <div class="stat-value" id="interrupt-count">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">误触次数</div>
+                    <div class="stat-value" id="mistouch-count">0</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-label">植物成长进度</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                    <div class="progress-text" id="progress-text">0%</div>
+                </div>
+            </div>
+
+            <div class="feedback" id="feedback">准备就绪，按住水壶开始浇水</div>
+
+            <div class="game-scene" id="game-scene">
+                <div class="plant-container">
+                    <div class="plant stage-0" id="plant"></div>
+                </div>
+                <div class="watering-can" id="watering-can"></div>
+                <button class="start-btn" id="start-btn" onclick="startGame()">开始游戏</button>
+            </div>
+        </div>
+
+        <div class="success-message" id="success-message">
+            <h2>🎉 恭喜通关！</h2>
+            <p>植物开花了！</p>
+            <p>有效浇水时长: <span id="final-time">0</span>秒</p>
+            <p>中断次数: <span id="final-interrupts">0</span></p>
+            <button class="btn" onclick="resetGame()">再玩一次</button>
+        </div>
+
+
+
+        <div class="literature">
+            <p>文献依据：持续性注意训练研究</p>
+        </div>
+    </div>
+
+    <script src="../utils.js"></script>
+    <script>
+        let isGameStarted = false;
+        let isWatering = false;
+        let progress = 0;
+        let wateringTime = 0;
+        let interruptCount = 0;
+        let mistouchCount = 0;
+        let startTime = 0;
+        let lastWateringStart = 0;
+        let gameInterval;
+        let progressInterval;
+        let wateringStartTime = 0;
+        let totalWateringDuration = 0;
+
+        const targetDuration = 30;
+        const progressPerSecond = 100 / targetDuration;
+
+        const wateringCan = document.getElementById('watering-can');
+        const plant = document.getElementById('plant');
+        const gameScene = document.getElementById('game-scene');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const feedback = document.getElementById('feedback');
+
+        let waterEffectInterval = null;
+        let isMouseOverCan = false;
+        let isMouseDown = false;
+
+        function resetGameData() {
+            isGameStarted = false;
+            isWatering = false;
+            progress = 0;
+            wateringTime = 0;
+            interruptCount = 0;
+            mistouchCount = 0;
+            totalWateringDuration = 0;
+            wateringStartTime = 0;
+            isMouseOverCan = false;
+            isMouseDown = false;
+
+            updateProgress();
+            updateStats();
+            updatePlantStage();
+
+            wateringCan.classList.remove('active');
+            wateringCan.classList.remove('moving');
+            plant.classList.remove('visible');
+            document.getElementById('start-btn').style.display = 'flex';
+            document.getElementById('success-message').classList.remove('show');
+            feedback.textContent = '准备就绪，跟随水壶并长按浇水';
+
+            clearInterval(gameInterval);
+            clearInterval(progressInterval);
+            clearInterval(waterEffectInterval);
+        }
+
+        function startGame() {
+            if (isGameStarted) return;
+            resetGameData();
+            isGameStarted = true;
+            document.getElementById('start-btn').style.display = 'none';
+            plant.classList.add('visible');
+            wateringCan.classList.add('moving');
+            feedback.textContent = '游戏开始！移动鼠标跟随水壶，长按浇水';
+
+            // 绑定鼠标事件
+            wateringCan.addEventListener('mouseenter', onMouseEnterCan);
+            wateringCan.addEventListener('mouseleave', onMouseLeaveCan);
+            document.addEventListener('mousedown', onMouseDown);
+            document.addEventListener('mouseup', onMouseUp);
+
+            // 触摸事件支持
+            wateringCan.addEventListener('touchstart', onTouchStart, { passive: false });
+            document.addEventListener('touchend', onMouseUp);
+        }
+
+        function onMouseEnterCan() {
+            if (!isGameStarted) return;
+            isMouseOverCan = true;
+            checkWateringCondition();
+        }
+
+        function onMouseLeaveCan() {
+            if (!isGameStarted) return;
+            isMouseOverCan = false;
+            stopWatering();
+        }
+
+        function onMouseDown(e) {
+            if (!isGameStarted) return;
+            isMouseDown = true;
+            checkWateringCondition();
+        }
+
+        function onMouseUp() {
+            isMouseDown = false;
+            stopWatering();
+        }
+
+        function onTouchStart(e) {
+            if (!isGameStarted) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const canRect = wateringCan.getBoundingClientRect();
+
+            // 检查触摸是否在水壶上
+            if (touch.clientX >= canRect.left && touch.clientX <= canRect.right &&
+                touch.clientY >= canRect.top && touch.clientY <= canRect.bottom) {
+                isMouseOverCan = true;
+                isMouseDown = true;
+                checkWateringCondition();
+            }
+        }
+
+        function checkWateringCondition() {
+            // 只有当鼠标在水壶上并且按下时才开始浇水
+            if (isMouseOverCan && isMouseDown && !isWatering) {
+                startWatering();
+            }
+        }
+
+        function startWatering() {
+            if (!isGameStarted || isWatering) return;
+
+            // 检查水壶是否在植物上方
+            const canRect = wateringCan.getBoundingClientRect();
+            const plantRect = plant.getBoundingClientRect();
+            const horizontalOverlap = canRect.left < plantRect.right && canRect.right > plantRect.left;
+            const abovePlant = canRect.bottom <= plantRect.top + 100;
+
+            if (horizontalOverlap && abovePlant) {
+                isWatering = true;
+                wateringStartTime = Date.now();
+                wateringCan.classList.add('active');
+                feedback.textContent = '正在浇水...';
+
+                // 创建浇水特效
+                waterEffectInterval = setInterval(createWaterEffect, 100);
+            } else {
+                feedback.textContent = '请将水壶移到植物上方再浇水';
+            }
+        }
+
+        function stopWatering() {
+            if (!isGameStarted || !isWatering) return;
+            isWatering = false;
+            const duration = (Date.now() - wateringStartTime) / 1000;
+            totalWateringDuration += duration;
+            wateringTime = Math.floor(totalWateringDuration);
+            interruptCount++;
+            updateStats();
+            wateringCan.classList.remove('active');
+
+            if (isMouseOverCan) {
+                feedback.textContent = '跟随水壶，长按继续浇水';
+            } else {
+                feedback.textContent = '移动鼠标跟随水壶';
+            }
+
+            clearInterval(waterEffectInterval);
+            // 清除所有水滴特效
+            document.querySelectorAll('.water-effect').forEach(drop => drop.remove());
+        }
+
+        function createWaterEffect() {
+            if (!isWatering) return;
+
+            const drop = document.createElement('div');
+            drop.className = 'water-effect';
+
+            const canRect = wateringCan.getBoundingClientRect();
+            const sceneRect = gameScene.getBoundingClientRect();
+
+            // 在水壶底部随机位置生成水滴
+            const randomX = Math.random() * 40 + 20;
+            drop.style.left = (canRect.left - sceneRect.left + randomX) + 'px';
+            drop.style.top = (canRect.bottom - sceneRect.top) + 'px';
+
+            gameScene.appendChild(drop);
+
+            // 动画结束后移除水滴
+            setTimeout(() => {
+                if (drop.parentNode) {
+                    drop.remove();
+                }
+            }, 500);
+        }
+
+        function updateProgress() {
+            progressFill.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+        }
+
+        function updateStats() {
+            document.getElementById('watering-time').textContent = wateringTime;
+            document.getElementById('interrupt-count').textContent = interruptCount;
+            document.getElementById('mistouch-count').textContent = mistouchCount;
+        }
+
+        function updatePlantStage() {
+            const stage = Math.min(Math.floor(progress / 20), 4);
+            plant.className = 'plant stage-' + stage;
+            if (isGameStarted) {
+                plant.classList.add('visible');
+            }
+        }
+
+        function gameLoop() {
+            if (!isGameStarted || !isWatering) return;
+
+            progress += progressPerSecond / 10;
+            if (progress >= 100) progress = 100;
+
+            updateProgress();
+            updatePlantStage();
+
+            if (progress >= 100) {
+                winGame();
+            }
+        }
+
+        function winGame() {
+            isGameStarted = false;
+            clearInterval(progressInterval);
+            document.getElementById('final-time').textContent = wateringTime;
+            document.getElementById('final-interrupts').textContent = interruptCount;
+            document.getElementById('success-message').classList.add('show');
+            feedback.textContent = '恭喜！植物成功开花！';
+        }
+
+        // 游戏主循环
+        setInterval(gameLoop, 100);
+    </script>
+    <!-- 专注力检测模块 -->
+    <script src="../attention-loader.js"></script>
+</body>
+
+</html>

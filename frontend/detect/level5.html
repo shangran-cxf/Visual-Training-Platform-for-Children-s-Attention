@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关卡5：红绿灯指令 - 注意力全能小侦探</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .game-area {
+            width: 800px;
+            height: 500px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .traffic-light {
+            width: 200px;
+            height: 400px;
+            background-color: #333;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .light {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #555;
+            transition: background-color 0.5s ease;
+        }
+
+        .light.red {
+            background-color: #f44336;
+        }
+
+        .light.green {
+            background-color: #4CAF50;
+        }
+
+        .instruction {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: none;
+        }
+
+        .feedback h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='index.html'" style="
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>关卡5：红绿灯指令</h1>
+            <p>当指令与红绿灯一致时点击屏幕，不一致时不要点击</p>
+        </div>
+        <div class="game-area" id="game-area">
+            <div class="progress">进度：<span id="progress">0</span>/15</div>
+            <div class="traffic-light">
+                <div class="light" id="red-light"></div>
+                <div class="light" id="green-light"></div>
+            </div>
+            <div class="instruction" id="instruction">准备就绪，点击开始按钮</div>
+            <div class="feedback" id="feedback">
+                <h3>关卡完成！</h3>
+                <p>一致指令正确率：<span id="congruent-accuracy">0%</span></p>
+                <p>不一致指令抑制正确率：<span id="incongruent-accuracy">0%</span></p>
+                <p>冲动操作次数：<span id="impulsive-count">0</span></p>
+                <button class="btn" onclick="completeDetection()">完成检测</button>
+            </div>
+        </div>
+
+    </div>
+    <script src="../utils.js"></script>
+    <script>
+        let redLight = document.getElementById('red-light');
+        let greenLight = document.getElementById('green-light');
+        let instruction = document.getElementById('instruction');
+        let gameArea = document.getElementById('game-area');
+        let isGameStarted = false;
+        let isPaused = false;
+        let currentTrial = 0;
+        let totalTrials = 15;
+        let congruentCorrect = 0;
+        let congruentTotal = 0;
+        let incongruentCorrect = 0;
+        let incongruentTotal = 0;
+        let impulsiveCount = 0;
+        let currentStimulus = null;
+        let isListening = false;
+        let gameInterval;
+
+        // 生成刺激
+        function generateStimulus() {
+            const lightOptions = ['red', 'green'];
+            const instructionOptions = ['红色', '绿色'];
+
+            const light = lightOptions[Math.floor(Math.random() * lightOptions.length)];
+            const instr = instructionOptions[Math.floor(Math.random() * instructionOptions.length)];
+            const isCongruent = (light === 'red' && instr === '红色') || (light === 'green' && instr === '绿色');
+
+            return { light, instruction: instr, isCongruent };
+        }
+
+        // 显示刺激
+        function showStimulus() {
+            if (!isGameStarted || isPaused || currentTrial >= totalTrials) return;
+
+            // 重置灯光
+            redLight.classList.remove('red');
+            greenLight.classList.remove('green');
+
+            // 生成新刺激
+            currentStimulus = generateStimulus();
+
+            // 点亮对应灯光
+            if (currentStimulus.light === 'red') {
+                redLight.classList.add('red');
+            } else {
+                greenLight.classList.add('green');
+            }
+
+            // 播放语音指令
+            isListening = true;
+            instruction.textContent = `请听指令：${currentStimulus.instruction}`;
+            AudioUtil.speak(currentStimulus.instruction, 0.9);
+
+            // 记录刺激类型
+            if (currentStimulus.isCongruent) {
+                congruentTotal++;
+            } else {
+                incongruentTotal++;
+            }
+
+            // 2秒后允许响应
+            setTimeout(() => {
+                isListening = false;
+                instruction.textContent = `请判断：${currentStimulus.instruction} - ${currentStimulus.light === 'red' ? '红灯' : '绿灯'}`;
+
+                // 5秒后自动进入下一个刺激
+                setTimeout(() => {
+                    // 检查是否应该点击但没有点击
+                    if (currentStimulus.isCongruent) {
+                        // 应该点击但没有点击，算错误
+                        congruentCorrect++;
+                    } else {
+                        // 不应该点击，算正确
+                        incongruentCorrect++;
+                    }
+
+                    currentTrial++;
+                    document.getElementById('progress').textContent = currentTrial;
+
+                    if (currentTrial < totalTrials) {
+                        showStimulus();
+                    } else {
+                        endGame();
+                    }
+                }, 5000);
+            }, 2000);
+        }
+
+        // 处理点击
+        function handleClick() {
+            if (!isGameStarted || isPaused || isListening || currentTrial >= totalTrials) return;
+
+            if (currentStimulus.isCongruent) {
+                // 正确点击
+                congruentCorrect++;
+            } else {
+                // 错误点击（冲动操作）
+                impulsiveCount++;
+            }
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (isGameStarted) return;
+
+            // 重置游戏状态
+            currentTrial = 0;
+            congruentCorrect = 0;
+            congruentTotal = 0;
+            incongruentCorrect = 0;
+            incongruentTotal = 0;
+            impulsiveCount = 0;
+
+            isGameStarted = true;
+            isPaused = false;
+
+            document.getElementById('progress').textContent = currentTrial;
+
+            // 添加点击事件
+            gameArea.addEventListener('click', handleClick);
+
+            // 开始显示刺激
+            showStimulus();
+        }
+
+        // 暂停游戏
+        function pauseGame() {
+            if (!isGameStarted) return;
+
+            isPaused = !isPaused;
+        }
+
+        // 结束游戏
+        function endGame() {
+            isGameStarted = false;
+
+            // 移除点击事件
+            gameArea.removeEventListener('click', handleClick);
+
+            // 计算结果
+            const congruentAccuracy = congruentTotal > 0 ? Math.round((congruentCorrect / congruentTotal) * 100) : 0;
+            const incongruentAccuracy = incongruentTotal > 0 ? Math.round((incongruentCorrect / incongruentTotal) * 100) : 0;
+
+            // 显示反馈
+            document.getElementById('congruent-accuracy').textContent = `${congruentAccuracy}%`;
+            document.getElementById('incongruent-accuracy').textContent = `${incongruentAccuracy}%`;
+            document.getElementById('impulsive-count').textContent = impulsiveCount;
+            document.getElementById('feedback').style.display = 'block';
+
+            // 保存数据
+            const data = {
+                inhibitory_control: (congruentAccuracy + incongruentAccuracy) / 2,
+                congruent_accuracy: congruentAccuracy,
+                incongruent_accuracy: incongruentAccuracy,
+                impulsive_count: impulsiveCount
+            };
+            StorageUtil.setItem('level5_data', data);
+        }
+
+        // 完成检测
+        function completeDetection() {
+            // 计算总得分
+            const level1Data = StorageUtil.getItem('level1_data');
+            const level2Data = StorageUtil.getItem('level2_data');
+            const level3Data = StorageUtil.getItem('level3_data');
+            const level4Data = StorageUtil.getItem('level4_data');
+            const level5Data = StorageUtil.getItem('level5_data');
+
+            if (level1Data && level2Data && level3Data && level4Data && level5Data) {
+                const totalScore = Math.round(
+                    (level1Data.selective_attention +
+                        level2Data.sustained_attention +
+                        level3Data.visual_tracking +
+                        level4Data.working_memory +
+                        level5Data.inhibitory_control) / 5
+                );
+
+                // 保存总得分
+                const detectionData = {
+                    selective_attention: level1Data.selective_attention,
+                    sustained_attention: level2Data.sustained_attention,
+                    visual_tracking: level3Data.visual_tracking,
+                    working_memory: level4Data.working_memory,
+                    inhibitory_control: level5Data.inhibitory_control,
+                    total_score: totalScore
+                };
+                StorageUtil.setItem('detection_data', detectionData);
+
+                // 将isFirstTime设置为false，这样下次登录时不会自动跳转到检测页面
+                const userInfo = StorageUtil.getItem('userInfo');
+                if (userInfo) {
+                    userInfo.isFirstTime = false;
+                    StorageUtil.setItem('userInfo', userInfo);
+                }
+
+                // 跳转到评估报告页面
+                window.location.href = '../assessment/index.html';
+            } else {
+                alert('请完成所有检测关卡');
+            }
+        }
+
+        // 页面加载时自动开始游戏
+        window.onload = function () {
+            startGame();
+        };
+    </script>
+    <!-- 专注力检测模块 -->
+    <script src="../attention-loader.js"></script>
+</body>
+
+</html>
