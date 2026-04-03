@@ -1,5 +1,6 @@
 /**
  * 可移动小球 + 专注力检测面板 + 卡通云朵提示
+ * EAR算法版：使用眼睛纵横比检测眨眼，更准确稳定
  */
 
 (function() {
@@ -21,9 +22,35 @@
         focusDuration: 0
     };
     
-    let lastBlinkTime = 0;
-    let blinkCount = 0;
-    let focusStartTime = Date.now();
+    // ========== EAR 眨眼检测变量 ==========
+    // 眼睛关键点索引 (MediaPipe 468点模型)
+    const LEFT_EYE_INDICES = [33, 160, 158, 133, 153, 144];
+    const RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380];
+    
+    let earValue = 1.0;              // 当前EAR值
+    let eyeClosedCounter = 0;        // 闭眼连续帧计数
+    let totalBlinks = 0;             // 总眨眼次数
+    let blinkTimes = [];             // 眨眼时间戳
+    let currentBlinkRate = 0;        // 当前眨眼频率（次/分）
+    let smoothBlinkRate = 0;         // 平滑后的眨眼频率
+    
+    // EAR阈值（经验值：0.25）
+    const EAR_THRESHOLD = 0.25;
+    // 最小闭眼帧数（过滤误检）
+    const MIN_CLOSED_FRAMES = 2;
+    // 统计窗口（毫秒）
+    const BLINK_WINDOW = 10000;
+    
+    // 眨眼基线相关
+    let baselineBlinkRate = null;
+    let baselineSamples = [];
+    let isBaselineCollecting = true;
+    let baselineStartTime = null;
+    const BASELINE_DURATION = 30000;
+    
+    // 专注计时变量
+    let focusStartTime = null;
+    let totalFocusDuration = 0;
     
     // 提醒状态变量
     let wasDistracted = false;
@@ -41,12 +68,294 @@
     let currentCloud = null;
     let currentTipType = null;
     
-    // 面板状态 ← 这些一定要在 init 之前
+    // 面板状态
     let isPanelOpen = false;
     let floatingBall = null;
     let panel = null;
     let panelUpdateInterval = null;
-
+    
+    // 会话统计变量
+    let sessionStartTime = null;
+    let sessionEndTime = null;
+    let sessionAttentionScores = [];
+    let sessionDistractionCount = 0;
+    let sessionBlinkRates = [];
+    let sessionIsActive = false;
+    
+    // ========== 拖拽联动变量 ==========
+    let activeDragElement = null;
+    let dragStartX = 0, dragStartY = 0;
+    let dragStartLeft = 0, dragStartTop = 0;
+    let dragStartPanelLeft = 0, dragStartPanelTop = 0;
+    let dragStartCloudLeft = 0, dragStartCloudTop = 0;
+    
+    // ========== 统一距离判断函数 ==========
+    function getDistanceStatus(faceArea) {
+        if (faceArea > 0.45) return 'too_close';
+        if (faceArea < 0.05) return 'too_far';
+        return 'normal';
+    }
+    
+    // ========== EAR 眨眼检测核心函数 ==========
+    // 计算眼睛纵横比 (EAR)
+    function calculateEAR(landmarks, eyeIndices, frameWidth, frameHeight) {
+        const points = eyeIndices.map(idx => ({
+            x: landmarks[idx].x * frameWidth,
+            y: landmarks[idx].y * frameHeight
+        }));
+        
+        // 垂直距离 A (p1-p5) 和 B (p2-p4)
+        const A = Math.hypot(points[1].x - points[5].x, points[1].y - points[5].y);
+        const B = Math.hypot(points[2].x - points[4].x, points[2].y - points[4].y);
+        // 水平距离 C (p0-p3)
+        const C = Math.hypot(points[0].x - points[3].x, points[0].y - points[3].y);
+        
+        return (A + B) / (2.0 * C);
+    }
+    
+    // 记录眨眼
+    function recordBlink() {
+        const now = Date.now();
+        totalBlinks++;
+        blinkTimes.push(now);
+        
+        // 清理超过10秒的旧记录
+        while (blinkTimes.length > 0 && blinkTimes[0] < now - BLINK_WINDOW) {
+            blinkTimes.shift();
+        }
+        
+        // 计算当前频率（次/分钟）
+        const currentRate = blinkTimes.length / (BLINK_WINDOW / 1000) * 60;
+        // 指数平滑
+        smoothBlinkRate = smoothBlinkRate === 0 ? currentRate : smoothBlinkRate * 0.6 + currentRate * 0.4;
+        currentBlinkRate = smoothBlinkRate;
+        
+        console.log(`👁️ 眨眼检测! 总次数: ${totalBlinks}, 频率: ${currentBlinkRate.toFixed(0)} 次/分`);
+        
+        return currentBlinkRate;
+    }
+    
+    // 更新EAR值并检测眨眼
+    function updateEARAndDetectBlink(landmarks, frameWidth, frameHeight) {
+        if (!landmarks || frameWidth === 0 || frameHeight === 0) return;
+        
+        try {
+            // 计算左右眼EAR
+            const leftEAR = calculateEAR(landmarks, LEFT_EYE_INDICES, frameWidth, frameHeight);
+            const rightEAR = calculateEAR(landmarks, RIGHT_EYE_INDICES, frameWidth, frameHeight);
+            earValue = (leftEAR + rightEAR) / 2;
+            
+            // 判断是否闭眼
+            if (earValue < EAR_THRESHOLD) {
+                eyeClosedCounter++;
+            } else {
+                // 如果之前有连续闭眼帧，说明完成了一次眨眼
+                if (eyeClosedCounter >= MIN_CLOSED_FRAMES) {
+                    recordBlink();
+                }
+                eyeClosedCounter = 0;
+            }
+        } catch (err) {
+            console.warn('EAR计算失败:', err);
+        }
+    }
+    
+    // 更新眨眼频率和状态（每帧调用）
+    function updateBlinkRate() {
+        const now = Date.now();
+        while (blinkTimes.length > 0 && blinkTimes[0] < now - BLINK_WINDOW) {
+            blinkTimes.shift();
+        }
+        const currentRate = blinkTimes.length / (BLINK_WINDOW / 1000) * 60;
+        smoothBlinkRate = smoothBlinkRate === 0 ? currentRate : smoothBlinkRate * 0.8 + currentRate * 0.2;
+        currentBlinkRate = smoothBlinkRate;
+        
+        // 收集基线数据
+        if (isBaselineCollecting && baselineStartTime) {
+            if (Date.now() - baselineStartTime < BASELINE_DURATION) {
+                const lastSample = baselineSamples.length > 0 ? baselineSamples[baselineSamples.length - 1].time : 0;
+                if (Date.now() - lastSample > 3000 && currentBlinkRate > 0.1) {
+                    baselineSamples.push({
+                        time: Date.now(),
+                        rate: currentBlinkRate
+                    });
+                }
+            } else if (isBaselineCollecting) {
+                isBaselineCollecting = false;
+                if (baselineSamples.length > 0) {
+                    const sum = baselineSamples.reduce((a, b) => a + b.rate, 0);
+                    baselineBlinkRate = sum / baselineSamples.length;
+                    console.log(`📊 眨眼基线已建立: ${baselineBlinkRate.toFixed(1)} 次/分`);
+                } else {
+                    baselineBlinkRate = 12;
+                    console.log(`📊 眨眼基线使用默认值: ${baselineBlinkRate} 次/分`);
+                }
+            }
+        }
+        
+        return currentBlinkRate;
+    }
+    
+    // 获取眨眼状态描述
+    function getBlinkStatus() {
+        if (isBaselineCollecting) {
+            return { text: '收集中', color: '#888', advice: '正在建立个人基线' };
+        }
+        if (!baselineBlinkRate || baselineBlinkRate === 0) {
+            return { text: '正常', color: '#4CAF50', advice: '状态良好' };
+        }
+        
+        const ratio = currentBlinkRate / baselineBlinkRate;
+        
+        if (ratio > 1.5) {
+            return { text: '偏高', color: '#FF9800', advice: '可能有点疲劳了' };
+        } else if (ratio > 1.2) {
+            return { text: '稍高', color: '#FFC107', advice: '注意休息' };
+        } else if (ratio < 0.7) {
+            return { text: '偏低', color: '#2196F3', advice: '非常专注' };
+        } else {
+            return { text: '正常', color: '#4CAF50', advice: '状态良好' };
+        }
+    }
+    
+    // ========== 会话统计 ==========
+    function startSession() {
+        sessionStartTime = Date.now();
+        sessionAttentionScores = [];
+        sessionDistractionCount = 0;
+        sessionBlinkRates = [];
+        sessionIsActive = true;
+        console.log('📊 游戏会话开始');
+    }
+    
+    function endSession() {
+        if (!sessionIsActive) return;
+        
+        sessionEndTime = Date.now();
+        sessionIsActive = false;
+        
+        const duration = (sessionEndTime - sessionStartTime) / 1000;
+        const avgAttention = sessionAttentionScores.length > 0 
+            ? sessionAttentionScores.reduce((a, b) => a + b, 0) / sessionAttentionScores.length 
+            : 0;
+        const maxAttention = sessionAttentionScores.length > 0 ? Math.max(...sessionAttentionScores) : 0;
+        const minAttention = sessionAttentionScores.length > 0 ? Math.min(...sessionAttentionScores) : 0;
+        const avgBlinkRate = sessionBlinkRates.length > 0 
+            ? sessionBlinkRates.reduce((a, b) => a + b, 0) / sessionBlinkRates.length 
+            : 0;
+        
+        let attentionLevel = '一般';
+        if (avgAttention >= 80) attentionLevel = '优秀';
+        else if (avgAttention >= 60) attentionLevel = '良好';
+        else if (avgAttention >= 40) attentionLevel = '一般';
+        else attentionLevel = '需提升';
+        
+        const report = {
+            timestamp: new Date().toISOString(),
+            duration: Math.floor(duration),
+            avgAttention: Math.round(avgAttention),
+            maxAttention: maxAttention,
+            minAttention: minAttention,
+            distractionCount: sessionDistractionCount,
+            avgBlinkRate: avgBlinkRate.toFixed(0),
+            blinkBaseline: baselineBlinkRate ? baselineBlinkRate.toFixed(0) : '未建立',
+            attentionLevel: attentionLevel,
+            totalFrames: sessionAttentionScores.length
+        };
+        
+        console.log('📊 ========== 游戏会话报告 ==========');
+        console.log(`游戏时长: ${report.duration} 秒`);
+        console.log(`平均专注度: ${report.avgAttention} 分 (${report.attentionLevel})`);
+        console.log(`最高专注度: ${report.maxAttention} 分`);
+        console.log(`最低专注度: ${report.minAttention} 分`);
+        console.log(`分心次数: ${report.distractionCount} 次`);
+        console.log(`平均眨眼频率: ${report.avgBlinkRate} 次/分`);
+        console.log(`眨眼基线: ${report.blinkBaseline} 次/分`);
+        console.log(`总帧数: ${report.totalFrames} 帧`);
+        console.log('====================================');
+        
+        const history = JSON.parse(localStorage.getItem('game_session_history') || '[]');
+        history.push(report);
+        if (history.length > 20) history.shift();
+        localStorage.setItem('game_session_history', JSON.stringify(history));
+        
+        showSessionReport(report);
+        
+        return report;
+    }
+    
+    function showSessionReport(report) {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        let levelColor = '#FF9800';
+        if (report.attentionLevel === '优秀') levelColor = '#4CAF50';
+        else if (report.attentionLevel === '良好') levelColor = '#8BC34A';
+        else if (report.attentionLevel === '需提升') levelColor = '#F44336';
+        
+        modal.innerHTML = `
+            <div style="
+                background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+                border-radius: 20px;
+                padding: 30px;
+                width: 90%;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                border: 4px solid ${levelColor};
+                animation: bounceIn 0.4s ease;
+            ">
+                <h2 style="color: ${levelColor}; margin-bottom: 20px;">📊 训练报告</h2>
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 48px; font-weight: bold; color: ${levelColor};">
+                        ${report.avgAttention}
+                    </div>
+                    <div style="color: #666;">平均专注度</div>
+                    <div style="margin-top: 10px; padding: 5px 15px; background: ${levelColor}20; border-radius: 20px; display: inline-block;">
+                        ${report.attentionLevel}
+                    </div>
+                </div>
+                <div style="text-align: left; border-top: 1px solid #eee; padding-top: 15px;">
+                    <p>⏱️ 训练时长: <strong>${report.duration}</strong> 秒</p>
+                    <p>🎯 最高专注度: <strong>${report.maxAttention}</strong> 分</p>
+                    <p>📉 最低专注度: <strong>${report.minAttention}</strong> 分</p>
+                    <p>⚠️ 分心次数: <strong>${report.distractionCount}</strong> 次</p>
+                    <p>👁️ 平均眨眼: <strong>${report.avgBlinkRate}</strong> 次/分</p>
+                    <p>📊 眨眼基线: <strong>${report.blinkBaseline}</strong> 次/分</p>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button id="close-report-btn" style="
+                        background: linear-gradient(90deg, #4caf50, #81c784);
+                        color: white;
+                        border: none;
+                        padding: 12px 30px;
+                        border-radius: 30px;
+                        font-size: 16px;
+                        cursor: pointer;
+                    ">关闭</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        document.getElementById('close-report-btn').addEventListener('click', () => {
+            modal.remove();
+        });
+    }
+    
+    // ========== 初始化 ==========
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -54,23 +363,21 @@
     }
     
     async function init() {
+        startSession();
         createFloatingBall();
         await startCamera();
         startDetection();
     }
     
-    // ==================== 云朵提示 ====================
+    // ========== 云朵提示 ==========
     function showCloudTip(message, type, persistent = false) {
-        // 如果已经是相同类型的提示，不重复创建
         if (currentTipType === type && currentCloud) return;
         
-        // 移除旧提示
         if (currentCloud) {
             currentCloud.remove();
             currentCloud = null;
         }
         
-        // 创建云朵容器
         const cloud = document.createElement('div');
         cloud.id = 'cloud-tip';
         cloud.innerHTML = `
@@ -82,9 +389,9 @@
                 min-width: 130px;
                 max-width: 220px;
                 text-align: center;
-                font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', cursive;
+                font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
                 font-size: 14px;
-                font-weight: bold;
+                font-weight: normal;
                 color: #5a4a2a;
                 box-shadow: 0 6px 16px rgba(0,0,0,0.2);
                 border: 2px solid #ffe0b5;
@@ -126,7 +433,6 @@
             </div>
         `;
         
-        // 添加动画样式
         const style = document.getElementById('cloud-style');
         if (!style) {
             const newStyle = document.createElement('style');
@@ -145,34 +451,23 @@
             document.head.appendChild(newStyle);
         }
         
-        // 获取小球位置
         const ballRect = floatingBall.getBoundingClientRect();
-        
-        // 设置云朵位置（在小球上方）
         let top = ballRect.top - 65;
         let left = ballRect.left + ballRect.width / 2 - 70;
         
-        // 边界处理
-        if (top < 10) {
-            top = ballRect.bottom + 10;
-        }
-        if (left < 10) {
-            left = 10;
-        }
-        if (left + 150 > window.innerWidth) {
-            left = window.innerWidth - 160;
-        }
+        if (top < 10) top = ballRect.bottom + 10;
+        if (left < 10) left = 10;
+        if (left + 150 > window.innerWidth) left = window.innerWidth - 160;
         
         Object.assign(cloud.style, {
             position: 'fixed',
             top: top + 'px',
             left: left + 'px',
             zIndex: '10000',
-            cursor: 'default',
-            pointerEvents: 'none'
+            cursor: 'move',
+            pointerEvents: 'auto'
         });
         
-        // 持续显示的提示添加脉冲动画
         if (persistent) {
             cloud.style.animation = 'cloudPulse 1.5s ease-in-out infinite';
         }
@@ -180,6 +475,8 @@
         document.body.appendChild(cloud);
         currentCloud = cloud;
         currentTipType = type;
+        
+        makeDraggable(cloud, 'cloud');
     }
     
     function hideCloudTip() {
@@ -190,7 +487,85 @@
         }
     }
     
-    // ==================== 小球创建 ====================
+    // ========== 拖拽联动核心函数 ==========
+    function makeDraggable(element, type = 'ball') {
+        element.addEventListener('mousedown', (e) => {
+            if (e.target !== element && !element.contains(e.target)) return;
+            
+            activeDragElement = type;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            
+            dragStartLeft = parseFloat(floatingBall.style.left) || (window.innerWidth - 70);
+            dragStartTop = parseFloat(floatingBall.style.top) || 100;
+            
+            if (panel && isPanelOpen) {
+                dragStartPanelLeft = parseFloat(panel.style.left) || (window.innerWidth - 330);
+                dragStartPanelTop = parseFloat(panel.style.top) || 100;
+            }
+            
+            if (currentCloud) {
+                dragStartCloudLeft = parseFloat(currentCloud.style.left) || (window.innerWidth - 160);
+                dragStartCloudTop = parseFloat(currentCloud.style.top) || 35;
+            }
+            
+            element.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+    }
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!activeDragElement) return;
+        
+        const deltaX = e.clientX - dragStartX;
+        const deltaY = e.clientY - dragStartY;
+        
+        let newLeft = dragStartLeft + deltaX;
+        let newTop = dragStartTop + deltaY;
+        
+        newLeft = Math.max(0, Math.min(window.innerWidth - 50, newLeft));
+        newTop = Math.max(0, Math.min(window.innerHeight - 50, newTop));
+        
+        floatingBall.style.left = newLeft + 'px';
+        floatingBall.style.top = newTop + 'px';
+        floatingBall.style.right = 'auto';
+        floatingBall.style.bottom = 'auto';
+        
+        if (panel && isPanelOpen) {
+            let panelNewLeft = dragStartPanelLeft + deltaX;
+            let panelNewTop = dragStartPanelTop + deltaY;
+            
+            panelNewLeft = Math.max(0, Math.min(window.innerWidth - 320, panelNewLeft));
+            panelNewTop = Math.max(0, Math.min(window.innerHeight - 400, panelNewTop));
+            
+            panel.style.left = panelNewLeft + 'px';
+            panel.style.top = panelNewTop + 'px';
+            panel.style.right = 'auto';
+            panel.style.bottom = 'auto';
+        }
+        
+        if (currentCloud) {
+            let cloudNewLeft = dragStartCloudLeft + deltaX;
+            let cloudNewTop = dragStartCloudTop + deltaY;
+            
+            cloudNewLeft = Math.max(0, Math.min(window.innerWidth - 150, cloudNewLeft));
+            cloudNewTop = Math.max(0, Math.min(window.innerHeight - 100, cloudNewTop));
+            
+            currentCloud.style.left = cloudNewLeft + 'px';
+            currentCloud.style.top = cloudNewTop + 'px';
+            currentCloud.style.right = 'auto';
+            currentCloud.style.bottom = 'auto';
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (activeDragElement) {
+            activeDragElement = null;
+            if (floatingBall) floatingBall.style.cursor = 'move';
+        }
+    });
+    
+    // ========== 小球创建 ==========
     function createFloatingBall() {
         floatingBall = document.createElement('div');
         floatingBall.id = 'floating-attention-ball';
@@ -203,7 +578,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                cursor: pointer;
+                cursor: move;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                 transition: all 0.3s ease;
                 position: relative;
@@ -229,7 +604,7 @@
         
         Object.assign(floatingBall.style, {
             position: 'fixed',
-            bottom: '100px',
+            top: '100px',
             right: '20px',
             zIndex: '9998',
             cursor: 'move',
@@ -241,73 +616,11 @@
             togglePanel();
         });
         
-        makeDraggable(floatingBall, true);
+        makeDraggable(floatingBall, 'ball');
         document.body.appendChild(floatingBall);
     }
     
-    function makeDraggable(element, withPanel = false) {
-        let isDragging = false;
-        let startX, startY, startLeft, startTop;
-        let panelStartLeft, panelStartTop;
-        
-        element.addEventListener('mousedown', (e) => {
-            if (e.target === element || element.contains(e.target)) {
-                isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                startLeft = element.offsetLeft;
-                startTop = element.offsetTop;
-                
-                if (withPanel && panel && isPanelOpen) {
-                    panelStartLeft = panel.offsetLeft;
-                    panelStartTop = panel.offsetTop;
-                }
-                
-                element.style.cursor = 'grabbing';
-                e.preventDefault();
-            }
-        });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            
-            let deltaX = e.clientX - startX;
-            let deltaY = e.clientY - startY;
-            
-            let newLeft = startLeft + deltaX;
-            let newTop = startTop + deltaY;
-            
-            newLeft = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, newLeft));
-            newTop = Math.max(0, Math.min(window.innerHeight - element.offsetHeight, newTop));
-            
-            element.style.left = newLeft + 'px';
-            element.style.top = newTop + 'px';
-            element.style.right = 'auto';
-            element.style.bottom = 'auto';
-            
-            if (withPanel && panel && isPanelOpen) {
-                let panelNewLeft = panelStartLeft + deltaX;
-                let panelNewTop = panelStartTop + deltaY;
-                
-                panelNewLeft = Math.max(0, Math.min(window.innerWidth - panel.offsetWidth, panelNewLeft));
-                panelNewTop = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, panelNewTop));
-                
-                panel.style.left = panelNewLeft + 'px';
-                panel.style.top = panelNewTop + 'px';
-                panel.style.right = 'auto';
-                panel.style.bottom = 'auto';
-            }
-        });
-        
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                element.style.cursor = 'move';
-            }
-        });
-    }
-    
-    // ==================== 面板 ====================
+    // ========== 面板 ==========
     function createPanel() {
         panel = document.createElement('div');
         panel.id = 'attention-panel';
@@ -374,7 +687,7 @@
                     
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                         <span>👁️ 眨眼频率</span>
-                        <span id="panel-blink-rate">0次/秒</span>
+                        <span id="panel-blink-rate">--次/分</span>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
@@ -402,53 +715,15 @@
             bottom: '170px',
             right: '20px',
             zIndex: '9999',
-            display: 'none'
+            display: 'none',
+            cursor: 'move'
         });
         
         panel.querySelector('#close-panel').addEventListener('click', () => closePanel());
         panel.querySelector('#panel-close-btn').addEventListener('click', () => closePanel());
         
-        const header = panel.querySelector('#panel-header');
-        makeDraggableElement(panel, header);
-        
+        makeDraggable(panel, 'panel');
         document.body.appendChild(panel);
-    }
-    
-    function makeDraggableElement(element, handle) {
-        let isDragging = false;
-        let startX, startY, startLeft, startTop;
-        
-        handle.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startLeft = element.offsetLeft;
-            startTop = element.offsetTop;
-            handle.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            
-            let newLeft = startLeft + (e.clientX - startX);
-            let newTop = startTop + (e.clientY - startY);
-            
-            newLeft = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, newLeft));
-            newTop = Math.max(0, Math.min(window.innerHeight - element.offsetHeight, newTop));
-            
-            element.style.left = newLeft + 'px';
-            element.style.top = newTop + 'px';
-            element.style.right = 'auto';
-            element.style.bottom = 'auto';
-        });
-        
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                handle.style.cursor = 'move';
-            }
-        });
     }
     
     function togglePanel() {
@@ -460,11 +735,11 @@
         if (!panel) createPanel();
         
         const ballRect = floatingBall.getBoundingClientRect();
-        let panelLeft = ballRect.right + 10;
+        let panelLeft = ballRect.left - 330;
         let panelTop = ballRect.top;
         
-        if (panelLeft + 320 > window.innerWidth) {
-            panelLeft = ballRect.left - 330;
+        if (panelLeft < 10) {
+            panelLeft = ballRect.right + 10;
         }
         if (panelTop + 400 > window.innerHeight) {
             panelTop = window.innerHeight - 420;
@@ -494,6 +769,7 @@
     
     function updatePanelData() {
         if (!panel) return;
+        
         panel.querySelector('#panel-score').textContent = detectionData.attentionScore + '分';
         panel.querySelector('#panel-score-bar').style.width = detectionData.attentionScore + '%';
         panel.querySelector('#panel-face-status').textContent = detectionData.isFaceDetected ? '✅ 已检测' : '❌ 未检测';
@@ -502,10 +778,24 @@
                        detectionData.headYaw < 0 ? `左转 ${Math.abs(detectionData.headYaw).toFixed(0)}°` : '正对';
         panel.querySelector('#panel-head-angle').textContent = angleText;
         
-        let distanceText = detectionData.faceArea > 0.5 ? '⚠️ 太近' : 
-                          detectionData.faceArea < 0.08 ? '⚠️ 太远' : '✅ 适中';
+        let distanceText = '--';
+        if (detectionData.isFaceDetected) {
+            const status = getDistanceStatus(detectionData.faceArea);
+            if (status === 'too_close') distanceText = '⚠️ 太近';
+            else if (status === 'too_far') distanceText = '⚠️ 太远';
+            else distanceText = '✅ 适中';
+        }
         panel.querySelector('#panel-distance').textContent = distanceText;
-        panel.querySelector('#panel-blink-rate').textContent = (detectionData.blinkRate / 60).toFixed(1) + '次/秒';
+        
+        // 眨眼频率显示
+        const blinkStatus = getBlinkStatus();
+        if (isBaselineCollecting) {
+            panel.querySelector('#panel-blink-rate').innerHTML = `收集中...`;
+        } else {
+            panel.querySelector('#panel-blink-rate').innerHTML = 
+                `<span style="color: ${blinkStatus.color}">${currentBlinkRate.toFixed(0)}次/分</span>
+                 <span style="font-size: 10px; color: #888;"> (${blinkStatus.text})</span>`;
+        }
         
         const minutes = Math.floor(detectionData.focusDuration / 60);
         const seconds = detectionData.focusDuration % 60;
@@ -578,6 +868,17 @@
     }
     
     function startDetection() {
+        // 初始化眨眼基线收集
+        baselineStartTime = Date.now();
+        isBaselineCollecting = true;
+        baselineSamples = [];
+        blinkTimes = [];
+        totalBlinks = 0;
+        currentBlinkRate = 0;
+        smoothBlinkRate = 0;
+        eyeClosedCounter = 0;
+        console.log('📊 开始收集眨眼基线数据（30秒）...');
+        
         function detect() {
             if (!isDetecting || !faceLandmarker || !videoElement) {
                 animationId = requestAnimationFrame(detect);
@@ -588,12 +889,16 @@
                 
                 if (results.faceLandmarks && results.faceLandmarks.length > 0) {
                     const landmarks = results.faceLandmarks[0];
+                    const videoWidth = videoElement.videoWidth;
+                    const videoHeight = videoElement.videoHeight;
                     
-                    // 检测到人脸时，清除无人脸提示
-                    if (isNoFaceTipShowing) {
-                        isNoFaceTipShowing = false;
-                        hideCloudTip();
+                    // ===== EAR 眨眼检测 =====
+                    if (videoWidth > 0 && videoHeight > 0) {
+                        updateEARAndDetectBlink(landmarks, videoWidth, videoHeight);
                     }
+                    
+                    // 更新眨眼频率
+                    updateBlinkRate();
                     
                     const leftCheek = landmarks[234];
                     const rightCheek = landmarks[454];
@@ -603,7 +908,7 @@
                     
                     const faceWidth = Math.abs(leftCheek.x - rightCheek.x);
                     const noseOffset = (nose.x - (leftCheek.x + rightCheek.x) / 2) / faceWidth;
-                    const yaw = noseOffset * 60;
+                    const yaw = -noseOffset * 60;
                     
                     const faceHeight = Math.abs(chin.y - forehead.y);
                     const noseYOffset = (nose.y - (forehead.y + chin.y) / 2) / faceHeight;
@@ -611,33 +916,27 @@
                     
                     const faceArea = faceWidth * faceHeight;
                     
-                    // ===== 眨眼检测 =====
-                    const leftEyeTop = landmarks[159];
-                    const leftEyeBottom = landmarks[145];
-                    const rightEyeTop = landmarks[386];
-                    const rightEyeBottom = landmarks[374];
-                    
-                    const leftDistance = Math.abs(leftEyeTop.y - leftEyeBottom.y);
-                    const rightDistance = Math.abs(rightEyeTop.y - rightEyeBottom.y);
-                    const eyeDistance = (leftDistance + rightDistance) / 2;
-                    
-                    const now = Date.now();
-                    
-                    if (eyeDistance < 0.01 && now - lastBlinkTime > 300) {
-                        blinkCount++;
-                        lastBlinkTime = now;
-                        console.log('✅ 检测到眨眼! 总次数:', blinkCount);
-                    }
-                    
-                    const elapsedMinutes = (now - focusStartTime) / 60000;
-                    const blinkRate = elapsedMinutes > 0 ? blinkCount / elapsedMinutes : 0;
-                    
                     let score = 100;
                     score -= Math.min(40, Math.abs(yaw) * 1.2);
                     score -= Math.min(30, Math.abs(pitch) * 0.8);
-                    if (faceArea > 0.5) score -= 15;
+                    if (faceArea > 0.45) score -= 15;
                     if (faceArea < 0.15) score -= 10;
                     score = Math.max(0, Math.min(100, Math.floor(score)));
+                    
+                    let currentFocusDuration = totalFocusDuration;
+                    const now = Date.now();
+                    if (score >= 80) {
+                        if (focusStartTime === null) {
+                            focusStartTime = now;
+                        }
+                        currentFocusDuration = totalFocusDuration + Math.floor((now - focusStartTime) / 1000);
+                    } else {
+                        if (focusStartTime !== null) {
+                            totalFocusDuration += Math.floor((now - focusStartTime) / 1000);
+                            focusStartTime = null;
+                        }
+                        currentFocusDuration = totalFocusDuration;
+                    }
                     
                     detectionData = {
                         attentionScore: score,
@@ -645,35 +944,38 @@
                         headYaw: yaw,
                         headPitch: pitch,
                         faceArea: faceArea,
-                        blinkRate: blinkRate,
-                        focusDuration: Math.floor((now - focusStartTime) / 1000)
+                        blinkRate: currentBlinkRate,
+                        focusDuration: currentFocusDuration
                     };
                     
-                    // ===== 云朵提醒（优先级：无人脸 > 太近 > 太远 > 转头）=====
+                    if (sessionIsActive) {
+                        sessionAttentionScores.push(detectionData.attentionScore);
+                        sessionBlinkRates.push(detectionData.blinkRate);
+                    }
+                    
                     let currentProblem = null;
                     let currentMessage = '';
                     
-                    // 1. 距离过近
-                    if (faceArea > 0.5) {
+                    const distanceStatus = getDistanceStatus(faceArea);
+                    if (distanceStatus === 'too_close') {
                         currentProblem = 'too_close';
                         currentMessage = '📏 离远一点~';
                     }
-                    // 2. 距离过远
-                    else if (faceArea < 0.08 && faceArea > 0) {
+                    else if (distanceStatus === 'too_far') {
                         currentProblem = 'too_far';
                         currentMessage = '🔍 靠近一点嘛';
                     }
-                    // 3. 视线离开屏幕
                     else if (Math.abs(yaw) > 25 || Math.abs(pitch) > 20) {
                         currentProblem = 'distracted';
                         currentMessage = '👀 看这里！';
+                        if (currentTipType !== currentProblem) {
+                            sessionDistractionCount++;
+                        }
                     }
-                    // 4. 正常，没有提示
                     else {
                         currentProblem = null;
                     }
                     
-                    // 更新提示显示
                     if (currentProblem) {
                         if (currentTipType !== currentProblem) {
                             showCloudTip(currentMessage, currentProblem, true);
@@ -688,10 +990,10 @@
                     detectionData = {
                         ...detectionData,
                         isFaceDetected: false,
-                        attentionScore: 0
+                        attentionScore: 0,
+                        faceArea: 0
                     };
                     
-                    // 检测不到人脸时提醒（最高优先级）
                     if (currentTipType !== 'no_face') {
                         showCloudTip('😊 请正对摄像头', 'no_face', true);
                     }
@@ -704,4 +1006,10 @@
         }
         detect();
     }
+    
+    window.addEventListener('beforeunload', () => {
+        if (sessionIsActive) {
+            endSession();
+        }
+    });
 })();
