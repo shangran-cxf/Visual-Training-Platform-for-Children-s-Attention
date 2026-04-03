@@ -2,7 +2,6 @@
 
 // Canvas 基础绘图工具
 const CanvasUtil = {
-    // 创建 Canvas 元素
     createCanvas: (width, height) => {
         const canvas = document.createElement('canvas');
         canvas.width = width;
@@ -10,7 +9,6 @@ const CanvasUtil = {
         return canvas;
     },
 
-    // 绘制卡通元素
     drawCartoonElement: (ctx, x, y, width, height, color, type = 'circle') => {
         ctx.fillStyle = color;
         if (type === 'circle') {
@@ -22,7 +20,6 @@ const CanvasUtil = {
         }
     },
 
-    // 绘制文本
     drawText: (ctx, text, x, y, size = 16, color = '#333') => {
         ctx.font = `${size}px Arial`;
         ctx.fillStyle = color;
@@ -34,20 +31,16 @@ const CanvasUtil = {
 
 // 事件监听工具
 const EventUtil = {
-    // 添加点击/触控事件
     addClickEvent: (element, callback) => {
         element.addEventListener('click', callback);
         element.addEventListener('touchstart', callback);
     },
 
-    // 添加键盘事件
     addKeyEvent: (callback) => {
         document.addEventListener('keydown', callback);
     },
 
-    // 视线追踪事件（模拟）
     addEyeTrackingEvent: (callback) => {
-        // 实际项目中可集成视觉模型
         document.addEventListener('mousemove', (e) => {
             callback({ x: e.clientX, y: e.clientY });
         });
@@ -56,23 +49,19 @@ const EventUtil = {
 
 // 本地存储工具
 const StorageUtil = {
-    // 存储数据
     setItem: (key, value) => {
         localStorage.setItem(key, JSON.stringify(value));
     },
 
-    // 获取数据
     getItem: (key) => {
         const value = localStorage.getItem(key);
         return value ? JSON.parse(value) : null;
     },
 
-    // 删除数据
     removeItem: (key) => {
         localStorage.removeItem(key);
     },
 
-    // 清空所有数据
     clear: () => {
         localStorage.clear();
     }
@@ -80,14 +69,12 @@ const StorageUtil = {
 
 // 音频/语音调用工具
 const AudioUtil = {
-    // 播放音频
     playAudio: (url) => {
         const audio = new Audio(url);
         audio.play();
         return audio;
     },
 
-    // 语音合成
     speak: (text, rate = 1) => {
         if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
@@ -98,7 +85,6 @@ const AudioUtil = {
         return null;
     },
 
-    // 停止语音
     stopSpeaking: () => {
         if ('speechSynthesis' in window) {
             speechSynthesis.cancel();
@@ -106,12 +92,164 @@ const AudioUtil = {
     }
 };
 
-// 导出工具函数
+// 用户状态管理工具
+const UserStateUtil = {
+    USER_INFO_KEY: 'userInfo',
+    
+    getUserInfo: () => {
+        return StorageUtil.getItem(UserStateUtil.USER_INFO_KEY);
+    },
+
+    setUserInfo: (info) => {
+        StorageUtil.setItem(UserStateUtil.USER_INFO_KEY, info);
+    },
+
+    clearUserInfo: () => {
+        StorageUtil.removeItem(UserStateUtil.USER_INFO_KEY);
+    },
+
+    getRole: () => {
+        const info = UserStateUtil.getUserInfo();
+        return info ? info.role : null;
+    },
+
+    isAdmin: () => {
+        return UserStateUtil.getRole() === 'admin';
+    },
+
+    isUser: () => {
+        return UserStateUtil.getRole() === 'user';
+    },
+
+    getMode: () => {
+        const info = UserStateUtil.getUserInfo();
+        return info ? info.mode : null;
+    },
+
+    isParentMode: () => {
+        return UserStateUtil.getMode() === 'parent';
+    },
+
+    isChildMode: () => {
+        return UserStateUtil.getMode() === 'child';
+    },
+
+    setMode: (mode) => {
+        const info = UserStateUtil.getUserInfo();
+        if (info) {
+            info.mode = mode;
+            UserStateUtil.setUserInfo(info);
+        }
+    },
+
+    getCurrentChildId: () => {
+        const info = UserStateUtil.getUserInfo();
+        return info ? info.currentChildId : null;
+    },
+
+    setCurrentChildId: (childId) => {
+        const info = UserStateUtil.getUserInfo();
+        if (info) {
+            info.currentChildId = childId;
+            UserStateUtil.setUserInfo(info);
+        }
+    },
+
+    getCurrentChildName: () => {
+        const info = UserStateUtil.getUserInfo();
+        return info ? info.currentChildName : null;
+    },
+
+    setCurrentChildName: (name) => {
+        const info = UserStateUtil.getUserInfo();
+        if (info) {
+            info.currentChildName = name;
+            UserStateUtil.setUserInfo(info);
+        }
+    },
+
+    getChildren: () => {
+        const info = UserStateUtil.getUserInfo();
+        return info ? info.children : [];
+    },
+
+    selectChild: (childId, childName) => {
+        const info = UserStateUtil.getUserInfo();
+        if (info) {
+            info.currentChildId = childId;
+            info.currentChildName = childName;
+            info.mode = 'child';
+            UserStateUtil.setUserInfo(info);
+        }
+    },
+
+    switchToParentMode: () => {
+        UserStateUtil.setMode('parent');
+    },
+
+    switchToChildMode: (childId, childName) => {
+        UserStateUtil.selectChild(childId, childName);
+    },
+
+    isLoggedIn: () => {
+        return UserStateUtil.getUserInfo() !== null;
+    },
+
+    requireLogin: (redirectUrl = 'login.html') => {
+        if (!UserStateUtil.isLoggedIn()) {
+            window.location.href = redirectUrl;
+            return false;
+        }
+        return true;
+    },
+
+    requireChildMode: (redirectUrl = 'child-home.html') => {
+        if (!UserStateUtil.isChildMode()) {
+            window.location.href = redirectUrl;
+            return false;
+        }
+        return true;
+    },
+
+    requireParentMode: (redirectUrl = 'profile.html') => {
+        if (!UserStateUtil.isParentMode()) {
+            window.location.href = redirectUrl;
+            return false;
+        }
+        return true;
+    },
+
+    requireAdmin: (redirectUrl = 'index.html') => {
+        if (!UserStateUtil.isAdmin()) {
+            window.location.href = redirectUrl;
+            return false;
+        }
+        return true;
+    },
+
+    initFromLoginResponse: (response) => {
+        const userInfo = {
+            userId: response.parent_id || response.user_id,
+            uid: response.uid,
+            username: response.username,
+            email: response.email,
+            role: response.role,
+            children: response.children || [],
+            mode: null,
+            currentChildId: null,
+            currentChildName: null
+        };
+        UserStateUtil.setUserInfo(userInfo);
+        return userInfo;
+    }
+};
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         CanvasUtil,
         EventUtil,
         StorageUtil,
-        AudioUtil
+        AudioUtil,
+        UserStateUtil
     };
 }

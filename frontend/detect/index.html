@@ -1055,7 +1055,15 @@
         </div>
     </main>
 
+    <script src="../utils.js"></script>
     <script>
+        function initPage() {
+            if (!UserStateUtil.isLoggedIn()) {
+                window.location.href = '../login.html';
+                return;
+            }
+        }
+
         // 开始游戏
         function startLevel(level) {
             // 记录游戏开始时间
@@ -1068,6 +1076,7 @@
 
         // 鼠标悬停自动滚动功能和箭头显示/隐藏逻辑
         document.addEventListener('DOMContentLoaded', function () {
+            initPage();
             const levelsContainer = document.getElementById('levelsContainer');
             const leftArrow = document.getElementById('leftArrow');
             const rightArrow = document.getElementById('rightArrow');

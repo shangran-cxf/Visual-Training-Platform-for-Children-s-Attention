@@ -945,12 +945,11 @@
     <script src="utils.js"></script>
     <script>
         function checkAuth() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || (userInfo.role !== 'parent' && userInfo.role !== 'admin')) {
+            if (!UserStateUtil.isLoggedIn()) {
                 window.location.href = 'login.html';
                 return null;
             }
-            return userInfo;
+            return UserStateUtil.getUserInfo();
         }
 
         function toggleSidebar() {
@@ -1445,7 +1444,7 @@
         window.onload = function () {
             const userInfo = checkAuth();
             if (userInfo) {
-                if (userInfo.role !== 'admin') {
+                if (!UserStateUtil.isAdmin()) {
                     window.location.href = 'profile.html';
                     return;
                 }

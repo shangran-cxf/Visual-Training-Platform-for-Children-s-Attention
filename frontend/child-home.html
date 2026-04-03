@@ -1379,13 +1379,8 @@
     // 检查密码
     function checkPassword() {
       const password = document.getElementById('parent-password').value;
-      const userInfo = StorageUtil.getItem('userInfo');
       if (password === '123456') {
-        if (userInfo) {
-          userInfo.original_role = userInfo.role;
-          userInfo.role = 'parent';
-          StorageUtil.setItem('userInfo', userInfo);
-        }
+        UserStateUtil.switchToParentMode();
         window.location.href = 'profile.html';
       } else {
         alert('密码错误，请重试！');
@@ -1438,16 +1433,21 @@
 
     // 页面加载时检查用户登录状态
     window.onload = function () {
-      const userInfo = StorageUtil.getItem('userInfo');
-      if (!userInfo || userInfo.role !== 'child') {
+      if (!UserStateUtil.isLoggedIn()) {
         window.location.href = 'login.html';
+        return;
+      }
+
+      if (!UserStateUtil.isChildMode()) {
+        window.location.href = 'profile.html';
         return;
       }
 
       // 更新欢迎标语中的孩子名字
       const childNameElement = document.getElementById('child-name');
-      if (childNameElement && userInfo.username) {
-        childNameElement.textContent = userInfo.username + '同学';
+      const childName = UserStateUtil.getCurrentChildName();
+      if (childNameElement && childName) {
+        childNameElement.textContent = childName + '同学';
       }
 
       // 默认显示选择性注意分类

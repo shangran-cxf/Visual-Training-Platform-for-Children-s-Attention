@@ -1343,7 +1343,18 @@
     </div>
   </main>
 
+  <script src="utils.js"></script>
   <script>
+    let currentChildId = null;
+
+    function initPage() {
+      if (!UserStateUtil.isChildMode()) {
+        window.location.href = 'child-home.html';
+        return;
+      }
+      currentChildId = UserStateUtil.getCurrentChildId();
+    }
+
     // 从localStorage读取训练数据
     function getTrainingData() {
       const data = JSON.parse(localStorage.getItem('trainingData') || '{}');
@@ -1539,6 +1550,7 @@
 
     // 页面加载初始化
     window.addEventListener('DOMContentLoaded', () => {
+      initPage();
       // 显示今日训练时间
       const totalTimeEl = document.getElementById('total-time');
       if (totalTimeEl) {

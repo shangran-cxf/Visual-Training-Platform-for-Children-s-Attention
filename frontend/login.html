@@ -446,17 +446,8 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    const userInfo = {
-                        parent_id: result.parent_id,
-                        uid: result.uid,
-                        username: result.username,
-                        email: result.email,
-                        serverRole: result.role,
-                        children: result.children,
-                        password: password
-                    };
-
-                    showRoleSelection(userInfo);
+                    const userInfo = UserStateUtil.initFromLoginResponse(result);
+                    showModeSelection(userInfo);
                 } else {
                     errorMessage.textContent = result.error || '用户名或密码错误';
                 }
@@ -466,7 +457,7 @@
             }
         }
 
-        function showRoleSelection(userInfo) {
+        function showModeSelection(userInfo) {
             const overlay = document.createElement('div');
             overlay.className = 'role-selection-overlay';
 
@@ -474,14 +465,14 @@
             selectionCard.className = 'role-selection-card';
 
             selectionCard.innerHTML = `
-                <h2 style="color: #667eea; margin-bottom: 30px; text-align: center; font-weight: 600;">选择角色</h2>
+                <h2 style="color: #667eea; margin-bottom: 30px; text-align: center; font-weight: 600;">选择模式</h2>
                 <div class="role-options">
-                    <div class="role-option" data-role="parent">
-                        <h4>👨‍👩‍👧 家长</h4>
+                    <div class="role-option" data-mode="parent">
+                        <h4>👨‍👩‍👧 家长模式</h4>
                         <p>查看报告和管理</p>
                     </div>
-                    <div class="role-option" data-role="child">
-                        <h4>👧 孩子</h4>
+                    <div class="role-option" data-mode="child">
+                        <h4>👧 孩子模式</h4>
                         <p>进入游戏和训练</p>
                     </div>
                 </div>
@@ -490,27 +481,25 @@
             overlay.appendChild(selectionCard);
             document.body.appendChild(overlay);
 
-            const roleOptions = selectionCard.querySelectorAll('.role-option');
-            roleOptions.forEach(option => {
+            const modeOptions = selectionCard.querySelectorAll('.role-option');
+            modeOptions.forEach(option => {
                 option.addEventListener('click', function () {
-                    const selectedRole = this.dataset.role;
+                    const selectedMode = this.dataset.mode;
 
-                    if (selectedRole === 'child') {
+                    if (selectedMode === 'child') {
                         if (userInfo.children && userInfo.children.length > 0) {
                             showChildSelection(userInfo, overlay, selectionCard);
                         } else {
                             alert('您还没有添加孩子信息，请先在家长端添加');
                         }
                     } else {
-                        const serverRole = userInfo.serverRole || userInfo.role;
-                        if (serverRole === 'admin') {
-                            userInfo.role = 'admin';
-                        } else {
-                            userInfo.role = 'parent';
-                        }
-                        StorageUtil.setItem('userInfo', userInfo);
+                        UserStateUtil.switchToParentMode();
                         document.body.removeChild(overlay);
-                        window.location.href = 'profile.html';
+                        if (userInfo.role === 'admin') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'profile.html';
+                        }
                     }
                 });
             });
@@ -521,36 +510,30 @@
                 <h2 style="color: #667eea; margin-bottom: 30px; text-align: center; font-weight: 600;">选择孩子</h2>
                 <div class="child-selection">
                     ${userInfo.children.map(child => `
-                        <div class="child-item" data-child-id="${child.id}" data-child-name="${child.name}" data-child-age="${child.age}">
+                        <div class="child-item" data-child-id="${child.id}" data-child-name="${child.name}">
                             <strong>${child.name}</strong>
                             <span style="color: #666; margin-left: 10px;">${child.age}岁</span>
                         </div>
                     `).join('')}
                 </div>
-                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="backToRoleSelection()">返回</button>
+                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="backToModeSelection()">返回</button>
             `;
 
             const childItems = selectionCard.querySelectorAll('.child-item');
             childItems.forEach(item => {
                 item.addEventListener('click', function () {
-                    const childId = this.dataset.childId;
+                    const childId = parseInt(this.dataset.childId);
                     const childName = this.dataset.childName;
-                    const childAge = this.dataset.childAge;
 
-                    userInfo.role = 'child';
-                    userInfo.child_id = parseInt(childId);
-                    userInfo.child_name = childName;
-                    userInfo.child_age = parseInt(childAge);
-
-                    StorageUtil.setItem('userInfo', userInfo);
+                    UserStateUtil.switchToChildMode(childId, childName);
                     document.body.removeChild(overlay);
                     window.location.href = 'child-home.html';
                 });
             });
 
-            window.backToRoleSelection = function () {
+            window.backToModeSelection = function () {
                 document.body.removeChild(overlay);
-                showRoleSelection(userInfo);
+                showModeSelection(userInfo);
             };
         }
     </script>

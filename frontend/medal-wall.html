@@ -1045,7 +1045,18 @@
     </div>
   </main>
 
+  <script src="utils.js"></script>
   <script>
+    let currentChildId = null;
+
+    function initPage() {
+      if (!UserStateUtil.isLoggedIn()) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentChildId = UserStateUtil.getCurrentChildId();
+    }
+
     // 勋章点击交互
     document.querySelectorAll('.medal-item').forEach(item => {
       item.addEventListener('click', () => {
@@ -1183,6 +1194,7 @@
 
     // 点击弹窗外部关闭
     document.addEventListener('DOMContentLoaded', function () {
+      initPage();
       const modal = document.getElementById('parent-login-modal');
       if (modal) {
         modal.addEventListener('click', (e) => {
