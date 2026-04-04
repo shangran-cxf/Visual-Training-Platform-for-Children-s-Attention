@@ -1377,14 +1377,46 @@
     }
 
     // 检查密码
-    function checkPassword() {
+    async function checkPassword() {
       const password = document.getElementById('parent-password').value;
-      if (password === '123456') {
-        UserStateUtil.switchToParentMode();
-        window.location.href = 'profile.html';
-      } else {
-        alert('密码错误，请重试！');
-        document.getElementById('parent-password').value = '';
+      const userInfo = UserStateUtil.getUserInfo();
+      const parentId = userInfo ? userInfo.parent_id : null;
+      
+      if (!parentId) {
+        alert('用户信息丢失，请重新登录');
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      if (!password) {
+        alert('请输入密码');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            parent_id: parentId,
+            password: password
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.valid) {
+          UserStateUtil.switchToParentMode();
+          window.location.href = 'profile.html';
+        } else {
+          alert(data.error || '密码错误，请重试！');
+          document.getElementById('parent-password').value = '';
+        }
+      } catch (error) {
+        console.error('密码验证失败:', error);
+        alert('网络错误，请稍后重试');
       }
     }
 
