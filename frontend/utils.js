@@ -92,7 +92,14 @@ const AudioUtil = {
     }
 };
 
-// 用户状态管理工具
+/**
+ * 用户状态管理工具
+ * 
+ * 重要说明：
+ * - 身份认证只验证 role（admin/user），不验证 mode
+ * - mode（parent/child）是用户状态，用于区分当前使用模式
+ * - mode 不应用于页面访问权限判断
+ */
 const UserStateUtil = {
     USER_INFO_KEY: 'userInfo',
     
@@ -108,6 +115,8 @@ const UserStateUtil = {
         StorageUtil.removeItem(UserStateUtil.USER_INFO_KEY);
     },
 
+    // ========== 身份认证相关（用于权限判断）==========
+    
     getRole: () => {
         const info = UserStateUtil.getUserInfo();
         return info ? info.role : null;
@@ -121,6 +130,12 @@ const UserStateUtil = {
         return UserStateUtil.getRole() === 'user';
     },
 
+    isLoggedIn: () => {
+        return UserStateUtil.getUserInfo() !== null;
+    },
+
+    // ========== 用户状态相关（不用于权限判断）==========
+    
     getMode: () => {
         const info = UserStateUtil.getUserInfo();
         return info ? info.mode : null;
@@ -191,28 +206,10 @@ const UserStateUtil = {
         UserStateUtil.selectChild(childId, childName);
     },
 
-    isLoggedIn: () => {
-        return UserStateUtil.getUserInfo() !== null;
-    },
+    // ========== 权限验证函数（只验证登录和 role）==========
 
     requireLogin: (redirectUrl = 'login.html') => {
         if (!UserStateUtil.isLoggedIn()) {
-            window.location.href = redirectUrl;
-            return false;
-        }
-        return true;
-    },
-
-    requireChildMode: (redirectUrl = 'child-home.html') => {
-        if (!UserStateUtil.isChildMode()) {
-            window.location.href = redirectUrl;
-            return false;
-        }
-        return true;
-    },
-
-    requireParentMode: (redirectUrl = 'profile.html') => {
-        if (!UserStateUtil.isParentMode()) {
             window.location.href = redirectUrl;
             return false;
         }
@@ -228,8 +225,10 @@ const UserStateUtil = {
     },
 
     initFromLoginResponse: (response) => {
+        console.log('登录响应:', response);
         const userInfo = {
-            userId: response.parent_id || response.user_id,
+            parent_id: response.parent_id || response.user_id || response.id,
+            userId: response.parent_id || response.user_id || response.id,
             uid: response.uid,
             username: response.username,
             email: response.email,
@@ -239,6 +238,7 @@ const UserStateUtil = {
             currentChildId: null,
             currentChildName: null
         };
+        console.log('存储的用户信息:', userInfo);
         UserStateUtil.setUserInfo(userInfo);
         return userInfo;
     }

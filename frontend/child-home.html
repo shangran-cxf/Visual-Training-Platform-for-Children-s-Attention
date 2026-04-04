@@ -1093,7 +1093,7 @@
   <main class="main-content">
     <!-- 顶部欢迎区 -->
     <header class="top-section">
-      <div class="welcome-text">欢迎回来，<span id="child-name">小明同学</span> 继续训练吧！</div>
+      <div class="welcome-text">欢迎回来<span id="child-name"></span>，继续训练吧！</div>
     </header>
 
     <!-- 训练标题 -->
@@ -1433,13 +1433,9 @@
 
     // 页面加载时检查用户登录状态
     window.onload = function () {
+      // 身份认证只验证登录状态，不验证 mode
       if (!UserStateUtil.isLoggedIn()) {
         window.location.href = 'login.html';
-        return;
-      }
-
-      if (!UserStateUtil.isChildMode()) {
-        window.location.href = 'profile.html';
         return;
       }
 
@@ -1447,7 +1443,7 @@
       const childNameElement = document.getElementById('child-name');
       const childName = UserStateUtil.getCurrentChildName();
       if (childNameElement && childName) {
-        childNameElement.textContent = childName + '同学';
+        childNameElement.textContent = childName;
       }
 
       // 默认显示选择性注意分类

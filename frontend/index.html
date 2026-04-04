@@ -504,16 +504,6 @@
         rightSection.addEventListener('mouseenter', () => setLayoutState('right'));
         rightSection.addEventListener('mouseleave', () => setLayoutState('default'));
 
-        window.onload = function () {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (userInfo) {
-                if (userInfo.role === 'child') {
-                    window.location.href = 'child-home.html';
-                } else if (userInfo.role === 'parent') {
-                    window.location.href = 'profile.html';
-                }
-            }
-        };
     </script>
 </body>
 

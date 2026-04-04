@@ -1348,8 +1348,9 @@
     let currentChildId = null;
 
     function initPage() {
-      if (!UserStateUtil.isChildMode()) {
-        window.location.href = 'child-home.html';
+      // 身份认证只验证登录状态，不验证 mode
+      if (!UserStateUtil.isLoggedIn()) {
+        window.location.href = 'login.html';
         return;
       }
       currentChildId = UserStateUtil.getCurrentChildId();

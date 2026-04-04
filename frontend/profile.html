@@ -482,6 +482,79 @@
             margin-top: 4px;
         }
 
+         .children-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-add-child, .btn-delete-child {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-child {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .btn-add-child:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-delete-child {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+
+        .btn-delete-child:hover {
+            background: #ffebee;
+            color: #f44336;
+            border-color: #f44336;
+        }
+
+        .child-item-with-delete {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .child-item-with-delete:last-child {
+            margin-bottom: 0;
+        }
+
+        .child-info {
+            flex: 1;
+        }
+
+        .child-delete-btn {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .child-delete-btn:hover {
+            background: #ffebee;
+            color: #f44336;
+        }
+
         .report-buttons {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -600,7 +673,6 @@
             <li><a href="knowledge.html">科普知识</a></li>
             <li><a href="forum.html">家长论坛</a></li>
             <li><a href="profile.html" class="active">个人中心</a></li>
-            <li id="admin-nav-item" style="display: none;"><a href="admin.html">管理</a></li>
             <li><a href="#" onclick="switchToChild()">切换到孩子端</a></li>
             <li><a href="login.html" onclick="logout()">退出登录</a></li>
         </ul>
@@ -693,6 +765,10 @@
                     <div class="empty-state-text">暂无孩子信息</div>
                 </div>
             </div>
+            <div class="children-actions">
+                <button class="btn-add-child" onclick="showAddChildModal()">+ 添加儿童</button>
+                <button class="btn-delete-child" onclick="showDeleteChildModal()">删除儿童</button>
+            </div>
         </div>
 
         <div class="info-section" id="reports-section">
@@ -741,6 +817,7 @@
     <script src="utils.js"></script>
     <script>
         let currentUserInfo = null;
+        let deleteMode = false;
 
         function logout() {
             StorageUtil.removeItem('userInfo');
@@ -748,18 +825,15 @@
 
         function switchToChild() {
             const userInfo = UserStateUtil.getUserInfo();
-            if (userInfo) {
-                UserStateUtil.switchToChildMode(userInfo.currentChildId, userInfo.currentChildName);
+            if (userInfo && userInfo.children && userInfo.children.length > 0) {
+                UserStateUtil.switchToChildMode(userInfo.children[0].id, userInfo.children[0].name);
                 window.location.href = 'child-home.html';
             }
         }
 
         function checkAuth() {
+            // 身份认证只验证登录状态，不验证 mode
             if (!UserStateUtil.isLoggedIn()) {
-                window.location.href = 'login.html';
-                return null;
-            }
-            if (!UserStateUtil.isParentMode() && !UserStateUtil.isAdmin()) {
                 window.location.href = 'login.html';
                 return null;
             }
@@ -775,12 +849,28 @@
             document.getElementById('profile-uid').textContent = userInfo.uid || '-';
             document.getElementById('info-username').textContent = userInfo.username || '-';
 
-            if (UserStateUtil.isAdmin()) {
-                document.getElementById('admin-nav-item').style.display = 'inline';
-            }
-
             try {
-                const response = await fetch(`/api/user/info?parent_id=${userInfo.parent_id}`);
+                const parentId = userInfo.parent_id || userInfo.userId;
+                if (!parentId) {
+                    console.warn('无法获取用户ID');
+                    document.getElementById('profile-username').textContent = userInfo.username || '-';
+                    document.getElementById('info-username').textContent = userInfo.username || '-';
+                    const initial = (userInfo.username || 'U').charAt(0).toUpperCase();
+                    document.getElementById('avatar-initial').textContent = initial;
+                    return;
+                }
+
+                const response = await fetch(`/api/user/info?parent_id=${parentId}`);
+                
+                if (!response.ok) {
+                    console.warn('API返回错误:', response.status);
+                    document.getElementById('profile-username').textContent = userInfo.username || '-';
+                    document.getElementById('info-username').textContent = userInfo.username || '-';
+                    const initial = (userInfo.username || 'U').charAt(0).toUpperCase();
+                    document.getElementById('avatar-initial').textContent = initial;
+                    return;
+                }
+
                 const data = await response.json();
 
                 document.getElementById('profile-username').textContent = data.username || userInfo.username || '-';
@@ -800,6 +890,8 @@
                 }
             } catch (err) {
                 console.error('获取用户信息失败:', err);
+                document.getElementById('profile-username').textContent = userInfo.username || '-';
+                document.getElementById('info-username').textContent = userInfo.username || '-';
                 const initial = (userInfo.username || 'U').charAt(0).toUpperCase();
                 document.getElementById('avatar-initial').textContent = initial;
             }
@@ -810,7 +902,7 @@
             if (!userInfo) return;
 
             try {
-                const response = await fetch(`/api/user/level/${userInfo.parent_id}`);
+                const response = await fetch(`/api/user/level/${userInfo.parent_id || userInfo.userId}`);
                 const data = await response.json();
 
                 document.getElementById('stat-posts').textContent = data.post_count || 0;
@@ -829,7 +921,7 @@
             const container = document.getElementById('my-posts-list');
 
             try {
-                const response = await fetch(`/api/user/posts/${userInfo.parent_id}`);
+                const response = await fetch(`/api/user/posts/${userInfo.parent_id || userInfo.userId}`);
                 const posts = await response.json();
 
                 if (posts && posts.length > 0) {
@@ -869,7 +961,7 @@
             const container = document.getElementById('my-favorites-list');
 
             try {
-                const response = await fetch(`/api/forum/favorites/${userInfo.parent_id}`);
+                const response = await fetch(`/api/forum/favorites/${userInfo.parent_id || userInfo.userId}`);
                 const favorites = await response.json();
 
                 if (favorites && favorites.length > 0) {
@@ -902,25 +994,181 @@
             }
         }
 
-        function loadChildrenInfo() {
+        async function loadChildrenInfo() {
             const userInfo = UserStateUtil.getUserInfo();
             if (!userInfo) return;
 
             const container = document.getElementById('children-list');
 
-            if (userInfo.children && userInfo.children.length > 0) {
-                container.innerHTML = userInfo.children.map(child => `
-                    <div class="child-item">
-                        <div class="child-name">${child.name}</div>
-                        <div class="child-age">${child.age}岁</div>
+            try {
+                const response = await fetch(`/api/children/${userInfo.parent_id || userInfo.userId}`);
+                const children = await response.json();
+
+                if (children && children.length > 0) {
+                    userInfo.children = children;
+                    UserStateUtil.setUserInfo(userInfo);
+                    
+                    if (deleteMode) {
+                        container.innerHTML = children.map(child => `
+                            <div class="child-item-with-delete">
+                                <div class="child-info">
+                                    <div class="child-name">${child.name}</div>
+                                    <div class="child-age">${child.age}岁</div>
+                                </div>
+                                <button class="child-delete-btn" onclick="deleteChild(${child.id})">×</button>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = children.map(child => `
+                            <div class="child-item">
+                                <div class="child-name">${child.name}</div>
+                                <div class="child-age">${child.age}岁</div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-text">暂无孩子信息</div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('获取孩子信息失败:', err);
+                if (userInfo.children && userInfo.children.length > 0) {
+                    if (deleteMode) {
+                        container.innerHTML = userInfo.children.map(child => `
+                            <div class="child-item-with-delete">
+                                <div class="child-info">
+                                    <div class="child-name">${child.name}</div>
+                                    <div class="child-age">${child.age}岁</div>
+                                </div>
+                                <button class="child-delete-btn" onclick="deleteChild(${child.id})">×</button>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = userInfo.children.map(child => `
+                            <div class="child-item">
+                                <div class="child-name">${child.name}</div>
+                                <div class="child-age">${child.age}岁</div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-text">暂无孩子信息</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function showAddChildModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'add-child-modal';
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-title">添加儿童</div>
+                    <div class="form-group">
+                        <label for="child-name-input">孩子姓名</label>
+                        <input type="text" id="child-name-input" placeholder="请输入孩子姓名">
                     </div>
-                `).join('');
-            } else {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-text">暂无孩子信息</div>
+                    <div class="form-group">
+                        <label for="child-age-input">孩子年龄</label>
+                        <input type="number" id="child-age-input" placeholder="请输入孩子年龄" min="6" max="12">
                     </div>
-                `;
+                    <div class="modal-buttons">
+                        <button class="btn btn-secondary" onclick="closeAddChildModal()">取消</button>
+                        <button class="btn btn-primary" onclick="addChild()">添加</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function closeAddChildModal() {
+            const modal = document.getElementById('add-child-modal');
+            if (modal) modal.remove();
+        }
+
+        async function addChild() {
+            const name = document.getElementById('child-name-input').value.trim();
+            const age = document.getElementById('child-age-input').value;
+
+            if (!name) {
+                alert('请输入孩子姓名');
+                return;
+            }
+
+            if (!age || age < 6 || age > 12) {
+                alert('请输入正确的年龄（6-12岁）');
+                return;
+            }
+
+            const userInfo = UserStateUtil.getUserInfo();
+            if (!userInfo) return;
+
+            try {
+                const response = await fetch('/api/children', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id || userInfo.userId,
+                        name: name,
+                        age: parseInt(age)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('添加成功');
+                    closeAddChildModal();
+                    loadChildrenInfo();
+                } else {
+                    alert(result.error || '添加失败');
+                }
+            } catch (err) {
+                console.error('添加孩子失败:', err);
+                alert('添加失败，请稍后再试');
+            }
+        }
+
+        function showDeleteChildModal() {
+            const userInfo = UserStateUtil.getUserInfo();
+            if (!userInfo) return;
+
+            if (!userInfo.children || userInfo.children.length === 0) {
+                alert('暂无孩子信息可删除');
+                return;
+            }
+
+            deleteMode = !deleteMode;
+            loadChildrenInfo();
+        }
+
+        async function deleteChild(childId) {
+            if (!confirm('确定要删除这个孩子吗？')) return;
+
+            try {
+                const response = await fetch(`/api/children/${childId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('删除成功');
+                    deleteMode = false;
+                    loadChildrenInfo();
+                } else {
+                    alert(result.error || '删除失败');
+                }
+            } catch (err) {
+                console.error('删除孩子失败:', err);
+                alert('删除失败，请稍后再试');
             }
         }
 
@@ -955,7 +1203,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
+                        parent_id: userInfo.parent_id || userInfo.userId,
                         avatar: avatarUrl
                     })
                 });
@@ -1017,7 +1265,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
+                        parent_id: userInfo.parent_id || userInfo.userId,
                         old_password: oldPassword,
                         new_password: newPassword
                     })

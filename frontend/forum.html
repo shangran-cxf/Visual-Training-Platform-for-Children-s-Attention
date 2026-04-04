@@ -847,7 +847,6 @@
             <li><a href="knowledge.html">科普知识</a></li>
             <li><a href="forum.html" class="active">家长论坛</a></li>
             <li><a href="profile.html">个人中心</a></li>
-            <li id="admin-nav-item" style="display: none;"><a href="admin.html">管理</a></li>
             <li><a href="#" onclick="switchToChild()">切换到孩子端</a></li>
             <li><a href="login.html" onclick="logout()">退出登录</a></li>
         </ul>
@@ -947,9 +946,10 @@
 
         function switchToChild() {
             const userInfo = StorageUtil.getItem('userInfo');
-            if (userInfo) {
-                userInfo.original_role = userInfo.role;
-                userInfo.role = 'child';
+            if (userInfo && userInfo.children && userInfo.children.length > 0) {
+                userInfo.mode = 'child';
+                userInfo.currentChildId = userInfo.children[0].id;
+                userInfo.currentChildName = userInfo.children[0].name;
                 StorageUtil.setItem('userInfo', userInfo);
                 window.location.href = 'child-home.html';
             }
@@ -957,7 +957,7 @@
 
         function checkAuth() {
             const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || (userInfo.role !== 'parent' && userInfo.role !== 'admin')) {
+            if (!userInfo) {
                 window.location.href = 'login.html';
                 return null;
             }
@@ -1071,7 +1071,7 @@
                         const isPinned = post.is_pinned === 1;
                         const isEssential = post.is_essential === 1;
                         
-                        const isAdmin = userInfo && (userInfo.role === 'admin' || userInfo.original_role === 'admin');
+                        const isAdmin = userInfo && userInfo.role === 'admin';
                         const isAuthor = userInfo && userInfo.parent_id === post.parent_id;
                         const canEditDelete = isAuthor || isAdmin;
                         
@@ -1573,9 +1573,6 @@
         window.onload = function () {
             const userInfo = checkAuth();
             if (userInfo) {
-                if (userInfo.original_role === 'admin' || userInfo.role === 'admin') {
-                    document.getElementById('admin-nav-item').style.display = 'inline';
-                }
                 loadCategories();
                 loadPosts(1);
                 loadHotPosts();

@@ -151,15 +151,10 @@ const ParentComponents = {
             return `<li><a href="${page.href}" class="${activeClass}">${page.name}</a></li>`;
         }).join('');
 
-        const userInfo = StorageUtil.getItem('userInfo');
-        const isAdmin = userInfo && userInfo.role === 'admin';
-        const adminItem = isAdmin ? '<li><a href="admin.html">管理</a></li>' : '';
-
         return `
             <nav class="nav">
                 <ul>
                     ${navItems}
-                    ${adminItem}
                     <li><a href="#" onclick="ParentComponents.switchToChild()">切换到孩子端</a></li>
                     <li><a href="login.html" onclick="ParentComponents.logout()">退出登录</a></li>
                 </ul>
@@ -181,8 +176,10 @@ const ParentComponents = {
 
     switchToChild: function () {
         const userInfo = StorageUtil.getItem('userInfo');
-        if (userInfo) {
-            userInfo.role = 'child';
+        if (userInfo && userInfo.children && userInfo.children.length > 0) {
+            userInfo.mode = 'child';
+            userInfo.currentChildId = userInfo.children[0].id;
+            userInfo.currentChildName = userInfo.children[0].name;
             StorageUtil.setItem('userInfo', userInfo);
             window.location.href = 'child-home.html';
         }
@@ -190,7 +187,7 @@ const ParentComponents = {
 
     checkAuth: function () {
         const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo || (userInfo.role !== 'parent' && userInfo.role !== 'admin')) {
+        if (!userInfo) {
             window.location.href = 'login.html';
             return null;
         }
