@@ -3,7 +3,8 @@ import json
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from database import execute_db
-from config import GAME_TYPES, SCORING_WEIGHTS
+from config import GAME_TYPES, SCORING_WEIGHTS, DEFAULT_GAME_DATA
+from analytics.scoring import calculate_score, calculate_vision_scores, get_performance_level
 
 data_collector_bp = Blueprint('data_collector', __name__)
 
@@ -54,46 +55,127 @@ def get_session_info(session_id):
     return None
 
 def calculate_session_summary(session_id, child_id, game_type, final_score, total_accuracy):
-    game_data = execute_db('''
-        SELECT score, accuracy, level FROM game_raw_data 
+    game_config = GAME_TYPES.get(game_type, {})
+    attention_type = game_config.get('attention_type', 'selective')
+    
+    game_data_rows = execute_db('''
+        SELECT score, accuracy, level, time, correct, error, miss, leave, obstacle,
+               total_target, total_step, total_click, total_trial, memory_load,
+               order_error, late_error_ratio, mean_rt, reaction_times
+        FROM game_raw_data 
         WHERE session_id = ? ORDER BY timestamp
     ''', (session_id,))
     
-    total_score = final_score or 0
-    total_errors = 0
-    levels_completed = set()
+    aggregated_game_data = {
+        'time': 0,
+        'correct': 0,
+        'error': 0,
+        'miss': 0,
+        'leave': 0,
+        'obstacle': 0,
+        'total_target': 1,
+        'total_step': 1,
+        'total_click': 1,
+        'total_trial': 1,
+        'memory_load': 1,
+        'order_error': 0,
+        'late_error_ratio': 0,
+        'mean_rt': 1000,
+        'reaction_times': []
+    }
     
-    for row in game_data:
+    levels_completed = set()
+    reaction_times_all = []
+    
+    for row in game_data_rows:
         if row[0]:
-            total_score += row[0]
+            pass
         if row[1] is not None:
             pass
         if row[2]:
             levels_completed.add(row[2])
+        
+        if row[3] is not None:
+            aggregated_game_data['time'] = max(aggregated_game_data['time'], row[3])
+        if row[4] is not None:
+            aggregated_game_data['correct'] += row[4]
+        if row[5] is not None:
+            aggregated_game_data['error'] += row[5]
+        if row[6] is not None:
+            aggregated_game_data['miss'] += row[6]
+        if row[7] is not None:
+            aggregated_game_data['leave'] += row[7]
+        if row[8] is not None:
+            aggregated_game_data['obstacle'] += row[8]
+        if row[9] is not None and row[9] > 0:
+            aggregated_game_data['total_target'] = row[9]
+        if row[10] is not None and row[10] > 0:
+            aggregated_game_data['total_step'] = row[10]
+        if row[11] is not None and row[11] > 0:
+            aggregated_game_data['total_click'] = row[11]
+        if row[12] is not None and row[12] > 0:
+            aggregated_game_data['total_trial'] = row[12]
+        if row[13] is not None and row[13] > 0:
+            aggregated_game_data['memory_load'] = row[13]
+        if row[14] is not None:
+            aggregated_game_data['order_error'] += row[14]
+        if row[15] is not None:
+            aggregated_game_data['late_error_ratio'] = row[15]
+        if row[16] is not None:
+            reaction_times_all.append(row[16])
+        if row[17]:
+            try:
+                rts = json.loads(row[17]) if isinstance(row[17], str) else row[17]
+                if isinstance(rts, list):
+                    reaction_times_all.extend(rts)
+            except:
+                pass
     
-    vision_data = execute_db('''
-        SELECT attention_score, head_yaw, head_pitch, blink_rate, focus_duration, face_detected
+    if reaction_times_all:
+        aggregated_game_data['mean_rt'] = sum(reaction_times_all) / len(reaction_times_all)
+    
+    vision_data_rows = execute_db('''
+        SELECT attention_score, head_yaw, head_pitch, face_area, blink_rate, 
+               focus_duration, face_detected, face_distance, blink_count
         FROM vision_raw_data WHERE session_id = ? ORDER BY timestamp
     ''', (session_id,))
     
+    vision_data_list = []
     attention_scores = []
     head_deviations = []
     blink_rates = []
     total_focus_time = 0
     distraction_count = 0
     
-    for row in vision_data:
+    for row in vision_data_rows:
+        vision_point = {
+            'attention_score': row[0],
+            'head_yaw': row[1],
+            'head_pitch': row[2],
+            'face_area': row[3],
+            'blink_rate': row[4],
+            'focus_duration': row[5],
+            'face_detected': row[6],
+            'face_distance': row[7],
+            'blink_count': row[8]
+        }
+        vision_data_list.append(vision_point)
+        
         if row[0] is not None:
             attention_scores.append(row[0])
         if row[1] is not None and row[2] is not None:
             deviation = (row[1] ** 2 + row[2] ** 2) ** 0.5
             head_deviations.append(deviation)
-        if row[3] is not None:
-            blink_rates.append(row[3])
         if row[4] is not None:
-            total_focus_time += row[4]
-        if row[5] == 0:
+            blink_rates.append(row[4])
+        if row[5] is not None:
+            total_focus_time += row[5]
+        if row[6] == 0:
             distraction_count += 1
+    
+    vision_scores = calculate_vision_scores(vision_data_list)
+    
+    score_result = calculate_score(attention_type, aggregated_game_data, vision_scores)
     
     avg_attention = sum(attention_scores) / len(attention_scores) if attention_scores else 0
     max_attention = max(attention_scores) if attention_scores else 0
@@ -117,24 +199,38 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         start_time = datetime.fromisoformat(session_info[0][0])
         total_time = int((datetime.now() - start_time).total_seconds())
     
-    visual_score = avg_attention * SCORING_WEIGHTS.get('visual', 0.6)
-    game_score = (total_accuracy or 0) * SCORING_WEIGHTS.get('game', 0.4)
-    overall_score = visual_score + game_score
-    
-    if overall_score >= 90:
-        performance_level = '优秀'
-    elif overall_score >= 75:
-        performance_level = '良好'
-    elif overall_score >= 60:
-        performance_level = '一般'
-    else:
-        performance_level = '需改进'
+    execute_db('''
+        INSERT INTO training_details 
+        (session_id, child_id, game_type, attention_type, 
+         accuracy_score, precision_score, speed_score, 
+         head_stable_score, face_stable_score, blink_stable_score,
+         impulse_score, memory_score, no_fatigue_score, rt_score, order_score, stable_act_score,
+         final_score, performance_level, game_data)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        session_id, child_id, game_type, attention_type,
+        score_result.get('accuracy', 0),
+        score_result.get('precision', 0),
+        score_result.get('speed', 0),
+        score_result.get('head_stable', 0),
+        score_result.get('face_stable', 0),
+        score_result.get('blink_stable', 0),
+        score_result.get('impulse', 0),
+        score_result.get('memory', 0),
+        score_result.get('no_fatigue', 0),
+        score_result.get('rt_score', 0),
+        score_result.get('order', 0),
+        score_result.get('stable_act', 0),
+        score_result.get('final_score', 0),
+        score_result.get('performance_level', '较弱'),
+        json.dumps(aggregated_game_data)
+    ))
     
     return {
-        'final_score': total_score,
+        'final_score': score_result.get('final_score', 0),
         'total_accuracy': total_accuracy,
         'total_time': total_time,
-        'total_errors': total_errors,
+        'total_errors': aggregated_game_data['error'],
         'levels_completed': len(levels_completed),
         'avg_attention_score': round(avg_attention, 2),
         'max_attention_score': round(max_attention, 2),
@@ -144,8 +240,10 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         'avg_blink_rate': round(avg_blink_rate, 2),
         'total_focus_time': round(total_focus_time, 2),
         'distraction_count': distraction_count,
-        'overall_score': round(overall_score, 2),
-        'performance_level': performance_level
+        'overall_score': score_result.get('final_score', 0),
+        'performance_level': score_result.get('performance_level', '较弱'),
+        'attention_type': attention_type,
+        'score_details': score_result
     }
 
 def check_and_award_badges(child_id, summary):
@@ -286,11 +384,28 @@ def upload_game_data():
     data = request.json
     session_id = data.get('session_id')
     request_id = data.get('request_id')
+    timestamp = data.get('timestamp')
     event_type = data.get('event_type')
     event_data = data.get('event_data')
     score = data.get('score')
     accuracy = data.get('accuracy')
     level = data.get('level')
+    
+    time = data.get('time')
+    correct = data.get('correct')
+    error = data.get('error')
+    miss = data.get('miss')
+    leave = data.get('leave')
+    obstacle = data.get('obstacle')
+    total_target = data.get('total_target')
+    total_step = data.get('total_step')
+    total_click = data.get('total_click')
+    total_trial = data.get('total_trial')
+    memory_load = data.get('memory_load')
+    order_error = data.get('order_error')
+    late_error_ratio = data.get('late_error_ratio')
+    mean_rt = data.get('mean_rt')
+    reaction_times = data.get('reaction_times')
     
     if not session_id or not event_type:
         return jsonify({'error': 'session_id 和 event_type 不能为空'}), 400
@@ -306,11 +421,17 @@ def upload_game_data():
         return jsonify({'message': '请求已处理，跳过重复数据'}), 200
     
     event_data_json = json.dumps(event_data) if event_data else None
+    reaction_times_json = json.dumps(reaction_times) if reaction_times else None
     
     execute_db('''
-        INSERT INTO game_raw_data (session_id, event_type, event_data, score, accuracy, level)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (session_id, event_type, event_data_json, score, accuracy, level))
+        INSERT INTO game_raw_data 
+        (session_id, event_type, event_data, score, accuracy, level, timestamp,
+         miss, leave, obstacle, total_target, total_step, total_click, total_trial,
+         memory_load, order_error, late_error_ratio, mean_rt, reaction_times)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (session_id, event_type, event_data_json, score, accuracy, level, timestamp,
+          miss, leave, obstacle, total_target, total_step, total_click, total_trial,
+          memory_load, order_error, late_error_ratio, mean_rt, reaction_times_json))
     
     mark_request_processed(request_id)
     
@@ -326,12 +447,15 @@ def upload_vision_data():
     data = request.json
     session_id = data.get('session_id')
     request_id = data.get('request_id')
+    timestamp = data.get('timestamp')
     attention_score = data.get('attention_score')
     face_detected = data.get('face_detected', 1)
     head_yaw = data.get('head_yaw')
     head_pitch = data.get('head_pitch')
     face_area = data.get('face_area')
+    face_distance = data.get('face_distance')
     blink_rate = data.get('blink_rate')
+    blink_count = data.get('blink_count')
     focus_duration = data.get('focus_duration')
     
     if not session_id:
@@ -349,9 +473,11 @@ def upload_vision_data():
     
     execute_db('''
         INSERT INTO vision_raw_data 
-        (session_id, attention_score, face_detected, head_yaw, head_pitch, face_area, blink_rate, focus_duration)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (session_id, attention_score, face_detected, head_yaw, head_pitch, face_area, blink_rate, focus_duration))
+        (session_id, attention_score, face_detected, head_yaw, head_pitch, face_area, 
+         blink_rate, focus_duration, face_distance, blink_count, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (session_id, attention_score, face_detected, head_yaw, head_pitch, face_area, 
+          blink_rate, focus_duration, face_distance, blink_count, timestamp))
     
     mark_request_processed(request_id)
     
@@ -482,3 +608,288 @@ def interrupt_session():
         'session_id': session_id,
         'status': 'interrupted'
     }), 200
+
+
+@data_collector_bp.route('/api/training/history/<int:child_id>', methods=['GET'])
+def get_training_history(child_id):
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    game_type = request.args.get('game_type')
+    attention_type = request.args.get('attention_type')
+    limit = request.args.get('limit', 20, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    query = '''
+        SELECT s.id, s.game_type, s.start_time, s.end_time, s.status,
+               td.attention_type, td.final_score, td.performance_level,
+               g.name as game_name
+        FROM training_sessions s
+        LEFT JOIN training_details td ON s.id = td.session_id
+        LEFT JOIN (SELECT 'level1' as game_type, '线索筛选站' as name
+                   UNION SELECT 'schulte', '太空小火箭'
+                   UNION SELECT 'find-numbers', '垃圾小卫士'
+                   UNION SELECT 'level2', '持续性注意训练'
+                   UNION SELECT 'magic-maze', '魔法迷宫'
+                   UNION SELECT 'water-plants', '浇花游戏'
+                   UNION SELECT 'level3', '视觉追踪训练'
+                   UNION SELECT 'sun-tracking', '追踪太阳'
+                   UNION SELECT 'animal-searching', '寻找动物'
+                   UNION SELECT 'level4', '工作记忆训练'
+                   UNION SELECT 'card-matching', '记忆翻牌'
+                   UNION SELECT 'reverse-memory', '倒序记忆'
+                   UNION SELECT 'level5', '抑制控制训练'
+                   UNION SELECT 'traffic-light', '红绿灯'
+                   UNION SELECT 'command-adventure', '指令冒险') g ON s.game_type = g.game_type
+        WHERE s.child_id = ?
+    '''
+    params = [child_id]
+    
+    if start_date:
+        query += ' AND DATE(s.start_time) >= ?'
+        params.append(start_date)
+    if end_date:
+        query += ' AND DATE(s.start_time) <= ?'
+        params.append(end_date)
+    if game_type:
+        query += ' AND s.game_type = ?'
+        params.append(game_type)
+    if attention_type:
+        query += ' AND td.attention_type = ?'
+        params.append(attention_type)
+    
+    query += ' ORDER BY s.start_time DESC LIMIT ? OFFSET ?'
+    params.extend([limit, offset])
+    
+    records = execute_db(query, tuple(params))
+    
+    count_query = '''
+        SELECT COUNT(*) FROM training_sessions s
+        LEFT JOIN training_details td ON s.id = td.session_id
+        WHERE s.child_id = ?
+    '''
+    count_params = [child_id]
+    if start_date:
+        count_query += ' AND DATE(s.start_time) >= ?'
+        count_params.append(start_date)
+    if end_date:
+        count_query += ' AND DATE(s.start_time) <= ?'
+        count_params.append(end_date)
+    if game_type:
+        count_query += ' AND s.game_type = ?'
+        count_params.append(game_type)
+    if attention_type:
+        count_query += ' AND td.attention_type = ?'
+        count_params.append(attention_type)
+    
+    total = execute_db(count_query, tuple(count_params))[0][0]
+    
+    history = []
+    for row in records:
+        history.append({
+            'session_id': row[0],
+            'game_type': row[1],
+            'start_time': row[2],
+            'end_time': row[3],
+            'status': row[4],
+            'attention_type': row[5],
+            'final_score': row[6],
+            'performance_level': row[7],
+            'game_name': row[8] or row[1]
+        })
+    
+    return jsonify({
+        'total': total,
+        'limit': limit,
+        'offset': offset,
+        'records': history
+    })
+
+
+@data_collector_bp.route('/api/training/detail/<int:session_id>', methods=['GET'])
+def get_training_detail(session_id):
+    session_info = execute_db('''
+        SELECT s.id, s.child_id, s.game_type, s.start_time, s.end_time, s.status,
+               c.name as child_name
+        FROM training_sessions s
+        LEFT JOIN children c ON s.child_id = c.id
+        WHERE s.id = ?
+    ''', (session_id,))
+    
+    if not session_info:
+        return jsonify({'error': '会话不存在'}), 404
+    
+    detail = execute_db('''
+        SELECT session_id, child_id, game_type, attention_type,
+               accuracy_score, precision_score, speed_score,
+               head_stable_score, face_stable_score, blink_stable_score,
+               impulse_score, memory_score, no_fatigue_score, rt_score, order_score, stable_act_score,
+               final_score, performance_level, game_data, created_at
+        FROM training_details
+        WHERE session_id = ?
+    ''', (session_id,))
+    
+    game_config = GAME_TYPES.get(session_info[0][2], {})
+    
+    result = {
+        'session_id': session_info[0][0],
+        'child_id': session_info[0][1],
+        'child_name': session_info[0][6],
+        'game_type': session_info[0][2],
+        'game_name': game_config.get('name', session_info[0][2]),
+        'attention_type': None,
+        'start_time': session_info[0][3],
+        'end_time': session_info[0][4],
+        'status': session_info[0][5],
+        'details': {},
+        'game_data': {},
+        'vision_summary': {}
+    }
+    
+    if detail:
+        d = detail[0]
+        result['attention_type'] = d[3]
+        result['final_score'] = d[16]
+        result['performance_level'] = d[17]
+        result['details'] = {
+            'accuracy_score': d[4],
+            'precision_score': d[5],
+            'speed_score': d[6],
+            'head_stable_score': d[7],
+            'face_stable_score': d[8],
+            'blink_stable_score': d[9],
+            'impulse_score': d[10],
+            'memory_score': d[11],
+            'no_fatigue_score': d[12],
+            'rt_score': d[13],
+            'order_score': d[14],
+            'stable_act_score': d[15]
+        }
+        if d[18]:
+            try:
+                result['game_data'] = json.loads(d[18])
+            except:
+                result['game_data'] = {}
+    
+    vision_data = execute_db('''
+        SELECT attention_score, head_yaw, head_pitch, face_distance, blink_count
+        FROM vision_raw_data
+        WHERE session_id = ?
+        ORDER BY timestamp
+    ''', (session_id,))
+    
+    if vision_data:
+        head_yaws = [v[1] for v in vision_data if v[1] is not None]
+        head_pitchs = [v[2] for v in vision_data if v[2] is not None]
+        face_distances = [v[3] for v in vision_data if v[3] is not None]
+        blink_counts = [v[4] for v in vision_data if v[4] is not None]
+        
+        import math
+        avg_head_deviation = 0
+        if head_yaws and head_pitchs:
+            deviations = [math.sqrt(y**2 + p**2) for y, p in zip(head_yaws, head_pitchs)]
+            avg_head_deviation = sum(deviations) / len(deviations)
+        
+        avg_blink_rate = sum(blink_counts) / len(blink_counts) * 2 if blink_counts else 0
+        
+        result['vision_summary'] = {
+            'avg_head_deviation': round(avg_head_deviation, 2),
+            'avg_blink_rate': round(avg_blink_rate, 2),
+            'sample_count': len(vision_data)
+        }
+    
+    return jsonify(result)
+
+
+@data_collector_bp.route('/api/training/trend/<int:child_id>', methods=['GET'])
+def get_training_trend(child_id):
+    attention_type = request.args.get('attention_type')
+    days = request.args.get('days', 30, type=int)
+    
+    from datetime import datetime, timedelta
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days)
+    
+    query = '''
+        SELECT td.attention_type, DATE(s.start_time) as date, 
+               AVG(td.final_score) as avg_score,
+               COUNT(*) as session_count
+        FROM training_details td
+        JOIN training_sessions s ON td.session_id = s.id
+        WHERE s.child_id = ? AND DATE(s.start_time) >= ?
+    '''
+    params = [child_id, start_date.strftime('%Y-%m-%d')]
+    
+    if attention_type:
+        query += ' AND td.attention_type = ?'
+        params.append(attention_type)
+    
+    query += ' GROUP BY td.attention_type, DATE(s.start_time) ORDER BY date'
+    
+    records = execute_db(query, tuple(params))
+    
+    from collections import defaultdict
+    trend_data = defaultdict(lambda: {'avg_score': 0, 'trend': 'stable', 'records': []})
+    
+    attention_types = ['selective', 'sustained', 'tracking', 'memory', 'inhibitory']
+    
+    for row in records:
+        at = row[0]
+        date = row[1]
+        avg_score = row[2]
+        trend_data[at]['records'].append({
+            'date': date,
+            'score': round(avg_score, 2)
+        })
+    
+    for at in attention_types:
+        if at in trend_data:
+            records_list = trend_data[at]['records']
+            if records_list:
+                scores = [r['score'] for r in records_list]
+                trend_data[at]['avg_score'] = round(sum(scores) / len(scores), 2)
+                
+                if len(scores) >= 2:
+                    first_half = sum(scores[:len(scores)//2]) / (len(scores)//2) if len(scores)//2 > 0 else 0
+                    second_half = sum(scores[len(scores)//2:]) / (len(scores) - len(scores)//2) if len(scores) - len(scores)//2 > 0 else 0
+                    
+                    if second_half > first_half * 1.05:
+                        trend_data[at]['trend'] = 'up'
+                    elif second_half < first_half * 0.95:
+                        trend_data[at]['trend'] = 'down'
+                    else:
+                        trend_data[at]['trend'] = 'stable'
+    
+    overall_query = '''
+        SELECT AVG(td.final_score), COUNT(*)
+        FROM training_details td
+        JOIN training_sessions s ON td.session_id = s.id
+        WHERE s.child_id = ? AND DATE(s.start_time) >= ?
+    '''
+    overall_params = [child_id, start_date.strftime('%Y-%m-%d')]
+    if attention_type:
+        overall_query += ' AND td.attention_type = ?'
+        overall_params.append(attention_type)
+    
+    overall_result = execute_db(overall_query, tuple(overall_params))
+    overall_avg = overall_result[0][0] if overall_result and overall_result[0][0] else 0
+    total_sessions = overall_result[0][1] if overall_result else 0
+    
+    return jsonify({
+        'child_id': child_id,
+        'period': {
+            'start_date': start_date.strftime('%Y-%m-%d'),
+            'end_date': end_date.strftime('%Y-%m-%d'),
+            'days': days
+        },
+        'trend': {
+            'selective': trend_data.get('selective', {'avg_score': 0, 'trend': 'stable', 'records': []}),
+            'sustained': trend_data.get('sustained', {'avg_score': 0, 'trend': 'stable', 'records': []}),
+            'tracking': trend_data.get('tracking', {'avg_score': 0, 'trend': 'stable', 'records': []}),
+            'memory': trend_data.get('memory', {'avg_score': 0, 'trend': 'stable', 'records': []}),
+            'inhibitory': trend_data.get('inhibitory', {'avg_score': 0, 'trend': 'stable', 'records': []})
+        },
+        'overall': {
+            'avg_score': round(overall_avg, 2),
+            'total_sessions': total_sessions
+        }
+    })

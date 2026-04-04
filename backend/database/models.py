@@ -383,5 +383,123 @@ def init_db():
     )
     ''')
     
+    try:
+        cursor.execute('ALTER TABLE training_sessions ADD COLUMN attention_type TEXT')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN time INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN correct INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN error INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN miss INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN leave INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN obstacle INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN total_target INTEGER DEFAULT 1')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN total_step INTEGER DEFAULT 1')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN total_click INTEGER DEFAULT 1')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN total_trial INTEGER DEFAULT 1')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN memory_load INTEGER DEFAULT 1')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN order_error INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN late_error_ratio REAL DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN mean_rt INTEGER DEFAULT 1000')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN reaction_times TEXT')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE vision_raw_data ADD COLUMN face_distance REAL')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE vision_raw_data ADD COLUMN blink_count INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS training_details (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER NOT NULL,
+        child_id INTEGER NOT NULL,
+        game_type TEXT NOT NULL,
+        attention_type TEXT NOT NULL,
+        accuracy_score REAL DEFAULT 0,
+        precision_score REAL DEFAULT 0,
+        speed_score REAL DEFAULT 0,
+        head_stable_score REAL DEFAULT 0,
+        face_stable_score REAL DEFAULT 0,
+        blink_stable_score REAL DEFAULT 0,
+        impulse_score REAL DEFAULT 0,
+        memory_score REAL DEFAULT 0,
+        no_fatigue_score REAL DEFAULT 0,
+        rt_score REAL DEFAULT 0,
+        order_score REAL DEFAULT 0,
+        stable_act_score REAL DEFAULT 0,
+        final_score REAL DEFAULT 0,
+        performance_level TEXT,
+        game_data TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES training_sessions (id),
+        FOREIGN KEY (child_id) REFERENCES children (id)
+    )
+    ''')
+    
     conn.commit()
     conn.close()
