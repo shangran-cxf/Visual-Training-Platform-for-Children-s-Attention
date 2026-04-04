@@ -1,10 +1,17 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
+import traceback
 
 from config import FRONTEND_DIR, APP_CONFIG
 from database import init_db, execute_db
-from modules import auth_bp, children_bp, forum_bp, knowledge_bp, badges_bp, admin_bp
+from modules import auth_bp, children_bp, forum_bp, knowledge_bp, badges_bp, admin_bp, user_stats_bp
 from analytics import data_collector_bp
+from middleware import verify_token
+from utils.error_codes import (
+    BAD_REQUEST, AUTH_ERROR, PERMISSION_DENIED, 
+    NOT_FOUND, INTERNAL_ERROR, VALIDATION_ERROR
+)
+from utils.response_utils import error_response
 
 app = Flask(__name__)
 app.static_folder = FRONTEND_DIR
@@ -12,12 +19,121 @@ CORS(app)
 
 init_db()
 
+PUBLIC_PATHS = [
+    '/api/login',
+    '/api/register',
+    '/api/verify-password',
+]
+
+@app.before_request
+def verify_auth_token():
+    if request.path in PUBLIC_PATHS:
+        return
+    
+    if request.path.startswith('/api/user/info') and request.method == 'GET':
+        return
+    
+    if request.path.startswith('/api/user/by-') and request.method == 'GET':
+        return
+    
+    if request.path.startswith('/api/user/level/') and request.method == 'GET':
+        return
+    
+    if request.path.startswith('/api/user/posts/') and request.method == 'GET':
+        return
+    
+    if request.path.startswith('/api/user/stats/') and request.method == 'GET':
+        return
+    
+    if not request.path.startswith('/api/'):
+        return
+    
+    token = None
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header[7:]
+    
+    if token:
+        payload = verify_token(token)
+        if payload:
+            g.user_id = payload.get('user_id')
+            g.user_role = payload.get('role')
+            request.user_id = payload.get('user_id')
+            request.user_role = payload.get('role')
+        else:
+            g.user_id = None
+            g.user_role = None
+    else:
+        g.user_id = None
+        g.user_role = None
+
+@app.errorhandler(400)
+def handle_bad_request(error):
+    return error_response(
+        message=str(error.description) if hasattr(error, 'description') else '请求参数错误',
+        code=BAD_REQUEST,
+        status=400
+    )
+
+@app.errorhandler(401)
+def handle_unauthorized(error):
+    return error_response(
+        message=str(error.description) if hasattr(error, 'description') else '认证失败',
+        code=AUTH_ERROR,
+        status=401
+    )
+
+@app.errorhandler(403)
+def handle_forbidden(error):
+    return error_response(
+        message=str(error.description) if hasattr(error, 'description') else '权限不足',
+        code=PERMISSION_DENIED,
+        status=403
+    )
+
+@app.errorhandler(404)
+def handle_not_found(error):
+    if request.path.startswith('/api/'):
+        return error_response(
+            message='请求的资源不存在',
+            code=NOT_FOUND,
+            status=404
+        )
+    return send_from_directory(FRONTEND_DIR, 'index.html')
+
+@app.errorhandler(405)
+def handle_method_not_allowed(error):
+    return error_response(
+        message='请求方法不允许',
+        code=BAD_REQUEST,
+        status=405
+    )
+
+@app.errorhandler(500)
+def handle_internal_error(error):
+    app.logger.error(f'Internal Server Error: {str(error)}\n{traceback.format_exc()}')
+    return error_response(
+        message='服务器内部错误',
+        code=INTERNAL_ERROR,
+        status=500
+    )
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    app.logger.error(f'Unhandled Exception: {str(error)}\n{traceback.format_exc()}')
+    return error_response(
+        message='服务器内部错误',
+        code=INTERNAL_ERROR,
+        status=500
+    )
+
 app.register_blueprint(auth_bp)
 app.register_blueprint(children_bp)
 app.register_blueprint(forum_bp, url_prefix='/api/forum')
 app.register_blueprint(knowledge_bp, url_prefix='/api/knowledge')
 app.register_blueprint(badges_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(user_stats_bp)
 
 app.register_blueprint(data_collector_bp)
 
@@ -28,98 +144,6 @@ def index():
 @app.route('/<path:path>')
 def static_files(path):
     return send_from_directory(FRONTEND_DIR, path)
-
-@app.route('/api/upload/detection', methods=['POST'])
-def upload_detection():
-    data = request.json
-    child_id = data.get('child_id')
-    selective_attention = data.get('selective_attention')
-    sustained_attention = data.get('sustained_attention')
-    visual_tracking = data.get('visual_tracking')
-    working_memory = data.get('working_memory')
-    inhibitory_control = data.get('inhibitory_control')
-    total_score = data.get('total_score')
-    
-    if not child_id:
-        return jsonify({'error': '孩子ID不能为空'}), 400
-    
-    execute_db('''
-        INSERT INTO detection_data (child_id, selective_attention, sustained_attention, visual_tracking, working_memory, inhibitory_control, total_score)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (child_id, selective_attention, sustained_attention, visual_tracking, working_memory, inhibitory_control, total_score))
-    
-    return jsonify({'message': '检测数据上传成功'}), 201
-
-@app.route('/api/upload/training', methods=['POST'])
-def upload_training():
-    data = request.json
-    child_id = data.get('child_id')
-    training_type = data.get('training_type')
-    difficulty = data.get('difficulty')
-    accuracy = data.get('accuracy')
-    completion_time = data.get('completion_time')
-    error_count = data.get('error_count')
-    
-    if not child_id or not training_type:
-        return jsonify({'error': '孩子ID和训练类型不能为空'}), 400
-    
-    execute_db('''
-        INSERT INTO training_data (child_id, training_type, difficulty, accuracy, completion_time, error_count)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (child_id, training_type, difficulty, accuracy, completion_time, error_count))
-    
-    return jsonify({'message': '训练数据上传成功'}), 201
-
-@app.route('/api/get/detection', methods=['GET'])
-def get_detection():
-    child_id = request.args.get('child_id')
-    
-    if not child_id:
-        return jsonify({'error': '孩子ID不能为空'}), 400
-    
-    result = execute_db('''
-        SELECT timestamp, selective_attention, sustained_attention, visual_tracking, working_memory, inhibitory_control, total_score
-        FROM detection_data
-        WHERE child_id = ?
-        ORDER BY timestamp DESC
-    ''', (child_id,))
-    
-    data = [{
-        'timestamp': row[0],
-        'selective_attention': row[1],
-        'sustained_attention': row[2],
-        'visual_tracking': row[3],
-        'working_memory': row[4],
-        'inhibitory_control': row[5],
-        'total_score': row[6]
-    } for row in result]
-    
-    return jsonify(data), 200
-
-@app.route('/api/get/training', methods=['GET'])
-def get_training():
-    child_id = request.args.get('child_id')
-    
-    if not child_id:
-        return jsonify({'error': '孩子ID不能为空'}), 400
-    
-    result = execute_db('''
-        SELECT timestamp, training_type, difficulty, accuracy, completion_time, error_count
-        FROM training_data
-        WHERE child_id = ?
-        ORDER BY timestamp DESC
-    ''', (child_id,))
-    
-    data = [{
-        'timestamp': row[0],
-        'training_type': row[1],
-        'difficulty': row[2],
-        'accuracy': row[3],
-        'completion_time': row[4],
-        'error_count': row[5]
-    } for row in result]
-    
-    return jsonify(data), 200
 
 if __name__ == '__main__':
     app.run(

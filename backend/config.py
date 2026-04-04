@@ -5,6 +5,8 @@ FRONTEND_DIR = os.path.join(BASE_DIR, '..', 'frontend')
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 DB_PATH = os.path.join(DATA_DIR, 'attention.db')
 
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production-2024'
+
 DATABASE_CONFIG = {
     'db_path': DB_PATH
 }
@@ -12,7 +14,8 @@ DATABASE_CONFIG = {
 APP_CONFIG = {
     'debug': True,
     'host': '0.0.0.0',
-    'port': 5000
+    'port': 5000,
+    'secret_key': SECRET_KEY
 }
 
 GAME_TYPES = {

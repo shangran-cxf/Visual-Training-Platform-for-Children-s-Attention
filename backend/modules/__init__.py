@@ -4,5 +4,6 @@ from .forum import forum_bp
 from .knowledge import knowledge_bp
 from .badges import badges_bp
 from .admin import admin_bp
+from .user_stats import user_stats_bp
 
-__all__ = ['auth_bp', 'children_bp', 'forum_bp', 'knowledge_bp', 'badges_bp', 'admin_bp']
+__all__ = ['auth_bp', 'children_bp', 'forum_bp', 'knowledge_bp', 'badges_bp', 'admin_bp', 'user_stats_bp']

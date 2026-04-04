@@ -1,6 +1,9 @@
 from flask import Blueprint, request, jsonify
 from database import execute_db
 import sqlite3
+from utils.password_utils import hash_password, verify_password, is_bcrypt_hash
+from middleware import generate_token
+from utils import build_update_sql, check_user_exists, success_response, error_response
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -22,9 +25,10 @@ def register():
     
     try:
         uid = get_next_uid()
+        hashed_password = hash_password(password)
         result, parent_id = execute_db(
             'INSERT INTO parents (uid, username, password, email, role) VALUES (?, ?, ?, ?, ?)',
-            (uid, username, password, email, 'user'), fetch_last_id=True
+            (uid, username, hashed_password, email, 'user'), fetch_last_id=True
         )
         
         for child in children:
@@ -36,7 +40,7 @@ def register():
                     (parent_id, child_name, child_age)
                 )
         
-        return jsonify({'message': '注册成功', 'parent_id': parent_id, 'uid': uid}), 201
+        return jsonify({'parent_id': parent_id, 'uid': uid}), 201
     except sqlite3.IntegrityError:
         return jsonify({'error': '用户名已存在'}), 400
 
@@ -50,17 +54,34 @@ def login():
         return jsonify({'error': '用户名和密码不能为空'}), 400
     
     result = execute_db(
-        'SELECT id, uid, email, role, is_banned FROM parents WHERE username = ? AND password = ?',
-        (username, password)
+        'SELECT id, uid, email, role, is_banned, password FROM parents WHERE username = ?',
+        (username,)
     )
     
     if not result:
         return jsonify({'error': '用户名或密码错误'}), 401
     
-    parent_id, uid, email, role, is_banned = result[0]
+    parent_id, uid, email, role, is_banned, stored_password = result[0]
     
     if is_banned == 1:
         return jsonify({'error': '账户已封禁'}), 403
+    
+    password_valid = False
+    need_upgrade = False
+    
+    if is_bcrypt_hash(stored_password):
+        password_valid = verify_password(password, stored_password)
+    else:
+        if stored_password == password:
+            password_valid = True
+            need_upgrade = True
+    
+    if not password_valid:
+        return jsonify({'error': '用户名或密码错误'}), 401
+    
+    if need_upgrade:
+        hashed_password = hash_password(password)
+        execute_db('UPDATE parents SET password = ? WHERE id = ?', (hashed_password, parent_id))
     
     children = execute_db(
         'SELECT id, name, age FROM children WHERE parent_id = ?',
@@ -69,38 +90,56 @@ def login():
     
     children_data = [{'id': c[0], 'name': c[1], 'age': c[2]} for c in children]
     
+    token = generate_token(parent_id, role)
+    
     return jsonify({
-        'message': '登录成功',
         'parent_id': parent_id,
         'uid': uid,
         'username': username,
-        'email': email,
         'role': role,
-        'children': children_data
+        'children': children_data,
+        'token': token
     }), 200
 
-@auth_bp.route('/api/user/info', methods=['GET'])
-def get_user_info():
-    parent_id = request.args.get('parent_id')
-    if not parent_id:
-        return jsonify({'error': '缺少parent_id参数'}), 400
+@auth_bp.route('/api/user/query', methods=['GET'])
+def query_user():
+    query_type = request.args.get('type')
+    value = request.args.get('value')
     
-    result = execute_db(
-        'SELECT uid, username, email, role, created_at FROM parents WHERE id = ?',
-        (parent_id,)
-    )
+    if not query_type or not value:
+        return error_response('缺少type或value参数', status=400)
+    
+    if query_type not in ['id', 'uid', 'username']:
+        return error_response('type参数必须是id、uid或username', status=400)
+    
+    if query_type == 'id':
+        result = execute_db(
+            'SELECT id, uid, username, email, role, created_at FROM parents WHERE id = ?',
+            (value,)
+        )
+    elif query_type == 'uid':
+        result = execute_db(
+            'SELECT id, uid, username, email, role, created_at FROM parents WHERE uid = ?',
+            (value,)
+        )
+    else:
+        result = execute_db(
+            'SELECT id, uid, username, email, role, created_at FROM parents WHERE username = ?',
+            (value,)
+        )
     
     if not result:
-        return jsonify({'error': '用户不存在'}), 404
+        return error_response('用户不存在', status=404)
     
-    uid, username, email, role, created_at = result[0]
-    return jsonify({
-        'uid': uid,
-        'username': username,
-        'email': email,
-        'role': role,
-        'created_at': created_at
-    }), 200
+    row = result[0]
+    return success_response({
+        'id': row[0],
+        'uid': row[1],
+        'username': row[2],
+        'email': row[3],
+        'role': row[4],
+        'created_at': row[5]
+    })
 
 @auth_bp.route('/api/user/change-password', methods=['POST'])
 def change_password():
@@ -110,75 +149,92 @@ def change_password():
     new_password = data.get('new_password')
     
     if not parent_id or not old_password or not new_password:
-        return jsonify({'error': '参数不完整'}), 400
+        return error_response('参数不完整', status=400)
+    
+    if not check_user_exists(user_id=parent_id):
+        return error_response('用户不存在', status=404)
     
     user = execute_db('SELECT id, password FROM parents WHERE id = ?', (parent_id,))
-    if not user:
-        return jsonify({'error': '用户不存在'}), 404
+    stored_password = user[0][1]
+    password_valid = False
     
-    if user[0][1] != old_password:
-        return jsonify({'error': '旧密码错误'}), 400
+    if is_bcrypt_hash(stored_password):
+        password_valid = verify_password(old_password, stored_password)
+    else:
+        password_valid = stored_password == old_password
     
-    execute_db('UPDATE parents SET password = ? WHERE id = ?', (new_password, parent_id))
-    return jsonify({'message': '密码修改成功'}), 200
+    if not password_valid:
+        return error_response('旧密码错误', status=400)
+    
+    hashed_password = hash_password(new_password)
+    execute_db('UPDATE parents SET password = ? WHERE id = ?', (hashed_password, parent_id))
+    return success_response(None, '密码修改成功')
 
-@auth_bp.route('/api/user/avatar', methods=['POST'])
-def update_avatar():
+
+
+@auth_bp.route('/api/verify-password', methods=['POST'])
+def verify_password_endpoint():
     data = request.json
     parent_id = data.get('parent_id')
-    avatar = data.get('avatar')
+    password = data.get('password')
     
-    if not parent_id or not avatar:
+    if not parent_id or not password:
         return jsonify({'error': '参数不完整'}), 400
     
-    execute_db('UPDATE parents SET avatar = ? WHERE id = ?', (avatar, parent_id))
-    return jsonify({'message': '头像更新成功'}), 200
+    result = execute_db(
+        'SELECT id, password FROM parents WHERE id = ?',
+        (parent_id,)
+    )
+    
+    if not result:
+        return jsonify({'valid': False}), 200
+    
+    stored_password = result[0][1]
+    password_valid = False
+    
+    if is_bcrypt_hash(stored_password):
+        password_valid = verify_password(password, stored_password)
+    else:
+        password_valid = stored_password == password
+    
+    return jsonify({'valid': password_valid}), 200
 
-@auth_bp.route('/api/user/level/<int:parent_id>', methods=['GET'])
-def get_user_level(parent_id):
-    post_count = execute_db('SELECT COUNT(*) FROM forum_posts WHERE parent_id = ?', (parent_id,))[0][0]
-    comment_count = execute_db('SELECT COUNT(*) FROM forum_comments WHERE parent_id = ?', (parent_id,))[0][0]
-    like_received = execute_db('''
-        SELECT COUNT(*) FROM forum_votes v
-        JOIN forum_posts p ON v.post_id = p.id
-        WHERE p.parent_id = ? AND v.vote_type = 1
-    ''', (parent_id,))[0][0]
-    favorite_count = execute_db('SELECT COUNT(*) FROM favorites WHERE parent_id = ?', (parent_id,))[0][0]
+@auth_bp.route('/api/user/update', methods=['POST'])
+def update_user_info():
+    data = request.json
+    parent_id = data.get('parent_id')
+    username = data.get('username')
+    email = data.get('email')
+    avatar = data.get('avatar')
     
-    experience = post_count * 10 + comment_count * 5 + like_received * 2
-    level = 1 + experience // 100
+    if not parent_id:
+        return error_response('缺少parent_id参数', status=400)
     
-    return jsonify({
-        'post_count': post_count,
-        'comment_count': comment_count,
-        'like_received': like_received,
-        'favorite_count': favorite_count,
-        'experience': experience,
-        'level': level
-    }), 200
+    if not check_user_exists(user_id=parent_id):
+        return error_response('用户不存在', status=404)
+    
+    update_data = {}
+    
+    if username is not None:
+        existing = execute_db('SELECT id FROM parents WHERE username = ? AND id != ?', (username, parent_id))
+        if existing:
+            return error_response('用户名已被使用', status=400)
+        update_data['username'] = username
+    
+    if email is not None:
+        update_data['email'] = email
+    
+    if avatar is not None:
+        update_data['avatar'] = avatar
+    
+    if not update_data:
+        return error_response('没有需要更新的字段', status=400)
+    
+    sql, params = build_update_sql('parents', update_data, 'id = ?')
+    execute_db(sql, params + (parent_id,))
+    
+    return success_response(None, '更新成功')
 
-@auth_bp.route('/api/user/posts/<int:parent_id>', methods=['GET'])
-def get_user_posts(parent_id):
-    result = execute_db('''
-        SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.category_id, p.is_pinned, p.is_essential,
-               (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count
-        FROM forum_posts p
-        WHERE p.parent_id = ?
-        ORDER BY p.created_at DESC
-    ''', (parent_id,))
-    
-    posts = [{
-        'id': p[0],
-        'title': p[1],
-        'content': p[2],
-        'created_at': p[3],
-        'view_count': p[4],
-        'category_id': p[5],
-        'is_pinned': p[6],
-        'is_essential': p[7],
-        'comment_count': p[8],
-        'like_count': p[9]
-    } for p in result]
-    
-    return jsonify(posts), 200
+
+
+

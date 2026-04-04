@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify
 import os
 import uuid
+import sqlite3
 from database import execute_db
+from utils import build_update_sql, is_admin, success_response, error_response
 
 forum_bp = Blueprint('forum', __name__)
 
@@ -142,10 +144,10 @@ def get_post(post_id):
     ''', (post_id,))
     
     if not post:
-        return jsonify({'error': '帖子不存在'}), 404
+        return error_response('帖子不存在', status=404)
     
     p = post[0]
-    return jsonify({
+    return success_response({
         'id': p[0],
         'title': p[1],
         'content': p[2],
@@ -159,7 +161,7 @@ def get_post(post_id):
         'author_level': p[10],
         'like_count': p[11],
         'dislike_count': p[12]
-    }), 200
+    })
 
 @forum_bp.route('/posts', methods=['POST'])
 def create_post():
@@ -170,14 +172,14 @@ def create_post():
     category_id = data.get('category_id')
     
     if not parent_id or not title or not content:
-        return jsonify({'error': '家长ID、标题和内容不能为空'}), 400
+        return error_response('家长ID、标题和内容不能为空', status=400)
     
     result, post_id = execute_db(
         'INSERT INTO forum_posts (parent_id, title, content, category_id) VALUES (?, ?, ?, ?)',
         (parent_id, title, content, category_id), fetch_last_id=True
     )
     
-    return jsonify({'message': '发帖成功', 'post_id': post_id}), 201
+    return success_response({'post_id': post_id}, '发帖成功')
 
 @forum_bp.route('/posts/<int:post_id>', methods=['PUT'])
 def update_post(post_id):
@@ -188,39 +190,30 @@ def update_post(post_id):
     category_id = data.get('category_id')
     
     if not parent_id:
-        return jsonify({'error': '用户ID不能为空'}), 400
+        return error_response('用户ID不能为空', status=400)
     
     post_result = execute_db('SELECT parent_id FROM forum_posts WHERE id = ?', (post_id,))
     if not post_result:
-        return jsonify({'error': '帖子不存在'}), 404
+        return error_response('帖子不存在', status=404)
     
-    user_result = execute_db('SELECT role FROM parents WHERE id = ?', (parent_id,))
-    if not user_result:
-        return jsonify({'error': '用户不存在'}), 404
+    if post_result[0][0] != parent_id and not is_admin(parent_id):
+        return error_response('无权编辑此帖子', status=403)
     
-    role = user_result[0][0]
-    if post_result[0][0] != parent_id and role != 'admin':
-        return jsonify({'error': '无权编辑此帖子'}), 403
-    
-    update_fields = []
-    update_params = []
+    update_data = {}
     
     if title:
-        update_fields.append('title = ?')
-        update_params.append(title)
+        update_data['title'] = title
     if content:
-        update_fields.append('content = ?')
-        update_params.append(content)
+        update_data['content'] = content
     if category_id:
-        update_fields.append('category_id = ?')
-        update_params.append(category_id)
+        update_data['category_id'] = category_id
     
-    if update_fields:
-        update_fields.append('updated_at = CURRENT_TIMESTAMP')
-        update_params.append(post_id)
-        execute_db(f'UPDATE forum_posts SET {", ".join(update_fields)} WHERE id = ?', update_params)
+    if update_data:
+        update_data['updated_at'] = 'CURRENT_TIMESTAMP'
+        sql, params = build_update_sql('forum_posts', update_data, 'id = ?')
+        execute_db(sql, params + (post_id,))
     
-    return jsonify({'message': '更新成功'}), 200
+    return success_response(None, '更新成功')
 
 @forum_bp.route('/posts/<int:post_id>', methods=['DELETE'])
 def delete_post(post_id):
@@ -228,28 +221,25 @@ def delete_post(post_id):
     parent_id = data.get('parent_id')
     
     if parent_id:
-        user_result = execute_db('SELECT role FROM parents WHERE id = ?', (parent_id,))
-        if user_result:
-            role = user_result[0][0]
-            if role == 'admin':
-                execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
-                execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
-                execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
-                return jsonify({'message': '删除成功'}), 200
+        if is_admin(parent_id):
+            execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
+            execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
+            execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
+            return success_response(None, '删除成功')
         
         post_result = execute_db('SELECT parent_id FROM forum_posts WHERE id = ?', (post_id,))
         if post_result and post_result[0][0] == parent_id:
             execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
             execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
             execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
-            return jsonify({'message': '删除成功'}), 200
+            return success_response(None, '删除成功')
         
-        return jsonify({'error': '无权删除此帖子'}), 403
+        return error_response('无权删除此帖子', status=403)
     
     execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
     execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
     execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
-    return jsonify({'message': '删除成功'}), 200
+    return success_response(None, '删除成功')
 
 @forum_bp.route('/posts/<int:post_id>/pin', methods=['POST'])
 def pin_post(post_id):
@@ -257,12 +247,11 @@ def pin_post(post_id):
     parent_id = data.get('parent_id')
     is_pinned = data.get('is_pinned', 1)
     
-    user_result = execute_db('SELECT role FROM parents WHERE id = ?', (parent_id,))
-    if not user_result or user_result[0][0] != 'admin':
-        return jsonify({'error': '无权操作'}), 403
+    if not is_admin(parent_id):
+        return error_response('无权操作', status=403)
     
     execute_db('UPDATE forum_posts SET is_pinned = ? WHERE id = ?', (is_pinned, post_id))
-    return jsonify({'message': '操作成功'}), 200
+    return success_response(None, '操作成功')
 
 @forum_bp.route('/posts/<int:post_id>/essential', methods=['POST'])
 def essential_post(post_id):
@@ -270,12 +259,11 @@ def essential_post(post_id):
     parent_id = data.get('parent_id')
     is_essential = data.get('is_essential', 1)
     
-    user_result = execute_db('SELECT role FROM parents WHERE id = ?', (parent_id,))
-    if not user_result or user_result[0][0] != 'admin':
-        return jsonify({'error': '无权操作'}), 403
+    if not is_admin(parent_id):
+        return error_response('无权操作', status=403)
     
     execute_db('UPDATE forum_posts SET is_essential = ? WHERE id = ?', (is_essential, post_id))
-    return jsonify({'message': '操作成功'}), 200
+    return success_response(None, '操作成功')
 
 @forum_bp.route('/posts/hot', methods=['GET'])
 def get_hot_posts():
@@ -305,7 +293,7 @@ def get_hot_posts():
 def get_comments():
     post_id = request.args.get('post_id')
     if not post_id:
-        return jsonify({'error': '帖子ID不能为空'}), 400
+        return error_response('帖子ID不能为空', status=400)
     
     comments = execute_db('''
         SELECT c.id, c.content, c.created_at, c.parent_id,
@@ -328,7 +316,7 @@ def get_comments():
         'dislike_count': c[6]
     } for c in comments]
     
-    return jsonify(comments_data), 200
+    return success_response(comments_data)
 
 @forum_bp.route('/comments', methods=['POST'])
 def create_comment():
@@ -338,14 +326,14 @@ def create_comment():
     content = data.get('content')
     
     if not post_id or not parent_id or not content:
-        return jsonify({'error': '帖子ID、家长ID和内容不能为空'}), 400
+        return error_response('帖子ID、家长ID和内容不能为空', status=400)
     
     result, comment_id = execute_db(
         'INSERT INTO forum_comments (post_id, parent_id, content) VALUES (?, ?, ?)',
         (post_id, parent_id, content), fetch_last_id=True
     )
     
-    return jsonify({'message': '评论成功', 'comment_id': comment_id}), 201
+    return success_response({'comment_id': comment_id}, '评论成功')
 
 @forum_bp.route('/vote', methods=['POST'])
 def vote():
@@ -356,10 +344,10 @@ def vote():
     comment_id = data.get('comment_id')
     
     if not parent_id or vote_type is None:
-        return jsonify({'error': '参数不完整'}), 400
+        return error_response('参数不完整', status=400)
     
     if not post_id and not comment_id:
-        return jsonify({'error': '必须指定帖子或评论'}), 400
+        return error_response('必须指定帖子或评论', status=400)
     
     existing = execute_db('''
         SELECT id FROM forum_votes 
@@ -377,37 +365,12 @@ def vote():
             VALUES (?, ?, ?, ?)
         ''', (parent_id, post_id, comment_id, vote_type))
     
-    return jsonify({'message': '投票成功'}), 200
+    return success_response(None, '投票成功')
 
-@forum_bp.route('/favorites', methods=['POST'])
-def add_favorite():
-    data = request.json
-    parent_id = data.get('parent_id')
-    post_id = data.get('post_id')
+@forum_bp.route('/favorites', methods=['GET'])
+def get_favorites():
+    parent_id = request.user_id
     
-    if not parent_id or not post_id:
-        return jsonify({'error': '参数不完整'}), 400
-    
-    try:
-        execute_db('INSERT INTO favorites (parent_id, post_id) VALUES (?, ?)', (parent_id, post_id))
-        return jsonify({'message': '收藏成功'}), 201
-    except:
-        return jsonify({'error': '已收藏或帖子不存在'}), 400
-
-@forum_bp.route('/favorites', methods=['DELETE'])
-def remove_favorite():
-    data = request.json
-    parent_id = data.get('parent_id')
-    post_id = data.get('post_id')
-    
-    if not parent_id or not post_id:
-        return jsonify({'error': '参数不完整'}), 400
-    
-    execute_db('DELETE FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
-    return jsonify({'message': '取消收藏成功'}), 200
-
-@forum_bp.route('/favorites/<int:parent_id>', methods=['GET'])
-def get_favorites(parent_id):
     result = execute_db('''
         SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id,
                pr.username as author_name,
@@ -432,18 +395,24 @@ def get_favorites(parent_id):
         'like_count': f[8]
     } for f in result]
     
-    return jsonify(favorites), 200
+    return success_response(favorites)
 
-@forum_bp.route('/favorites/check', methods=['GET'])
-def check_favorite():
-    parent_id = request.args.get('parent_id')
-    post_id = request.args.get('post_id')
+@forum_bp.route('/favorites/<int:post_id>', methods=['POST'])
+def add_favorite(post_id):
+    parent_id = request.user_id
     
-    if not parent_id or not post_id:
-        return jsonify({'error': '参数不完整'}), 400
+    try:
+        execute_db('INSERT INTO favorites (parent_id, post_id) VALUES (?, ?)', (parent_id, post_id))
+        return success_response(None, '收藏成功')
+    except sqlite3.IntegrityError:
+        return error_response('已收藏或帖子不存在', status=400)
+
+@forum_bp.route('/favorites/<int:post_id>', methods=['DELETE'])
+def remove_favorite(post_id):
+    parent_id = request.user_id
     
-    result = execute_db('SELECT id FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
-    return jsonify({'is_favorited': len(result) > 0}), 200
+    execute_db('DELETE FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
+    return success_response(None, '取消收藏成功')
 
 @forum_bp.route('/reports', methods=['POST'])
 def create_report():
@@ -454,17 +423,17 @@ def create_report():
     reason = data.get('reason')
     
     if not parent_id or not reason:
-        return jsonify({'error': '参数不完整'}), 400
+        return error_response('参数不完整', status=400)
     
     if not post_id and not comment_id:
-        return jsonify({'error': '必须指定帖子或评论'}), 400
+        return error_response('必须指定帖子或评论', status=400)
     
     execute_db('''
         INSERT INTO reports (parent_id, post_id, comment_id, reason)
         VALUES (?, ?, ?, ?)
     ''', (parent_id, post_id, comment_id, reason))
     
-    return jsonify({'message': '举报成功，我们会尽快处理'}), 201
+    return success_response(None, '举报成功，我们会尽快处理')
 
 @forum_bp.route('/categories', methods=['GET'])
 def get_categories():
@@ -475,15 +444,15 @@ def get_categories():
 @forum_bp.route('/upload/image', methods=['POST'])
 def upload_image():
     if 'image' not in request.files:
-        return jsonify({'error': '没有上传图片'}), 400
+        return error_response('没有上传图片', status=400)
     
     file = request.files['image']
     if file.filename == '':
-        return jsonify({'error': '没有选择文件'}), 400
+        return error_response('没有选择文件', status=400)
     
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        return jsonify({'error': '不支持的文件格式'}), 400
+        return error_response('不支持的文件格式', status=400)
     
     filename = f"{uuid.uuid4().hex}.{file.filename.rsplit('.', 1)[1].lower()}"
     upload_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'uploads')
@@ -491,4 +460,4 @@ def upload_image():
     file_path = os.path.join(upload_dir, filename)
     file.save(file_path)
     
-    return jsonify({'url': f'/uploads/{filename}'}), 200
+    return success_response({'url': f'/uploads/{filename}'})
