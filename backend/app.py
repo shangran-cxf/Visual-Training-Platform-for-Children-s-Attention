@@ -1,8 +1,13 @@
 from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
 import traceback
+import os
 
 from config import FRONTEND_DIR, APP_CONFIG
+
+# 打印FRONTEND_DIR路径
+print(f'FRONTEND_DIR: {FRONTEND_DIR}')
+print(f'FRONTEND_DIR exists: {os.path.exists(FRONTEND_DIR)}')
 from database import init_db, execute_db
 from modules import auth_bp, children_bp, forum_bp, knowledge_bp, badges_bp, admin_bp, user_stats_bp
 from analytics import data_collector_bp
@@ -14,7 +19,7 @@ from utils.error_codes import (
 from utils.response_utils import error_response
 
 app = Flask(__name__)
-app.static_folder = FRONTEND_DIR
+# app.static_folder = FRONTEND_DIR
 CORS(app)
 
 init_db()
@@ -144,6 +149,12 @@ def index():
 @app.route('/<path:path>')
 def static_files(path):
     return send_from_directory(FRONTEND_DIR, path)
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    import os
+    upload_folder = os.path.join(os.path.dirname(__file__), 'uploads')
+    return send_from_directory(upload_folder, filename)
 
 if __name__ == '__main__':
     app.run(

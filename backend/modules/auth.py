@@ -235,6 +235,47 @@ def update_user_info():
     
     return success_response(None, '更新成功')
 
+@auth_bp.route('/api/user/avatar', methods=['POST'])
+def upload_avatar():
+    import os
+    from werkzeug.utils import secure_filename
+    
+    parent_id = request.form.get('parent_id')
+    if not parent_id:
+        return error_response('缺少parent_id参数', status=400)
+    
+    if not check_user_exists(user_id=parent_id):
+        return error_response('用户不存在', status=404)
+    
+    if 'avatar' not in request.files:
+        return error_response('缺少头像文件', status=400)
+    
+    file = request.files['avatar']
+    if file.filename == '':
+        return error_response('没有选择文件', status=400)
+    
+    # 确保上传目录存在
+    upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+    
+    # 生成安全的文件名
+    filename = secure_filename(file.filename)
+    # 添加parent_id作为前缀，确保文件名唯一
+    unique_filename = f"{parent_id}_{filename}"
+    file_path = os.path.join(upload_folder, unique_filename)
+    
+    # 保存文件
+    file.save(file_path)
+    
+    # 生成访问URL
+    avatar_url = f"/uploads/{unique_filename}"
+    
+    # 更新数据库中的头像URL
+    execute_db('UPDATE parents SET avatar = ? WHERE id = ?', (avatar_url, parent_id))
+    
+    return success_response({'avatar_url': avatar_url}, '头像上传成功')
+
 
 
 

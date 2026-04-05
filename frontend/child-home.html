@@ -1409,7 +1409,7 @@
         
         if (response.ok && data.valid) {
           UserStateUtil.switchToParentMode();
-          window.location.href = 'profile.html';
+          window.location.href = 'child-document.html';
         } else {
           alert(data.error || '密码错误，请重试！');
           document.getElementById('parent-password').value = '';

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>儿童档案 - 家长端</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="utils.js"></script>
+  <script src="components-parent.js"></script>
+  <style>
+    /* ===== 页面特定样式 ===== */
+
+    /* 主内容区域网格布局 */
+    .main-content {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      overflow-y: auto;
+      flex: 1;
+      padding: 24px;
+      max-width: calc(100% - 154px);
+    }
+
+    /* 左侧主卡片 - 跨两行 */
+    .card.left-main-card {
+      grid-column: 1 / 2;
+      grid-row: 1 / 3;
+      background: #fff9e3 !important;
+    }
+
+    /* 右上卡片 - 儿童信息 */
+    .card.right-top-card {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+      background: #d0c6f5 !important;
+    }
+
+    /* 右下卡片 - 成长轨迹 */
+    .card.right-bottom-card {
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+      background: #cdd4fd !important;
+    }
+
+    /* 左侧卡片的标题样式 */
+    .card.left-main-card .card-header {
+      color: #472280;
+      font-size: 35px;
+      font-weight: 600;
+    }
+
+    /* 左侧卡片的其他部分文字颜色 */
+    .card.left-main-card .ability-tag {
+      color: #000;
+    }
+
+    /* 能力标签在深色背景上的样式 */
+    .card.left-main-card .ability-tag.high {
+      background: rgba(212, 237, 218, 0.2);
+      color: #d4edda;
+    }
+
+    .card.left-main-card .ability-tag.medium {
+      background: rgba(255, 243, 205, 0.2);
+      color: #fff3cd;
+    }
+
+    .card.left-main-card .ability-tag.low {
+      background: rgba(248, 215, 218, 0.2);
+      color: #f8d7da;
+    }
+
+    /* 右上卡片样式 */
+    .card.right-top-card .card-header {
+      color: #343559;
+      font-size: 27px;
+      font-weight: 600;
+    }
+
+    .card.right-top-card #child-info {
+      color: #555;
+      font-size: 14px;
+    }
+
+    /* 右下卡片样式 */
+    .card.right-bottom-card .card-header {
+      color: #192d66;
+      font-size: 30px;
+      font-weight: 600;
+    }
+
+    /* 儿童选择器 */
+    .child-selector {
+      position: relative;
+      margin-bottom: 20px;
+      width: 100px;
+    }
+
+    .child-selector-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 8px;
+      background: #aaaade;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 16px;
+      color: #fff;
+    }
+
+    .child-selector-header span:first-child {
+      text-align: center;
+      flex: 1;
+    }
+
+    .child-selector-header:hover {
+      background: #8989b4;
+    }
+
+    .child-selector-header.active {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .child-selector-options {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-top: none;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-sizing: border-box;
+    }
+
+    .child-selector-options.active {
+      display: block;
+    }
+
+    .child-option {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .child-option:hover {
+      background: #f8f9fa;
+    }
+
+    .child-option.active {
+      background: #c9b6e0;
+      color: white;
+    }
+
+    .child-selector-arrow {
+      transition: transform 0.3s ease;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .child-selector-arrow.active {
+      transform: rotate(180deg);
+    }
+
+    /* 雷达图容器 */
+    .radar-chart-container {
+      width: 100%;
+      height: 500px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 成长轨迹图容器 */
+    .growth-chart-container {
+      width: 100%;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1200px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+
+      .left-main-card,
+      .right-top-card,
+      .right-bottom-card {
+        grid-column: 1 / 2;
+        grid-row: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 主内容区域 -->
+  <div class="main-content">
+    <!-- 左侧主卡片 - 雷达图 -->
+    <div class="card left-main-card">
+      <div class="card-header">能力评估雷达图</div>
+      <div class="child-selector">
+        <div class="child-selector-header" onclick="toggleChildSelector()">
+          <span id="selected-child-name">小明</span>
+          <span class="child-selector-arrow">▼</span>
+        </div>
+        <div class="child-selector-options">
+          <div class="child-option active" onclick="selectChild(this, 'child1')">小明</div>
+          <div class="child-option" onclick="selectChild(this, 'child2')">小红</div>
+          <div class="child-option" onclick="selectChild(this, 'child3')">小刚</div>
+        </div>
+      </div>
+      <div class="radar-chart-container">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+
+    <!-- 右上卡片 - 儿童信息 -->
+    <div class="card right-top-card">
+      <div class="card-header">训练评析</div>
+      <div id="child-info">
+        <p><strong>姓名:</strong> <span id="child-name">小明</span></p>
+        <p><strong>年龄:</strong> <span id="child-age">8岁</span></p>
+        <p><strong>性别:</strong> <span id="child-gender">男</span></p>
+        <p><strong>训练时长:</strong> <span id="training-time">120小时</span></p>
+        <p><strong>完成课程:</strong> <span id="completed-courses">45节</span></p>
+        <p><strong>当前等级:</strong> <span id="current-level">Level 5</span></p>
+      </div>
+    </div>
+
+    <!-- 右下卡片 - 成长轨迹 -->
+    <div class="card right-bottom-card">
+      <div class="card-header">成长轨迹</div>
+      <div class="growth-chart-container">
+        <canvas id="growthChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 页面初始化 =====
+
+    // 页面初始化在 DOMContentLoaded 事件中执行
+
+    // ===== 页面特定功能 =====
+
+    // 切换儿童选择器下拉菜单
+    function toggleChildSelector() {
+      const header = document.querySelector('.child-selector-header');
+      const options = document.querySelector('.child-selector-options');
+      const arrow = document.querySelector('.child-selector-arrow');
+
+      header.classList.toggle('active');
+      options.classList.toggle('active');
+      arrow.classList.toggle('active');
+    }
+
+    // 选择儿童
+    function selectChild(element, childId) {
+      // 移除所有活跃状态
+      document.querySelectorAll('.child-option').forEach(option => {
+        option.classList.remove('active');
+      });
+
+      // 添加当前活跃状态
+      element.classList.add('active');
+
+      // 更新选中的儿童名称
+      const selectedChildName = element.textContent;
+      document.getElementById('selected-child-name').textContent = selectedChildName;
+
+      // 关闭下拉菜单
+      toggleChildSelector();
+
+      // 更新儿童信息
+      updateChildInfo(childId);
+
+      // 更新图表
+      updateCharts(childId);
+    }
+
+    // 从后端获取儿童数据
+    async function fetchChildData(childId) {
+      try {
+        // 这里应该是实际的API调用
+        // const response = await fetch(`/api/children/${childId}`);
+        // const data = await response.json();
+
+        // 模拟后端数据
+        const mockData = {
+          child1: {
+            info: { name: '小明', age: '8岁', gender: '男', time: '120小时', courses: '45节', level: 'Level 5' },
+            radarData: [0.9, 0.85, 0.7, 0.88, 0.65]
+          },
+          child2: {
+            info: { name: '小红', age: '7岁', gender: '女', time: '98小时', courses: '38节', level: 'Level 4' },
+            radarData: [0.8, 0.75, 0.85, 0.7, 0.8]
+          },
+          child3: {
+            info: { name: '小刚', age: '9岁', gender: '男', time: '156小时', courses: '52节', level: 'Level 6' },
+            radarData: [0.95, 0.9, 0.8, 0.92, 0.75]
+          }
+        };
+
+        return mockData[childId];
+      } catch (error) {
+        console.error('获取儿童数据失败:', error);
+        return null;
+      }
+    }
+
+    // 更新儿童信息
+    async function updateChildInfo(childId) {
+      const childData = await fetchChildData(childId);
+      if (childData && childData.info) {
+        const info = childData.info;
+        document.getElementById('child-name').textContent = info.name;
+        document.getElementById('child-age').textContent = info.age;
+        document.getElementById('child-gender').textContent = info.gender;
+        document.getElementById('training-time').textContent = info.time;
+        document.getElementById('completed-courses').textContent = info.courses;
+        document.getElementById('current-level').textContent = info.level;
+      }
+    }
+
+    // 更新图表
+    async function updateCharts(childId) {
+      const childData = await fetchChildData(childId);
+      if (childData && childData.radarData) {
+        drawRadarChart(childData.radarData);
+      }
+    }
+
+    // 雷达图配置
+    const radarChartConfig = {
+      // 维度配置
+      dimensions: ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'],
+      // 标准值配置
+      standardValues: [0.7, 0.7, 0.7, 0.7, 0.7], // 标准值，默认为0.7（70%）
+      // 样式配置
+      styles: {
+        dataset: {
+          label: '能力评分',
+          backgroundColor: 'rgba(192, 158, 236, 0.3)',
+          borderColor: '#c09fec',
+          borderWidth: 3,
+          pointBackgroundColor: '#866ec4',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#343a40'
+        },
+        standardDataset: {
+          label: '标准值',
+          backgroundColor: 'rgba(30, 144, 255, 0.2)', // 深蓝色填充
+          borderColor: '#8691c9', // 深蓝色线条
+          borderWidth: 3,
+          pointBackgroundColor: '#356197', // 深蓝色数据点
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#1e90ff'
+        },
+        scales: {
+          angleLines: {
+            display: true,
+            color: '#e0e0e0'
+          },
+          grid: {
+            color: '#e0e0e0'
+          },
+          pointLabels: {
+            font: {
+              size: 14,
+              weight: 'bold'
+            }
+          },
+          ticks: {
+            backdropColor: 'transparent',
+            stepSize: 20,
+            max: 100,
+            min: 0
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom'
+          }
+        }
+      }
+    };
+
+    // 雷达图实例
+    let radarChart = null;
+
+    // 绘制雷达图
+    function drawRadarChart(data) {
+      const canvas = document.getElementById('radarChart');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+
+      // 销毁旧的图表实例
+      if (radarChart) {
+        radarChart.destroy();
+      }
+
+      const values = data || [0.5, 0.5, 0.5, 0.5, 0.5]; // 默认值
+      const { dimensions, standardValues, styles } = radarChartConfig;
+
+      // 创建新的图表实例
+      radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: dimensions,
+          datasets: [
+            {
+              label: styles.dataset.label,
+              data: values.map(value => value * 100), // 转换为百分比
+              backgroundColor: styles.dataset.backgroundColor,
+              borderColor: styles.dataset.borderColor,
+              pointBackgroundColor: styles.dataset.pointBackgroundColor,
+              pointHoverBackgroundColor: styles.dataset.pointHoverBackgroundColor,
+              pointHoverBorderColor: styles.dataset.pointHoverBorderColor
+            },
+            {
+              label: styles.standardDataset.label,
+              data: standardValues.map(value => value * 100), // 转换为百分比
+              backgroundColor: styles.standardDataset.backgroundColor,
+              borderColor: styles.standardDataset.borderColor,
+              pointBackgroundColor: styles.standardDataset.pointBackgroundColor,
+              pointBorderColor: styles.standardDataset.pointBorderColor,
+              pointHoverBackgroundColor: styles.standardDataset.pointHoverBackgroundColor,
+              pointHoverBorderColor: styles.standardDataset.pointHoverBorderColor
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              angleLines: styles.scales.angleLines,
+              grid: styles.scales.grid,
+              pointLabels: styles.scales.pointLabels,
+              ticks: styles.scales.ticks
+            }
+          },
+          plugins: styles.plugins
+        }
+      });
+    }
+
+    // 成长轨迹图实例
+    let growthChart = null;
+
+    // 绘制成长轨迹图
+    function drawGrowthChart() {
+      const canvas = document.getElementById('growthChart');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+
+      // 销毁旧的图表实例
+      if (growthChart) {
+        growthChart.destroy();
+      }
+
+      // 模拟数据 - 8周的专注能力评分
+      const data = [65, 68, 72, 70, 75, 78, 82, 85];
+      const labels = ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'];
+
+      // 创建新的图表实例
+      growthChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '专注能力评分',
+            data: data,
+            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+            borderColor: '#667eea',
+            borderWidth: 4,
+            pointBackgroundColor: '#667eea',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#667eea',
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: false,
+              min: 50,
+              max: 100,
+              ticks: {
+                stepSize: 10,
+                font: {
+                  size: 12
+                }
+              }
+            },
+            x: {
+              ticks: {
+                font: {
+                  size: 12
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: {
+                font: {
+                  size: 16
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', async function () {
+      // 检查登录状态
+      const userInfo = ParentComponents.checkAuth();
+
+      // 初始化页面（参数：当前页面ID）
+      ParentComponents.initPage('profile');
+
+      // 初始加载第一个儿童的数据
+      await updateChildInfo('child1');
+      await updateCharts('child1');
+
+      // 绘制成长轨迹图
+      drawGrowthChart();
+    });
+
+    // 窗口大小改变时重绘图表
+    window.addEventListener('resize', async function () {
+      // 获取当前选中的儿童ID
+      const activeChild = document.querySelector('.child-option.active');
+      if (activeChild) {
+        // 从元素的onclick属性中提取childId
+        const onclickAttr = activeChild.getAttribute('onclick');
+        const childIdMatch = onclickAttr.match(/selectChild\(this, '(child\d+)'\)/);
+        if (childIdMatch && childIdMatch[1]) {
+          const childId = childIdMatch[1];
+          await updateCharts(childId);
+        }
+      }
+      drawGrowthChart();
+    });
+  </script>
+</body>
+
+</html>

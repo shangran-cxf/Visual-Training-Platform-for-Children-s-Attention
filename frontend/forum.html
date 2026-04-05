@@ -5,149 +5,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>家长论坛 - 儿童注意力训练平台</title>
+    <script src="utils.js"></script>
+    <script src="components-parent.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html, body {
-            overflow-x: hidden;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .header h1 {
-            font-size: 1.8em;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .nav {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            padding: 12px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav ul {
-            display: flex;
-            justify-content: center;
-            list-style: none;
-            gap: 15px;
-            flex-wrap: wrap;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .nav a {
-            text-decoration: none;
-            color: #666;
-            font-size: 14px;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .nav a:hover {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        .nav a.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .container {
-            flex: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            display: flex;
-            gap: 20px;
-        }
-
-        .main-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .sidebar {
-            width: 300px;
-            flex-shrink: 0;
-        }
-
+        /* 论坛页面特定样式 */
         .forum-header {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 8px 8px 16px rgba(236, 239, 244, 0.6), -8px -8px 16px rgba(239, 236, 255, 0.8);
         }
 
-        .search-bar {
+        /* 搜索框样式（与knowledge页面一致） */
+        .search-container {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
         }
 
-        .search-bar input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e8e8e8;
-            border-radius: 25px;
-            font-size: 14px;
+        .search-box {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            background: #fff;
+            border: 2px solid #e5e7eb;
+            border-radius: 30px;
+            padding: 0 20px;
             transition: all 0.3s ease;
+            position: relative;
         }
 
-        .search-bar input:focus {
+        /* 点击后特效 */
+        .search-box.active {
+            background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
+            border-color: #a855f7;
+            transform: scale(1.02);
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+        }
+
+        .search-icon {
+            width: 22px;
+            height: 22px;
+            margin-right: 12px;
+            color: #9ca3af;
+            transition: color 0.3s ease;
+        }
+
+        .search-box.active .search-icon {
+            color: #7c3aed;
+        }
+
+        .search-input {
+            flex: 1;
+            height: 100%;
+            border: none;
             outline: none;
-            border-color: #667eea;
+            background: transparent;
+            font-size: 16px;
         }
 
-        .search-bar button {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .search-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #7c3aed, #ec4899);
             color: white;
             border: none;
-            border-radius: 25px;
-            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-bar button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            white-space: nowrap;
         }
 
         .category-tabs {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .category-tab {
@@ -166,7 +99,7 @@
         }
 
         .category-tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
             color: white;
         }
 
@@ -205,15 +138,15 @@
 
         .new-post-section {
             background: white;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 20px;
+            margin-bottom: 24px;
+            box-shadow: 8px 8px 16px rgba(236, 239, 244, 0.6), -8px -8px 16px rgba(239, 236, 255, 0.8);
             overflow: hidden;
         }
 
         .new-post-toggle {
-            padding: 16px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
             color: white;
             font-size: 15px;
             font-weight: 500;
@@ -229,14 +162,14 @@
         }
 
         .new-post-form {
-            padding: 0 20px;
+            padding: 0 24px;
             max-height: 0;
             overflow: hidden;
             transition: all 0.3s ease;
         }
 
         .new-post-form.show {
-            padding: 20px;
+            padding: 24px;
             max-height: 600px;
         }
 
@@ -280,48 +213,15 @@
             gap: 10px;
         }
 
-        .btn-primary {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            padding: 12px 24px;
-            background: #f5f5f5;
-            color: #666;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background: #e8e8e8;
-        }
-
         .forum-posts {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 20px;
+            box-shadow: 8px 8px 16px rgba(236, 239, 244, 0.6), -8px -8px 16px rgba(239, 236, 255, 0.8);
             overflow: hidden;
         }
 
         .forum-post {
-            padding: 20px;
+            padding: 24px;
             border-bottom: 1px solid #f0f0f0;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -347,14 +247,14 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .author-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -379,7 +279,7 @@
         .author-level {
             font-size: 11px;
             padding: 2px 8px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
             color: white;
             border-radius: 10px;
         }
@@ -415,7 +315,7 @@
             font-size: 16px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             line-height: 1.4;
         }
 
@@ -427,7 +327,7 @@
             font-size: 14px;
             color: #666;
             line-height: 1.6;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
@@ -437,36 +337,31 @@
         .post-footer {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
-        .post-stat {
+        .post-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .post-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .post-stat-readonly {
             display: flex;
             align-items: center;
             gap: 4px;
             font-size: 13px;
             color: #999;
-        }
-
-        .post-stat span {
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .post-stat span:hover {
-            color: #667eea;
-        }
-
-        .post-stat.liked span {
-            color: #667eea;
-        }
-
-        .post-stat.disliked span {
-            color: #f44336;
-        }
-
-        .post-stat.favorited span {
-            color: #ff9800;
         }
 
         .post-stat-action {
@@ -516,36 +411,6 @@
 
         .post-stat-action.essential-action:hover {
             background: rgba(233, 30, 99, 0.15);
-        }
-
-        .post-footer {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .post-footer-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            flex: 1;
-        }
-
-        .post-footer-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-left: auto;
-        }
-
-        .post-stat-readonly {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 13px;
-            color: #999;
         }
 
         .post-comments {
@@ -643,7 +508,7 @@
 
         .comment-form button {
             padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -660,7 +525,7 @@
             display: flex;
             justify-content: center;
             gap: 8px;
-            padding: 20px;
+            padding: 24px;
         }
 
         .pagination button {
@@ -679,7 +544,7 @@
         }
 
         .pagination button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
             border-color: transparent;
             color: white;
         }
@@ -691,10 +556,10 @@
 
         .sidebar-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 20px;
             padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+            box-shadow: 8px 8px 16px rgba(236, 239, 244, 0.6), -8px -8px 16px rgba(239, 236, 255, 0.8);
         }
 
         .sidebar-title {
@@ -788,18 +653,6 @@
             margin-top: 4px;
         }
 
-        .footer {
-            background: #333;
-            color: #999;
-            text-align: center;
-            padding: 20px 0;
-            margin-top: 40px;
-        }
-
-        .footer p {
-            font-size: 13px;
-        }
-
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -815,14 +668,32 @@
             font-size: 14px;
         }
 
+        /* 内容侧边栏样式 */
+        .content-sidebar {
+            width: 300px;
+            margin-left: 24px;
+        }
+
+        /* main-content布局 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            gap: 24px;
+        }
+
+        /* 主要内容区域 */
+        .main-content-inner {
+            flex: 1;
+        }
+
         @media (max-width: 1024px) {
-            .sidebar {
+            .content-sidebar {
                 display: none;
             }
         }
 
         @media (max-width: 768px) {
-            .container {
+            .main-content {
                 padding: 15px;
             }
 
@@ -839,24 +710,18 @@
 </head>
 
 <body>
-    <div class="header">
-        <h1>儿童注意力训练平台</h1>
-    </div>
-    <nav class="nav">
-        <ul>
-            <li><a href="knowledge.html">科普知识</a></li>
-            <li><a href="forum.html" class="active">家长论坛</a></li>
-            <li><a href="profile.html">个人中心</a></li>
-            <li><a href="#" onclick="switchToChild()">切换到孩子端</a></li>
-            <li><a href="login.html" onclick="logout()">退出登录</a></li>
-        </ul>
-    </nav>
-    <div class="container">
-        <div class="main-content">
+    <div class="main-content">
+        <div class="main-content-inner">
             <div class="forum-header">
-                <div class="search-bar">
-                    <input type="text" id="search-input" placeholder="搜索帖子...">
-                    <button onclick="searchPosts()">搜索</button>
+                <div class="search-container">
+                    <div class="search-box" id="searchBox">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" class="search-input" id="search-input" placeholder="搜索帖子...">
+                        <button class="search-btn" onclick="searchPosts()">搜索</button>
+                    </div>
                 </div>
                 <div class="category-tabs" id="category-tabs">
                     <button class="category-tab active" data-category="">全部</button>
@@ -901,38 +766,46 @@
             <div class="pagination" id="forum-pagination">
             </div>
         </div>
+    </div>
 
-        <div class="sidebar">
-            <div class="sidebar-card">
-                <div class="sidebar-title">🔥 热门帖子</div>
-                <div id="hot-posts"></div>
-            </div>
+    <div class="content-sidebar">
+        <div class="sidebar-card">
+            <div class="sidebar-title">🔥 热门帖子</div>
+            <div id="hot-posts"></div>
+        </div>
 
-            <div class="sidebar-card">
-                <div class="sidebar-title">📊 我的统计</div>
-                <div class="user-stats" id="user-stats">
-                    <div class="user-stat-item">
-                        <div class="user-stat-value" id="my-posts">0</div>
-                        <div class="user-stat-label">发帖</div>
-                    </div>
-                    <div class="user-stat-item">
-                        <div class="user-stat-value" id="my-comments">0</div>
-                        <div class="user-stat-label">评论</div>
-                    </div>
-                    <div class="user-stat-item">
-                        <div class="user-stat-value" id="my-likes">0</div>
-                        <div class="user-stat-label">获赞</div>
-                    </div>
+        <div class="sidebar-card">
+            <div class="sidebar-title">📊 我的统计</div>
+            <div class="user-stats" id="user-stats">
+                <div class="user-stat-item">
+                    <div class="user-stat-value" id="my-posts">0</div>
+                    <div class="user-stat-label">发帖</div>
+                </div>
+                <div class="user-stat-item">
+                    <div class="user-stat-value" id="my-comments">0</div>
+                    <div class="user-stat-label">评论</div>
+                </div>
+                <div class="user-stat-item">
+                    <div class="user-stat-value" id="my-likes">0</div>
+                    <div class="user-stat-label">获赞</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="footer">
-        <p>© 2026 注意力训练平台</p>
     </div>
 
-    <script src="utils.js"></script>
     <script>
+        // 初始化ParentComponents
+        window.onload = function () {
+            ParentComponents.initPage('forum');
+            const userInfo = ParentComponents.checkAuth();
+            if (userInfo) {
+                loadCategories();
+                loadPosts(1);
+                loadHotPosts();
+                loadUserStats();
+            }
+        };
         let currentPage = 1;
         const perPage = 10;
         let currentCategory = '';
@@ -941,47 +814,35 @@
         let categories = [];
 
         function logout() {
-            StorageUtil.removeItem('userInfo');
+            ParentComponents.logout();
         }
 
         function switchToChild() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (userInfo && userInfo.children && userInfo.children.length > 0) {
-                userInfo.mode = 'child';
-                userInfo.currentChildId = userInfo.children[0].id;
-                userInfo.currentChildName = userInfo.children[0].name;
-                StorageUtil.setItem('userInfo', userInfo);
-                window.location.href = 'child-home.html';
-            }
+            ParentComponents.switchToChildMode();
         }
 
         function checkAuth() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo) {
-                window.location.href = 'login.html';
-                return null;
-            }
-            return userInfo;
+            return ParentComponents.checkAuth();
         }
 
         async function loadCategories() {
             try {
                 const response = await fetch('/api/categories');
                 categories = await response.json();
-                
+
                 const tabsContainer = document.getElementById('category-tabs');
                 const selectContainer = document.getElementById('post-category');
-                
+
                 tabsContainer.innerHTML = '<button class="category-tab active" data-category="">全部</button>';
                 selectContainer.innerHTML = '<option value="">请选择分类</option>';
-                
+
                 categories.forEach(cat => {
                     tabsContainer.innerHTML += `<button class="category-tab" data-category="${cat.id}">${cat.icon} ${cat.name}</button>`;
                     selectContainer.innerHTML += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
                 });
-                
+
                 document.querySelectorAll('.category-tab').forEach(tab => {
-                    tab.addEventListener('click', function() {
+                    tab.addEventListener('click', function () {
                         document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
                         this.classList.add('active');
                         currentCategory = this.dataset.category;
@@ -998,7 +859,7 @@
             try {
                 const response = await fetch('/api/forum/posts/hot?limit=5');
                 const posts = await response.json();
-                
+
                 const container = document.getElementById('hot-posts');
                 container.innerHTML = posts.map((post, index) => `
                     <div class="hot-post-item" onclick="goToPost(${post.id})">
@@ -1015,11 +876,11 @@
         async function loadUserStats() {
             const userInfo = StorageUtil.getItem('userInfo');
             if (!userInfo) return;
-            
+
             try {
                 const response = await fetch(`/api/user/level/${userInfo.parent_id}`);
                 const data = await response.json();
-                
+
                 document.getElementById('my-posts').textContent = data.post_count;
                 document.getElementById('my-comments').textContent = data.comment_count;
                 document.getElementById('my-likes').textContent = data.like_received;
@@ -1040,7 +901,7 @@
         }
 
         document.querySelectorAll('.sort-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentSort = this.dataset.sort;
@@ -1053,12 +914,12 @@
             currentPage = page;
             const postsContainer = document.getElementById('forum-posts');
             postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
-            
+
             try {
                 let url = `/api/forum/posts/search?page=${page}&per_page=${perPage}&sort_by=${currentSort}`;
                 if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
                 if (currentCategory) url += `&category_id=${currentCategory}`;
-                
+
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -1070,11 +931,11 @@
                         const initial = (post.author_name || '用户').charAt(0).toUpperCase();
                         const isPinned = post.is_pinned === 1;
                         const isEssential = post.is_essential === 1;
-                        
+
                         const isAdmin = userInfo && userInfo.role === 'admin';
                         const isAuthor = userInfo && userInfo.parent_id === post.parent_id;
                         const canEditDelete = isAuthor || isAdmin;
-                        
+
                         return `
                         <div class="forum-post ${isPinned ? 'pinned' : ''}" onclick="toggleComments(${post.id})">
                             <div class="post-header">
@@ -1309,7 +1170,7 @@
         async function editPost(postId) {
             const newTitle = prompt('请输入新标题：');
             if (!newTitle) return;
-            
+
             const newContent = prompt('请输入新内容：');
             if (!newContent) return;
 
@@ -1564,21 +1425,27 @@
             }
         }
 
-        document.getElementById('search-input').addEventListener('keypress', function(e) {
+        document.getElementById('search-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 searchPosts();
             }
         });
 
-        window.onload = function () {
-            const userInfo = checkAuth();
-            if (userInfo) {
-                loadCategories();
-                loadPosts(1);
-                loadHotPosts();
-                loadUserStats();
-            }
-        };
+        // 搜索框动画效果
+        const searchBox = document.getElementById("searchBox");
+        const searchInput = document.getElementById("search-input");
+
+        // 点击/聚焦 开启特效
+        searchInput.addEventListener("focus", () => {
+            searchBox.classList.add("active");
+        });
+
+        // 失去焦点 关闭特效
+        searchInput.addEventListener("blur", () => {
+            searchBox.classList.remove("active");
+        });
+
+
     </script>
 </body>
 

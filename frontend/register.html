@@ -368,7 +368,7 @@
                     StorageUtil.setItem('userInfo', userInfo);
                     successMessage.textContent = '注册成功！正在跳转到个人中心...';
                     setTimeout(() => {
-                        window.location.href = 'profile.html';
+                        window.location.href = 'child-document.html';
                     }, 1500);
                 } else {
                     errorMessage.textContent = result.error || '注册失败';
