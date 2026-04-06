@@ -279,7 +279,7 @@
           return;
         }
 
-        const response = await fetch(`/api/children/${userInfo.parent_id}`);
+        const response = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
         const result = await response.json();
         childrenList = result.data || result;
 
@@ -344,8 +344,8 @@
     async function fetchChildData(childId) {
       try {
         const [statsResponse, detectionResponse] = await Promise.all([
-          fetch(`/api/children/${childId}/stats`),
-          fetch(`/api/get/detection?child_id=${childId}`)
+          ApiUtil.apiGet(`/api/children/${childId}/stats`),
+          ApiUtil.apiGet(`/api/get/detection`, { child_id: childId })
         ]);
 
         const statsResult = await statsResponse.json();

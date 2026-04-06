@@ -514,34 +514,34 @@ const ParentComponents = {
                     </div>
                     <div class="edit-profile-section" id="edit-profile-section" style="display: none;">
                         <h4>编辑个人信息</h4>
-                        <div class="edit-form">
+                        <form class="edit-form" onsubmit="return false;" autocomplete="on">
                             <div class="form-group">
                                 <label for="edit-username">用户名</label>
-                                <input type="text" id="edit-username" placeholder="请输入用户名">
+                                <input type="text" id="edit-username" placeholder="请输入用户名" autocomplete="username">
                             </div>
                             <div class="form-group">
                                 <label for="edit-email">邮箱</label>
-                                <input type="email" id="edit-email" placeholder="请输入邮箱">
+                                <input type="email" id="edit-email" placeholder="请输入邮箱" autocomplete="email">
                             </div>
                             <div class="form-group">
                                 <label for="edit-old-password">旧密码</label>
-                                <input type="password" id="edit-old-password" placeholder="请输入旧密码" oninput="ParentComponents.verifyOldPassword()">
+                                <input type="password" id="edit-old-password" placeholder="请输入旧密码" oninput="ParentComponents.verifyOldPassword()" autocomplete="current-password">
                                 <div class="password-error" id="old-password-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="edit-password">新密码</label>
-                                <input type="password" id="edit-password" placeholder="请输入新密码" disabled>
+                                <input type="password" id="edit-password" placeholder="请输入新密码" disabled autocomplete="new-password">
                             </div>
                             <div class="form-group">
                                 <label for="edit-confirm-password">确认新密码</label>
-                                <input type="password" id="edit-confirm-password" placeholder="请再次输入新密码" disabled>
+                                <input type="password" id="edit-confirm-password" placeholder="请再次输入新密码" disabled autocomplete="new-password">
                                 <div class="password-error" id="confirm-password-error"></div>
                             </div>
                             <div class="form-actions">
-                                <button class="btn-secondary" onclick="ParentComponents.cancelEdit()">取消</button>
-                                <button class="btn-primary" onclick="ParentComponents.saveProfile()">保存</button>
+                                <button type="button" class="btn-secondary" onclick="ParentComponents.cancelEdit()">取消</button>
+                                <button type="button" class="btn-primary" onclick="ParentComponents.saveProfile()">保存</button>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -623,7 +623,7 @@ const ParentComponents = {
         if (usernameElement) usernameElement.textContent = userInfo.username || '加载中...';
 
         try {
-            const response = await fetch(`/api/user/info?parent_id=${userInfo.parent_id}`);
+            const response = await fetch(`/api/user/query?type=id&value=${userInfo.parent_id}`);
             const result = await response.json();
             const data = result.data || result;
 

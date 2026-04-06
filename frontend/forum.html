@@ -827,9 +827,14 @@
 
         async function loadCategories() {
             try {
-                const response = await fetch('/api/categories');
+                const response = await fetch('/api/forum/categories');
                 const result = await response.json();
                 categories = result.data || result;
+
+                if (!Array.isArray(categories)) {
+                    console.error('分类数据格式错误:', categories);
+                    categories = [];
+                }
 
                 const tabsContainer = document.getElementById('category-tabs');
                 const selectContainer = document.getElementById('post-category');

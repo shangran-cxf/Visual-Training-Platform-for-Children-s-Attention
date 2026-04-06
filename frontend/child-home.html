@@ -1081,7 +1081,10 @@
     <div class="modal-content">
       <h3>家长端登录</h3>
       <p>请输入密码</p>
-      <input type="password" id="parent-password" placeholder="输入密码">
+      <form onsubmit="checkPassword(); return false;" autocomplete="on">
+        <input type="text" id="parent-username" autocomplete="username" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;" tabindex="-1" aria-hidden="true">
+        <input type="password" id="parent-password" placeholder="输入密码" autocomplete="current-password">
+      </form>
       <div class="modal-buttons">
         <button onclick="checkPassword()">确定</button>
         <button onclick="closeLoginModal()">取消</button>

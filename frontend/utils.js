@@ -240,6 +240,9 @@ const UserStateUtil = {
         };
         console.log('存储的用户信息:', userInfo);
         UserStateUtil.setUserInfo(userInfo);
+        if (response.token) {
+            localStorage.setItem('auth_token', response.token);
+        }
         return userInfo;
     }
 };
@@ -256,6 +259,10 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 const ApiUtil = {
+    getToken: () => {
+        return localStorage.getItem('auth_token');
+    },
+
     handleResponse: async (response) => {
         const data = await response.json();
         if (data.success === false) {
@@ -276,5 +283,29 @@ const ApiUtil = {
         } catch (error) {
             return ApiUtil.handleError(error);
         }
+    },
+
+    apiGet: async (url, params = {}) => {
+        const queryString = new URLSearchParams(
+            Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
+        ).toString();
+        
+        const fullUrl = queryString ? `${url}?${queryString}` : url;
+        
+        const token = ApiUtil.getToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(fullUrl, {
+            method: 'GET',
+            headers
+        });
+        
+        return response;
     }
 };
