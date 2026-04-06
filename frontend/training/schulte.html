@@ -830,12 +830,13 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    user_id: 1, // 假设用户ID为1
+                    user_id: 1,
                     ...trainingData
                 })
             })
                 .then(response => response.json())
-                .then(data => {
+                .then(result => {
+                    const data = result.data || result;
                     console.log('训练数据上传成功:', data);
                     // 训练后迭代优化
                     postTrainingOptimization(trainingData);

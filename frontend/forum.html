@@ -828,7 +828,8 @@
         async function loadCategories() {
             try {
                 const response = await fetch('/api/categories');
-                categories = await response.json();
+                const result = await response.json();
+                categories = result.data || result;
 
                 const tabsContainer = document.getElementById('category-tabs');
                 const selectContainer = document.getElementById('post-category');
@@ -858,7 +859,8 @@
         async function loadHotPosts() {
             try {
                 const response = await fetch('/api/forum/posts/hot?limit=5');
-                const posts = await response.json();
+                const result = await response.json();
+                const posts = result.data || result;
 
                 const container = document.getElementById('hot-posts');
                 container.innerHTML = posts.map((post, index) => `
@@ -879,7 +881,8 @@
 
             try {
                 const response = await fetch(`/api/user/level/${userInfo.parent_id}`);
-                const data = await response.json();
+                const result = await response.json();
+                const data = result.data || result;
 
                 document.getElementById('my-posts').textContent = data.post_count;
                 document.getElementById('my-comments').textContent = data.comment_count;
@@ -920,9 +923,12 @@
                 if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
                 if (currentCategory) url += `&category_id=${currentCategory}`;
 
+                
                 const response = await fetch(url);
-                const data = await response.json();
+                const result = await response.json();
+                const data = result.data || result;
 
+                
                 if (data.posts && data.posts.length > 0) {
                     const userInfo = StorageUtil.getItem('userInfo');
 
@@ -1060,7 +1066,8 @@
         async function loadComments(postId) {
             try {
                 const response = await fetch(`/api/forum/comments?post_id=${postId}`);
-                const data = await response.json();
+                const result = await response.json();
+                const data = result.data || result;
 
                 const commentsList = document.getElementById(`comments-list-${postId}`);
 
@@ -1121,7 +1128,7 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
+                if (result.success) {
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-content').value = '';
                     document.getElementById('post-category').value = '';
@@ -1129,7 +1136,7 @@
                     loadPosts(1);
                     loadUserStats();
                 } else {
-                    alert(result.error || '发布失败');
+                    alert(result.error?.message || result.error || '发布失败');
                 }
             } catch (error) {
                 console.error('发布帖子失败:', error);
@@ -1155,11 +1162,11 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
+                if (result.success) {
                     loadPosts(currentPage);
                     loadUserStats();
                 } else {
-                    alert(result.error || '删除失败');
+                    alert(result.error?.message || result.error || '删除失败');
                 }
             } catch (error) {
                 console.error('删除帖子失败:', error);
@@ -1191,10 +1198,10 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
+                if (result.success) {
                     loadPosts(currentPage);
                 } else {
-                    alert(result.error || '编辑失败');
+                    alert(result.error?.message || result.error || '编辑失败');
                 }
             } catch (error) {
                 console.error('编辑帖子失败:', error);
@@ -1219,10 +1226,10 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
+                if (result.success) {
                     loadPosts(currentPage);
                 } else {
-                    alert(result.error || '操作失败');
+                    alert(result.error?.message || result.error || '操作失败');
                 }
             } catch (error) {
                 console.error('操作失败:', error);
@@ -1247,10 +1254,10 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
+                if (result.success) {
                     loadPosts(currentPage);
                 } else {
-                    alert(result.error || '操作失败');
+                    alert(result.error?.message || result.error || '操作失败');
                 }
             } catch (error) {
                 console.error('操作失败:', error);
@@ -1264,10 +1271,11 @@
 
             try {
                 const checkResponse = await fetch(`/api/forum/favorites/check?parent_id=${userInfo.parent_id}&post_id=${postId}`);
-                const checkData = await checkResponse.json();
+                const checkResult = await checkResponse.json();
+                const checkData = checkResult.data || checkResult;
 
                 if (checkData.is_favorited) {
-                    await fetch('/api/forum/favorites', {
+                    const delResponse = await fetch('/api/forum/favorites', {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1277,9 +1285,12 @@
                             post_id: postId
                         })
                     });
-                    alert('已取消收藏');
+                    const delResult = await delResponse.json();
+                    if (delResult.success) {
+                        alert('已取消收藏');
+                    }
                 } else {
-                    await fetch('/api/forum/favorites', {
+                    const addResponse = await fetch('/api/forum/favorites', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1289,7 +1300,10 @@
                             post_id: postId
                         })
                     });
-                    alert('收藏成功');
+                    const addResult = await addResponse.json();
+                    if (addResult.success) {
+                        alert('收藏成功');
+                    }
                 }
             } catch (error) {
                 console.error('收藏操作失败:', error);

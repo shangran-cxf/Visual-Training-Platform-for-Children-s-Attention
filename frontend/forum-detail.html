@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>帖子详情 - 家长论坛</title>
+    <script src="utils.js"></script>
+    <script src="components-parent.js"></script>
     <style>
         * {
             margin: 0;
@@ -25,66 +27,13 @@
             flex-direction: column;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .header h1 {
-            font-size: 1.8em;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .nav {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            padding: 12px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav ul {
-            display: flex;
-            justify-content: center;
-            list-style: none;
-            gap: 15px;
-            flex-wrap: wrap;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .nav a {
-            text-decoration: none;
-            color: #666;
-            font-size: 14px;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .nav a:hover {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        .nav a.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
         .container {
             flex: 1;
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
             width: 100%;
+            margin-left: 80px;
         }
 
         .post-detail {
@@ -540,18 +489,6 @@
 </head>
 
 <body>
-    <div class="header">
-        <h1>儿童注意力训练平台</h1>
-    </div>
-    <nav class="nav">
-        <ul>
-            <li><a href="knowledge.html">科普知识</a></li>
-            <li><a href="forum.html" class="active">家长论坛</a></li>
-            <li><a href="profile.html">个人中心</a></li>
-            <li><a href="#" onclick="switchToChild()">切换到孩子端</a></li>
-            <li><a href="login.html" onclick="logout()">退出登录</a></li>
-        </ul>
-    </nav>
     <div class="container">
         <a href="forum.html" class="back-link">← 返回论坛</a>
 
@@ -650,21 +587,6 @@
         let postId = null;
         let postData = null;
         let isFavorited = false;
-
-        function logout() {
-            StorageUtil.removeItem('userInfo');
-        }
-
-        function switchToChild() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (userInfo && userInfo.children && userInfo.children.length > 0) {
-                userInfo.mode = 'child';
-                userInfo.currentChildId = userInfo.children[0].id;
-                userInfo.currentChildName = userInfo.children[0].name;
-                StorageUtil.setItem('userInfo', userInfo);
-                window.location.href = 'child-home.html';
-            }
-        }
 
         function checkAuth() {
             const userInfo = StorageUtil.getItem('userInfo');
@@ -1157,6 +1079,7 @@
         });
 
         window.onload = function () {
+            ParentComponents.initPage('forum');
             const userInfo = checkAuth();
             if (userInfo) {
                 loadPost();

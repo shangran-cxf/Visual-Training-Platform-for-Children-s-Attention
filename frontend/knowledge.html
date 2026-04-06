@@ -463,11 +463,18 @@
         async function loadKnowledgeArticles() {
             const container = document.getElementById('knowledge-articles-container');
             container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+
             try {
                 let url = '/api/knowledge/articles';
-                if (currentKeyword) url = '/api/knowledge/articles/search?keyword=' + encodeURIComponent(currentKeyword);
+                if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
+                if (currentDateFilter) url += `&date=${currentDateFilter}`;
+                if (currentDifficultyFilter) url += `&difficulty=${currentDifficultyFilter}`;
+                if (currentReadtimeFilter) url += `&readtime=${currentReadtimeFilter}`;
+
                 const response = await fetch(url);
-                const data = await response.json();
+                const result = await response.json();
+                const data = result.data || result;
+
                 allArticles = Array.isArray(data) ? data : (data.articles || []);
                 applyFiltersAndDisplay();
             } catch (error) {

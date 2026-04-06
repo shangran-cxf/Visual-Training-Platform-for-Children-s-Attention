@@ -6,6 +6,11 @@ from database import execute_db
 from config import GAME_TYPES, SCORING_WEIGHTS, DEFAULT_GAME_DATA
 from analytics.scoring import calculate_score, calculate_vision_scores, get_performance_level
 from utils.response_utils import success_response, error_response
+from middleware import require_auth
+from utils.error_codes import (
+    VALIDATION_ERROR, NOT_FOUND, SESSION_NOT_FOUND,
+    SESSION_EXPIRED, CHILD_NOT_BELONG, ACTIVE_SESSION_EXISTS
+)
 
 data_collector_bp = Blueprint('data_collector', __name__)
 
@@ -342,6 +347,7 @@ def generate_recommendations(summary, game_type):
     return recommendations
 
 @data_collector_bp.route('/api/training/session/start', methods=['POST'])
+@require_auth
 def start_session():
     data = request.json
     child_id = data.get('child_id')
@@ -349,21 +355,21 @@ def start_session():
     device_id = data.get('device_id')
     
     if not child_id or not game_type:
-        return jsonify({'error': 'child_id 和 game_type 不能为空'}), 400
+        return error_response('child_id 和 game_type 不能为空', VALIDATION_ERROR, 400)
     
     if game_type not in GAME_TYPES:
-        return jsonify({'error': f'无效的游戏类型，支持的类型: {list(GAME_TYPES.keys())}'}), 400
+        return error_response(f'无效的游戏类型，支持的类型: {list(GAME_TYPES.keys())}', VALIDATION_ERROR, 400)
     
-    child = execute_db('SELECT id FROM children WHERE id = ?', (child_id,))
+    child = execute_db('SELECT id, parent_id FROM children WHERE id = ?', (child_id,))
     if not child:
-        return jsonify({'error': '孩子不存在'}), 404
+        return error_response('孩子不存在', NOT_FOUND, 404)
+    
+    if child[0][1] != request.user_id:
+        return error_response('孩子不属于当前家长', CHILD_NOT_BELONG, 403)
     
     active_session_id = check_active_session(child_id, game_type)
     if active_session_id:
-        return jsonify({
-            'error': '该孩子已有同类型的活跃会话',
-            'active_session_id': active_session_id
-        }), 409
+        return error_response('该孩子已有同类型的活跃会话', ACTIVE_SESSION_EXISTS, 409)
     
     session_token = generate_session_token()
     
@@ -372,15 +378,15 @@ def start_session():
         VALUES (?, ?, ?, ?, 'active')
     ''', (child_id, game_type, session_token, device_id), fetch_last_id=True)
     
-    return jsonify({
-        'message': '训练会话已创建',
+    return success_response({
         'session_id': session_id,
         'session_token': session_token,
         'game_type': game_type,
         'game_name': GAME_TYPES[game_type]['name']
-    }), 201
+    }, '训练会话已创建')
 
 @data_collector_bp.route('/api/training/game-data', methods=['POST'])
+@require_auth
 def upload_game_data():
     data = request.json
     session_id = data.get('session_id')
@@ -409,17 +415,21 @@ def upload_game_data():
     reaction_times = data.get('reaction_times')
     
     if not session_id or not event_type:
-        return jsonify({'error': 'session_id 和 event_type 不能为空'}), 400
+        return error_response('session_id 和 event_type 不能为空', VALIDATION_ERROR, 400)
     
     session_info = get_session_info(session_id)
     if not session_info:
-        return jsonify({'error': '会话不存在'}), 404
+        return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
+    
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info['child_id'],))
+    if not child or child[0][0] != request.user_id:
+        return error_response('无权操作该会话', CHILD_NOT_BELONG, 403)
     
     if session_info['status'] != 'active':
-        return jsonify({'error': '会话已结束'}), 400
+        return error_response('训练会话已结束', SESSION_EXPIRED, 410)
     
     if is_request_processed(request_id):
-        return jsonify({'message': '请求已处理，跳过重复数据'}), 200
+        return success_response(None, '请求已处理，跳过重复数据')
     
     event_data_json = json.dumps(event_data) if event_data else None
     reaction_times_json = json.dumps(reaction_times) if reaction_times else None
@@ -441,9 +451,10 @@ def upload_game_data():
         (session_id,)
     )
     
-    return jsonify({'message': '游戏数据上传成功'}), 201
+    return success_response(None, '游戏数据上传成功')
 
 @data_collector_bp.route('/api/training/vision-data', methods=['POST'])
+@require_auth
 def upload_vision_data():
     data = request.json
     session_id = data.get('session_id')
@@ -460,17 +471,21 @@ def upload_vision_data():
     focus_duration = data.get('focus_duration')
     
     if not session_id:
-        return jsonify({'error': 'session_id 不能为空'}), 400
+        return error_response('session_id 不能为空', VALIDATION_ERROR, 400)
     
     session_info = get_session_info(session_id)
     if not session_info:
-        return jsonify({'error': '会话不存在'}), 404
+        return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
+    
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info['child_id'],))
+    if not child or child[0][0] != request.user_id:
+        return error_response('无权操作该会话', CHILD_NOT_BELONG, 403)
     
     if session_info['status'] != 'active':
-        return jsonify({'error': '会话已结束'}), 400
+        return error_response('训练会话已结束', SESSION_EXPIRED, 410)
     
     if is_request_processed(request_id):
-        return jsonify({'message': '请求已处理，跳过重复数据'}), 200
+        return success_response(None, '请求已处理，跳过重复数据')
     
     execute_db('''
         INSERT INTO vision_raw_data 
@@ -487,9 +502,10 @@ def upload_vision_data():
         (session_id,)
     )
     
-    return jsonify({'message': '视觉数据上传成功'}), 201
+    return success_response(None, '视觉数据上传成功')
 
 @data_collector_bp.route('/api/training/session/end', methods=['POST'])
+@require_auth
 def end_session():
     data = request.json
     session_id = data.get('session_id')
@@ -497,14 +513,18 @@ def end_session():
     total_accuracy = data.get('total_accuracy', 0)
     
     if not session_id:
-        return jsonify({'error': 'session_id 不能为空'}), 400
+        return error_response('session_id 不能为空', VALIDATION_ERROR, 400)
     
     session_info = get_session_info(session_id)
     if not session_info:
-        return jsonify({'error': '会话不存在'}), 404
+        return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
+    
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info['child_id'],))
+    if not child or child[0][0] != request.user_id:
+        return error_response('无权操作该会话', CHILD_NOT_BELONG, 403)
     
     if session_info['status'] != 'active':
-        return jsonify({'error': '会话已结束'}), 400
+        return error_response('训练会话已结束', SESSION_EXPIRED, 410)
     
     summary = calculate_session_summary(
         session_id, 
@@ -540,55 +560,63 @@ def end_session():
     earned_badges = check_and_award_badges(session_info['child_id'], summary)
     recommendations = generate_recommendations(summary, session_info['game_type'])
     
-    return jsonify({
-        'message': '训练会话已结束',
+    return success_response({
         'session_id': session_id,
         'summary': summary,
         'earned_badges': earned_badges,
         'recommendations': recommendations
-    }), 200
+    }, '训练会话已结束')
 
 @data_collector_bp.route('/api/training/session/heartbeat', methods=['POST'])
+@require_auth
 def heartbeat():
     data = request.json
     session_id = data.get('session_id')
     
     if not session_id:
-        return jsonify({'error': 'session_id 不能为空'}), 400
+        return error_response('session_id 不能为空', VALIDATION_ERROR, 400)
     
     session_info = get_session_info(session_id)
     if not session_info:
-        return jsonify({'error': '会话不存在'}), 404
+        return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
+    
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info['child_id'],))
+    if not child or child[0][0] != request.user_id:
+        return error_response('无权操作该会话', CHILD_NOT_BELONG, 403)
     
     if session_info['status'] != 'active':
-        return jsonify({'error': '会话已结束', 'status': session_info['status']}), 400
+        return error_response('训练会话已结束', SESSION_EXPIRED, 410)
     
     execute_db(
         'UPDATE training_sessions SET last_activity = CURRENT_TIMESTAMP WHERE id = ?',
         (session_id,)
     )
     
-    return jsonify({
-        'message': '心跳更新成功',
+    return success_response({
         'session_id': session_id,
         'status': 'active'
-    }), 200
+    }, '心跳更新成功')
 
 @data_collector_bp.route('/api/training/session/interrupt', methods=['POST'])
+@require_auth
 def interrupt_session():
     data = request.json
     session_id = data.get('session_id')
     current_state = data.get('current_state')
     
     if not session_id:
-        return jsonify({'error': 'session_id 不能为空'}), 400
+        return error_response('session_id 不能为空', VALIDATION_ERROR, 400)
     
     session_info = get_session_info(session_id)
     if not session_info:
-        return jsonify({'error': '会话不存在'}), 404
+        return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
+    
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info['child_id'],))
+    if not child or child[0][0] != request.user_id:
+        return error_response('无权操作该会话', CHILD_NOT_BELONG, 403)
     
     if session_info['status'] != 'active':
-        return jsonify({'error': '会话已结束', 'status': session_info['status']}), 400
+        return error_response('训练会话已结束', SESSION_EXPIRED, 410)
     
     if current_state:
         state_json = json.dumps(current_state)
@@ -604,15 +632,21 @@ def interrupt_session():
         WHERE id = ?
     ''', (session_id,))
     
-    return jsonify({
-        'message': '会话已中断',
+    return success_response({
         'session_id': session_id,
         'status': 'interrupted'
-    }), 200
+    }, '会话已中断')
 
 
 @data_collector_bp.route('/api/training/history/<int:child_id>', methods=['GET'])
+@require_auth
 def get_training_history(child_id):
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
+    if not child:
+        return error_response('孩子不存在', NOT_FOUND, 404)
+    if child[0][0] != request.user_id:
+        return error_response('孩子不属于当前家长', CHILD_NOT_BELONG, 403)
+    
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     game_type = request.args.get('game_type')
@@ -698,15 +732,16 @@ def get_training_history(child_id):
             'game_name': row[8] or row[1]
         })
     
-    return jsonify({
+    return success_response({
         'total': total,
         'limit': limit,
         'offset': offset,
         'records': history
-    })
+    }, '查询成功')
 
 
 @data_collector_bp.route('/api/training/detail/<int:session_id>', methods=['GET'])
+@require_auth
 def get_training_detail(session_id):
     session_info = execute_db('''
         SELECT s.id, s.child_id, s.game_type, s.start_time, s.end_time, s.status,
@@ -717,7 +752,11 @@ def get_training_detail(session_id):
     ''', (session_id,))
     
     if not session_info:
-        return jsonify({'error': '会话不存在'}), 404
+        return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
+    
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info[0][1],))
+    if not child or child[0][0] != request.user_id:
+        return error_response('无权访问该会话', CHILD_NOT_BELONG, 403)
     
     detail = execute_db('''
         SELECT session_id, child_id, game_type, attention_type,
@@ -798,11 +837,18 @@ def get_training_detail(session_id):
             'sample_count': len(vision_data)
         }
     
-    return jsonify(result)
+    return success_response(result, '查询成功')
 
 
 @data_collector_bp.route('/api/training/trend/<int:child_id>', methods=['GET'])
+@require_auth
 def get_training_trend(child_id):
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
+    if not child:
+        return error_response('孩子不存在', NOT_FOUND, 404)
+    if child[0][0] != request.user_id:
+        return error_response('孩子不属于当前家长', CHILD_NOT_BELONG, 403)
+    
     attention_type = request.args.get('attention_type')
     days = request.args.get('days', 30, type=int)
     
@@ -875,7 +921,7 @@ def get_training_trend(child_id):
     overall_avg = overall_result[0][0] if overall_result and overall_result[0][0] else 0
     total_sessions = overall_result[0][1] if overall_result else 0
     
-    return jsonify({
+    return success_response({
         'child_id': child_id,
         'period': {
             'start_date': start_date.strftime('%Y-%m-%d'),
@@ -893,7 +939,7 @@ def get_training_trend(child_id):
             'avg_score': round(overall_avg, 2),
             'total_sessions': total_sessions
         }
-    })
+    }, '查询成功')
 
 
 @data_collector_bp.route('/api/upload/detection', methods=['POST'])

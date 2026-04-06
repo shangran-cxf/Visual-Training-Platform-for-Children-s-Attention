@@ -418,7 +418,7 @@ const ParentComponents = {
             { id: 'profile', label: '儿童档案', href: 'child-document.html', icon: this.getIcons().document },
             { id: 'knowledge', label: '科普知识', href: 'knowledge.html', icon: this.getIcons().book },
             { id: 'forum', label: '论坛', href: 'forum.html', icon: this.getIcons().message },
-            { id: 'child', label: '儿童端', href: '#', icon: this.getIcons().game, action: 'switchToChildMode()' }
+            { id: 'child', label: '儿童端', href: '#', icon: this.getIcons().game, action: 'ParentComponents.switchToChildMode(); return false;' }
         ];
 
         let navItemsHtml = navItems.map((item, index) => {
@@ -624,7 +624,8 @@ const ParentComponents = {
 
         try {
             const response = await fetch(`/api/user/info?parent_id=${userInfo.parent_id}`);
-            const data = await response.json();
+            const result = await response.json();
+            const data = result.data || result;
 
             if (usernameElement) usernameElement.textContent = data.username || userInfo.username || '-';
             if (emailElement) emailElement.textContent = data.email || '-';
@@ -753,8 +754,9 @@ const ParentComponents = {
             });
 
             const result = await response.json();
+            const data = result.data || result;
 
-            if (response.ok && result.valid) {
+            if (response.ok && data.valid) {
                 if (errorElement) errorElement.textContent = '';
                 if (newPasswordInput) newPasswordInput.disabled = false;
                 if (confirmPasswordInput) confirmPasswordInput.disabled = false;
@@ -831,12 +833,12 @@ const ParentComponents = {
 
             const result = await response.json();
 
-            if (response.ok) {
+            if (result.success) {
                 alert('个人信息更新成功');
                 this.loadProfileInfo();
                 this.cancelEdit();
             } else {
-                alert(result.error || '更新失败');
+                alert(result.error?.message || result.error || '更新失败');
             }
         } catch (err) {
             console.error('更新个人信息失败:', err);
@@ -864,26 +866,28 @@ const ParentComponents = {
                 body: formData
             });
 
-            if (response.ok) {
-                const result = await response.json();
+            const result = await response.json();
+            
+            if (result.success) {
+                const data = result.data || result;
                 const avatarElement = document.getElementById('modal-avatar');
-                if (avatarElement && result.avatar_url) {
-                    avatarElement.innerHTML = `<img src="${result.avatar_url}" alt="头像">`;
+                if (avatarElement && data.avatar_url) {
+                    avatarElement.innerHTML = `<img src="${data.avatar_url}" alt="头像">`;
                 }
-
+                
                 // 更新本地存储中的头像URL
-                userInfo.avatar = result.avatar_url;
+                userInfo.avatar = data.avatar_url;
                 StorageUtil.setItem('userInfo', userInfo);
 
                 // 更新侧边栏头像
                 const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
-                if (sidebarAvatar && result.avatar_url) {
-                    sidebarAvatar.innerHTML = `<img src="${result.avatar_url}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
+                if (sidebarAvatar && data.avatar_url) {
+                    sidebarAvatar.innerHTML = `<img src="${data.avatar_url}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
                 }
 
                 alert('头像上传成功');
             } else {
-                alert('头像上传失败');
+                alert(result.error?.message || '头像上传失败');
             }
         } catch (err) {
             console.error('上传头像失败:', err);
@@ -896,11 +900,19 @@ const ParentComponents = {
      */
     switchToChildMode: function () {
         const userInfo = StorageUtil.getItem('userInfo');
-        if (userInfo) {
-            userInfo.role = 'child';
-            StorageUtil.setItem('userInfo', userInfo);
-            window.location.href = 'child-home.html';
+        if (!userInfo) {
+            window.location.href = 'login.html';
+            return;
         }
+
+        if (!userInfo.children || userInfo.children.length === 0) {
+            alert('请先添加儿童信息');
+            window.location.href = 'child-document.html';
+            return;
+        }
+
+        UserStateUtil.switchToChildMode(userInfo.children[0].id, userInfo.children[0].name);
+        window.location.href = 'child-home.html';
     },
 
     /**

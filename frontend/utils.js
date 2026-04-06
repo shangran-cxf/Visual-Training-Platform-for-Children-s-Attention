@@ -250,6 +250,31 @@ if (typeof module !== 'undefined' && module.exports) {
         EventUtil,
         StorageUtil,
         AudioUtil,
-        UserStateUtil
+        UserStateUtil,
+        ApiUtil
     };
 }
+
+const ApiUtil = {
+    handleResponse: async (response) => {
+        const data = await response.json();
+        if (data.success === false) {
+            throw new Error(data.error?.message || '请求失败');
+        }
+        return data.data !== undefined ? data.data : data;
+    },
+    
+    handleError: (error) => {
+        console.error('API Error:', error);
+        throw error;
+    },
+    
+    fetch: async (url, options = {}) => {
+        try {
+            const response = await fetch(url, options);
+            return await ApiUtil.handleResponse(response);
+        } catch (error) {
+            return ApiUtil.handleError(error);
+        }
+    }
+};

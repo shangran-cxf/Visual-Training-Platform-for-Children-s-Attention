@@ -216,13 +216,10 @@
       <div class="card-header">能力评估雷达图</div>
       <div class="child-selector">
         <div class="child-selector-header" onclick="toggleChildSelector()">
-          <span id="selected-child-name">小明</span>
+          <span id="selected-child-name">加载中...</span>
           <span class="child-selector-arrow">▼</span>
         </div>
         <div class="child-selector-options">
-          <div class="child-option active" onclick="selectChild(this, 'child1')">小明</div>
-          <div class="child-option" onclick="selectChild(this, 'child2')">小红</div>
-          <div class="child-option" onclick="selectChild(this, 'child3')">小刚</div>
         </div>
       </div>
       <div class="radar-chart-container">
@@ -234,12 +231,12 @@
     <div class="card right-top-card">
       <div class="card-header">训练评析</div>
       <div id="child-info">
-        <p><strong>姓名:</strong> <span id="child-name">小明</span></p>
-        <p><strong>年龄:</strong> <span id="child-age">8岁</span></p>
-        <p><strong>性别:</strong> <span id="child-gender">男</span></p>
-        <p><strong>训练时长:</strong> <span id="training-time">120小时</span></p>
-        <p><strong>完成课程:</strong> <span id="completed-courses">45节</span></p>
-        <p><strong>当前等级:</strong> <span id="current-level">Level 5</span></p>
+        <p><strong>姓名:</strong> <span id="child-name">-</span></p>
+        <p><strong>年龄:</strong> <span id="child-age">-</span></p>
+        <p><strong>性别:</strong> <span id="child-gender">-</span></p>
+        <p><strong>训练时长:</strong> <span id="training-time">-</span></p>
+        <p><strong>完成课程:</strong> <span id="completed-courses">-</span></p>
+        <p><strong>当前等级:</strong> <span id="current-level">-</span></p>
       </div>
     </div>
 
@@ -260,6 +257,9 @@
     // ===== 页面特定功能 =====
 
     // 切换儿童选择器下拉菜单
+    let childrenList = [];
+    let currentChildId = null;
+
     function toggleChildSelector() {
       const header = document.querySelector('.child-selector-header');
       const options = document.querySelector('.child-selector-options');
@@ -271,6 +271,46 @@
     }
 
     // 选择儿童
+    async function loadChildrenList() {
+      try {
+        const userInfo = StorageUtil.getItem('userInfo');
+        if (!userInfo || !userInfo.parent_id) {
+          console.error('用户信息不存在');
+          return;
+        }
+
+        const response = await fetch(`/api/children/${userInfo.parent_id}`);
+        const result = await response.json();
+        childrenList = result.data || result;
+
+        const optionsContainer = document.querySelector('.child-selector-options');
+        optionsContainer.innerHTML = '';
+
+        if (childrenList.length === 0) {
+          optionsContainer.innerHTML = '<div class="child-option">暂无儿童信息</div>';
+          return;
+        }
+
+        childrenList.forEach((child, index) => {
+          const option = document.createElement('div');
+          option.className = 'child-option' + (index === 0 ? ' active' : '');
+          option.textContent = child.name;
+          option.onclick = function() { selectChild(this, child.id); };
+          optionsContainer.appendChild(option);
+        });
+
+        const firstChild = childrenList[0];
+        document.getElementById('selected-child-name').textContent = firstChild.name;
+        currentChildId = firstChild.id;
+
+        await updateChildInfo(firstChild.id);
+        await updateCharts(firstChild.id);
+        await drawGrowthChart(firstChild.id);
+      } catch (error) {
+        console.error('加载儿童列表失败:', error);
+      }
+    }
+
     function selectChild(element, childId) {
       // 移除所有活跃状态
       document.querySelectorAll('.child-option').forEach(option => {
@@ -284,40 +324,64 @@
       const selectedChildName = element.textContent;
       document.getElementById('selected-child-name').textContent = selectedChildName;
 
-      // 关闭下拉菜单
-      toggleChildSelector();
-
       // 更新儿童信息
+      const header = document.querySelector('.child-selector-header');
+      const options = document.querySelector('.child-selector-options');
+      const arrow = document.querySelector('.child-selector-arrow');
+      header.classList.remove('active');
+      options.classList.remove('active');
+      arrow.classList.remove('active');
+
+      currentChildId = childId;
       updateChildInfo(childId);
 
       // 更新图表
       updateCharts(childId);
+      drawGrowthChart(childId);
     }
 
     // 从后端获取儿童数据
     async function fetchChildData(childId) {
       try {
-        // 这里应该是实际的API调用
-        // const response = await fetch(`/api/children/${childId}`);
-        // const data = await response.json();
+        const [statsResponse, detectionResponse] = await Promise.all([
+          fetch(`/api/children/${childId}/stats`),
+          fetch(`/api/get/detection?child_id=${childId}`)
+        ]);
 
-        // 模拟后端数据
-        const mockData = {
-          child1: {
-            info: { name: '小明', age: '8岁', gender: '男', time: '120小时', courses: '45节', level: 'Level 5' },
-            radarData: [0.9, 0.85, 0.7, 0.88, 0.65]
+        const statsResult = await statsResponse.json();
+        const detectionResult = await detectionResponse.json();
+
+        const stats = statsResult.data || statsResult;
+        const detection = detectionResult.data || detectionResult;
+
+        const child = childrenList.find(c => c.id === childId) || {};
+
+        const latestDetection = Array.isArray(detection) && detection.length > 0 
+          ? detection[0] 
+          : null;
+
+        let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
+        if (latestDetection) {
+          radarData = [
+            latestDetection.selective_attention || 0.5,
+            latestDetection.sustained_attention || 0.5,
+            latestDetection.visual_tracking || 0.5,
+            latestDetection.working_memory || 0.5,
+            latestDetection.inhibitory_control || 0.5
+          ];
+        }
+
+        return {
+          info: {
+            name: child.name || '-',
+            age: child.age ? `${child.age}岁` : '-',
+            gender: '-',
+            time: stats.training_time ? `${stats.training_time}分钟` : '0分钟',
+            courses: stats.training_count ? `${stats.training_count}次` : '0次',
+            level: stats.avg_score ? `平均分 ${stats.avg_score}` : '-'
           },
-          child2: {
-            info: { name: '小红', age: '7岁', gender: '女', time: '98小时', courses: '38节', level: 'Level 4' },
-            radarData: [0.8, 0.75, 0.85, 0.7, 0.8]
-          },
-          child3: {
-            info: { name: '小刚', age: '9岁', gender: '男', time: '156小时', courses: '52节', level: 'Level 6' },
-            radarData: [0.95, 0.9, 0.8, 0.92, 0.75]
-          }
+          radarData: radarData
         };
-
-        return mockData[childId];
       } catch (error) {
         console.error('获取儿童数据失败:', error);
         return null;
@@ -468,7 +532,7 @@
     let growthChart = null;
 
     // 绘制成长轨迹图
-    function drawGrowthChart() {
+    async function drawGrowthChart(childId) {
       const canvas = document.getElementById('growthChart');
       if (!canvas) return;
 
@@ -477,98 +541,141 @@
       // 销毁旧的图表实例
       if (growthChart) {
         growthChart.destroy();
+        growthChart = null;
       }
 
-      // 模拟数据 - 8周的专注能力评分
-      const data = [65, 68, 72, 70, 75, 78, 82, 85];
-      const labels = ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'];
+      
+      // 页面加载完成后初始化
+      try {
+        const response = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
+        const result = await response.json();
+        const trendData = result.data || result;
 
-      // 创建新的图表实例
-      growthChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '专注能力评分',
-            data: data,
-            backgroundColor: 'rgba(102, 126, 234, 0.2)',
-            borderColor: '#667eea',
-            borderWidth: 4,
-            pointBackgroundColor: '#667eea',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: '#667eea',
-            tension: 0.1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: false,
-              min: 50,
-              max: 100,
-              ticks: {
-                stepSize: 10,
-                font: {
-                  size: 12
+        let labels = [];
+        let data = [];
+
+        if (trendData && trendData.trend) {
+          const allRecords = [];
+          Object.values(trendData.trend).forEach(attentionType => {
+            if (attentionType.records && attentionType.records.length > 0) {
+              attentionType.records.forEach(record => {
+                allRecords.push(record);
+              });
+            }
+          });
+
+          allRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+          const groupedByDate = {};
+          allRecords.forEach(record => {
+            if (!groupedByDate[record.date]) {
+              groupedByDate[record.date] = [];
+            }
+            groupedByDate[record.date].push(record.score);
+          });
+
+          Object.keys(groupedByDate).slice(-8).forEach((date, index) => {
+            const avgScore = groupedByDate[date].reduce((a, b) => a + b, 0) / groupedByDate[date].length;
+            labels.push(`第${index + 1}周`);
+            data.push(Math.round(avgScore));
+          });
+        }
+
+        if (labels.length === 0) {
+          labels = ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'];
+          data = [0, 0, 0, 0, 0, 0, 0, 0];
+        }
+
+        growthChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: '专注能力评分',
+              data: data,
+              backgroundColor: 'rgba(102, 126, 234, 0.2)',
+              borderColor: '#667eea',
+              borderWidth: 4,
+              pointBackgroundColor: '#667eea',
+              pointBorderColor: '#fff',
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: '#667eea',
+              tension: 0.1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: false,
+                min: 0,
+                max: 100,
+                ticks: {
+                  stepSize: 10,
+                  font: {
+                    size: 12
+                  }
+                }
+              },
+              x: {
+                ticks: {
+                  font: {
+                    size: 12
+                  }
                 }
               }
             },
-            x: {
-              ticks: {
-                font: {
-                  size: 12
-                }
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'bottom',
-              labels: {
-                font: {
-                  size: 16
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                  font: {
+                    size: 16
+                  }
                 }
               }
             }
           }
-        }
-      });
+        });
+      } catch (error) {
+        console.error('加载成长轨迹失败:', error);
+        growthChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'],
+            datasets: [{
+              label: '专注能力评分',
+              data: [0, 0, 0, 0, 0, 0, 0, 0],
+              backgroundColor: 'rgba(102, 126, 234, 0.2)',
+              borderColor: '#667eea',
+              borderWidth: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
+      }
     }
 
-    // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', async function () {
       // 检查登录状态
       const userInfo = ParentComponents.checkAuth();
 
-      // 初始化页面（参数：当前页面ID）
+      // 初始化页面
       ParentComponents.initPage('profile');
-
-      // 初始加载第一个儿童的数据
-      await updateChildInfo('child1');
-      await updateCharts('child1');
-
-      // 绘制成长轨迹图
-      drawGrowthChart();
+      await loadChildrenList();
     });
 
     // 窗口大小改变时重绘图表
     window.addEventListener('resize', async function () {
-      // 获取当前选中的儿童ID
-      const activeChild = document.querySelector('.child-option.active');
-      if (activeChild) {
-        // 从元素的onclick属性中提取childId
-        const onclickAttr = activeChild.getAttribute('onclick');
-        const childIdMatch = onclickAttr.match(/selectChild\(this, '(child\d+)'\)/);
-        if (childIdMatch && childIdMatch[1]) {
-          const childId = childIdMatch[1];
-          await updateCharts(childId);
-        }
+      if (currentChildId) {
+        await updateCharts(currentChildId);
+        await drawGrowthChart(currentChildId);
       }
-      drawGrowthChart();
     });
   </script>
 </body>
