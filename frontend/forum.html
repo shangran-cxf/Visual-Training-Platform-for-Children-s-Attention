@@ -783,6 +783,158 @@
                 gap: 12px;
             }
         }
+
+        /* 帖子表单模态框样式 */
+        .post-form-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 24px;
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-body .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .modal-body .form-group input,
+        .modal-body .form-group select,
+        .modal-body .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-body .form-group input:focus,
+        .modal-body .form-group select:focus,
+        .modal-body .form-group textarea:focus {
+            outline: none;
+            border-color: #8849a7;
+            box-shadow: 0 0 0 3px rgba(136, 73, 167, 0.1);
+        }
+
+        .modal-body .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .btn-secondary {
+            padding: 10px 24px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #666;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: #d1d5db;
+            background: #f9fafb;
+        }
+
+        .btn-primary {
+            padding: 10px 24px;
+            background: #8849a7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(136, 73, 167, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(136, 73, 167, 0.4);
+        }
     </style>
 </head>
 
@@ -865,8 +1017,42 @@
                         <div class="user-stat-value" id="my-likes">0</div>
                         <div class="user-stat-label">获赞</div>
                     </div>
-
+                    <div class="user-stat-item" onclick="loadFavorites()">
+                        <div class="user-stat-value" id="my-favorites">0</div>
+                        <div class="user-stat-label">收藏</div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 发布/编辑帖子表单 -->
+    <div class="post-form-modal" id="postFormModal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="postFormTitle">发布新帖</h3>
+                <button class="modal-close" onclick="closePostForm()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="form-post-title">标题</label>
+                    <input type="text" id="form-post-title" placeholder="请输入帖子标题">
+                </div>
+                <div class="form-group">
+                    <label for="form-post-category">分类</label>
+                    <select id="form-post-category">
+                        <option value="">请选择分类</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="form-post-content">内容</label>
+                    <textarea id="form-post-content" placeholder="请输入帖子内容"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closePostForm()">取消</button>
+                <button class="btn-primary" id="form-submit-btn" onclick="submitPostForm()">发布</button>
             </div>
         </div>
     </div>
@@ -974,6 +1160,29 @@
                 document.getElementById('my-posts').textContent = data.post_count;
                 document.getElementById('my-comments').textContent = data.comment_count;
                 document.getElementById('my-likes').textContent = data.like_received;
+
+                // 加载收藏数目
+                const token = localStorage.getItem('auth_token');
+                if (token) {
+                    try {
+                        const favoritesResponse = await fetch(`/api/forum/favorites`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (!favoritesResponse.ok) {
+                            throw new Error('收藏API调用失败');
+                        }
+                        const favoritesResult = await favoritesResponse.json();
+                        const favoritesData = favoritesResult.data || [];
+                        document.getElementById('my-favorites').textContent = Array.isArray(favoritesData) ? favoritesData.length : 0;
+                    } catch (favError) {
+                        console.error('加载收藏数目失败:', favError);
+                        document.getElementById('my-favorites').textContent = 0;
+                    }
+                } else {
+                    document.getElementById('my-favorites').textContent = 0;
+                }
             } catch (error) {
                 console.error('加载用户统计失败:', error);
             }
@@ -1009,24 +1218,47 @@
 
             try {
                 let url;
+                let fetchOptions = {};
                 if (showFavoritesOnly) {
-                    const userInfo = StorageUtil.getItem('userInfo');
-                    url = `/api/forum/favorites?parent_id=${userInfo.parent_id}&page=${page}&per_page=${perPage}`;
+                    const token = localStorage.getItem('auth_token');
+                    url = `/api/forum/favorites?page=${page}&per_page=${perPage}`;
+                    fetchOptions = {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    };
                 } else {
                     url = `/api/forum/posts/search?page=${page}&per_page=${perPage}&sort_by=${currentSort}`;
                     if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
                     if (currentCategory) url += `&category_id=${currentCategory}`;
                 }
 
-                const response = await fetch(url);
+                const response = await fetch(url, fetchOptions);
+                if (!response.ok) {
+                    throw new Error('API调用失败');
+                }
                 const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.message || '操作失败');
+                }
                 const data = result.data || result;
                 const posts = showFavoritesOnly ? data : data.posts;
 
                 if (posts && posts.length > 0) {
                     const userInfo = StorageUtil.getItem('userInfo');
-                    postsContainer.innerHTML = posts.map(post => {
-                        const realPost = showFavoritesOnly ? post.post : post;
+                    let headerHTML = '';
+                    if (showFavoritesOnly) {
+                        headerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 20px; background: white; border-radius: 20px; box-shadow: 8px 8px 16px rgba(236, 239, 244, 0.6), -8px -8px 16px rgba(239, 236, 255, 0.8);">
+                            <h2 style="font-size: 20px; font-weight: 600; color: #333; margin: 0;">我的收藏</h2>
+                            <button onclick="exitFavorites()" style="padding: 10px 20px; background: linear-gradient(135deg, #773ada 0%, #451594 100%); color: white; border: none; border-radius: 25px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(119, 58, 218, 0.3);">
+                                返回论坛
+                            </button>
+                        </div>
+                        `;
+                    }
+                    postsContainer.innerHTML = headerHTML + posts.map(post => {
+                        const realPost = showFavoritesOnly ? post : post;
                         const categoryObj = categories.find(c => String(c.id) === String(realPost.category_id));
                         const initial = (realPost.author_name || '用户').charAt(0).toUpperCase();
                         const isPinned = realPost.is_pinned === 1;
@@ -1037,6 +1269,7 @@
                         const likeCount = Math.max(0, realPost.like_count || 0);
                         const dislikeCount = Math.max(0, realPost.dislike_count || 0);
                         const commentCount = realPost.comment_count || 0;
+                        const favoriteCount = Math.max(0, realPost.favorite_count || 0);
 
                         return `
                         <div class="forum-post ${isPinned ? 'pinned' : ''}" onclick="goToPost(${realPost.id})">
@@ -1069,9 +1302,13 @@
                                          onclick="toggleComments(${realPost.id}); event.stopPropagation();">
                                         <span>💬</span> <span class="count">${commentCount}</span>
                                     </div>
+                                    <div class="post-stat post-stat-action favorite-action ${showFavoritesOnly ? 'active' : (realPost.is_favorited ? 'active' : '')}" 
+                                         onclick="toggleFavorite(${realPost.id}, this); event.stopPropagation();">
+                                        <span>⭐</span> <span class="count">${favoriteCount}</span>
+                                    </div>
 
                                     ${canEditDelete ? `
-                                    <div class="post-stat post-stat-action edit-action" onclick="editPost(${realPost.id}); event.stopPropagation();"><span>✏️</span></div>
+
                                     <div class="post-stat post-stat-action delete-action" onclick="deletePost(${realPost.id}); event.stopPropagation();"><span>🗑️</span></div>
                                     ` : ''}
                                 </div>
@@ -1132,8 +1369,22 @@
                 const result = await response.json();
                 const data = result.data || result;
                 const commentsList = document.getElementById(`comments-list-${postId}`);
+
+                // 获取帖子信息，包括收藏状态
+                const postResponse = await fetch(`/api/forum/posts/${postId}`);
+                const postResult = await postResponse.json();
+                const postData = postResult.data || {};
+                const isFavorited = postData.is_favorited || false;
+
                 if (data && data.length > 0) {
-                    commentsList.innerHTML = data.map(comment => {
+                    commentsList.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 14px; color: #666;">
+                            <span class="post-stat post-stat-action favorite-action ${isFavorited ? 'active' : ''}" 
+                                 onclick="toggleFavorite(${postId}, this); event.stopPropagation();">
+                                <span>⭐</span> ${isFavorited ? '已收藏' : '收藏'}
+                            </span>
+                        </div>
+                    ` + data.map(comment => {
                         const initial = (comment.author_name || '用户').charAt(0).toUpperCase();
                         return `
                         <div class="comment">
@@ -1150,13 +1401,137 @@
                         </div>
                     `}).join('');
                 } else {
-                    commentsList.innerHTML = '<div style="color: #999; font-size: 13px; padding: 10px 0;">暂无评论</div>';
+                    commentsList.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 14px; color: #666;">
+                            <span class="post-stat post-stat-action favorite-action ${isFavorited ? 'active' : ''}" 
+                                 onclick="toggleFavorite(${postId}, this); event.stopPropagation();">
+                                <span>⭐</span> ${isFavorited ? '已收藏' : '收藏'}
+                            </span>
+                        </div>
+                        <div style="color: #999; font-size: 13px; padding: 10px 0;">暂无评论</div>
+                    `;
                 }
             } catch (error) {
                 console.error('加载评论失败:', error);
             }
         }
 
+        // 帖子表单相关变量
+        let currentEditPostId = null;
+
+        // 打开帖子表单（支持编辑模式）
+        function openPostForm(postId = null, postData = null) {
+            const modal = document.getElementById('postFormModal');
+            const title = document.getElementById('postFormTitle');
+            const submitBtn = document.getElementById('form-submit-btn');
+
+            if (postId) {
+                // 编辑模式
+                currentEditPostId = postId;
+                title.textContent = '编辑帖子';
+                submitBtn.textContent = '保存修改';
+
+                // 填充表单数据
+                document.getElementById('form-post-title').value = postData.title || '';
+                document.getElementById('form-post-content').value = postData.content || '';
+                document.getElementById('form-post-category').value = postData.category_id || '';
+            } else {
+                // 发布模式
+                currentEditPostId = null;
+                title.textContent = '发布新帖';
+                submitBtn.textContent = '发布';
+
+                // 清空表单
+                document.getElementById('form-post-title').value = '';
+                document.getElementById('form-post-content').value = '';
+                document.getElementById('form-post-category').value = '';
+            }
+
+            // 加载分类
+            loadFormCategories();
+
+            // 显示模态框
+            modal.style.display = 'block';
+        }
+
+        // 关闭帖子表单
+        function closePostForm() {
+            const modal = document.getElementById('postFormModal');
+            modal.style.display = 'none';
+            currentEditPostId = null;
+        }
+
+        // 加载表单分类
+        function loadFormCategories() {
+            const select = document.getElementById('form-post-category');
+            select.innerHTML = '<option value="">请选择分类</option>';
+
+            categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+            });
+        }
+
+        // 提交帖子表单
+        async function submitPostForm() {
+            const title = document.getElementById('form-post-title').value.trim();
+            const content = document.getElementById('form-post-content').value.trim();
+            const categoryId = document.getElementById('form-post-category').value;
+
+            if (!title || !content) {
+                alert('请填写标题和内容');
+                return;
+            }
+
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo || !userInfo.parent_id) {
+                alert('请先登录');
+                return;
+            }
+
+            try {
+                let response;
+                if (currentEditPostId) {
+                    // 编辑帖子
+                    response = await fetch(`/api/forum/posts/${currentEditPostId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            parent_id: userInfo.parent_id,
+                            title,
+                            content,
+                            category_id: categoryId || null
+                        })
+                    });
+                } else {
+                    // 发布新帖
+                    response = await fetch('/api/forum/posts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            parent_id: userInfo.parent_id,
+                            title,
+                            content,
+                            category_id: categoryId || null
+                        })
+                    });
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    closePostForm();
+                    loadPosts(1);
+                    loadUserStats();
+                    alert(currentEditPostId ? '修改成功' : '发布成功');
+                } else {
+                    alert(result.error?.message || result.error || (currentEditPostId ? '修改失败' : '发布失败'));
+                }
+            } catch (error) {
+                console.error('操作失败:', error);
+                alert('操作失败，请稍后再试');
+            }
+        }
+
+        // 原有的发布新帖函数（保留以兼容现有功能）
         async function createPost() {
             const title = document.getElementById('post-title').value.trim();
             const content = document.getElementById('post-content').value.trim();
@@ -1184,8 +1559,112 @@
             }
         }
 
+        async function confirmDeletePost() {
+            // 创建自定义确认弹窗
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay show';
+
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+
+            const title = document.createElement('h3');
+            title.textContent = '删除帖子';
+            title.style.cssText = `
+                margin: 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+            `;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'modal-close';
+            closeBtn.textContent = '×';
+
+            header.appendChild(title);
+            header.appendChild(closeBtn);
+
+            const message = document.createElement('p');
+            message.textContent = '确定要删除该帖子吗？';
+            message.style.cssText = `
+                margin: 0 0 30px 0;
+                font-size: 16px;
+                color: #666;
+                line-height: 1.5;
+                text-align: center;
+            `;
+
+            const buttons = document.createElement('div');
+            buttons.style.cssText = `
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+            `;
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn-secondary';
+            cancelBtn.textContent = '取消';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = 'btn-primary';
+            confirmBtn.textContent = '确定';
+            confirmBtn.style.cssText = `
+                padding: 10px 24px;
+                background: #8849a7;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(136, 73, 167, 0.3);
+            `;
+
+            buttons.appendChild(cancelBtn);
+            buttons.appendChild(confirmBtn);
+            content.appendChild(header);
+            content.appendChild(message);
+            content.appendChild(buttons);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            // 阻止点击弹窗外部关闭
+            modal.onclick = function (e) {
+                if (e.target === modal) {
+                    e.stopPropagation();
+                }
+            };
+
+            // 关闭按钮点击事件
+            closeBtn.onclick = function () {
+                document.body.removeChild(modal);
+            };
+
+            // 使用Promise等待用户操作
+            return new Promise((resolve) => {
+                cancelBtn.onclick = function () {
+                    document.body.removeChild(modal);
+                    resolve(false);
+                };
+
+                confirmBtn.onclick = function () {
+                    document.body.removeChild(modal);
+                    resolve(true);
+                };
+
+                closeBtn.onclick = function () {
+                    document.body.removeChild(modal);
+                    resolve(false);
+                };
+            });
+        }
+
         async function deletePost(postId) {
-            if (!confirm('确定要删除这篇帖子吗？')) return;
+            const confirmed = await confirmDeletePost();
+            if (!confirmed) return;
             const userInfo = StorageUtil.getItem('userInfo');
             try {
                 const response = await fetch(`/api/forum/posts/${postId}`, {
@@ -1202,19 +1681,21 @@
         }
 
         async function editPost(postId) {
-            const newTitle = prompt('请输入新标题：');
-            if (!newTitle) return;
-            const newContent = prompt('请输入新内容：');
-            if (!newContent) return;
             const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo) { alert('请先登录'); return; }
+
             try {
-                const response = await fetch(`/api/forum/posts/${postId}`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ parent_id: userInfo.parent_id, title: newTitle, content: newContent })
-                });
+                // 拉取帖子当前内容
+                const response = await fetch(`/api/forum/posts/${postId}`);
                 const result = await response.json();
-                if (result.success) loadPosts(currentPage);
-                else alert(result.error?.message || result.error || '编辑失败');
+                if (!result.success) {
+                    alert(result.error?.message || result.error || '获取帖子信息失败');
+                    return;
+                }
+
+                const post = result.data;
+                // 打开编辑表单模态框
+                openPostForm(postId, post);
             } catch (error) {
                 console.error('编辑帖子失败:', error);
                 alert('编辑失败，请稍后再试');
@@ -1264,11 +1745,12 @@
                     voteType = 0;
                 }
 
+                const token = localStorage.getItem('auth_token');
                 const res = await fetch('/api/forum/vote', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userInfo.token}`
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         parent_id: userInfo.parent_id,
@@ -1312,11 +1794,12 @@
                     voteType = 0;
                 }
 
+                const token = localStorage.getItem('auth_token');
                 const res = await fetch('/api/forum/vote', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userInfo.token}`
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         parent_id: userInfo.parent_id,
@@ -1406,6 +1889,174 @@
                 console.error('评论失败:', error);
                 alert('评论失败，请稍后再试');
             }
+        }
+
+        async function toggleFavorite(postId, el) {
+            const userInfo = StorageUtil.getItem('userInfo');
+            if (!userInfo) { alert('请先登录'); return; }
+
+            const isFavorited = el.classList.contains('active');
+
+            // 如果是取消收藏，显示确认弹窗
+            if (isFavorited) {
+                const confirmed = await confirmCancelFavorite();
+                if (!confirmed) {
+                    return;
+                }
+            }
+
+            try {
+                const method = isFavorited ? 'DELETE' : 'POST';
+                const token = localStorage.getItem('auth_token');
+                console.log('收藏操作:', { postId, method, token, parentId: userInfo.parent_id });
+                const response = await fetch(`/api/forum/favorites/${postId}`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ parent_id: userInfo.parent_id })
+                });
+                console.log('收藏操作响应状态:', response.status);
+                const result = await response.json();
+                console.log('收藏操作响应:', result);
+                if (result.success) {
+                    if (isFavorited) {
+                        el.classList.remove('active');
+                        const currentCount = parseInt(el.querySelector('.count').textContent) || 0;
+                        el.querySelector('.count').textContent = Math.max(0, currentCount - 1);
+                        // 如果在收藏页面，重新加载收藏列表
+                        if (showFavoritesOnly) {
+                            loadPosts(currentPage);
+                        }
+                    } else {
+                        el.classList.add('active');
+                        const currentCount = parseInt(el.querySelector('.count').textContent) || 0;
+                        el.querySelector('.count').textContent = currentCount + 1;
+                    }
+                    loadUserStats();
+                } else {
+                    alert(result.message || result.error?.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('收藏操作失败:', error);
+                alert('操作失败，请稍后再试');
+            }
+        }
+
+        function confirmCancelFavorite() {
+            // 创建自定义确认弹窗
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay show';
+
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+
+            const title = document.createElement('h3');
+            title.textContent = '取消收藏';
+            title.style.cssText = `
+                margin: 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+            `;
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'modal-close';
+            closeBtn.textContent = '×';
+
+            header.appendChild(title);
+            header.appendChild(closeBtn);
+
+            const message = document.createElement('p');
+            message.textContent = '确定要取消收藏这篇帖子吗？';
+            message.style.cssText = `
+                margin: 0 0 30px 0;
+                font-size: 16px;
+                color: #666;
+                line-height: 1.5;
+                text-align: center;
+            `;
+
+            const buttons = document.createElement('div');
+            buttons.style.cssText = `
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+            `;
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn-secondary';
+            cancelBtn.textContent = '取消';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = 'btn-primary';
+            confirmBtn.textContent = '确定';
+            confirmBtn.style.cssText = `
+                padding: 10px 24px;
+                background: #8849a7;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(136, 73, 167, 0.3);
+            `;
+
+            buttons.appendChild(cancelBtn);
+            buttons.appendChild(confirmBtn);
+            content.appendChild(header);
+            content.appendChild(message);
+            content.appendChild(buttons);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            // 阻止点击弹窗外部关闭
+            modal.onclick = function (e) {
+                if (e.target === modal) {
+                    e.stopPropagation();
+                }
+            };
+
+            // 关闭按钮点击事件
+            closeBtn.onclick = function () {
+                document.body.removeChild(modal);
+            };
+
+            // 使用Promise等待用户操作
+            return new Promise((resolve) => {
+                cancelBtn.onclick = function () {
+                    document.body.removeChild(modal);
+                    resolve(false);
+                };
+
+                confirmBtn.onclick = function () {
+                    document.body.removeChild(modal);
+                    resolve(true);
+                };
+
+                closeBtn.onclick = function () {
+                    document.body.removeChild(modal);
+                    resolve(false);
+                };
+            });
+        }
+
+        function loadFavorites() {
+            showFavoritesOnly = true;
+            currentPage = 1;
+            loadPosts();
+        }
+
+        function exitFavorites() {
+            showFavoritesOnly = false;
+            currentPage = 1;
+            loadPosts();
         }
 
         document.getElementById('search-input').addEventListener('keypress', function (e) {
