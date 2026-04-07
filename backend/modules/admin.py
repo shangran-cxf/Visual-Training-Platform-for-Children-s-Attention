@@ -191,7 +191,6 @@ def delete_user(user_id):
     execute_db('DELETE FROM forum_comments WHERE parent_id = ?', (user_id,))
     execute_db('DELETE FROM forum_votes WHERE parent_id = ?', (user_id,))
     execute_db('DELETE FROM favorites WHERE parent_id = ?', (user_id,))
-    execute_db('DELETE FROM reports WHERE parent_id = ?', (user_id,))
     execute_db('DELETE FROM forum_posts WHERE parent_id = ?', (user_id,))
     execute_db('DELETE FROM parents WHERE id = ?', (user_id,))
     
