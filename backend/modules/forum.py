@@ -66,7 +66,8 @@ def search_posts():
                pr.username as author_name, pr.avatar, pr.level,
                COALESCE((SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id), 0) as comment_count,
                COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) as like_count,
-               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count,
+               COALESCE((SELECT COUNT(*) FROM favorites WHERE post_id = p.id), 0) as favorite_count
     '''
     
     # 如果用户已登录，添加用户投票状态和收藏状态
@@ -137,21 +138,22 @@ def search_posts():
             'author_level': p[11],
             'comment_count': p[12],
             'like_count': p[13],
-            'dislike_count': p[14]
+            'dislike_count': p[14],
+            'favorite_count': p[15]
         }
         # 如果用户已登录，添加用户投票状态和收藏状态
-        if user_id:
-            post_data['user_vote'] = p[15] if p[15] else 0
-            post_data['is_favorited'] = p[16] == 1
+        if user_id and len(p) > 16:
+            post_data['user_vote'] = p[16] if p[16] else 0
+            post_data['is_favorited'] = p[17] == 1 if len(p) > 17 else False
         posts_data.append(post_data)
     
-    return jsonify({
+    return success_response({
         'posts': posts_data,
         'total': total,
         'page': page,
         'per_page': per_page,
         'total_pages': (total + per_page - 1) // per_page
-    }), 200
+    })
 
 @forum_bp.route('/posts/<int:post_id>', methods=['GET'])
 def get_post(post_id):
@@ -225,12 +227,16 @@ def create_post():
     if not parent_id or not title or not content:
         return error_response('家长ID、标题和内容不能为空', status=400)
     
-    result, post_id = execute_db(
-        'INSERT INTO forum_posts (parent_id, title, content, category_id) VALUES (?, ?, ?, ?)',
-        (parent_id, title, content, category_id), fetch_last_id=True
-    )
-    
-    return success_response({'post_id': post_id}, '发帖成功')
+    try:
+        result, post_id = execute_db(
+            'INSERT INTO forum_posts (parent_id, title, content, category_id) VALUES (?, ?, ?, ?)',
+            (parent_id, title, content, category_id), fetch_last_id=True
+        )
+        
+        return success_response({'post_id': post_id}, '发帖成功')
+    except Exception as e:
+        print(f"发帖操作失败: {e}")
+        return error_response('服务器内部错误', status=500)
 
 @forum_bp.route('/posts/<int:post_id>', methods=['PUT'])
 def update_post(post_id):
@@ -243,54 +249,62 @@ def update_post(post_id):
     if not parent_id:
         return error_response('用户ID不能为空', status=400)
     
-    post_result = execute_db('SELECT parent_id FROM forum_posts WHERE id = ?', (post_id,))
-    if not post_result:
-        return error_response('帖子不存在', status=404)
-    
-    if post_result[0][0] != parent_id and not is_admin(parent_id):
-        return error_response('无权编辑此帖子', status=403)
-    
-    update_data = {}
-    
-    if title:
-        update_data['title'] = title
-    if content:
-        update_data['content'] = content
-    if category_id:
-        update_data['category_id'] = category_id
-    
-    if update_data:
-        update_data['updated_at'] = 'CURRENT_TIMESTAMP'
-        sql, params = build_update_sql('forum_posts', update_data, 'id = ?')
-        execute_db(sql, params + (post_id,))
-    
-    return success_response(None, '更新成功')
+    try:
+        post_result = execute_db('SELECT parent_id FROM forum_posts WHERE id = ?', (post_id,))
+        if not post_result:
+            return error_response('帖子不存在', status=404)
+        
+        if post_result[0][0] != parent_id and not is_admin(parent_id):
+            return error_response('无权编辑此帖子', status=403)
+        
+        update_data = {}
+        
+        if title:
+            update_data['title'] = title
+        if content:
+            update_data['content'] = content
+        if category_id:
+            update_data['category_id'] = category_id
+        
+        if update_data:
+            update_data['updated_at'] = 'CURRENT_TIMESTAMP'
+            sql, params = build_update_sql('forum_posts', update_data, 'id = ?')
+            execute_db(sql, params + (post_id,))
+        
+        return success_response(None, '更新成功')
+    except Exception as e:
+        print(f"更新帖子操作失败: {e}")
+        return error_response('服务器内部错误', status=500)
 
 @forum_bp.route('/posts/<int:post_id>', methods=['DELETE'])
 def delete_post(post_id):
     data = request.json or {}
     parent_id = data.get('parent_id')
     
-    if parent_id:
-        if is_admin(parent_id):
-            execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
-            execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
-            execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
-            return success_response(None, '删除成功')
+    try:
+        if parent_id:
+            if is_admin(parent_id):
+                execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
+                execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
+                execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
+                return success_response(None, '删除成功')
+            
+            post_result = execute_db('SELECT parent_id FROM forum_posts WHERE id = ?', (post_id,))
+            if post_result and post_result[0][0] == parent_id:
+                execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
+                execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
+                execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
+                return success_response(None, '删除成功')
+            
+            return error_response('无权删除此帖子', status=403)
         
-        post_result = execute_db('SELECT parent_id FROM forum_posts WHERE id = ?', (post_id,))
-        if post_result and post_result[0][0] == parent_id:
-            execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
-            execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
-            execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
-            return success_response(None, '删除成功')
-        
-        return error_response('无权删除此帖子', status=403)
-    
-    execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
-    execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
-    execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
-    return success_response(None, '删除成功')
+        execute_db('DELETE FROM forum_comments WHERE post_id = ?', (post_id,))
+        execute_db('DELETE FROM forum_votes WHERE post_id = ?', (post_id,))
+        execute_db('DELETE FROM forum_posts WHERE id = ?', (post_id,))
+        return success_response(None, '删除成功')
+    except Exception as e:
+        print(f"删除帖子操作失败: {e}")
+        return error_response('服务器内部错误', status=500)
 
 @forum_bp.route('/posts/<int:post_id>/pin', methods=['POST'])
 def pin_post(post_id):
@@ -301,8 +315,12 @@ def pin_post(post_id):
     if not is_admin(parent_id):
         return error_response('无权操作', status=403)
     
-    execute_db('UPDATE forum_posts SET is_pinned = ? WHERE id = ?', (is_pinned, post_id))
-    return success_response(None, '操作成功')
+    try:
+        execute_db('UPDATE forum_posts SET is_pinned = ? WHERE id = ?', (is_pinned, post_id))
+        return success_response(None, '操作成功')
+    except Exception as e:
+        print(f"置顶操作失败: {e}")
+        return error_response('服务器内部错误', status=500)
 
 @forum_bp.route('/posts/<int:post_id>/essential', methods=['POST'])
 def essential_post(post_id):
@@ -313,8 +331,12 @@ def essential_post(post_id):
     if not is_admin(parent_id):
         return error_response('无权操作', status=403)
     
-    execute_db('UPDATE forum_posts SET is_essential = ? WHERE id = ?', (is_essential, post_id))
-    return success_response(None, '操作成功')
+    try:
+        execute_db('UPDATE forum_posts SET is_essential = ? WHERE id = ?', (is_essential, post_id))
+        return success_response(None, '操作成功')
+    except Exception as e:
+        print(f"精华操作失败: {e}")
+        return error_response('服务器内部错误', status=500)
 
 @forum_bp.route('/posts/hot', methods=['GET'])
 def get_hot_posts():
@@ -325,13 +347,13 @@ def get_hot_posts():
                COALESCE((SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id), 0) as comment_count,
                COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) as like_count,
                COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count,
-               COALESCE((SELECT COUNT(*) FROM forum_favorites WHERE post_id = p.id), 0) as favorite_count
+               COALESCE((SELECT COUNT(*) FROM favorites WHERE post_id = p.id), 0) as favorite_count
         FROM forum_posts p
         ORDER BY (p.view_count + 
                   COALESCE((SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id), 0) * 2 + 
                   COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) * 3 - 
                   COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) * 1 + 
-                  COALESCE((SELECT COUNT(*) FROM forum_favorites WHERE post_id = p.id), 0) * 4) DESC
+                  COALESCE((SELECT COUNT(*) FROM favorites WHERE post_id = p.id), 0) * 4) DESC
         LIMIT ?
     ''', (limit,))
     
@@ -401,59 +423,83 @@ def vote():
     post_id = data.get('post_id')
     comment_id = data.get('comment_id')
     
-    if not parent_id or vote_type is None:
-        return error_response('参数不完整', status=400)
-    
+    # 增强参数校验
+    if not parent_id:
+        return error_response('用户ID不能为空', status=400)
+    if vote_type is None:
+        return error_response('投票类型不能为空', status=400)
     if not post_id and not comment_id:
         return error_response('必须指定帖子或评论', status=400)
+    if post_id and comment_id:
+        return error_response('不能同时指定帖子和评论', status=400)
     
-    # 根据是帖子还是评论构建不同的查询条件
-    if post_id:
-        existing = execute_db('''
-            SELECT id FROM forum_votes 
-            WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
-        ''', (parent_id, post_id))
+    try:
+        # 根据是帖子还是评论构建不同的查询条件
+        if post_id:
+            # 检查帖子是否存在
+            post_exists = execute_db('SELECT id FROM forum_posts WHERE id = ?', (post_id,))
+            if not post_exists:
+                return error_response('帖子不存在', status=404)
+            
+            existing = execute_db('''
+                SELECT id FROM forum_votes 
+                WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
+            ''', (parent_id, post_id))
+            
+            if existing:
+                if vote_type == 0:
+                    # 取消投票
+                    execute_db('''
+                        DELETE FROM forum_votes 
+                        WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
+                    ''', (parent_id, post_id))
+                else:
+                    # 更新投票类型
+                    execute_db('''
+                        UPDATE forum_votes SET vote_type = ? 
+                        WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
+                    ''', (vote_type, parent_id, post_id))
+            elif vote_type != 0:
+                # 新增投票
+                execute_db('''
+                    INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
+                    VALUES (?, ?, NULL, ?)
+                ''', (parent_id, post_id, vote_type))
+        elif comment_id:
+            # 检查评论是否存在
+            comment_exists = execute_db('SELECT id FROM forum_comments WHERE id = ?', (comment_id,))
+            if not comment_exists:
+                return error_response('评论不存在', status=404)
+            
+            existing = execute_db('''
+                SELECT id FROM forum_votes 
+                WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
+            ''', (parent_id, comment_id))
+            
+            if existing:
+                if vote_type == 0:
+                    # 取消投票
+                    execute_db('''
+                        DELETE FROM forum_votes 
+                        WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
+                    ''', (parent_id, comment_id))
+                else:
+                    # 更新投票类型
+                    execute_db('''
+                        UPDATE forum_votes SET vote_type = ? 
+                        WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
+                    ''', (vote_type, parent_id, comment_id))
+            elif vote_type != 0:
+                # 新增投票
+                execute_db('''
+                    INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
+                    VALUES (?, NULL, ?, ?)
+                ''', (parent_id, comment_id, vote_type))
         
-        if existing:
-            if vote_type == 0:
-                execute_db('''
-                    DELETE FROM forum_votes 
-                    WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
-                ''', (parent_id, post_id))
-            else:
-                execute_db('''
-                    UPDATE forum_votes SET vote_type = ? 
-                    WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
-                ''', (vote_type, parent_id, post_id))
-        elif vote_type != 0:
-            execute_db('''
-                INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
-                VALUES (?, ?, NULL, ?)
-            ''', (parent_id, post_id, vote_type))
-    elif comment_id:
-        existing = execute_db('''
-            SELECT id FROM forum_votes 
-            WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
-        ''', (parent_id, comment_id))
-        
-        if existing:
-            if vote_type == 0:
-                execute_db('''
-                    DELETE FROM forum_votes 
-                    WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
-                ''', (parent_id, comment_id))
-            else:
-                execute_db('''
-                    UPDATE forum_votes SET vote_type = ? 
-                    WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
-                ''', (vote_type, parent_id, comment_id))
-        elif vote_type != 0:
-            execute_db('''
-                INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
-                VALUES (?, NULL, ?, ?)
-            ''', (parent_id, comment_id, vote_type))
-    
-    return success_response(None, '投票成功')
+        return success_response(None, '投票成功')
+    except Exception as e:
+        print(f"投票操作失败: {e}")
+        return error_response('服务器内部错误', status=500)
 
 @forum_bp.route('/favorites', methods=['GET'])
 @require_auth
@@ -464,7 +510,8 @@ def get_favorites():
         SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id,
                pr.username as author_name,
                (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count
+               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count,
+               (SELECT COUNT(*) FROM favorites WHERE post_id = p.id) as favorite_count
         FROM favorites f
         JOIN forum_posts p ON f.post_id = p.id
         JOIN parents pr ON p.parent_id = pr.id
@@ -481,7 +528,8 @@ def get_favorites():
         'parent_id': f[5],
         'author_name': f[6],
         'comment_count': f[7],
-        'like_count': f[8]
+        'like_count': f[8],
+        'favorite_count': f[9]
     } for f in result]
     
     return success_response(favorites)
@@ -496,14 +544,21 @@ def add_favorite(post_id):
         return success_response(None, '收藏成功')
     except sqlite3.IntegrityError:
         return error_response('已收藏或帖子不存在', status=400)
+    except Exception as e:
+        print(f"收藏操作失败: {e}")
+        return error_response('服务器内部错误', status=500)
 
 @forum_bp.route('/favorites/<int:post_id>', methods=['DELETE'])
 @require_auth
 def remove_favorite(post_id):
     parent_id = request.user_id
     
-    execute_db('DELETE FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
-    return success_response(None, '取消收藏成功')
+    try:
+        execute_db('DELETE FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
+        return success_response(None, '取消收藏成功')
+    except Exception as e:
+        print(f"取消收藏操作失败: {e}")
+        return error_response('服务器内部错误', status=500)
 
 @forum_bp.route('/reports', methods=['POST'])
 def create_report():

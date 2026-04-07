@@ -17,7 +17,13 @@ def get_user_level(parent_id):
     experience = post_count * 10 + comment_count * 5 + like_received * 2
     level = 1 + experience // 100
     
-    return jsonify({'level': level, 'experience': experience}), 200
+    return jsonify({
+        'level': level, 
+        'experience': experience,
+        'post_count': post_count,
+        'comment_count': comment_count,
+        'like_received': like_received
+    }), 200
 
 @user_stats_bp.route('/api/user/posts/<int:parent_id>', methods=['GET'])
 def get_user_posts(parent_id):

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注意力全能小侦探 - 专注力训练平台</title>
+    <title>童眸智训</title>
     <style>
         * {
             margin: 0;
@@ -31,34 +31,101 @@
             text-align: center;
         }
 
+        /* 手写动画标题容器 */
+        .handwriting-title-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* SVG 手写动画路径 */
+        .handwriting-svg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 110%;
+            height: 180px;
+            z-index: 0;
+        }
+
+        .handwriting-path {
+            fill: none;
+            stroke-width: 10;
+            stroke: #667eea;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 1800;
+            stroke-dashoffset: 1800;
+            animation: drawHandwriting 2.5s ease-in-out forwards;
+        }
+
+        @keyframes drawHandwriting {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* 主标题样式（手写组件渐变效果） */
         .header h1 {
-            font-size: 2.5em;
+            position: relative;
+            z-index: 1;
+            font-size: 3.2em;
+            font-weight: 800;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4CAF50 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 8px;
-            font-weight: 700;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            opacity: 0;
+            animation: fadeInTitle 0.8s ease 0.5s forwards;
+        }
+
+        @keyframes fadeInTitle {
+            to {
+                opacity: 1;
+            }
         }
 
         .header .subtitle {
-            font-size: 1.1em;
-            color: #666;
+            position: relative;
+            z-index: 1;
+            font-size: 1.15em;
+            color: #555;
             margin-bottom: 8px;
+            opacity: 0;
+            animation: fadeInSub 0.8s ease 1s forwards;
+        }
+
+        @keyframes fadeInSub {
+            to {
+                opacity: 1;
+            }
         }
 
         .header .description {
+            position: relative;
+            z-index: 1;
             font-size: 0.95em;
             color: #888;
             max-width: 600px;
             margin: 0 auto;
+            opacity: 0;
+            animation: fadeInDesc 0.8s ease 1.2s forwards;
+        }
+
+        @keyframes fadeInDesc {
+            to {
+                opacity: 1;
+            }
         }
 
         .main-container {
             display: flex;
             min-height: 100vh;
-            padding-top: 160px;
+            padding-top: 200px;
         }
 
         .left-section {
@@ -108,9 +175,12 @@
         }
 
         @keyframes float {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translate(0, 0) rotate(0deg);
             }
+
             50% {
                 transform: translate(30px, 30px) rotate(180deg);
             }
@@ -136,7 +206,7 @@
             position: relative;
             padding-bottom: 15px;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        opacity 0.3s ease;
+                opacity 0.3s ease;
             opacity: 1;
             text-align: center;
         }
@@ -181,9 +251,9 @@
             overflow: hidden;
             visibility: hidden;
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        margin 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                margin 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .section-expanded .benefits-list {
@@ -202,7 +272,7 @@
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .section-expanded .benefits-list li {
@@ -210,10 +280,21 @@
             transform: translateY(0);
         }
 
-        .section-expanded .benefits-list li:nth-child(1) { transition-delay: 0.15s; }
-        .section-expanded .benefits-list li:nth-child(2) { transition-delay: 0.25s; }
-        .section-expanded .benefits-list li:nth-child(3) { transition-delay: 0.35s; }
-        .section-expanded .benefits-list li:nth-child(4) { transition-delay: 0.45s; }
+        .section-expanded .benefits-list li:nth-child(1) {
+            transition-delay: 0.15s;
+        }
+
+        .section-expanded .benefits-list li:nth-child(2) {
+            transition-delay: 0.25s;
+        }
+
+        .section-expanded .benefits-list li:nth-child(3) {
+            transition-delay: 0.35s;
+        }
+
+        .section-expanded .benefits-list li:nth-child(4) {
+            transition-delay: 0.45s;
+        }
 
         .benefits-list li::before {
             content: '✓';
@@ -249,9 +330,9 @@
             transform: translateY(20px);
             pointer-events: none;
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                        background 0.3s ease,
-                        box-shadow 0.3s ease;
+                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.3s ease,
+                box-shadow 0.3s ease;
         }
 
         .section-expanded .login-btn {
@@ -306,15 +387,15 @@
 
         .divider-line {
             position: absolute;
-            top: 160px;
+            top: 200px;
             bottom: 60px;
             left: var(--divider-position);
             width: 3px;
-            background: linear-gradient(to bottom, 
-                transparent 0%, 
-                rgba(255, 255, 255, 0.8) 20%, 
-                rgba(255, 255, 255, 0.8) 80%, 
-                transparent 100%);
+            background: linear-gradient(to bottom,
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.8) 20%,
+                    rgba(255, 255, 255, 0.8) 80%,
+                    transparent 100%);
             z-index: 10;
             transform: translateX(-50%);
             transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -407,7 +488,7 @@
             }
 
             .header h1 {
-                font-size: 1.8em;
+                font-size: 2.2em;
             }
 
             .header .subtitle {
@@ -419,7 +500,13 @@
 
 <body>
     <div class="header">
-        <h1>注意力全能小侦探</h1>
+        <!-- 手写动画标题区域 -->
+        <div class="handwriting-title-container">
+            <svg class="handwriting-svg" viewBox="0 0 1200 300">
+                <path class="handwriting-path" d="M 150 150 C 250 50, 450 50, 600 150 C 750 250, 950 250, 1050 150" />
+            </svg>
+            <h1>童眸智训</h1>
+        </div>
         <p class="subtitle">专为6-12岁儿童设计的注意力训练平台</p>
         <p class="description">通过科学的训练方法和趣味游戏，帮助孩子提升专注力，培养良好学习习惯</p>
     </div>
@@ -434,6 +521,7 @@
                     <li>浏览知识文章</li>
                     <li>参与家长论坛</li>
                 </ul>
+                <a href="login.html" class="login-btn">家长登录</a>
             </div>
         </div>
 
@@ -448,16 +536,16 @@
                     <li>成长记录与奖励</li>
                     <li>互动学习体验</li>
                 </ul>
+                <a href="login.html" class="login-btn">孩子登录</a>
             </div>
         </div>
     </div>
 
     <div class="footer">
-        <p>© 2026 注意力全能小侦探 - 专注力训练平台 | 让每个孩子都能专注成长</p>
+        <p>© 2026 童眸智训 - 专注力训练平台 | 让每个孩子都能专注成长</p>
         <a href="login.html" class="footer-login-btn">立即登录</a>
     </div>
 
-    <script src="utils.js"></script>
     <script>
         const root = document.documentElement;
         const leftSection = document.querySelector('.left-section');
@@ -472,7 +560,7 @@
             leftTitle.classList.remove('vertical');
             rightTitle.classList.remove('vertical');
 
-            switch(state) {
+            switch (state) {
                 case 'left':
                     root.style.setProperty('--left-width', '70%');
                     root.style.setProperty('--right-width', '30%');
@@ -503,7 +591,6 @@
 
         rightSection.addEventListener('mouseenter', () => setLayoutState('right'));
         rightSection.addEventListener('mouseleave', () => setLayoutState('default'));
-
     </script>
 </body>
 
