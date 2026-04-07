@@ -554,12 +554,8 @@ def add_favorite(post_id):
 def remove_favorite(post_id):
     parent_id = request.user_id
     
-    try:
-        execute_db('DELETE FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
-        return success_response(None, '取消收藏成功')
-    except Exception as e:
-        print(f"取消收藏操作失败: {e}")
-        return error_response('服务器内部错误', status=500)
+    execute_db('DELETE FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
+    return success_response(None, '取消收藏成功')
 
 @forum_bp.route('/categories', methods=['GET'])
 def get_categories():
