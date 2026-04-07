@@ -408,102 +408,6 @@
             margin-bottom: 14px;
         }
 
-        .report-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .report-modal.show {
-            display: flex;
-        }
-
-        .report-modal-content {
-            background: white;
-            border-radius: 14px;
-            padding: 28px;
-            width: 420px;
-            max-width: 92%;
-        }
-
-        .report-modal-title {
-            font-size: 19px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .report-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 24px;
-        }
-
-        .report-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .report-option:hover {
-            border-color: #667eea;
-        }
-
-        .report-option.selected {
-            border-color: #667eea;
-            background: #f7f9ff;
-        }
-
-        .report-option input {
-            display: none;
-        }
-
-        .report-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .report-actions button {
-            padding: 11px 22px;
-            border-radius: 10px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .btn-cancel {
-            background: #f5f5f5;
-            border: none;
-            color: #666;
-        }
-
-        .btn-cancel:hover {
-            background: #e8e8e8;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            color: white;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-1px);
-        }
-
         .footer {
             background: #f5f7fa;
             color: #999;
@@ -577,10 +481,6 @@
                         <div class="post-stat" id="dislike-btn" onclick="dislikePost()">
                             <span>👎</span> <span id="dislike-count">0</span>
                         </div>
-
-                        <div class="post-stat" onclick="showReportModal()">
-                            <span>🚩</span> <span>举报</span>
-                        </div>
                     </div>
                 </div>
 
@@ -606,40 +506,6 @@
 
         <div class="content-sidebar"></div>
     </div>
-
-    <div class="report-modal" id="report-modal">
-        <div class="report-modal-content">
-            <div class="report-modal-title">举报内容</div>
-            <div class="report-options">
-                <label class="report-option">
-                    <input type="radio" name="report-reason" value="垃圾广告">
-                    <span>垃圾广告</span>
-                </label>
-                <label class="report-option">
-                    <input type="radio" name="report-reason" value="不实信息">
-                    <span>不实信息</span>
-                </label>
-                <label class="report-option">
-                    <input type="radio" name="report-reason" value="有害内容">
-                    <span>有害内容</span>
-                </label>
-                <label class="report-option">
-                    <input type="radio" name="report-reason" value="侵权内容">
-                    <span>侵权内容</span>
-                </label>
-                <label class="report-option">
-                    <input type="radio" name="report-reason" value="其他">
-                    <span>其他</span>
-                </label>
-            </div>
-            <div class="report-actions">
-                <button class="btn-cancel" onclick="hideReportModal()">取消</button>
-                <button class="btn-submit" onclick="submitReport()">提交</button>
-            </div>
-        </div>
-    </div>
-
-
 
     <script>
         let postId = null;
@@ -784,7 +650,6 @@
                         <div class="comment-actions">
                             <span class="comment-action ${comment.user_vote === 1 ? 'liked' : ''}" onclick="likeComment(${comment.id})"><span>👍</span> ${Math.max(0, comment.like_count || 0)}</span>
                             <span class="comment-action ${comment.user_vote === -1 ? 'disliked' : ''}" onclick="dislikeComment(${comment.id})"><span>👎</span> ${Math.max(0, comment.dislike_count || 0)}</span>
-                            <span class="comment-action" onclick="reportComment(${comment.id})"><span>🚩</span> 举报</span>
                         </div>
                     </div>
                 `}).join('');
@@ -1105,42 +970,6 @@
             }
         }
 
-        function showReportModal() { document.getElementById('report-modal').classList.add('show'); }
-        function hideReportModal() { document.getElementById('report-modal').classList.remove('show'); }
-
-        async function submitReport() {
-            const sel = document.querySelector('input[name="report-reason"]:checked');
-            if (!sel) { alert('请选择原因'); return; }
-            const user = StorageUtil.getItem('userInfo');
-            if (!user) { alert('请登录'); return; }
-            try {
-                await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/reports`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}`
-                    },
-                    body: JSON.stringify({ parent_id: user.parent_id, post_id: postId, reason: sel.value })
-                });
-                alert('举报成功');
-                hideReportModal();
-            } catch (e) { console.error(e); }
-        }
-
-        function reportComment(cid) {
-            const r = prompt('举报原因：');
-            if (!r) return;
-            const user = StorageUtil.getItem('userInfo');
-            fetch(`${window.API_CONFIG.BASE_URL}/api/forum/reports`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token}`
-                },
-                body: JSON.stringify({ parent_id: user.parent_id, comment_id: cid, reason: r })
-            }).then(() => alert('举报成功'));
-        }
-
         function editPost() {
             // 打开编辑表单
             window.openPostForm(postId, postData);
@@ -1211,14 +1040,6 @@
             });
             loadPost();
         }
-
-        document.querySelectorAll('.report-option').forEach(o => {
-            o.onclick = () => {
-                document.querySelectorAll('.report-option').forEach(x => x.classList.remove('selected'));
-                o.classList.add('selected');
-                o.querySelector('input').checked = true;
-            }
-        });
 
         window.onload = function () {
             ParentComponents.initPage('forum');
