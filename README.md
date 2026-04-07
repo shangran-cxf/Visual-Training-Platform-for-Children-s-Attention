@@ -1,22 +1,31 @@
 # Visual-Training-Platform-for-Children-s-Attention
 
-## 3.23更新：3.23_upgrade.zip
+## 项目架构
 
-### 优化了页面加载速度
+本项目采用三层分离架构：
 
-game.html 在 \<head> 中同步加载了大量大型 JavaScript 库
+```
+Visual-Training-Platform-for-Children-s-Attention/
+├── frontend/          # 前端层 - 静态资源和页面
+├── backend/           # 后端层 - Flask API 服务
+└── database/          # 数据库层 - SQLite 数据库
+    ├── attention.db   # 数据库文件
+    ├── init.sql       # 初始化脚本
+    ├── migrate.py     # 迁移工具
+    └── config.py      # 数据库配置
+```
 
-### 修改文件
+### 数据库配置
 
-- ./frontend/game.html
-- ./frontend/js/game.js
-- ./frontend/main.html
-- ./frontend/history.html
-- ./frontend/js/history.js
+数据库路径可通过环境变量 `DATABASE_PATH` 自定义配置：
 
-## 3.28更新 detect.zip和training.zip
-完成了综合训练的前四个训练和训练模块的前五个训练,补全了训练逻辑和前端美化
+```bash
+# Windows
+set DATABASE_PATH=D:\path\to\your\database.db
 
-## 3.31
+# Linux/Mac
+export DATABASE_PATH=/path/to/your/database.db
+```
 
-奇了怪了我也不知道为什么论坛就出BUG了，明明昨晚还好好的。现在应该可以点赞评论了吧QAQ
+默认路径：`项目根目录/database/attention.db`
+

@@ -1,8 +1,12 @@
 import sqlite3
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import DB_PATH
 
 def get_db_path():
-    return os.path.join(os.path.dirname(__file__), '..', 'data', 'attention.db')
+    return DB_PATH
 
 def get_db_connection():
     db_path = get_db_path()

@@ -119,11 +119,11 @@ def get_all_training():
     offset = request.args.get('offset', 0, type=int)
     
     result = execute_db('''
-        SELECT ts.id, c.name, p.username, ts.game_type, ts.start_time, ts.duration, td.final_score
+        SELECT ts.id, c.name, p.username, ts.game_type, ts.start_time, ts.duration, ss.overall_score as final_score
         FROM training_sessions ts
         JOIN children c ON ts.child_id = c.id
         JOIN parents p ON c.parent_id = p.id
-        LEFT JOIN training_details td ON ts.id = td.session_id
+        LEFT JOIN session_summaries ss ON ts.id = ss.session_id
         ORDER BY ts.start_time DESC
         LIMIT ? OFFSET ?
     ''', (limit, offset))
@@ -173,12 +173,9 @@ def delete_user(user_id):
     child_ids = execute_db('SELECT id FROM children WHERE parent_id = ?', (user_id,))
     for (child_id,) in child_ids:
         execute_db('DELETE FROM user_badges WHERE child_id = ?', (child_id,))
-        execute_db('DELETE FROM training_details WHERE child_id = ?', (child_id,))
         execute_db('DELETE FROM session_summaries WHERE child_id = ?', (child_id,))
-        execute_db('DELETE FROM attention_reports WHERE child_id = ?', (child_id,))
-        execute_db('DELETE FROM progress_reports WHERE child_id = ?', (child_id,))
+        execute_db('DELETE FROM child_reports WHERE child_id = ?', (child_id,))
         execute_db('DELETE FROM detection_data WHERE child_id = ?', (child_id,))
-        execute_db('DELETE FROM training_data WHERE child_id = ?', (child_id,))
     
     session_ids = execute_db('''
         SELECT ts.id FROM training_sessions ts

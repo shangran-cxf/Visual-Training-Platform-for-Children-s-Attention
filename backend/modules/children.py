@@ -79,7 +79,7 @@ def get_child_stats(child_id):
     )[0][0]
     
     avg_score_result = execute_db(
-        'SELECT AVG(final_score) FROM training_details WHERE child_id = ?',
+        'SELECT AVG(overall_score) FROM session_summaries WHERE child_id = ?',
         (child_id,)
     )
     avg_score = round(avg_score_result[0][0], 2) if avg_score_result[0][0] else 0
@@ -109,10 +109,10 @@ def get_child_recent_training(child_id):
         return error_response('孩子不存在', status=404)
     
     result = execute_db('''
-        SELECT td.game_type, td.final_score, td.performance_level, td.created_at
-        FROM training_details td
-        WHERE td.child_id = ?
-        ORDER BY td.created_at DESC
+        SELECT ss.game_type, ss.overall_score as final_score, ss.performance_level, ss.created_at
+        FROM session_summaries ss
+        WHERE ss.child_id = ?
+        ORDER BY ss.created_at DESC
         LIMIT ?
     ''', (child_id, limit))
     

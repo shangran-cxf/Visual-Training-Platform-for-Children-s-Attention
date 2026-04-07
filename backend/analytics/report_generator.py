@@ -3,7 +3,7 @@ from typing import Dict, List
 import json
 from database import execute_db
 from .attention_analyzer import AttentionAnalyzer
-from config import ATTENTION_DIMENSIONS, GAME_TYPES
+from config import ATTENTION_DIMENSIONS, GAME_TYPES, BADGES
 
 
 class ReportGenerator:
@@ -69,12 +69,12 @@ class ReportGenerator:
         recommendations_json = json.dumps(recommendations, ensure_ascii=False)
         
         execute_db('''
-            INSERT INTO attention_reports 
+            INSERT INTO child_reports 
             (child_id, report_type, period_start, period_end, 
              selective_attention_score, sustained_attention_score, visual_tracking_score,
              working_memory_score, inhibitory_control_score, total_score, percentile,
              improvement_rate, strengths, weaknesses, recommendations)
-            VALUES (?, 'attention_assessment', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, 'attention', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             child_id, period_start, period_end,
             dimension_scores.get('selective_attention', 0),
@@ -159,22 +159,26 @@ class ReportGenerator:
             accuracy_improvement = 0
             attention_improvement = 0
         
-        badges = execute_db('''
-            SELECT b.name, b.icon, ub.earned_at
-            FROM user_badges ub
-            JOIN badges b ON ub.badge_id = b.id
-            WHERE ub.child_id = ? AND ub.earned_at BETWEEN ? AND ?
-            ORDER BY ub.earned_at DESC
+        badge_dict = {b['id']: b for b in BADGES}
+        
+        user_badges = execute_db('''
+            SELECT badge_id, earned_at
+            FROM user_badges
+            WHERE child_id = ? AND earned_at BETWEEN ? AND ?
+            ORDER BY earned_at DESC
         ''', (child_id, start_date.isoformat(), end_date.isoformat()))
         
-        badges_earned = len(badges)
+        badges_earned = len(user_badges)
         milestones = []
-        for badge in badges:
-            milestones.append({
-                'name': badge[0],
-                'icon': badge[1],
-                'earned_at': badge[2][:10] if badge[2] else None
-            })
+        for ub in user_badges:
+            badge_id = ub[0]
+            if badge_id in badge_dict:
+                badge = badge_dict[badge_id]
+                milestones.append({
+                    'name': badge['name'],
+                    'icon': badge['icon'],
+                    'earned_at': ub[1][:10] if ub[1] else None
+                })
         
         if total_sessions >= 50:
             milestones.append({'name': '完成50次训练', 'icon': '🎯', 'achieved_at': end_date.isoformat()})
@@ -239,11 +243,11 @@ class ReportGenerator:
         focus_areas_json = json.dumps(focus_areas, ensure_ascii=False)
         
         execute_db('''
-            INSERT INTO progress_reports
-            (child_id, total_sessions, total_duration, games_played,
+            INSERT INTO child_reports
+            (child_id, report_type, total_sessions, total_duration, games_played,
              avg_score_change, accuracy_improvement, attention_improvement,
-             milestones_achieved, badges_earned, recommended_games, focus_areas)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             badges_earned, milestones_achieved, recommended_games, focus_areas)
+            VALUES (?, 'progress', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             child_id, total_sessions, total_duration, games_played,
             score_change, accuracy_improvement, attention_improvement,
@@ -357,8 +361,8 @@ class ReportGenerator:
         """计算提升率"""
         last_report = execute_db('''
             SELECT total_score, created_at
-            FROM attention_reports
-            WHERE child_id = ? AND report_type = 'attention_assessment'
+            FROM child_reports
+            WHERE child_id = ? AND report_type = 'attention'
             ORDER BY created_at DESC
             LIMIT 1
         ''', (child_id,))

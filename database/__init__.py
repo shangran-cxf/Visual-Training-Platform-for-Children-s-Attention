@@ -1,0 +1,3 @@
+from .config import DATABASE_PATH, DATABASE_CONFIG
+
+__all__ = ['DATABASE_PATH', 'DATABASE_CONFIG']

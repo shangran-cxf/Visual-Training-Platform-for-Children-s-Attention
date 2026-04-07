@@ -11,6 +11,7 @@ print(f'FRONTEND_DIR exists: {os.path.exists(FRONTEND_DIR)}')
 from database import init_db, execute_db
 from modules import auth_bp, children_bp, forum_bp, knowledge_bp, badges_bp, admin_bp, user_stats_bp
 from analytics import data_collector_bp
+from ai import ai_bp
 from middleware import verify_token
 from utils.error_codes import (
     BAD_REQUEST, AUTH_ERROR, PERMISSION_DENIED, 
@@ -141,6 +142,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(user_stats_bp)
 
 app.register_blueprint(data_collector_bp)
+app.register_blueprint(ai_bp)
 
 @app.route('/')
 def index():

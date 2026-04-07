@@ -66,7 +66,7 @@ def get_user_stats(parent_id):
         )[0][0]
         
         score_result = execute_db(
-            f'SELECT AVG(final_score) FROM training_details WHERE child_id IN ({placeholders})',
+            f'SELECT AVG(overall_score) FROM session_summaries WHERE child_id IN ({placeholders})',
             tuple(child_ids)
         )
         avg_score = round(score_result[0][0], 2) if score_result[0][0] else 0

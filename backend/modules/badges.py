@@ -1,47 +1,32 @@
 from flask import Blueprint, request, jsonify
 from database import execute_db
+from config import BADGES
 
 badges_bp = Blueprint('badges', __name__)
 
 @badges_bp.route('/api/badges', methods=['GET'])
 def get_all_badges():
-    result = execute_db(
-        'SELECT id, name, description, icon, requirement_type, requirement_value, created_at FROM badges'
-    )
-    
-    badges = [{
-        'id': b[0],
-        'name': b[1],
-        'description': b[2],
-        'icon': b[3],
-        'requirement_type': b[4],
-        'requirement_value': b[5],
-        'created_at': b[6]
-    } for b in result]
-    
-    return jsonify(badges), 200
+    return jsonify(BADGES), 200
 
 @badges_bp.route('/api/badges/<int:child_id>', methods=['GET'])
 def get_child_badges(child_id):
     result = execute_db(
-        '''SELECT b.id, b.name, b.description, b.icon, b.requirement_type, 
-                  b.requirement_value, ub.earned_at
-           FROM badges b
-           INNER JOIN user_badges ub ON b.id = ub.badge_id
-           WHERE ub.child_id = ?
-           ORDER BY ub.earned_at DESC''',
+        '''SELECT badge_id, earned_at
+           FROM user_badges
+           WHERE child_id = ?
+           ORDER BY earned_at DESC''',
         (child_id,)
     )
     
-    badges = [{
-        'id': b[0],
-        'name': b[1],
-        'description': b[2],
-        'icon': b[3],
-        'requirement_type': b[4],
-        'requirement_value': b[5],
-        'earned_at': b[6]
-    } for b in result]
+    badge_dict = {b['id']: b for b in BADGES}
+    
+    badges = []
+    for row in result:
+        badge_id = row[0]
+        if badge_id in badge_dict:
+            badge = badge_dict[badge_id].copy()
+            badge['earned_at'] = row[1]
+            badges.append(badge)
     
     return jsonify(badges), 200
 

@@ -1,9 +1,10 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, '..', 'frontend')
-DATA_DIR = os.path.join(BASE_DIR, 'data')
-DB_PATH = os.path.join(DATA_DIR, 'attention.db')
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+FRONTEND_DIR = os.path.join(PROJECT_ROOT, 'frontend')
+DATABASE_DIR = os.path.join(PROJECT_ROOT, 'database')
+DB_PATH = os.environ.get('DATABASE_PATH', os.path.join(DATABASE_DIR, 'attention.db'))
 
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production-2024'
 
@@ -193,3 +194,22 @@ DEFAULT_GAME_DATA = {
     'late_error_ratio': 0.0,
     'mean_rt': 1000
 }
+
+CATEGORIES = [
+    {'id': 1, 'name': '育儿经验', 'description': '分享育儿心得和经验', 'icon': '👶', 'sort_order': 1},
+    {'id': 2, 'name': '注意力训练', 'description': '讨论注意力训练方法和技巧', 'icon': '🎯', 'sort_order': 2},
+    {'id': 3, 'name': '学习资源', 'description': '分享学习资料和资源', 'icon': '📚', 'sort_order': 3},
+    {'id': 4, 'name': '问题求助', 'description': '遇到问题寻求帮助', 'icon': '❓', 'sort_order': 4},
+    {'id': 5, 'name': '闲聊灌水', 'description': '轻松闲聊，分享生活', 'icon': '💬', 'sort_order': 5},
+]
+
+BADGES = [
+    {'id': 1, 'name': '初学者', 'description': '完成第一次训练', 'icon': '🎯', 'requirement_type': 'training_count', 'requirement_value': 1},
+    {'id': 2, 'name': '坚持者', 'description': '连续训练7天', 'icon': '🔥', 'requirement_type': 'consecutive_days', 'requirement_value': 7},
+    {'id': 3, 'name': '专注达人', 'description': '完成50次训练', 'icon': '⭐', 'requirement_type': 'training_count', 'requirement_value': 50},
+    {'id': 4, 'name': '完美表现', 'description': '单次训练正确率达到100%', 'icon': '💯', 'requirement_type': 'perfect_accuracy', 'requirement_value': 1},
+    {'id': 5, 'name': '速度之星', 'description': '在规定时间内完成训练', 'icon': '⚡', 'requirement_type': 'speed_complete', 'requirement_value': 1},
+    {'id': 6, 'name': '记忆大师', 'description': '工作记忆得分超过90分', 'icon': '🧠', 'requirement_type': 'memory_score', 'requirement_value': 90},
+    {'id': 7, 'name': '追踪专家', 'description': '视觉追踪得分超过90分', 'icon': '👁️', 'requirement_type': 'tracking_score', 'requirement_value': 90},
+    {'id': 8, 'name': '注意力王者', 'description': '总分超过95分', 'icon': '👑', 'requirement_type': 'total_score', 'requirement_value': 95},
+]

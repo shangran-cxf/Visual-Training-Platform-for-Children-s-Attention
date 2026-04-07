@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from database import execute_db
-from config import GAME_TYPES, SCORING_WEIGHTS, DEFAULT_GAME_DATA
+from config import GAME_TYPES, SCORING_WEIGHTS, DEFAULT_GAME_DATA, BADGES
 from analytics.scoring import calculate_score, calculate_vision_scores, get_performance_level
 from utils.response_utils import success_response, error_response
 from middleware import require_auth
@@ -205,32 +205,6 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         start_time = datetime.fromisoformat(session_info[0][0])
         total_time = int((datetime.now() - start_time).total_seconds())
     
-    execute_db('''
-        INSERT INTO training_details 
-        (session_id, child_id, game_type, attention_type, 
-         accuracy_score, precision_score, speed_score, 
-         head_stable_score, face_stable_score, blink_stable_score,
-         impulse_score, memory_score, no_fatigue_score, rt_score, order_score, stable_act_score,
-         final_score, performance_level, game_data)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        session_id, child_id, game_type, attention_type,
-        score_result.get('accuracy', 0),
-        score_result.get('precision', 0),
-        score_result.get('speed', 0),
-        score_result.get('head_stable', 0),
-        score_result.get('face_stable', 0),
-        score_result.get('blink_stable', 0),
-        score_result.get('impulse', 0),
-        score_result.get('memory', 0),
-        score_result.get('no_fatigue', 0),
-        score_result.get('rt_score', 0),
-        score_result.get('order', 0),
-        score_result.get('stable_act', 0),
-        score_result.get('final_score', 0),
-        score_result.get('performance_level', '较弱'),
-        json.dumps(aggregated_game_data)
-    ))
     
     return {
         'final_score': score_result.get('final_score', 0),
@@ -249,11 +223,13 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         'overall_score': score_result.get('final_score', 0),
         'performance_level': score_result.get('performance_level', '较弱'),
         'attention_type': attention_type,
-        'score_details': score_result
+        'score_details': score_result,
+        'game_data': aggregated_game_data
     }
 
 def check_and_award_badges(child_id, summary):
     earned_badges = []
+    badge_dict = {b['id']: b for b in BADGES}
     
     training_count = execute_db(
         'SELECT COUNT(*) FROM session_summaries WHERE child_id = ?',
@@ -261,48 +237,40 @@ def check_and_award_badges(child_id, summary):
     )[0][0] + 1
     
     if training_count == 1:
-        badge = execute_db(
-            "SELECT id, name, icon FROM badges WHERE requirement_type = 'training_count' AND requirement_value = 1"
-        )
+        badge = next((b for b in BADGES if b['requirement_type'] == 'training_count' and b['requirement_value'] == 1), None)
         if badge:
             execute_db(
                 'INSERT OR IGNORE INTO user_badges (child_id, badge_id) VALUES (?, ?)',
-                (child_id, badge[0][0])
+                (child_id, badge['id'])
             )
-            earned_badges.append({'id': badge[0][0], 'name': badge[0][1], 'icon': badge[0][2]})
+            earned_badges.append({'id': badge['id'], 'name': badge['name'], 'icon': badge['icon']})
     
     if training_count == 50:
-        badge = execute_db(
-            "SELECT id, name, icon FROM badges WHERE requirement_type = 'training_count' AND requirement_value = 50"
-        )
+        badge = next((b for b in BADGES if b['requirement_type'] == 'training_count' and b['requirement_value'] == 50), None)
         if badge:
             execute_db(
                 'INSERT OR IGNORE INTO user_badges (child_id, badge_id) VALUES (?, ?)',
-                (child_id, badge[0][0])
+                (child_id, badge['id'])
             )
-            earned_badges.append({'id': badge[0][0], 'name': badge[0][1], 'icon': badge[0][2]})
+            earned_badges.append({'id': badge['id'], 'name': badge['name'], 'icon': badge['icon']})
     
     if summary.get('total_accuracy') == 100:
-        badge = execute_db(
-            "SELECT id, name, icon FROM badges WHERE requirement_type = 'perfect_accuracy'"
-        )
+        badge = next((b for b in BADGES if b['requirement_type'] == 'perfect_accuracy'), None)
         if badge:
             execute_db(
                 'INSERT OR IGNORE INTO user_badges (child_id, badge_id) VALUES (?, ?)',
-                (child_id, badge[0][0])
+                (child_id, badge['id'])
             )
-            earned_badges.append({'id': badge[0][0], 'name': badge[0][1], 'icon': badge[0][2]})
+            earned_badges.append({'id': badge['id'], 'name': badge['name'], 'icon': badge['icon']})
     
     if summary.get('overall_score', 0) >= 95:
-        badge = execute_db(
-            "SELECT id, name, icon FROM badges WHERE requirement_type = 'total_score' AND requirement_value = 95"
-        )
+        badge = next((b for b in BADGES if b['requirement_type'] == 'total_score' and b['requirement_value'] == 95), None)
         if badge:
             execute_db(
                 'INSERT OR IGNORE INTO user_badges (child_id, badge_id) VALUES (?, ?)',
-                (child_id, badge[0][0])
+                (child_id, badge['id'])
             )
-            earned_badges.append({'id': badge[0][0], 'name': badge[0][1], 'icon': badge[0][2]})
+            earned_badges.append({'id': badge['id'], 'name': badge['name'], 'icon': badge['icon']})
     
     return earned_badges
 
@@ -328,18 +296,14 @@ def generate_recommendations(summary, game_type):
     dimensions = game_info.get('dimensions', [])
     
     if 'working_memory' in dimensions and summary.get('overall_score', 0) >= 90:
-        badge = execute_db(
-            "SELECT id, name, icon FROM badges WHERE requirement_type = 'memory_score' AND requirement_value = 90"
-        )
+        badge = next((b for b in BADGES if b['requirement_type'] == 'memory_score' and b['requirement_value'] == 90), None)
         if badge:
-            recommendations.append(f'工作记忆表现出色！已解锁"{badge[0][1]}"成就')
+            recommendations.append(f'工作记忆表现出色！已解锁"{badge["name"]}"成就')
     
     if 'visual_tracking' in dimensions and summary.get('overall_score', 0) >= 90:
-        badge = execute_db(
-            "SELECT id, name, icon FROM badges WHERE requirement_type = 'tracking_score' AND requirement_value = 90"
-        )
+        badge = next((b for b in BADGES if b['requirement_type'] == 'tracking_score' and b['requirement_value'] == 90), None)
         if badge:
-            recommendations.append(f'视觉追踪表现出色！已解锁"{badge[0][1]}"成就')
+            recommendations.append(f'视觉追踪表现出色！已解锁"{badge["name"]}"成就')
     
     if not recommendations:
         recommendations.append('表现良好，继续保持！')
@@ -536,18 +500,34 @@ def end_session():
     
     execute_db('''
         INSERT INTO session_summaries 
-        (session_id, child_id, game_type, final_score, total_accuracy, total_time, 
+        (session_id, child_id, game_type, attention_type, final_score, total_accuracy, total_time, 
          total_errors, levels_completed, avg_attention_score, max_attention_score, 
          min_attention_score, attention_stability, avg_head_deviation, avg_blink_rate, 
-         total_focus_time, distraction_count, overall_score, performance_level)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         total_focus_time, distraction_count, overall_score, performance_level,
+         accuracy_score, precision_score, speed_score, head_stable_score, face_stable_score,
+         blink_stable_score, impulse_score, memory_score, no_fatigue_score, rt_score,
+         order_score, stable_act_score, game_data)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        session_id, session_info['child_id'], session_info['game_type'],
+        session_id, session_info['child_id'], session_info['game_type'], summary.get('attention_type'),
         summary['final_score'], summary['total_accuracy'], summary['total_time'],
         summary['total_errors'], summary['levels_completed'], summary['avg_attention_score'],
         summary['max_attention_score'], summary['min_attention_score'], summary['attention_stability'],
         summary['avg_head_deviation'], summary['avg_blink_rate'], summary['total_focus_time'],
-        summary['distraction_count'], summary['overall_score'], summary['performance_level']
+        summary['distraction_count'], summary['overall_score'], summary['performance_level'],
+        summary['score_details'].get('accuracy', 0),
+        summary['score_details'].get('precision', 0),
+        summary['score_details'].get('speed', 0),
+        summary['score_details'].get('head_stable', 0),
+        summary['score_details'].get('face_stable', 0),
+        summary['score_details'].get('blink_stable', 0),
+        summary['score_details'].get('impulse', 0),
+        summary['score_details'].get('memory', 0),
+        summary['score_details'].get('no_fatigue', 0),
+        summary['score_details'].get('rt_score', 0),
+        summary['score_details'].get('order', 0),
+        summary['score_details'].get('stable_act', 0),
+        json.dumps(summary.get('game_data', {}))
     ))
     
     execute_db('''
@@ -656,10 +636,10 @@ def get_training_history(child_id):
     
     query = '''
         SELECT s.id, s.game_type, s.start_time, s.end_time, s.status,
-               td.attention_type, td.final_score, td.performance_level,
+               ss.attention_type, ss.overall_score as final_score, ss.performance_level,
                g.name as game_name
         FROM training_sessions s
-        LEFT JOIN training_details td ON s.id = td.session_id
+        LEFT JOIN session_summaries ss ON s.id = ss.session_id
         LEFT JOIN (SELECT 'level1' as game_type, '线索筛选站' as name
                    UNION SELECT 'schulte', '太空小火箭'
                    UNION SELECT 'find-numbers', '垃圾小卫士'
@@ -689,7 +669,7 @@ def get_training_history(child_id):
         query += ' AND s.game_type = ?'
         params.append(game_type)
     if attention_type:
-        query += ' AND td.attention_type = ?'
+        query += ' AND ss.attention_type = ?'
         params.append(attention_type)
     
     query += ' ORDER BY s.start_time DESC LIMIT ? OFFSET ?'
@@ -699,7 +679,7 @@ def get_training_history(child_id):
     
     count_query = '''
         SELECT COUNT(*) FROM training_sessions s
-        LEFT JOIN training_details td ON s.id = td.session_id
+        LEFT JOIN session_summaries ss ON s.id = ss.session_id
         WHERE s.child_id = ?
     '''
     count_params = [child_id]
@@ -713,7 +693,7 @@ def get_training_history(child_id):
         count_query += ' AND s.game_type = ?'
         count_params.append(game_type)
     if attention_type:
-        count_query += ' AND td.attention_type = ?'
+        count_query += ' AND ss.attention_type = ?'
         count_params.append(attention_type)
     
     total = execute_db(count_query, tuple(count_params))[0][0]
@@ -763,8 +743,8 @@ def get_training_detail(session_id):
                accuracy_score, precision_score, speed_score,
                head_stable_score, face_stable_score, blink_stable_score,
                impulse_score, memory_score, no_fatigue_score, rt_score, order_score, stable_act_score,
-               final_score, performance_level, game_data, created_at
-        FROM training_details
+               overall_score as final_score, performance_level, game_data, created_at
+        FROM session_summaries
         WHERE session_id = ?
     ''', (session_id,))
     
@@ -857,20 +837,20 @@ def get_training_trend(child_id):
     start_date = end_date - timedelta(days=days)
     
     query = '''
-        SELECT td.attention_type, DATE(s.start_time) as date, 
-               AVG(td.final_score) as avg_score,
+        SELECT ss.attention_type, DATE(s.start_time) as date, 
+               AVG(ss.overall_score) as avg_score,
                COUNT(*) as session_count
-        FROM training_details td
-        JOIN training_sessions s ON td.session_id = s.id
+        FROM session_summaries ss
+        JOIN training_sessions s ON ss.session_id = s.id
         WHERE s.child_id = ? AND DATE(s.start_time) >= ?
     '''
     params = [child_id, start_date.strftime('%Y-%m-%d')]
     
     if attention_type:
-        query += ' AND td.attention_type = ?'
+        query += ' AND ss.attention_type = ?'
         params.append(attention_type)
     
-    query += ' GROUP BY td.attention_type, DATE(s.start_time) ORDER BY date'
+    query += ' GROUP BY ss.attention_type, DATE(s.start_time) ORDER BY date'
     
     records = execute_db(query, tuple(params))
     
@@ -907,14 +887,14 @@ def get_training_trend(child_id):
                         trend_data[at]['trend'] = 'stable'
     
     overall_query = '''
-        SELECT AVG(td.final_score), COUNT(*)
-        FROM training_details td
-        JOIN training_sessions s ON td.session_id = s.id
+        SELECT AVG(ss.overall_score), COUNT(*)
+        FROM session_summaries ss
+        JOIN training_sessions s ON ss.session_id = s.id
         WHERE s.child_id = ? AND DATE(s.start_time) >= ?
     '''
     overall_params = [child_id, start_date.strftime('%Y-%m-%d')]
     if attention_type:
-        overall_query += ' AND td.attention_type = ?'
+        overall_query += ' AND ss.attention_type = ?'
         overall_params.append(attention_type)
     
     overall_result = execute_db(overall_query, tuple(overall_params))
@@ -964,27 +944,6 @@ def upload_detection():
     return success_response({'child_id': child_id}, '检测数据上传成功')
 
 
-@data_collector_bp.route('/api/upload/training', methods=['POST'])
-def upload_training():
-    data = request.json
-    child_id = data.get('child_id')
-    training_type = data.get('training_type')
-    difficulty = data.get('difficulty')
-    accuracy = data.get('accuracy')
-    completion_time = data.get('completion_time')
-    error_count = data.get('error_count')
-    
-    if not child_id or not training_type:
-        return error_response('孩子ID和训练类型不能为空', 'MISSING_REQUIRED_FIELDS', 400)
-    
-    execute_db('''
-        INSERT INTO training_data (child_id, training_type, difficulty, accuracy, completion_time, error_count)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (child_id, training_type, difficulty, accuracy, completion_time, error_count))
-    
-    return success_response({'child_id': child_id, 'training_type': training_type}, '训练数据上传成功')
-
-
 @data_collector_bp.route('/api/get/detection', methods=['GET'])
 def get_detection():
     child_id = request.args.get('child_id')
@@ -1011,28 +970,3 @@ def get_detection():
     
     return success_response(data, '获取检测数据成功')
 
-
-@data_collector_bp.route('/api/get/training', methods=['GET'])
-def get_training():
-    child_id = request.args.get('child_id')
-    
-    if not child_id:
-        return error_response('孩子ID不能为空', 'MISSING_CHILD_ID', 400)
-    
-    result = execute_db('''
-        SELECT timestamp, training_type, difficulty, accuracy, completion_time, error_count
-        FROM training_data
-        WHERE child_id = ?
-        ORDER BY timestamp DESC
-    ''', (child_id,))
-    
-    data = [{
-        'timestamp': row[0],
-        'training_type': row[1],
-        'difficulty': row[2],
-        'accuracy': row[3],
-        'completion_time': row[4],
-        'error_count': row[5]
-    } for row in result]
-    
-    return success_response(data, '获取训练数据成功')

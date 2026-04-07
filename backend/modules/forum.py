@@ -5,6 +5,7 @@ import sqlite3
 from database import execute_db
 from utils import build_update_sql, is_admin, success_response, error_response
 from middleware import require_auth
+from config import CATEGORIES
 
 forum_bp = Blueprint('forum', __name__)
 
@@ -505,32 +506,9 @@ def remove_favorite(post_id):
     execute_db('DELETE FROM favorites WHERE parent_id = ? AND post_id = ?', (parent_id, post_id))
     return success_response(None, '取消收藏成功')
 
-@forum_bp.route('/reports', methods=['POST'])
-def create_report():
-    data = request.json
-    parent_id = data.get('parent_id')
-    post_id = data.get('post_id')
-    comment_id = data.get('comment_id')
-    reason = data.get('reason')
-    
-    if not parent_id or not reason:
-        return error_response('参数不完整', status=400)
-    
-    if not post_id and not comment_id:
-        return error_response('必须指定帖子或评论', status=400)
-    
-    execute_db('''
-        INSERT INTO reports (parent_id, post_id, comment_id, reason)
-        VALUES (?, ?, ?, ?)
-    ''', (parent_id, post_id, comment_id, reason))
-    
-    return success_response(None, '举报成功，我们会尽快处理')
-
 @forum_bp.route('/categories', methods=['GET'])
 def get_categories():
-    result = execute_db('SELECT id, name, description, icon, sort_order FROM categories ORDER BY sort_order')
-    categories = [{'id': c[0], 'name': c[1], 'description': c[2], 'icon': c[3], 'sort_order': c[4]} for c in result]
-    return jsonify(categories), 200
+    return jsonify(CATEGORIES), 200
 
 @forum_bp.route('/upload/image', methods=['POST'])
 def upload_image():
