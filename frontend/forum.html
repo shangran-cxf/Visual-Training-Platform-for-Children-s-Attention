@@ -19,9 +19,9 @@
 
         /* 搜索框样式（与knowledge页面一致） */
         .search-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto 24px;
         }
 
         .search-box {
@@ -30,8 +30,8 @@
             height: 60px;
             background: #fff;
             border: 2px solid #e5e7eb;
-            border-radius: 30px;
-            padding: 0 20px;
+            border-radius: 32px;
+            padding: 0 24px;
             transition: all 0.3s ease;
             position: relative;
         }
@@ -39,21 +39,21 @@
         /* 点击后特效 */
         .search-box.active {
             background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
-            border-color: #a855f7;
+            border-color: #8849a7;
             transform: scale(1.02);
             box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
         }
 
         .search-icon {
-            width: 22px;
-            height: 22px;
-            margin-right: 12px;
+            width: 24px;
+            height: 24px;
+            margin-right: 14px;
             color: #9ca3af;
             transition: color 0.3s ease;
         }
 
         .search-box.active .search-icon {
-            color: #7c3aed;
+            color: #8849a7;
         }
 
         .search-input {
@@ -62,18 +62,20 @@
             border: none;
             outline: none;
             background: transparent;
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .search-btn {
-            padding: 8px 20px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #7c3aed, #ec4899);
+            padding: 15px 28px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #9f5cc0, #91a7e1);
             color: white;
             border: none;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
             white-space: nowrap;
+            margin-right: -19px;
         }
 
         .category-tabs {
@@ -84,12 +86,12 @@
         }
 
         .category-tab {
-            padding: 8px 16px;
+            padding: 10px 20px;
             background: #f5f5f5;
             border: none;
             border-radius: 20px;
-            font-size: 13px;
-            color: #666;
+            font-size: 15px;
+            color: #000000;
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -99,7 +101,7 @@
         }
 
         .category-tab.active {
-            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
+            background: linear-gradient(135deg, #c9b8f2 0%, #886ec5 100%);
             color: white;
         }
 
@@ -110,29 +112,31 @@
         }
 
         .sort-options span {
-            font-size: 13px;
-            color: #999;
+            font-size: 15px;
+            color: #000000;
+            font-weight: 600;
         }
 
         .sort-btn {
-            padding: 6px 14px;
+            padding: 8px 16px;
             background: transparent;
             border: 1px solid #ddd;
-            border-radius: 15px;
-            font-size: 13px;
-            color: #666;
+            border-radius: 20px;
+            font-size: 15px;
+            color: #000000;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .sort-btn:hover {
             border-color: #667eea;
-            color: #667eea;
+            color: #000;
         }
 
         .sort-btn.active {
-            background: #667eea;
-            border-color: #667eea;
+            background: #bca6e9;
+            border-color: #886ec5;
             color: white;
         }
 
@@ -146,7 +150,7 @@
 
         .new-post-toggle {
             padding: 16px 24px;
-            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
+            background: #704da9;
             color: white;
             font-size: 15px;
             font-weight: 500;
@@ -200,7 +204,16 @@
         .form-group textarea:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #704da9;
+        }
+
+        select option:checked {
+            background-color: rgb(112, 77, 168, 0.7);
+            color: white;
+        }
+
+        select option:hover {
+            background-color: #f5f5f5;
         }
 
         .form-group textarea {
@@ -254,7 +267,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #773ada 0%, #451594 100%);
+            background: #704da9;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -311,6 +324,14 @@
             color: white;
         }
 
+        .badge.category-badge {
+            background: #e8e8e8;
+            color: #666;
+            font-size: 13px;
+            padding: 4px 10px;
+            font-weight: 600;
+        }
+
         .post-title {
             font-size: 16px;
             font-weight: 600;
@@ -359,8 +380,8 @@
         .post-stat-readonly {
             display: flex;
             align-items: center;
-            gap: 4px;
-            font-size: 13px;
+            gap: 6px;
+            font-size: 14px;
             color: #999;
         }
 
@@ -370,6 +391,19 @@
             cursor: pointer;
             transition: all 0.3s ease;
             user-select: none;
+            font-size: 14px;
+        }
+
+        .post-stat-action span {
+            font-size: 16px;
+        }
+
+        .post-stat-action .count {
+            font-size: 16px;
+        }
+
+        .comment-action span {
+            font-size: 18px;
         }
 
         .post-stat-action:hover {
@@ -381,36 +415,19 @@
             transform: translateY(0);
         }
 
-        .post-stat-action.like-action:hover {
-            background: rgba(102, 126, 234, 0.15);
+        .like-action.active {
+            color: #4CAF50;
+            font-weight: bold;
         }
 
-        .post-stat-action.dislike-action:hover {
-            background: rgba(244, 67, 54, 0.15);
+        .dislike-action.active {
+            color: #F44336;
+            font-weight: bold;
         }
 
-        .post-stat-action.comment-action:hover {
-            background: rgba(33, 150, 243, 0.15);
-        }
-
-        .post-stat-action.favorite-action:hover {
-            background: rgba(255, 152, 0, 0.15);
-        }
-
-        .post-stat-action.edit-action:hover {
-            background: rgba(76, 175, 80, 0.15);
-        }
-
-        .post-stat-action.delete-action:hover {
-            background: rgba(244, 67, 54, 0.15);
-        }
-
-        .post-stat-action.pin-action:hover {
-            background: rgba(255, 152, 0, 0.15);
-        }
-
-        .post-stat-action.essential-action:hover {
-            background: rgba(233, 30, 99, 0.15);
+        .favorite-action.active {
+            color: #FFC107;
+            font-weight: bold;
         }
 
         .post-comments {
@@ -557,25 +574,37 @@
         .sidebar-card {
             background: white;
             border-radius: 20px;
-            padding: 20px;
+            padding: 24px;
             margin-bottom: 24px;
             box-shadow: 8px 8px 16px rgba(236, 239, 244, 0.6), -8px -8px 16px rgba(239, 236, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 12px 12px 24px rgba(236, 239, 244, 0.8), -12px -12px 24px rgba(239, 236, 255, 1);
         }
 
         .sidebar-title {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
             border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .hot-post-item {
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #f5f5f5;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .hot-post-item:last-child {
@@ -584,20 +613,29 @@
 
         .hot-post-item:hover {
             color: #667eea;
+            transform: translateX(4px);
+        }
+
+        .hot-post-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
         }
 
         .hot-post-rank {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            line-height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
             text-align: center;
-            border-radius: 4px;
-            font-size: 12px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 600;
-            margin-right: 8px;
             background: #f0f0f0;
             color: #999;
+            flex-shrink: 0;
         }
 
         .hot-post-rank.top1 {
@@ -615,42 +653,67 @@
             color: white;
         }
 
+        .no-hot-posts {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 14px;
+        }
+
         .hot-post-title {
-            font-size: 13px;
+            font-size: 14px;
             color: #333;
             line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            flex: 1;
+            font-weight: 500;
         }
 
         .hot-post-stats {
-            font-size: 11px;
+            font-size: 12px;
             color: #999;
-            margin-top: 4px;
+            margin-top: 2px;
+            display: flex;
+            gap: 12px;
+            margin-left: 34px;
         }
 
         .user-stats {
             display: flex;
             justify-content: space-around;
             text-align: center;
+            gap: 16px;
         }
 
         .user-stat-item {
             flex: 1;
+            cursor: pointer;
+            padding: 16px 12px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+
+        .user-stat-item:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            transform: translateY(-2px);
         }
 
         .user-stat-value {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 600;
             color: #667eea;
+            display: block;
         }
 
         .user-stat-label {
-            font-size: 12px;
-            color: #999;
-            margin-top: 4px;
+            font-size: 13px;
+            color: #666;
+            margin-top: 6px;
+            display: block;
         }
 
         .empty-state {
@@ -668,22 +731,36 @@
             font-size: 14px;
         }
 
-        /* 内容侧边栏样式 */
         .content-sidebar {
             width: 300px;
             margin-left: 24px;
+            margin-top: 24px;
         }
 
-        /* main-content布局 */
         .main-content {
             flex: 1;
             display: flex;
             gap: 24px;
+            align-items: flex-start;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
         }
 
-        /* 主要内容区域 */
         .main-content-inner {
             flex: 1;
+            min-width: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f7fa;
+            overflow-x: hidden;
         }
 
         @media (max-width: 1024px) {
@@ -766,36 +843,35 @@
             <div class="pagination" id="forum-pagination">
             </div>
         </div>
-    </div>
 
-    <div class="content-sidebar">
-        <div class="sidebar-card">
-            <div class="sidebar-title">🔥 热门帖子</div>
-            <div id="hot-posts"></div>
-        </div>
+        <div class="content-sidebar">
+            <div class="sidebar-card">
+                <div class="sidebar-title">🔥热门帖子</div>
+                <div id="hot-posts"></div>
+            </div>
 
-        <div class="sidebar-card">
-            <div class="sidebar-title">📊 我的统计</div>
-            <div class="user-stats" id="user-stats">
-                <div class="user-stat-item">
-                    <div class="user-stat-value" id="my-posts">0</div>
-                    <div class="user-stat-label">发帖</div>
-                </div>
-                <div class="user-stat-item">
-                    <div class="user-stat-value" id="my-comments">0</div>
-                    <div class="user-stat-label">评论</div>
-                </div>
-                <div class="user-stat-item">
-                    <div class="user-stat-value" id="my-likes">0</div>
-                    <div class="user-stat-label">获赞</div>
+            <div class="sidebar-card">
+                <div class="sidebar-title">📊我的统计</div>
+                <div class="user-stats" id="user-stats">
+                    <div class="user-stat-item" onclick="loadPosts(1)">
+                        <div class="user-stat-value" id="my-posts">0</div>
+                        <div class="user-stat-label">发帖</div>
+                    </div>
+                    <div class="user-stat-item">
+                        <div class="user-stat-value" id="my-comments">0</div>
+                        <div class="user-stat-label">评论</div>
+                    </div>
+                    <div class="user-stat-item">
+                        <div class="user-stat-value" id="my-likes">0</div>
+                        <div class="user-stat-label">获赞</div>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
-    </div>
 
     <script>
-        // 初始化ParentComponents
         window.onload = function () {
             ParentComponents.initPage('forum');
             const userInfo = ParentComponents.checkAuth();
@@ -806,21 +882,21 @@
                 loadUserStats();
             }
         };
+
         let currentPage = 1;
         const perPage = 10;
         let currentCategory = '';
         let currentSort = 'latest';
         let currentKeyword = '';
         let categories = [];
+        let showFavoritesOnly = false;
 
         function logout() {
             ParentComponents.logout();
         }
-
         function switchToChild() {
             ParentComponents.switchToChildMode();
         }
-
         function checkAuth() {
             return ParentComponents.checkAuth();
         }
@@ -830,15 +906,10 @@
                 const response = await fetch('/api/forum/categories');
                 const result = await response.json();
                 categories = result.data || result;
-
-                if (!Array.isArray(categories)) {
-                    console.error('分类数据格式错误:', categories);
-                    categories = [];
-                }
+                if (!Array.isArray(categories)) categories = [];
 
                 const tabsContainer = document.getElementById('category-tabs');
                 const selectContainer = document.getElementById('post-category');
-
                 tabsContainer.innerHTML = '<button class="category-tab active" data-category="">全部</button>';
                 selectContainer.innerHTML = '<option value="">请选择分类</option>';
 
@@ -849,6 +920,7 @@
 
                 document.querySelectorAll('.category-tab').forEach(tab => {
                     tab.addEventListener('click', function () {
+                        showFavoritesOnly = false;
                         document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
                         this.classList.add('active');
                         currentCategory = this.dataset.category;
@@ -866,29 +938,39 @@
                 const response = await fetch('/api/forum/posts/hot?limit=5');
                 const result = await response.json();
                 const posts = result.data || result;
-
+                console.log('热门帖子数据:', posts);
                 const container = document.getElementById('hot-posts');
-                container.innerHTML = posts.map((post, index) => `
-                    <div class="hot-post-item" onclick="goToPost(${post.id})">
-                        <span class="hot-post-rank ${index < 3 ? 'top' + (index + 1) : ''}">${index + 1}</span>
-                        <span class="hot-post-title">${post.title}</span>
-                        <div class="hot-post-stats">👁 ${post.view_count} · 💬 ${post.comment_count} · 👍 ${post.like_count}</div>
-                    </div>
-                `).join('');
+                if (Array.isArray(posts) && posts.length > 0) {
+                    container.innerHTML = posts.map((post, index) => `
+                        <div class="hot-post-item" onclick="goToPost(${post.id})">
+                            <div class="hot-post-content">
+                                <span class="hot-post-rank ${index < 3 ? 'top' + (index + 1) : ''}">${index + 1}</span>
+                                <span class="hot-post-title">${post.title}</span>
+                            </div>
+                            <div class="hot-post-stats">
+                                <span>👁 ${post.view_count}</span>
+                                <span>💬 ${post.comment_count}</span>
+                                <span>👍 ${post.like_count}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="no-hot-posts">暂无热门帖子</div>';
+                }
             } catch (error) {
                 console.error('加载热门帖子失败:', error);
+                const container = document.getElementById('hot-posts');
+                container.innerHTML = '<div class="no-hot-posts">加载热门帖子失败</div>';
             }
         }
 
         async function loadUserStats() {
             const userInfo = StorageUtil.getItem('userInfo');
             if (!userInfo) return;
-
             try {
                 const response = await fetch(`/api/user/level/${userInfo.parent_id}`);
                 const result = await response.json();
                 const data = result.data || result;
-
                 document.getElementById('my-posts').textContent = data.post_count;
                 document.getElementById('my-comments').textContent = data.comment_count;
                 document.getElementById('my-likes').textContent = data.like_received;
@@ -903,6 +985,7 @@
         }
 
         function searchPosts() {
+            showFavoritesOnly = false;
             currentKeyword = document.getElementById('search-input').value.trim();
             currentPage = 1;
             loadPosts();
@@ -910,6 +993,7 @@
 
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.addEventListener('click', function () {
+                showFavoritesOnly = false;
                 document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentSort = this.dataset.sort;
@@ -924,99 +1008,93 @@
             postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
 
             try {
-                let url = `/api/forum/posts/search?page=${page}&per_page=${perPage}&sort_by=${currentSort}`;
-                if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
-                if (currentCategory) url += `&category_id=${currentCategory}`;
+                let url;
+                if (showFavoritesOnly) {
+                    const userInfo = StorageUtil.getItem('userInfo');
+                    url = `/api/forum/favorites?parent_id=${userInfo.parent_id}&page=${page}&per_page=${perPage}`;
+                } else {
+                    url = `/api/forum/posts/search?page=${page}&per_page=${perPage}&sort_by=${currentSort}`;
+                    if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
+                    if (currentCategory) url += `&category_id=${currentCategory}`;
+                }
 
-                
                 const response = await fetch(url);
                 const result = await response.json();
                 const data = result.data || result;
+                const posts = showFavoritesOnly ? data : data.posts;
 
-                
-                if (data.posts && data.posts.length > 0) {
+                if (posts && posts.length > 0) {
                     const userInfo = StorageUtil.getItem('userInfo');
-
-                    postsContainer.innerHTML = data.posts.map(post => {
-                        const categoryObj = categories.find(c => String(c.id) === String(post.category_id));
-                        const initial = (post.author_name || '用户').charAt(0).toUpperCase();
-                        const isPinned = post.is_pinned === 1;
-                        const isEssential = post.is_essential === 1;
-
+                    postsContainer.innerHTML = posts.map(post => {
+                        const realPost = showFavoritesOnly ? post.post : post;
+                        const categoryObj = categories.find(c => String(c.id) === String(realPost.category_id));
+                        const initial = (realPost.author_name || '用户').charAt(0).toUpperCase();
+                        const isPinned = realPost.is_pinned === 1;
+                        const isEssential = realPost.is_essential === 1;
                         const isAdmin = userInfo && userInfo.role === 'admin';
-                        const isAuthor = userInfo && userInfo.parent_id === post.parent_id;
+                        const isAuthor = userInfo && userInfo.parent_id === realPost.parent_id;
                         const canEditDelete = isAuthor || isAdmin;
+                        const likeCount = Math.max(0, realPost.like_count || 0);
+                        const dislikeCount = Math.max(0, realPost.dislike_count || 0);
+                        const commentCount = realPost.comment_count || 0;
 
                         return `
-                        <div class="forum-post ${isPinned ? 'pinned' : ''}" onclick="toggleComments(${post.id})">
+                        <div class="forum-post ${isPinned ? 'pinned' : ''}" onclick="goToPost(${realPost.id})">
                             <div class="post-header">
                                 <div class="author-avatar">${initial}</div>
                                 <div class="author-info">
-                                    <div class="author-name">
-                                        ${post.author_name}
-                                        <span class="author-level">Lv.${post.author_level || 1}</span>
-                                    </div>
-                                    <div class="post-time">${post.created_at}</div>
+                                    <div class="author-name">${realPost.author_name}<span class="author-level">Lv.${realPost.author_level || 1}</span></div>
+                                    <div class="post-time">${realPost.created_at}</div>
                                 </div>
                                 <div class="post-badges">
                                     ${isPinned ? '<span class="badge badge-pinned">置顶</span>' : ''}
                                     ${isEssential ? '<span class="badge badge-essential">精华</span>' : ''}
-                                    ${categoryObj ? `<span class="badge" style="background:#e8e8e8;color:#666;">${categoryObj.icon} ${categoryObj.name}</span>` : ''}
+                                    ${categoryObj ? `<span class="badge category-badge">${categoryObj.icon} ${categoryObj.name}</span>` : ''}
                                 </div>
                             </div>
-                            <div class="post-title" onclick="goToPost(${post.id}); event.stopPropagation();">${post.title}</div>
-                            <div class="post-content">${post.content}</div>
-                            <div class="post-footer" onclick="event.stopPropagation();">
+                            <div class="post-title">${realPost.title}</div>
+                            <div class="post-content">${realPost.content}</div>
+                            <div class="post-footer">
                                 <div class="post-footer-left">
-                                    <div class="post-stat-readonly">
-                                        <span>👁</span> ${post.view_count || 0}
+                                    <div class="post-stat-readonly"><span>👁</span> ${realPost.view_count || 0}</div>
+                                    <div class="post-stat post-stat-action like-action ${realPost.user_vote == 1 ? 'active' : ''}" 
+                                         onclick="likePost(${realPost.id}, this); event.stopPropagation();">
+                                        <span>👍</span> <span class="count">${likeCount}</span>
                                     </div>
-                                    <div class="post-stat post-stat-action like-action ${post.user_vote === 1 ? 'liked' : ''}" onclick="likePost(${post.id})" title="点赞">
-                                        <span>👍</span> ${post.like_count || 0}
+                                    <div class="post-stat post-stat-action dislike-action ${realPost.user_vote == -1 ? 'active' : ''}" 
+                                         onclick="dislikePost(${realPost.id}, this); event.stopPropagation();">
+                                        <span>👎</span> <span class="count">${dislikeCount}</span>
                                     </div>
-                                    <div class="post-stat post-stat-action dislike-action ${post.user_vote === -1 ? 'disliked' : ''}" onclick="dislikePost(${post.id})" title="点踩">
-                                        <span>👎</span> ${post.dislike_count || 0}
+                                    <div class="post-stat post-stat-action comment-action" 
+                                         onclick="toggleComments(${realPost.id}); event.stopPropagation();">
+                                        <span>💬</span> <span class="count">${commentCount}</span>
                                     </div>
-                                    <div class="post-stat post-stat-action comment-action" onclick="toggleComments(${post.id})" title="评论">
-                                        <span>💬</span> ${post.comment_count || 0}
-                                    </div>
-                                    <div class="post-stat post-stat-action favorite-action" onclick="toggleFavorite(${post.id})" title="收藏">
-                                        <span>⭐</span>
-                                    </div>
+
                                     ${canEditDelete ? `
-                                        <div class="post-stat post-stat-action edit-action" onclick="editPost(${post.id})" title="编辑">
-                                            <span>✏️</span>
-                                        </div>
-                                        <div class="post-stat post-stat-action delete-action" onclick="deletePost(${post.id})" title="删除">
-                                            <span>🗑️</span>
-                                        </div>
+                                    <div class="post-stat post-stat-action edit-action" onclick="editPost(${realPost.id}); event.stopPropagation();"><span>✏️</span></div>
+                                    <div class="post-stat post-stat-action delete-action" onclick="deletePost(${realPost.id}); event.stopPropagation();"><span>🗑️</span></div>
                                     ` : ''}
                                 </div>
                                 ${isAdmin ? `
-                                    <div class="post-footer-right">
-                                        <div class="post-stat post-stat-action pin-action" onclick="pinPost(${post.id}, ${isPinned ? 0 : 1})" title="置顶">
-                                            <span>📌</span>
-                                        </div>
-                                        <div class="post-stat post-stat-action essential-action" onclick="essentialPost(${post.id}, ${isEssential ? 0 : 1})" title="精华">
-                                            <span>💎</span>
-                                        </div>
-                                    </div>
+                                <div class="post-footer-right">
+                                    <div class="post-stat post-stat-action pin-action" onclick="pinPost(${realPost.id}, ${isPinned ? 0 : 1}); event.stopPropagation();"><span>📌</span></div>
+                                    <div class="post-stat post-stat-action essential-action" onclick="essentialPost(${realPost.id}, ${isEssential ? 0 : 1}); event.stopPropagation();"><span>💎</span></div>
+                                </div>
                                 ` : ''}
                             </div>
-                            <div class="post-comments" id="comments-${post.id}" onclick="event.stopPropagation();">
-                                <div id="comments-list-${post.id}"></div>
+                            <div class="post-comments" id="comments-${realPost.id}">
+                                <div id="comments-list-${realPost.id}"></div>
                                 <div class="comment-form">
-                                    <textarea id="comment-content-${post.id}" placeholder="写下你的评论..."></textarea>
-                                    <button onclick="addComment(${post.id})">发表</button>
+                                    <textarea id="comment-content-${realPost.id}" placeholder="写下你的评论..." onclick="event.stopPropagation();"></textarea>
+                                    <button onclick="addComment(${realPost.id}); event.stopPropagation();">发表</button>
                                 </div>
                             </div>
                         </div>
                     `}).join('');
                 } else {
-                    postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无帖子，快来发布第一个吧！</div></div>';
+                    postsContainer.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">${showFavoritesOnly ? '暂无收藏' : '暂无帖子'}</div></div>`;
                 }
-
-                renderPagination(data.total, page);
+                renderPagination(showFavoritesOnly ? (data.total || 0) : (data.total || 0), page);
             } catch (error) {
                 console.error('加载帖子失败:', error);
                 postsContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">加载失败，请稍后再试</div></div>';
@@ -1026,32 +1104,15 @@
         function renderPagination(total, current) {
             const totalPages = Math.ceil(total / perPage);
             const pagination = document.getElementById('forum-pagination');
-
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-
+            if (totalPages <= 1) { pagination.innerHTML = ''; return; }
             let html = '';
-
-            if (current > 1) {
-                html += `<button onclick="loadPosts(${current - 1})">上一页</button>`;
-            }
-
+            if (current > 1) html += `<button onclick="loadPosts(${current - 1})">上一页</button>`;
             for (let i = 1; i <= totalPages; i++) {
-                if (i === current) {
-                    html += `<button class="active">${i}</button>`;
-                } else if (i === 1 || i === totalPages || (i >= current - 2 && i <= current + 2)) {
-                    html += `<button onclick="loadPosts(${i})">${i}</button>`;
-                } else if (i === current - 3 || i === current + 3) {
-                    html += `<button disabled>...</button>`;
-                }
+                if (i === current) html += `<button class="active">${i}</button>`;
+                else if (i === 1 || i === totalPages || (i >= current - 2 && i <= current + 2)) html += `<button onclick="loadPosts(${i})">${i}</button>`;
+                else if (i === current - 3 || i === current + 3) html += `<button disabled>...</button>`;
             }
-
-            if (current < totalPages) {
-                html += `<button onclick="loadPosts(${current + 1})">下一页</button>`;
-            }
-
+            if (current < totalPages) html += `<button onclick="loadPosts(${current + 1})">下一页</button>`;
             pagination.innerHTML = html;
         }
 
@@ -1062,10 +1123,7 @@
         async function toggleComments(postId) {
             const commentsDiv = document.getElementById(`comments-${postId}`);
             commentsDiv.classList.toggle('show');
-
-            if (commentsDiv.classList.contains('show')) {
-                loadComments(postId);
-            }
+            if (commentsDiv.classList.contains('show')) loadComments(postId);
         }
 
         async function loadComments(postId) {
@@ -1073,9 +1131,7 @@
                 const response = await fetch(`/api/forum/comments?post_id=${postId}`);
                 const result = await response.json();
                 const data = result.data || result;
-
                 const commentsList = document.getElementById(`comments-list-${postId}`);
-
                 if (data && data.length > 0) {
                     commentsList.innerHTML = data.map(comment => {
                         const initial = (comment.author_name || '用户').charAt(0).toUpperCase();
@@ -1088,8 +1144,8 @@
                             </div>
                             <div class="comment-content">${comment.content}</div>
                             <div class="comment-actions">
-                                <span class="comment-action ${comment.user_vote === 1 ? 'liked' : ''}" onclick="likeComment(${comment.id})">👍 ${comment.like_count || 0}</span>
-                                <span class="comment-action ${comment.user_vote === -1 ? 'disliked' : ''}" onclick="dislikeComment(${comment.id})">👎 ${comment.dislike_count || 0}</span>
+                                <span class="comment-action ${comment.user_vote === 1 ? 'liked' : ''}" onclick="likeComment(${comment.id})"><span>👍</span> ${Math.max(0, comment.like_count || 0)}</span>
+                                <span class="comment-action ${comment.user_vote === -1 ? 'disliked' : ''}" onclick="dislikeComment(${comment.id})"><span>👎</span> ${Math.max(0, comment.dislike_count || 0)}</span>
                             </div>
                         </div>
                     `}).join('');
@@ -1105,34 +1161,15 @@
             const title = document.getElementById('post-title').value.trim();
             const content = document.getElementById('post-content').value.trim();
             const categoryId = document.getElementById('post-category').value;
-
-            if (!title || !content) {
-                alert('请填写标题和内容');
-                return;
-            }
-
+            if (!title || !content) { alert('请填写标题和内容'); return; }
             const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || !userInfo.parent_id) {
-                alert('请先登录');
-                return;
-            }
-
+            if (!userInfo || !userInfo.parent_id) { alert('请先登录'); return; }
             try {
                 const response = await fetch('/api/forum/posts', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
-                        title: title,
-                        content: content,
-                        category_id: categoryId || null
-                    })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_id: userInfo.parent_id, title, content, category_id: categoryId || null })
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-content').value = '';
@@ -1140,9 +1177,7 @@
                     toggleNewPostForm();
                     loadPosts(1);
                     loadUserStats();
-                } else {
-                    alert(result.error?.message || result.error || '发布失败');
-                }
+                } else alert(result.error?.message || result.error || '发布失败');
             } catch (error) {
                 console.error('发布帖子失败:', error);
                 alert('发布失败，请稍后再试');
@@ -1151,28 +1186,15 @@
 
         async function deletePost(postId) {
             if (!confirm('确定要删除这篇帖子吗？')) return;
-
             const userInfo = StorageUtil.getItem('userInfo');
-
             try {
                 const response = await fetch(`/api/forum/posts/${postId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        parent_id: userInfo.parent_id
-                    })
+                    method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_id: userInfo.parent_id })
                 });
-
                 const result = await response.json();
-
-                if (result.success) {
-                    loadPosts(currentPage);
-                    loadUserStats();
-                } else {
-                    alert(result.error?.message || result.error || '删除失败');
-                }
+                if (result.success) { loadPosts(currentPage); loadUserStats(); }
+                else alert(result.error?.message || result.error || '删除失败');
             } catch (error) {
                 console.error('删除帖子失败:', error);
                 alert('删除失败，请稍后再试');
@@ -1182,32 +1204,17 @@
         async function editPost(postId) {
             const newTitle = prompt('请输入新标题：');
             if (!newTitle) return;
-
             const newContent = prompt('请输入新内容：');
             if (!newContent) return;
-
             const userInfo = StorageUtil.getItem('userInfo');
-
             try {
                 const response = await fetch(`/api/forum/posts/${postId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
-                        title: newTitle,
-                        content: newContent
-                    })
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_id: userInfo.parent_id, title: newTitle, content: newContent })
                 });
-
                 const result = await response.json();
-
-                if (result.success) {
-                    loadPosts(currentPage);
-                } else {
-                    alert(result.error?.message || result.error || '编辑失败');
-                }
+                if (result.success) loadPosts(currentPage);
+                else alert(result.error?.message || result.error || '编辑失败');
             } catch (error) {
                 console.error('编辑帖子失败:', error);
                 alert('编辑失败，请稍后再试');
@@ -1216,26 +1223,14 @@
 
         async function pinPost(postId, isPinned) {
             const userInfo = StorageUtil.getItem('userInfo');
-
             try {
                 const response = await fetch(`/api/forum/posts/${postId}/pin`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
-                        is_pinned: isPinned
-                    })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_id: userInfo.parent_id, is_pinned: isPinned })
                 });
-
                 const result = await response.json();
-
-                if (result.success) {
-                    loadPosts(currentPage);
-                } else {
-                    alert(result.error?.message || result.error || '操作失败');
-                }
+                if (result.success) loadPosts(currentPage);
+                else alert(result.error?.message || result.error || '操作失败');
             } catch (error) {
                 console.error('操作失败:', error);
                 alert('操作失败，请稍后再试');
@@ -1244,200 +1239,169 @@
 
         async function essentialPost(postId, isEssential) {
             const userInfo = StorageUtil.getItem('userInfo');
-
             try {
                 const response = await fetch(`/api/forum/posts/${postId}/essential`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
-                        is_essential: isEssential
-                    })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_id: userInfo.parent_id, is_essential: isEssential })
                 });
-
                 const result = await response.json();
-
-                if (result.success) {
-                    loadPosts(currentPage);
-                } else {
-                    alert(result.error?.message || result.error || '操作失败');
-                }
+                if (result.success) loadPosts(currentPage);
+                else alert(result.error?.message || result.error || '操作失败');
             } catch (error) {
                 console.error('操作失败:', error);
                 alert('操作失败，请稍后再试');
             }
         }
 
-        async function toggleFavorite(postId) {
+        async function likePost(postId, el) {
             const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || !userInfo.parent_id) return;
+            if (!userInfo) { return; }
+            const dislikeEl = el.nextElementSibling;
 
             try {
-                const checkResponse = await fetch(`/api/forum/favorites/check?parent_id=${userInfo.parent_id}&post_id=${postId}`);
-                const checkResult = await checkResponse.json();
-                const checkData = checkResult.data || checkResult;
+                let voteType = 1;
+                if (el.classList.contains('active')) {
+                    voteType = 0;
+                }
 
-                if (checkData.is_favorited) {
-                    const delResponse = await fetch('/api/forum/favorites', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            parent_id: userInfo.parent_id,
-                            post_id: postId
-                        })
-                    });
-                    const delResult = await delResponse.json();
-                    if (delResult.success) {
-                        alert('已取消收藏');
-                    }
-                } else {
-                    const addResponse = await fetch('/api/forum/favorites', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            parent_id: userInfo.parent_id,
-                            post_id: postId
-                        })
-                    });
-                    const addResult = await addResponse.json();
-                    if (addResult.success) {
-                        alert('收藏成功');
+                const res = await fetch('/api/forum/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userInfo.token}`
+                    },
+                    body: JSON.stringify({
+                        parent_id: userInfo.parent_id,
+                        post_id: postId,
+                        vote_type: voteType
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    if (voteType === 0) {
+                        el.classList.remove('active');
+                        const currentCount = parseInt(el.querySelector('.count').textContent) || 0;
+                        el.querySelector('.count').textContent = Math.max(0, currentCount - 1);
+                    } else {
+                        el.classList.add('active');
+                        if (dislikeEl) {
+                            if (dislikeEl.classList.contains('active')) {
+                                const currentDislikeCount = parseInt(dislikeEl.querySelector('.count').textContent) || 0;
+                                dislikeEl.querySelector('.count').textContent = Math.max(0, currentDislikeCount - 1);
+                            }
+                            dislikeEl.classList.remove('active');
+                        }
+                        const currentCount = parseInt(el.querySelector('.count').textContent) || 0;
+                        el.querySelector('.count').textContent = currentCount + 1;
                     }
                 }
-            } catch (error) {
-                console.error('收藏操作失败:', error);
+            } catch (e) {
+                console.error('点赞操作失败:', e);
             }
         }
 
-        async function likePost(postId) {
+        async function dislikePost(postId, el) {
             const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || !userInfo.parent_id) return;
+            if (!userInfo) { return; }
+            const likeEl = el.previousElementSibling;
 
             try {
-                await fetch('/api/forum/vote', {
+                let voteType = -1;
+                if (el.classList.contains('active')) {
+                    voteType = 0;
+                }
+
+                const res = await fetch('/api/forum/vote', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userInfo.token}`
                     },
                     body: JSON.stringify({
                         parent_id: userInfo.parent_id,
                         post_id: postId,
-                        vote_type: 1
+                        vote_type: voteType
                     })
                 });
-                loadPosts(currentPage);
-            } catch (error) {
-                console.error('点赞失败:', error);
-            }
-        }
 
-        async function dislikePost(postId) {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || !userInfo.parent_id) return;
-
-            try {
-                await fetch('/api/forum/vote', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
-                        post_id: postId,
-                        vote_type: -1
-                    })
-                });
-                loadPosts(currentPage);
-            } catch (error) {
-                console.error('踩失败:', error);
+                const result = await res.json();
+                if (result.success) {
+                    if (voteType === 0) {
+                        el.classList.remove('active');
+                        const currentCount = parseInt(el.querySelector('.count').textContent) || 0;
+                        el.querySelector('.count').textContent = Math.max(0, currentCount - 1);
+                    } else {
+                        el.classList.add('active');
+                        if (likeEl) {
+                            if (likeEl.classList.contains('active')) {
+                                const currentLikeCount = parseInt(likeEl.querySelector('.count').textContent) || 0;
+                                likeEl.querySelector('.count').textContent = Math.max(0, currentLikeCount - 1);
+                            }
+                            likeEl.classList.remove('active');
+                        }
+                        const currentCount = parseInt(el.querySelector('.count').textContent) || 0;
+                        el.querySelector('.count').textContent = currentCount + 1;
+                    }
+                }
+            } catch (e) {
+                console.error('点踩操作失败:', e);
             }
         }
 
         async function likeComment(commentId) {
             const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || !userInfo.parent_id) return;
-
+            if (!userInfo) return;
             try {
-                await fetch('/api/forum/vote', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
-                        comment_id: commentId,
-                        vote_type: 1
-                    })
+                const response = await fetch('/api/forum/vote', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_id: userInfo.parent_id, comment_id: commentId, vote_type: 1 })
                 });
-            } catch (error) {
-                console.error('点赞失败:', error);
-            }
+                const result = await response.json();
+                if (result.success) {
+                    const postId = document.querySelector(`#comments-${commentId}`)?.closest('.forum-post')?.getAttribute('onclick')?.match(/goToPost\((\d+)\)/)?.[1];
+                    if (postId) {
+                        loadComments(postId);
+                    }
+                }
+            } catch (error) { console.error('点赞失败:', error); }
         }
 
         async function dislikeComment(commentId) {
             const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || !userInfo.parent_id) return;
-
+            if (!userInfo) return;
             try {
-                await fetch('/api/forum/vote', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        parent_id: userInfo.parent_id,
-                        comment_id: commentId,
-                        vote_type: -1
-                    })
+                const response = await fetch('/api/forum/vote', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_id: userInfo.parent_id, comment_id: commentId, vote_type: -1 })
                 });
-            } catch (error) {
-                console.error('踩失败:', error);
-            }
+                const result = await response.json();
+                if (result.success) {
+                    const postId = document.querySelector(`#comments-${commentId}`)?.closest('.forum-post')?.getAttribute('onclick')?.match(/goToPost\((\d+)\)/)?.[1];
+                    if (postId) {
+                        loadComments(postId);
+                    }
+                }
+            } catch (error) { console.error('踩失败:', error); }
         }
 
         async function addComment(postId) {
             const commentContent = document.getElementById(`comment-content-${postId}`).value.trim();
-
-            if (!commentContent) {
-                alert('请输入评论内容');
-                return;
-            }
-
+            if (!commentContent) { alert('请输入评论内容'); return; }
             const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo || !userInfo.parent_id) {
-                alert('请先登录');
-                return;
-            }
-
+            if (!userInfo) { alert('请先登录'); return; }
             try {
                 const response = await fetch('/api/forum/comments', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        post_id: postId,
-                        parent_id: userInfo.parent_id,
-                        content: commentContent
-                    })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ post_id: postId, parent_id: userInfo.parent_id, content: commentContent })
                 });
-
                 const result = await response.json();
-
                 if (response.ok) {
                     document.getElementById(`comment-content-${postId}`).value = '';
                     loadComments(postId);
                     loadPosts(currentPage);
                     loadUserStats();
-                } else {
-                    alert(result.error || '评论失败');
-                }
+                } else alert(result.error || '评论失败');
             } catch (error) {
                 console.error('评论失败:', error);
                 alert('评论失败，请稍后再试');
@@ -1445,26 +1409,13 @@
         }
 
         document.getElementById('search-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                searchPosts();
-            }
+            if (e.key === 'Enter') searchPosts();
         });
 
-        // 搜索框动画效果
         const searchBox = document.getElementById("searchBox");
         const searchInput = document.getElementById("search-input");
-
-        // 点击/聚焦 开启特效
-        searchInput.addEventListener("focus", () => {
-            searchBox.classList.add("active");
-        });
-
-        // 失去焦点 关闭特效
-        searchInput.addEventListener("blur", () => {
-            searchBox.classList.remove("active");
-        });
-
-
+        searchInput.addEventListener("focus", () => { searchBox.classList.add("active"); });
+        searchInput.addEventListener("blur", () => { searchBox.classList.remove("active"); });
     </script>
 </body>
 

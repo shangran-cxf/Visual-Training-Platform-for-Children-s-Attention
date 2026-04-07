@@ -12,7 +12,8 @@
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             overflow-x: hidden;
         }
 
@@ -228,9 +229,10 @@
     <div class="container">
         <div class="login-card">
             <h2>登录</h2>
-            
+
             <div class="cloud-container">
-                <img src="https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/cloud.jpg" alt="cartoon cloud" class="cloud-img">
+                <img src="https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/cloud.jpg" alt="cartoon cloud"
+                    class="cloud-img">
                 <div class="eye eye-left" id="eye-left">
                     <div class="pupil" id="pupil-left"></div>
                 </div>
@@ -238,7 +240,7 @@
                     <div class="pupil" id="pupil-right"></div>
                 </div>
             </div>
-            
+
             <div id="error-message" class="error-message"></div>
             <div class="form-group">
                 <label for="username">用户名</label>
@@ -287,11 +289,11 @@
                 if (!isTypingPassword) {
                     const eyeLeft = document.getElementById('eye-left');
                     const eyeRight = document.getElementById('eye-right');
-                    
+
                     if (eyeLeft && eyeRight) {
                         eyeLeft.classList.add('blink');
                         eyeRight.classList.add('blink');
-                        
+
                         setTimeout(() => {
                             eyeLeft.classList.remove('blink');
                             eyeRight.classList.remove('blink');
@@ -356,7 +358,7 @@
                     // 登录后默认设置为家长模式
                     UserStateUtil.switchToParentMode();
                     // 跳转到家长页面
-                     window.location.href = 'child-document.html';
+                    window.location.href = 'child-document.html';
                 } else {
                     errorMessage.textContent = result.error || '用户名或密码错误';
                 }

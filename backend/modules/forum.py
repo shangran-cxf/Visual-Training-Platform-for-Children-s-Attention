@@ -4,6 +4,7 @@ import uuid
 import sqlite3
 from database import execute_db
 from utils import build_update_sql, is_admin, success_response, error_response
+from middleware import require_auth
 
 forum_bp = Blueprint('forum', __name__)
 
@@ -17,8 +18,8 @@ def get_posts():
         SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id,
                pr.username as author_name,
                (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1) as dislike_count
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) as like_count,
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count
         FROM forum_posts p
         JOIN parents pr ON p.parent_id = pr.id
         ORDER BY p.created_at DESC
@@ -57,17 +58,33 @@ def search_posts():
     per_page = int(request.args.get('per_page', 10))
     offset = (page - 1) * per_page
     
+    # 获取当前用户ID（如果已登录）
+    user_id = request.user_id if hasattr(request, 'user_id') else None
+    
     base_query = '''
         SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id, p.category_id, p.is_pinned, p.is_essential,
                pr.username as author_name, pr.avatar, pr.level,
-               (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1) as dislike_count
+               COALESCE((SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id), 0) as comment_count,
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) as like_count,
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count
+    '''
+    
+    # 如果用户已登录，添加用户投票状态和收藏状态
+    if user_id:
+        base_query += ''',
+               (SELECT vote_type FROM forum_votes WHERE post_id = p.id AND parent_id = ?) as user_vote,
+               (SELECT 1 FROM favorites WHERE post_id = p.id AND parent_id = ?) as is_favorited
+    '''
+    
+    base_query += '''
         FROM forum_posts p
         JOIN parents pr ON p.parent_id = pr.id
         WHERE 1=1
     '''
+    
     params = []
+    if user_id:
+        params.extend([user_id, user_id])
     
     if keyword:
         base_query += ' AND (p.title LIKE ? OR p.content LIKE ? OR pr.username LIKE ?)'
@@ -103,23 +120,30 @@ def search_posts():
     
     total = execute_db(count_query, count_params)[0][0]
     
-    posts_data = [{
-        'id': p[0],
-        'title': p[1],
-        'content': p[2],
-        'created_at': p[3],
-        'view_count': p[4],
-        'parent_id': p[5],
-        'category_id': p[6],
-        'is_pinned': p[7],
-        'is_essential': p[8],
-        'author_name': p[9],
-        'author_avatar': p[10],
-        'author_level': p[11],
-        'comment_count': p[12],
-        'like_count': p[13],
-        'dislike_count': p[14]
-    } for p in posts]
+    posts_data = []
+    for p in posts:
+        post_data = {
+            'id': p[0],
+            'title': p[1],
+            'content': p[2],
+            'created_at': p[3],
+            'view_count': p[4],
+            'parent_id': p[5],
+            'category_id': p[6],
+            'is_pinned': p[7],
+            'is_essential': p[8],
+            'author_name': p[9],
+            'author_avatar': p[10],
+            'author_level': p[11],
+            'comment_count': p[12],
+            'like_count': p[13],
+            'dislike_count': p[14]
+        }
+        # 如果用户已登录，添加用户投票状态和收藏状态
+        if user_id:
+            post_data['user_vote'] = p[15] if p[15] else 0
+            post_data['is_favorited'] = p[16] == 1
+        posts_data.append(post_data)
     
     return jsonify({
         'posts': posts_data,
@@ -133,21 +157,41 @@ def search_posts():
 def get_post(post_id):
     execute_db('UPDATE forum_posts SET view_count = view_count + 1 WHERE id = ?', (post_id,))
     
-    post = execute_db('''
+    # 获取当前用户ID（如果已登录）
+    user_id = request.user_id if hasattr(request, 'user_id') else None
+    
+    base_query = '''
         SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id, p.category_id, p.is_pinned, p.is_essential,
                pr.username as author_name, pr.level as author_level,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1) as dislike_count
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) as like_count,
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count
+    '''
+    
+    # 如果用户已登录，添加用户投票状态和收藏状态
+    if user_id:
+        base_query += ''',
+               (SELECT vote_type FROM forum_votes WHERE post_id = p.id AND parent_id = ?) as user_vote,
+               (SELECT 1 FROM favorites WHERE post_id = p.id AND parent_id = ?) as is_favorited
+    '''
+    
+    base_query += '''
         FROM forum_posts p
         JOIN parents pr ON p.parent_id = pr.id
         WHERE p.id = ?
-    ''', (post_id,))
+    '''
+    
+    params = []
+    if user_id:
+        params.extend([user_id, user_id])
+    params.append(post_id)
+    
+    post = execute_db(base_query, params)
     
     if not post:
         return error_response('帖子不存在', status=404)
     
     p = post[0]
-    return success_response({
+    post_data = {
         'id': p[0],
         'title': p[1],
         'content': p[2],
@@ -161,7 +205,14 @@ def get_post(post_id):
         'author_level': p[10],
         'like_count': p[11],
         'dislike_count': p[12]
-    })
+    }
+    
+    # 如果用户已登录，添加用户投票状态和收藏状态
+    if user_id and len(p) > 12:
+        post_data['user_vote'] = p[13] if p[13] else 0
+        post_data['is_favorited'] = p[14] == 1
+    
+    return success_response(post_data)
 
 @forum_bp.route('/posts', methods=['POST'])
 def create_post():
@@ -271,11 +322,16 @@ def get_hot_posts():
     
     result = execute_db('''
         SELECT p.id, p.title, p.view_count,
-               (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) as comment_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) as like_count
+               COALESCE((SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id), 0) as comment_count,
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) as like_count,
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count,
+               COALESCE((SELECT COUNT(*) FROM forum_favorites WHERE post_id = p.id), 0) as favorite_count
         FROM forum_posts p
-        ORDER BY (p.view_count + (SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id) * 2 + 
-                  (SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1) * 3) DESC
+        ORDER BY (p.view_count + 
+                  COALESCE((SELECT COUNT(*) FROM forum_comments WHERE post_id = p.id), 0) * 2 + 
+                  COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) * 3 - 
+                  COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) * 1 + 
+                  COALESCE((SELECT COUNT(*) FROM forum_favorites WHERE post_id = p.id), 0) * 4) DESC
         LIMIT ?
     ''', (limit,))
     
@@ -284,7 +340,9 @@ def get_hot_posts():
         'title': h[1],
         'view_count': h[2],
         'comment_count': h[3],
-        'like_count': h[4]
+        'like_count': h[4],
+        'dislike_count': h[5],
+        'favorite_count': h[6]
     } for h in result]
     
     return jsonify(hot_posts), 200
@@ -298,8 +356,8 @@ def get_comments():
     comments = execute_db('''
         SELECT c.id, c.content, c.created_at, c.parent_id,
                pr.username as author_name,
-               (SELECT COUNT(*) FROM forum_votes WHERE comment_id = c.id AND vote_type = 1) as like_count,
-               (SELECT COUNT(*) FROM forum_votes WHERE comment_id = c.id AND vote_type = -1) as dislike_count
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE comment_id = c.id AND vote_type = 1), 0) as like_count,
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE comment_id = c.id AND vote_type = -1), 0) as dislike_count
         FROM forum_comments c
         JOIN parents pr ON c.parent_id = pr.id
         WHERE c.post_id = ?
@@ -349,25 +407,56 @@ def vote():
     if not post_id and not comment_id:
         return error_response('必须指定帖子或评论', status=400)
     
-    existing = execute_db('''
-        SELECT id FROM forum_votes 
-        WHERE parent_id = ? AND (post_id = ? OR comment_id = ?)
-    ''', (parent_id, post_id, comment_id))
-    
-    if existing:
-        execute_db('''
-            UPDATE forum_votes SET vote_type = ? 
-            WHERE parent_id = ? AND (post_id = ? OR comment_id = ?)
-        ''', (vote_type, parent_id, post_id, comment_id))
-    else:
-        execute_db('''
-            INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
-            VALUES (?, ?, ?, ?)
-        ''', (parent_id, post_id, comment_id, vote_type))
+    # 根据是帖子还是评论构建不同的查询条件
+    if post_id:
+        existing = execute_db('''
+            SELECT id FROM forum_votes 
+            WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
+        ''', (parent_id, post_id))
+        
+        if existing:
+            if vote_type == 0:
+                execute_db('''
+                    DELETE FROM forum_votes 
+                    WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
+                ''', (parent_id, post_id))
+            else:
+                execute_db('''
+                    UPDATE forum_votes SET vote_type = ? 
+                    WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
+                ''', (vote_type, parent_id, post_id))
+        elif vote_type != 0:
+            execute_db('''
+                INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
+                VALUES (?, ?, NULL, ?)
+            ''', (parent_id, post_id, vote_type))
+    elif comment_id:
+        existing = execute_db('''
+            SELECT id FROM forum_votes 
+            WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
+        ''', (parent_id, comment_id))
+        
+        if existing:
+            if vote_type == 0:
+                execute_db('''
+                    DELETE FROM forum_votes 
+                    WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
+                ''', (parent_id, comment_id))
+            else:
+                execute_db('''
+                    UPDATE forum_votes SET vote_type = ? 
+                    WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
+                ''', (vote_type, parent_id, comment_id))
+        elif vote_type != 0:
+            execute_db('''
+                INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
+                VALUES (?, NULL, ?, ?)
+            ''', (parent_id, comment_id, vote_type))
     
     return success_response(None, '投票成功')
 
 @forum_bp.route('/favorites', methods=['GET'])
+@require_auth
 def get_favorites():
     parent_id = request.user_id
     
@@ -398,6 +487,7 @@ def get_favorites():
     return success_response(favorites)
 
 @forum_bp.route('/favorites/<int:post_id>', methods=['POST'])
+@require_auth
 def add_favorite(post_id):
     parent_id = request.user_id
     
@@ -408,6 +498,7 @@ def add_favorite(post_id):
         return error_response('已收藏或帖子不存在', status=400)
 
 @forum_bp.route('/favorites/<int:post_id>', methods=['DELETE'])
+@require_auth
 def remove_favorite(post_id):
     parent_id = request.user_id
     
