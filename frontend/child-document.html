@@ -230,13 +230,31 @@
     <!-- 右上卡片 - 儿童信息 -->
     <div class="card right-top-card">
       <div class="card-header">训练评析</div>
-      <div id="child-info">
-        <p><strong>姓名:</strong> <span id="child-name">-</span></p>
-        <p><strong>年龄:</strong> <span id="child-age">-</span></p>
-        <p><strong>性别:</strong> <span id="child-gender">-</span></p>
-        <p><strong>训练时长:</strong> <span id="training-time">-</span></p>
-        <p><strong>完成课程:</strong> <span id="completed-courses">-</span></p>
-        <p><strong>当前等级:</strong> <span id="current-level">-</span></p>
+      
+      <!-- AI 评价区域 -->
+      <div id="ai-evaluation-container" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(52, 53, 89, 0.2);">
+        <div id="ai-evaluation-loading" style="text-align: center; padding: 20px; color: #666;">
+          <p>正在生成评价...</p>
+        </div>
+        <div id="ai-evaluation-content" style="display: none;">
+          <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">整体表现</h4>
+          <p id="ai-summary" style="color: #555; line-height: 1.6; margin-bottom: 15px;"></p>
+          
+          <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">优势领域</h4>
+          <ul id="ai-strengths" style="color: #555; line-height: 1.6; margin-bottom: 15px; padding-left: 20px;"></ul>
+          
+          <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">待提升领域</h4>
+          <ul id="ai-weaknesses" style="color: #555; line-height: 1.6; margin-bottom: 15px; padding-left: 20px;"></ul>
+          
+          <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">训练建议</h4>
+          <ul id="ai-suggestions" style="color: #555; line-height: 1.6; margin-bottom: 15px; padding-left: 20px;"></ul>
+          
+          <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">家庭指导</h4>
+          <p id="ai-home-guidance" style="color: #555; line-height: 1.6;"></p>
+        </div>
+        <div id="ai-evaluation-error" style="display: none; text-align: center; padding: 20px; color: #999;">
+          <p>AI 评价暂时不可用</p>
+        </div>
       </div>
     </div>
 
@@ -281,12 +299,16 @@
 
         const response = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
         const result = await response.json();
-        childrenList = result.data || result;
+        childrenList = result.data || result || [];
 
         const optionsContainer = document.querySelector('.child-selector-options');
+        if (!optionsContainer) {
+          console.error('儿童选择器容器不存在');
+          return;
+        }
         optionsContainer.innerHTML = '';
 
-        if (childrenList.length === 0) {
+        if (!childrenList || childrenList.length === 0) {
           optionsContainer.innerHTML = '<div class="child-option">暂无儿童信息</div>';
           return;
         }
@@ -300,7 +322,10 @@
         });
 
         const firstChild = childrenList[0];
-        document.getElementById('selected-child-name').textContent = firstChild.name;
+        const selectedChildNameEl = document.getElementById('selected-child-name');
+        if (selectedChildNameEl) {
+          selectedChildNameEl.textContent = firstChild.name;
+        }
         currentChildId = firstChild.id;
 
         await updateChildInfo(firstChild.id);
@@ -354,7 +379,9 @@
         const stats = statsResult.data || statsResult;
         const detection = detectionResult.data || detectionResult;
 
-        const child = childrenList.find(c => c.id === childId) || {};
+        const child = (childrenList && Array.isArray(childrenList)) 
+          ? childrenList.find(c => c.id === childId) || {} 
+          : {};
 
         const latestDetection = Array.isArray(detection) && detection.length > 0 
           ? detection[0] 
@@ -393,12 +420,183 @@
       const childData = await fetchChildData(childId);
       if (childData && childData.info) {
         const info = childData.info;
-        document.getElementById('child-name').textContent = info.name;
-        document.getElementById('child-age').textContent = info.age;
-        document.getElementById('child-gender').textContent = info.gender;
-        document.getElementById('training-time').textContent = info.time;
-        document.getElementById('completed-courses').textContent = info.courses;
-        document.getElementById('current-level').textContent = info.level;
+        const childNameEl = document.getElementById('child-name');
+        const childAgeEl = document.getElementById('child-age');
+        const childGenderEl = document.getElementById('child-gender');
+        const trainingTimeEl = document.getElementById('training-time');
+        const completedCoursesEl = document.getElementById('completed-courses');
+        const currentLevelEl = document.getElementById('current-level');
+        
+        if (childNameEl) childNameEl.textContent = info.name;
+        if (childAgeEl) childAgeEl.textContent = info.age;
+        if (childGenderEl) childGenderEl.textContent = info.gender;
+        if (trainingTimeEl) trainingTimeEl.textContent = info.time;
+        if (completedCoursesEl) completedCoursesEl.textContent = info.courses;
+        if (currentLevelEl) currentLevelEl.textContent = info.level;
+        
+        // 调用 AI 评价（传递 childData 用于缓存检测）
+        await fetchAndDisplayAIEvaluation(childId, childData);
+      }
+    }
+    
+    // 生成数据版本标识（用于检测数据是否更新）
+    function generateDataVersion(childData) {
+      if (!childData) return null;
+      
+      const info = childData.info || {};
+      const radarData = childData.radarData || [];
+      
+      // 使用关键字段生成版本标识
+      const versionData = {
+        name: info.name,
+        time: info.time,
+        courses: info.courses,
+        level: info.level,
+        radarData: radarData.join(',')
+      };
+      
+      return JSON.stringify(versionData);
+    }
+    
+    // 缓存 AI 评价结果
+    function cacheEvaluation(childId, childData, evaluation) {
+      try {
+        const cacheKey = `ai_evaluation_${childId}`;
+        const cacheData = {
+          evaluation: evaluation,
+          dataVersion: generateDataVersion(childData),
+          timestamp: Date.now(),
+          childId: childId
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      } catch (error) {
+        console.error('缓存评价失败:', error);
+      }
+    }
+    
+    // 获取缓存的评价结果
+    function getCachedEvaluation(childId, childData) {
+      try {
+        const cacheKey = `ai_evaluation_${childId}`;
+        const cached = localStorage.getItem(cacheKey);
+        
+        if (!cached) return null;
+        
+        const cacheData = JSON.parse(cached);
+        
+        // 检查数据版本是否一致
+        const currentVersion = generateDataVersion(childData);
+        if (cacheData.dataVersion === currentVersion) {
+          // 检查缓存是否过期（24小时）
+          const cacheAge = Date.now() - cacheData.timestamp;
+          const maxAge = 24 * 60 * 60 * 1000; // 24小时
+          if (cacheAge < maxAge) {
+            return cacheData.evaluation;
+          }
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('获取缓存失败:', error);
+        return null;
+      }
+    }
+    
+    // 展示评价内容
+    function displayEvaluation(evaluation) {
+      document.getElementById('ai-summary').textContent = evaluation.summary || '暂时没有评价哦！快去做训练吧！';
+      
+      // 展示优势
+      const strengthsList = document.getElementById('ai-strengths');
+      strengthsList.innerHTML = '';
+      if (evaluation.strengths && evaluation.strengths.length > 0) {
+        evaluation.strengths.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          strengthsList.appendChild(li);
+        });
+      } else {
+        strengthsList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
+      }
+      
+      // 展示待提升领域
+      const weaknessesList = document.getElementById('ai-weaknesses');
+      weaknessesList.innerHTML = '';
+      if (evaluation.weaknesses && evaluation.weaknesses.length > 0) {
+        evaluation.weaknesses.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          weaknessesList.appendChild(li);
+        });
+      } else {
+        weaknessesList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
+      }
+      
+      // 展示训练建议
+      const suggestionsList = document.getElementById('ai-suggestions');
+      suggestionsList.innerHTML = '';
+      if (evaluation.suggestions && evaluation.suggestions.length > 0) {
+        evaluation.suggestions.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          suggestionsList.appendChild(li);
+        });
+      } else {
+        suggestionsList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
+      }
+      
+      // 展示家庭指导
+      document.getElementById('ai-home-guidance').textContent = evaluation.home_guidance || '暂时没有指导哦！快去做训练吧！';
+    }
+    
+    // 获取并展示 AI 评价
+    async function fetchAndDisplayAIEvaluation(childId, childData) {
+      const loadingEl = document.getElementById('ai-evaluation-loading');
+      const contentEl = document.getElementById('ai-evaluation-content');
+      const errorEl = document.getElementById('ai-evaluation-error');
+      
+      // 显示加载状态
+      loadingEl.style.display = 'block';
+      contentEl.style.display = 'none';
+      errorEl.style.display = 'none';
+      
+      try {
+        // 检查缓存
+        const cachedEvaluation = getCachedEvaluation(childId, childData);
+        if (cachedEvaluation) {
+          // 使用缓存，直接展示
+          displayEvaluation(cachedEvaluation);
+          loadingEl.style.display = 'none';
+          contentEl.style.display = 'block';
+          return;
+        }
+        
+        // 缓存不存在或数据已更新，调用 AI 接口
+        const response = await ApiUtil.apiPost('/api/ai/current-training-evaluation', {
+          child_id: childId
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.evaluation) {
+          const evaluation = result.data.evaluation;
+          
+          // 缓存评价结果
+          cacheEvaluation(childId, childData, evaluation);
+          
+          // 展示评价内容
+          displayEvaluation(evaluation);
+          
+          // 显示内容
+          loadingEl.style.display = 'none';
+          contentEl.style.display = 'block';
+        } else {
+          throw new Error(result.message || '获取评价失败，请稍后再重试吧！');
+        }
+      } catch (error) {
+        console.error('获取评价失败:', error);
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'block';
       }
     }
 
@@ -475,13 +673,13 @@
       const canvas = document.getElementById('radarChart');
       if (!canvas) return;
 
-      const ctx = canvas.getContext('2d');
-
       // 销毁旧的图表实例
       if (radarChart) {
         radarChart.destroy();
+        radarChart = null;
       }
 
+      const ctx = canvas.getContext('2d');
       const values = data || [0.5, 0.5, 0.5, 0.5, 0.5]; // 默认值
       const { dimensions, standardValues, styles } = radarChartConfig;
 
@@ -536,14 +734,13 @@
       const canvas = document.getElementById('growthChart');
       if (!canvas) return;
 
-      const ctx = canvas.getContext('2d');
-
       // 销毁旧的图表实例
       if (growthChart) {
         growthChart.destroy();
         growthChart = null;
       }
 
+      const ctx = canvas.getContext('2d');
       
       // 页面加载完成后初始化
       try {
@@ -670,11 +867,19 @@
       await loadChildrenList();
     });
 
+    // 防抖函数
+    let resizeTimeout = null;
+    
     // 窗口大小改变时重绘图表
-    window.addEventListener('resize', async function () {
+    window.addEventListener('resize', function () {
       if (currentChildId) {
-        await updateCharts(currentChildId);
-        await drawGrowthChart(currentChildId);
+        if (resizeTimeout) {
+          clearTimeout(resizeTimeout);
+        }
+        resizeTimeout = setTimeout(async () => {
+          await updateCharts(currentChildId);
+          await drawGrowthChart(currentChildId);
+        }, 250);
       }
     });
   </script>

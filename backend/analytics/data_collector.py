@@ -507,7 +507,7 @@ def end_session():
          accuracy_score, precision_score, speed_score, head_stable_score, face_stable_score,
          blink_stable_score, impulse_score, memory_score, no_fatigue_score, rt_score,
          order_score, stable_act_score, game_data)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         session_id, session_info['child_id'], session_info['game_type'], summary.get('attention_type'),
         summary['final_score'], summary['total_accuracy'], summary['total_time'],

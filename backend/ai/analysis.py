@@ -1,11 +1,11 @@
 import json
-import requests
+from openai import OpenAI
 from datetime import datetime
 from flask import Blueprint, request, g
 from database import execute_db
 from utils.response_utils import success_response, error_response
 from middleware import require_auth
-from .config import AI_CONFIG, is_ai_configured
+from .config import AI_CONFIG, PROMPT_TEMPLATES, is_ai_configured
 
 ai_bp = Blueprint('ai', __name__)
 
@@ -126,7 +126,270 @@ def get_performance_level(score):
     else:
         return '较弱'
 
-def build_analysis_prompt(child_info, stats, detection, trend):
+def build_prompt_from_template(template_key, **kwargs):
+    if template_key not in PROMPT_TEMPLATES:
+        return None, f"模板 '{template_key}' 不存在"
+    
+    template = PROMPT_TEMPLATES[template_key]
+    user_prompt = template['user_prompt_template']
+    
+    try:
+        formatted_prompt = user_prompt.format(**kwargs)
+        return {
+            'system_prompt': template['system_prompt'],
+            'user_prompt': formatted_prompt
+        }, None
+    except KeyError as e:
+        return None, f"模板变量缺失: {str(e)}"
+
+def validate_json_response(response_text):
+    try:
+        json_start = response_text.find('{')
+        json_end = response_text.rfind('}') + 1
+        
+        if json_start == -1 or json_end == 0:
+            return None, "AI 返回的内容中未找到有效的 JSON 格式"
+        
+        json_str = response_text[json_start:json_end]
+        parsed_json = json.loads(json_str)
+        return parsed_json, None
+    except json.JSONDecodeError as e:
+        return None, f"JSON 解析失败: {str(e)}"
+
+def call_ai_service(system_prompt, user_prompt, expect_json=True):
+    if not is_ai_configured():
+        return None, "AI 服务未配置，请在 backend/ai/config.py 中填写 base_url、api_key 和 model"
+    
+    try:
+        client = OpenAI(
+            api_key=AI_CONFIG["api_key"],
+            base_url=AI_CONFIG["base_url"],
+            timeout=AI_CONFIG["timeout"]
+        )
+        
+        response = client.chat.completions.create(
+            model=AI_CONFIG['model'],
+            messages=[
+                {
+                    'role': 'system',
+                    'content': system_prompt
+                },
+                {
+                    'role': 'user',
+                    'content': user_prompt
+                }
+            ],
+            max_tokens=AI_CONFIG['max_tokens'],
+            temperature=AI_CONFIG['temperature']
+        )
+        
+        content = response.choices[0].message.content
+        
+        if expect_json:
+            parsed_json, error = validate_json_response(content)
+            if error:
+                return None, error
+            return parsed_json, None
+        else:
+            return content, None
+            
+    except Exception as e:
+        return None, f"AI API 调用失败: {str(e)}"
+
+def format_training_data_for_prompt(child_id):
+    detection = get_child_detection_data(child_id)
+    if not detection:
+        return "暂无最新训练数据"
+    
+    lines = []
+    lines.append(f"- 选择性注意：{round(detection.get('selective_attention', 0) * 100, 1)}% ({get_performance_level(detection.get('selective_attention', 0) * 100)})")
+    lines.append(f"- 持续性注意：{round(detection.get('sustained_attention', 0) * 100, 1)}% ({get_performance_level(detection.get('sustained_attention', 0) * 100)})")
+    lines.append(f"- 视觉追踪：{round(detection.get('visual_tracking', 0) * 100, 1)}% ({get_performance_level(detection.get('visual_tracking', 0) * 100)})")
+    lines.append(f"- 工作记忆：{round(detection.get('working_memory', 0) * 100, 1)}% ({get_performance_level(detection.get('working_memory', 0) * 100)})")
+    lines.append(f"- 抑制控制：{round(detection.get('inhibitory_control', 0) * 100, 1)}% ({get_performance_level(detection.get('inhibitory_control', 0) * 100)})")
+    lines.append(f"- 综合得分：{round(detection.get('total_score', 0) * 100, 1)}%")
+    
+    return "\n".join(lines)
+
+def format_detection_data_for_prompt(child_id):
+    detection = get_child_detection_data(child_id)
+    if not detection:
+        return "暂无能力评估数据"
+    
+    lines = []
+    lines.append(f"- 选择性注意：{round(detection.get('selective_attention', 0) * 100, 1)}%")
+    lines.append(f"- 持续性注意：{round(detection.get('sustained_attention', 0) * 100, 1)}%")
+    lines.append(f"- 视觉追踪：{round(detection.get('visual_tracking', 0) * 100, 1)}%")
+    lines.append(f"- 工作记忆：{round(detection.get('working_memory', 0) * 100, 1)}%")
+    lines.append(f"- 抑制控制：{round(detection.get('inhibitory_control', 0) * 100, 1)}%")
+    lines.append(f"- 综合得分：{round(detection.get('total_score', 0) * 100, 1)}%")
+    lines.append(f"- 评估时间：{detection.get('timestamp', '未知')}")
+    
+    return "\n".join(lines)
+
+def format_trend_data_for_prompt(child_id, days=30):
+    trend = get_child_training_trend(child_id, days)
+    if not trend:
+        return "暂无训练趋势数据"
+    
+    lines = []
+    for attention_type, records in trend.items():
+        if records:
+            scores = [r['score'] for r in records]
+            avg = sum(scores) / len(scores)
+            trend_direction = '上升' if len(scores) >= 2 and scores[-1] > scores[0] else ('下降' if len(scores) >= 2 and scores[-1] < scores[0] else '稳定')
+            lines.append(f"- {attention_type}：平均 {round(avg, 1)} 分，趋势 {trend_direction}，共 {len(records)} 次记录")
+    
+    return "\n".join(lines) if lines else "暂无训练趋势数据"
+
+@ai_bp.route('/api/ai/current-training-evaluation', methods=['POST'])
+@require_auth
+def generate_current_training_evaluation():
+    data = request.json
+    child_id = data.get('child_id')
+    
+    if not child_id:
+        return error_response('child_id 不能为空', 'VALIDATION_ERROR', 400)
+    
+    child_info = get_child_basic_info(child_id)
+    if not child_info:
+        return error_response('儿童不存在', 'NOT_FOUND', 404)
+    
+    child_record = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
+    if child_record and child_record[0][0] != request.user_id:
+        return error_response('无权访问该儿童数据', 'PERMISSION_DENIED', 403)
+    
+    prompts, error = build_prompt_from_template(
+        'current_training_evaluation',
+        child_name=child_info.get('name', '未知'),
+        child_age=child_info.get('age', '未知'),
+        training_data=format_training_data_for_prompt(child_id),
+        detection_data=format_detection_data_for_prompt(child_id)
+    )
+    
+    if error:
+        return error_response(error, 'PROMPT_ERROR', 500)
+    
+    result, error = call_ai_service(
+        prompts['system_prompt'],
+        prompts['user_prompt'],
+        expect_json=True
+    )
+    
+    if error:
+        return error_response(error, 'AI_ERROR', 500)
+    
+    return success_response({
+        'child_id': child_id,
+        'child_name': child_info.get('name'),
+        'evaluation': result,
+        'generated_at': datetime.now().isoformat()
+    }, '当前训练评价生成成功')
+
+@ai_bp.route('/api/ai/history-training-evaluation', methods=['POST'])
+@require_auth
+def generate_history_training_evaluation():
+    data = request.json
+    child_id = data.get('child_id')
+    days = data.get('days', 30)
+    
+    if not child_id:
+        return error_response('child_id 不能为空', 'VALIDATION_ERROR', 400)
+    
+    child_info = get_child_basic_info(child_id)
+    if not child_info:
+        return error_response('儿童不存在', 'NOT_FOUND', 404)
+    
+    child_record = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
+    if child_record and child_record[0][0] != request.user_id:
+        return error_response('无权访问该儿童数据', 'PERMISSION_DENIED', 403)
+    
+    stats = get_child_training_stats(child_id)
+    
+    prompts, error = build_prompt_from_template(
+        'history_training_evaluation',
+        child_name=child_info.get('name', '未知'),
+        child_age=child_info.get('age', '未知'),
+        training_count=stats.get('training_count', 0),
+        total_time=stats.get('total_time', 0),
+        avg_score=stats.get('avg_score', 0),
+        trend_data=format_trend_data_for_prompt(child_id, days)
+    )
+    
+    if error:
+        return error_response(error, 'PROMPT_ERROR', 500)
+    
+    result, error = call_ai_service(
+        prompts['system_prompt'],
+        prompts['user_prompt'],
+        expect_json=True
+    )
+    
+    if error:
+        return error_response(error, 'AI_ERROR', 500)
+    
+    return success_response({
+        'child_id': child_id,
+        'child_name': child_info.get('name'),
+        'evaluation': result,
+        'generated_at': datetime.now().isoformat(),
+        'data_period_days': days
+    }, '历史训练评价生成成功')
+
+@ai_bp.route('/api/ai/generate', methods=['POST'])
+@require_auth
+def generate_with_custom_prompt():
+    data = request.json
+    custom_prompt = data.get('prompt')
+    template_key = data.get('template')
+    template_data = data.get('data', {})
+    expect_json = data.get('expect_json', True)
+    
+    if not custom_prompt and not template_key:
+        return error_response('必须提供 prompt 或 template 参数', 'VALIDATION_ERROR', 400)
+    
+    if template_key:
+        prompts, error = build_prompt_from_template(template_key, **template_data)
+        if error:
+            return error_response(error, 'PROMPT_ERROR', 500)
+        
+        system_prompt = prompts['system_prompt']
+        user_prompt = prompts['user_prompt']
+    else:
+        system_prompt = '你是一位专业的儿童注意力训练分析师。请根据用户的请求提供专业的分析和建议。'
+        user_prompt = custom_prompt
+    
+    result, error = call_ai_service(system_prompt, user_prompt, expect_json)
+    
+    if error:
+        return error_response(error, 'AI_ERROR', 500)
+    
+    return success_response({
+        'result': result,
+        'generated_at': datetime.now().isoformat()
+    }, 'AI 生成成功')
+
+@ai_bp.route('/api/ai/training-analysis', methods=['POST'])
+@require_auth
+def generate_training_analysis():
+    data = request.json
+    child_id = data.get('child_id')
+    
+    if not child_id:
+        return error_response('child_id 不能为空', 'VALIDATION_ERROR', 400)
+    
+    child_info = get_child_basic_info(child_id)
+    if not child_info:
+        return error_response('儿童不存在', 'NOT_FOUND', 404)
+    
+    child_record = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
+    if child_record and child_record[0][0] != request.user_id:
+        return error_response('无权访问该儿童数据', 'PERMISSION_DENIED', 403)
+    
+    stats = get_child_training_stats(child_id)
+    detection = get_child_detection_data(child_id)
+    trend = get_child_training_trend(child_id)
+    
     prompt_parts = [
         "你是一位专业的儿童注意力训练分析师。请根据以下儿童训练数据，生成一份专业、详细的训练评析报告。",
         "",
@@ -173,81 +436,11 @@ def build_analysis_prompt(child_info, stats, detection, trend):
         "请用专业但易懂的语言撰写，内容要有针对性和实用性。"
     ])
     
-    return "\n".join(prompt_parts)
-
-def call_ai_api(prompt):
-    if not is_ai_configured():
-        return None, "AI 服务未配置，请在 backend/ai/config.py 中填写 api_url、api_key 和 model"
+    prompt = "\n".join(prompt_parts)
     
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {AI_CONFIG["api_key"]}'
-    }
+    system_prompt = '你是一位专业的儿童注意力训练分析师，擅长分析儿童注意力训练数据并给出专业的评析和建议。'
     
-    payload = {
-        'model': AI_CONFIG['model'],
-        'messages': [
-            {
-                'role': 'system',
-                'content': '你是一位专业的儿童注意力训练分析师，擅长分析儿童注意力训练数据并给出专业的评析和建议。'
-            },
-            {
-                'role': 'user',
-                'content': prompt
-            }
-        ],
-        'max_tokens': AI_CONFIG['max_tokens'],
-        'temperature': AI_CONFIG['temperature']
-    }
-    
-    try:
-        response = requests.post(
-            AI_CONFIG['api_url'],
-            headers=headers,
-            json=payload,
-            timeout=AI_CONFIG['timeout']
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            if 'choices' in result and len(result['choices']) > 0:
-                return result['choices'][0]['message']['content'], None
-            else:
-                return None, f"AI API 返回格式异常: {result}"
-        else:
-            return None, f"AI API 请求失败: HTTP {response.status_code} - {response.text}"
-            
-    except requests.exceptions.Timeout:
-        return None, "AI API 请求超时"
-    except requests.exceptions.RequestException as e:
-        return None, f"AI API 请求异常: {str(e)}"
-    except Exception as e:
-        return None, f"AI API 调用失败: {str(e)}"
-
-@ai_bp.route('/api/ai/training-analysis', methods=['POST'])
-@require_auth
-def generate_training_analysis():
-    data = request.json
-    child_id = data.get('child_id')
-    
-    if not child_id:
-        return error_response('child_id 不能为空', 'VALIDATION_ERROR', 400)
-    
-    child_info = get_child_basic_info(child_id)
-    if not child_info:
-        return error_response('儿童不存在', 'NOT_FOUND', 404)
-    
-    child_record = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
-    if child_record and child_record[0][0] != request.user_id:
-        return error_response('无权访问该儿童数据', 'PERMISSION_DENIED', 403)
-    
-    stats = get_child_training_stats(child_id)
-    detection = get_child_detection_data(child_id)
-    trend = get_child_training_trend(child_id)
-    
-    prompt = build_analysis_prompt(child_info, stats, detection, trend)
-    
-    analysis, error = call_ai_api(prompt)
+    analysis, error = call_ai_service(system_prompt, prompt, expect_json=False)
     
     if error:
         return error_response(error, 'AI_ERROR', 500)
@@ -270,5 +463,6 @@ def generate_training_analysis():
 def get_ai_status():
     return success_response({
         'configured': is_ai_configured(),
-        'model': AI_CONFIG.get('model') if is_ai_configured() else None
+        'model': AI_CONFIG.get('model') if is_ai_configured() else None,
+        'available_templates': list(PROMPT_TEMPLATES.keys())
     }, '查询成功')
