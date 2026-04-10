@@ -414,6 +414,7 @@
         <div class="success-message" id="success-message">
             <h2>🎉 恭喜通关！</h2>
             <p>植物开花了！</p>
+            <p>得分: <span id="final-score">0</span></p>
             <p>有效浇水时长: <span id="final-time">0</span>秒</p>
             <p>中断次数: <span id="final-interrupts">0</span></p>
             <button class="btn" onclick="resetGame()">再玩一次</button>
@@ -648,16 +649,152 @@
             }
         }
 
+        function calculateSustainedAttentionScore() {
+            // 计算各项指标
+            const totalTime = 30; // 目标时间30秒
+            const acc = Math.max(0, 1 - (interruptCount / 10)); // 中断次数越少，得分越高
+            const consistency = Math.max(0, 1 - (mistouchCount / 10)); // 误触次数越少，得分越高
+            const speed = Math.max(0, 1 - (wateringTime - totalTime) / 30); // 越快完成，得分越高
+            
+            // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
+            const headStable = 0.8; // 头部稳定性
+            const faceStable = 0.8; // 面部稳定性
+            const blinkStable = 0.8; // 眨眼稳定性
+            
+            // 计算最终得分
+            const scoreValue = (
+                acc * 0.40 +
+                consistency * 0.30 +
+                speed * 0.15 +
+                headStable * 0.10 +
+                faceStable * 0.03 +
+                blinkStable * 0.02
+            ) * 100;
+            
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
         function winGame() {
             isGameStarted = false;
             clearInterval(progressInterval);
+            
+            // 计算持续性注意得分
+            const finalScore = calculateSustainedAttentionScore();
+            
             document.getElementById('final-time').textContent = wateringTime;
             document.getElementById('final-interrupts').textContent = interruptCount;
+            document.getElementById('final-score').textContent = finalScore;
             document.getElementById('success-message').classList.add('show');
             feedback.textContent = '恭喜！植物成功开花！';
 
             // 统计游戏使用时间
-            GameTimeUtil.endGame('water-plants');
+            try {
+                if (typeof GameTimeUtil !== 'undefined') {
+                    GameTimeUtil.endGame('water-plants');
+                }
+            } catch (e) {
+                console.log('GameTimeUtil 未定义，跳过');
+            }
+            
+            // 上传数据到后端
+            uploadTrainingData();
+        }
+
+        function uploadTrainingData() {
+            try {
+                const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+                const childId = typeof UserStateUtil !== 'undefined' ? (UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1) : 1;
+                let sessionId = null;
+                
+                // 计算持续性注意得分
+                const finalScore = calculateSustainedAttentionScore();
+                const accuracy = 100 - (interruptCount * 10);
+            
+            // 开始训练会话
+            fetch('http://localhost:5000/api/training/session/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({
+                    child_id: childId,
+                    game_type: 'water-plants',
+                    device_id: 'web'
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    sessionId = result.data.session_id;
+                    console.log('训练会话创建成功:', sessionId);
+                    
+                    // 上传游戏数据
+                    return fetch('http://localhost:5000/api/training/game-data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            request_id: Date.now().toString(),
+                            timestamp: new Date().toISOString(),
+                            event_type: 'game_complete',
+                            score: finalScore,
+                            accuracy: accuracy,
+                            level: 1,
+                            time: wateringTime,
+                            correct: 1,
+                            error: interruptCount + mistouchCount,
+                            total_target: 1,
+                            total_step: 1
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '创建会话失败');
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('游戏数据上传成功');
+                    
+                    // 清除能力评估页面的缓存
+                    const cacheKey = `child_data_${childId}`;
+                    localStorage.removeItem(cacheKey);
+                    console.log('已清除能力评估缓存:', cacheKey);
+                    
+                    // 结束训练会话
+                    return fetch('http://localhost:5000/api/training/session/end', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            final_score: finalScore,
+                            total_accuracy: accuracy
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '上传游戏数据失败');
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                    console.log('训练数据上传完成');
+                }
+            })
+            .catch(error => {
+                console.error('上传训练数据失败:', error);
+            });
+            } catch (e) {
+                console.error('uploadTrainingData 错误:', e);
+            }
         }
 
         // 游戏主循环

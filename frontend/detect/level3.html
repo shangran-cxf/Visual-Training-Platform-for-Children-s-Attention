@@ -373,13 +373,33 @@
             isPaused = !isPaused;
         }
 
+        // 计算视觉追踪得分
+        function calculateTrackingScore() {
+            const meanRt = lagTimes.length > 0 ? lagTimes.reduce((sum, rt) => sum + rt, 0) / lagTimes.length : 1000;
+            const acc = accuracyCount > 0 ? (100 - Math.min(100, accuracySum / accuracyCount)) / 100 : 0;
+            const speed = Math.max(0, 1 - 45 / 60);
+            const rtScore = Math.max(0, 1 - meanRt / 1000);
+            const headStable = 0.8;
+            const faceStable = 0.8;
+            const scoreValue = (
+                acc * 0.35 + speed * 0.25 + rtScore * 0.20 + headStable * 0.12 + faceStable * 0.08
+            ) * 100;
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
         // 结束游戏
         function endGame() {
             isGameStarted = false;
             clearInterval(gameInterval);
 
             // 统计游戏使用时间
-            GameTimeUtil.endGame('level3');
+            try {
+                if (typeof GameTimeUtil !== 'undefined') {
+                    GameTimeUtil.endGame('level3');
+                }
+            } catch (error) {
+                console.log('GameTimeUtil not available');
+            }
 
             // 移除点击事件
             gameArea.removeEventListener('click', handleClick);
@@ -387,20 +407,67 @@
             // 计算结果
             const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
             const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
+            const score = calculateTrackingScore();
 
             // 显示反馈
-            document.getElementById('final-accuracy').textContent = avgAccuracy;
-            document.getElementById('final-off-target').textContent = offTargetCount;
-            document.getElementById('final-lag-time').textContent = avgLagTime;
-            document.getElementById('feedback').style.display = 'block';
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.innerHTML = `
+                <h3>关卡完成！</h3>
+                <p>追踪精准度：<span id="final-accuracy">${avgAccuracy}</span>px</p>
+                <p>追踪脱靶次数：<span id="final-off-target">${offTargetCount}</span></p>
+                <p>追踪滞后时间：<span id="final-lag-time">${avgLagTime}</span>ms</p>
+                <p>综合评分：<span id="score">${score}</span>分</p>
+                <button class="btn" onclick="nextLevel()">下一关</button>
+            `;
+            feedbackDiv.style.display = 'block';
 
             // 保存数据
             const data = {
-                visual_tracking: 100 - Math.min(100, avgAccuracy), // 转换为0-100分
+                visual_tracking: score,
                 off_target_count: offTargetCount,
                 lag_time: avgLagTime
             };
-            StorageUtil.setItem('level3_data', data);
+            try {
+                if (typeof StorageUtil !== 'undefined') {
+                    StorageUtil.setItem('level3_data', data);
+                }
+            } catch (error) {
+                console.log('StorageUtil not available');
+            }
+
+            // 上传训练数据
+            uploadTrainingData(score, avgAccuracy, avgLagTime);
+        }
+
+        // 上传训练数据
+        function uploadTrainingData(score, avgAccuracy, avgLagTime) {
+            try {
+                if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+                    const user_id = UserStateUtil.getUserId();
+                    const payload = {
+                        user_id: user_id,
+                        game_type: 'visual_tracking',
+                        score: score,
+                        total_time: 45,
+                        total_click: accuracyCount,
+                        error_count: offTargetCount,
+                        mean_rt: avgLagTime,
+                        date: new Date().toISOString().split('T')[0]
+                    };
+
+                    fetch('http://localhost:3001/api/training', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(response => response.json())
+                      .then(data => console.log('Training data uploaded:', data))
+                      .catch(error => console.error('Error uploading training data:', error));
+                }
+            } catch (error) {
+                console.log('Error uploading training data:', error);
+            }
         }
 
         // 下一关

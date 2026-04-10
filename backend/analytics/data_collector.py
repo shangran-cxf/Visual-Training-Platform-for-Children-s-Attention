@@ -9,7 +9,8 @@ from utils.response_utils import success_response, error_response
 from middleware import require_auth
 from utils.error_codes import (
     VALIDATION_ERROR, NOT_FOUND, SESSION_NOT_FOUND,
-    SESSION_EXPIRED, CHILD_NOT_BELONG, ACTIVE_SESSION_EXISTS
+    SESSION_EXPIRED, CHILD_NOT_BELONG, ACTIVE_SESSION_EXISTS,
+    INTERNAL_ERROR
 )
 
 data_collector_bp = Blueprint('data_collector', __name__)
@@ -408,11 +409,11 @@ def upload_game_data():
     execute_db('''
         INSERT INTO game_raw_data 
         (session_id, event_type, event_data, score, accuracy, level, timestamp,
-         miss, leave, obstacle, total_target, total_step, total_click, total_trial,
+         time, correct, error, miss, leave, obstacle, total_target, total_step, total_click, total_trial,
          memory_load, order_error, late_error_ratio, mean_rt, reaction_times)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (session_id, event_type, event_data_json, score, accuracy, level, timestamp,
-          miss, leave, obstacle, total_target, total_step, total_click, total_trial,
+          time, correct, error, miss, leave, obstacle, total_target, total_step, total_click, total_trial,
           memory_load, order_error, late_error_ratio, mean_rt, reaction_times_json))
     
     mark_request_processed(request_id)
@@ -478,81 +479,104 @@ def upload_vision_data():
 @data_collector_bp.route('/api/training/session/end', methods=['POST'])
 @require_auth
 def end_session():
-    data = request.json
-    session_id = data.get('session_id')
-    final_score = data.get('final_score', 0)
-    total_accuracy = data.get('total_accuracy', 0)
-    
-    if not session_id:
-        return error_response('session_id 不能为空', VALIDATION_ERROR, 400)
-    
-    session_info = get_session_info(session_id)
-    if not session_info:
-        return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
-    
-    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info['child_id'],))
-    if not child or child[0][0] != request.user_id:
-        return error_response('无权操作该会话', CHILD_NOT_BELONG, 403)
-    
-    if session_info['status'] != 'active':
-        return error_response('训练会话已结束', SESSION_EXPIRED, 410)
-    
-    summary = calculate_session_summary(
-        session_id, 
-        session_info['child_id'], 
-        session_info['game_type'],
-        final_score,
-        total_accuracy
-    )
-    
-    execute_db('''
-        INSERT INTO session_summaries 
-        (session_id, child_id, game_type, attention_type, final_score, total_accuracy, total_time, 
-         total_errors, levels_completed, avg_attention_score, max_attention_score, 
-         min_attention_score, attention_stability, avg_head_deviation, avg_blink_rate, 
-         total_focus_time, distraction_count, overall_score, performance_level,
-         accuracy_score, precision_score, speed_score, head_stable_score, face_stable_score,
-         blink_stable_score, impulse_score, memory_score, no_fatigue_score, rt_score,
-         order_score, stable_act_score, game_data)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        session_id, session_info['child_id'], session_info['game_type'], summary.get('attention_type'),
-        summary['final_score'], summary['total_accuracy'], summary['total_time'],
-        summary['total_errors'], summary['levels_completed'], summary['avg_attention_score'],
-        summary['max_attention_score'], summary['min_attention_score'], summary['attention_stability'],
-        summary['avg_head_deviation'], summary['avg_blink_rate'], summary['total_focus_time'],
-        summary['distraction_count'], summary['overall_score'], summary['performance_level'],
-        summary['score_details'].get('accuracy', 0),
-        summary['score_details'].get('precision', 0),
-        summary['score_details'].get('speed', 0),
-        summary['score_details'].get('head_stable', 0),
-        summary['score_details'].get('face_stable', 0),
-        summary['score_details'].get('blink_stable', 0),
-        summary['score_details'].get('impulse', 0),
-        summary['score_details'].get('memory', 0),
-        summary['score_details'].get('no_fatigue', 0),
-        summary['score_details'].get('rt_score', 0),
-        summary['score_details'].get('order', 0),
-        summary['score_details'].get('stable_act', 0),
-        json.dumps(summary.get('game_data', {}))
-    ))
-    
-    execute_db('''
-        UPDATE training_sessions 
-        SET end_time = CURRENT_TIMESTAMP, status = 'completed', 
-            duration = ?, last_activity = CURRENT_TIMESTAMP
-        WHERE id = ?
-    ''', (summary['total_time'], session_id))
-    
-    earned_badges = check_and_award_badges(session_info['child_id'], summary)
-    recommendations = generate_recommendations(summary, session_info['game_type'])
-    
-    return success_response({
-        'session_id': session_id,
-        'summary': summary,
-        'earned_badges': earned_badges,
-        'recommendations': recommendations
-    }, '训练会话已结束')
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        final_score = data.get('final_score', 0)
+        total_accuracy = data.get('total_accuracy', 0)
+        
+        print(f'=== end_session 调试信息 ===')
+        print(f'session_id: {session_id}')
+        print(f'final_score: {final_score}')
+        print(f'total_accuracy: {total_accuracy}')
+        print(f'request.user_id: {request.user_id}')
+        
+        if not session_id:
+            return error_response('session_id 不能为空', VALIDATION_ERROR, 400)
+        
+        session_info = get_session_info(session_id)
+        if not session_info:
+            return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
+        
+        print(f'session_info: {session_info}')
+        
+        child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info['child_id'],))
+        if not child or child[0][0] != request.user_id:
+            return error_response('无权操作该会话', CHILD_NOT_BELONG, 403)
+        
+        if session_info['status'] != 'active':
+            return error_response('训练会话已结束', SESSION_EXPIRED, 410)
+        
+        summary = calculate_session_summary(
+            session_id, 
+            session_info['child_id'], 
+            session_info['game_type'],
+            final_score,
+            total_accuracy
+        )
+        
+        print(f'summary 计算完成')
+        print(f'score_details: {summary.get("score_details")}')
+        
+        execute_db('''
+            INSERT INTO session_summaries 
+            (session_id, child_id, game_type, attention_type, final_score, total_accuracy, total_time, 
+             total_errors, levels_completed, avg_attention_score, max_attention_score, 
+             min_attention_score, attention_stability, avg_head_deviation, avg_blink_rate, 
+             total_focus_time, distraction_count, overall_score, performance_level,
+             accuracy_score, precision_score, speed_score, head_stable_score, face_stable_score,
+             blink_stable_score, impulse_score, memory_score, no_fatigue_score, rt_score,
+             order_score, stable_act_score, game_data)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            session_id, session_info['child_id'], session_info['game_type'], summary.get('attention_type'),
+            summary['final_score'], summary['total_accuracy'], summary['total_time'],
+            summary['total_errors'], summary['levels_completed'], summary['avg_attention_score'],
+            summary['max_attention_score'], summary['min_attention_score'], summary['attention_stability'],
+            summary['avg_head_deviation'], summary['avg_blink_rate'], summary['total_focus_time'],
+            summary['distraction_count'], summary['overall_score'], summary['performance_level'],
+            summary['score_details'].get('accuracy', 0),
+            summary['score_details'].get('precision', 0),
+            summary['score_details'].get('speed', 0),
+            summary['score_details'].get('head_stable', 0),
+            summary['score_details'].get('face_stable', 0),
+            summary['score_details'].get('blink_stable', 0),
+            summary['score_details'].get('impulse', 0),
+            summary['score_details'].get('memory', 0),
+            summary['score_details'].get('no_fatigue', 0),
+            summary['score_details'].get('rt_score', 0),
+            summary['score_details'].get('order', 0),
+            summary['score_details'].get('stable_act', 0),
+            json.dumps(summary.get('game_data', {}))
+        ))
+        
+        print(f'session_summaries 插入成功')
+        
+        execute_db('''
+            UPDATE training_sessions 
+            SET end_time = CURRENT_TIMESTAMP, status = 'completed', 
+                duration = ?, last_activity = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (summary['total_time'], session_id))
+        
+        print(f'training_sessions 更新成功')
+        
+        earned_badges = check_and_award_badges(session_info['child_id'], summary)
+        recommendations = generate_recommendations(summary, session_info['game_type'])
+        
+        return success_response({
+            'session_id': session_id,
+            'summary': summary,
+            'earned_badges': earned_badges,
+            'recommendations': recommendations
+        }, '训练会话已结束')
+    except Exception as e:
+        print(f'=== end_session 错误 ===')
+        print(f'错误类型：{type(e).__name__}')
+        print(f'错误信息：{str(e)}')
+        import traceback
+        print(f'堆栈跟踪：{traceback.format_exc()}')
+        return error_response(f'服务器内部错误：{str(e)}', INTERNAL_ERROR, 500)
 
 @data_collector_bp.route('/api/training/session/heartbeat', methods=['POST'])
 @require_auth
@@ -847,7 +871,7 @@ def get_training_trend(child_id):
         print(f"时间范围: {start_date.strftime('%Y-%m-%d')} 到 {end_date.strftime('%Y-%m-%d')}")
         
         query = '''
-        SELECT s.attention_type, DATE(s.start_time) as date, 
+        SELECT ss.attention_type, DATE(s.start_time) as date, 
                AVG(ss.overall_score) as avg_score,
                COUNT(*) as session_count
         FROM session_summaries ss
@@ -857,10 +881,10 @@ def get_training_trend(child_id):
         params = [child_id, start_date.strftime('%Y-%m-%d')]
         
         if attention_type:
-            query += ' AND s.attention_type = ?'
+            query += ' AND ss.attention_type = ?'
             params.append(attention_type)
         
-        query += ' GROUP BY s.attention_type, DATE(s.start_time) ORDER BY date'
+        query += ' GROUP BY ss.attention_type, DATE(s.start_time) ORDER BY date'
         
         print(f"执行查询: {query}")
         print(f"参数: {params}")

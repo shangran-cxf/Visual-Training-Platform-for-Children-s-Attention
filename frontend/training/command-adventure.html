@@ -740,31 +740,169 @@
         }
 
         // 结束游戏
+        function calculateInhibitionScore() {
+            // 计算各项指标
+            const totalTrial = level - 1;
+            const acc = totalTrial > 0 ? totalTrial / 10 : 0;
+            const impulse = totalTrial > 0 ? 1 - errors / totalTrial : 0;
+            
+            // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
+            const headStable = 0.8; // 头部稳定性
+            const faceStable = 0.8; // 面部稳定性
+            const blinkStable = 0.8; // 眨眼稳定性
+            
+            // 计算最终得分
+            const scoreValue = (
+                impulse * 0.40 +
+                acc * 0.30 +
+                headStable * 0.15 +
+                faceStable * 0.08 +
+                blinkStable * 0.07
+            ) * 100;
+            
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
         function endGame() {
             gameState = 'gameOver';
             clearInterval(timeInterval);
 
             // 统计游戏使用时间
-            GameTimeUtil.endGame('command-adventure');
+            try {
+                if (typeof GameTimeUtil !== 'undefined') {
+                    GameTimeUtil.endGame('command-adventure');
+                }
+            } catch (e) {
+                console.log('GameTimeUtil 未定义，跳过');
+            }
+
+            // 计算抑制控制得分
+            const finalScore = calculateInhibitionScore();
 
             // 保存游戏数据
             const gameData = {
                 gameName: 'command-adventure',
-                score: score,
+                score: finalScore,
                 level: level,
                 timestamp: new Date().toISOString()
             };
 
             // 保存到本地存储
-            const trainingHistory = StorageUtil.getItem('training_history') || [];
-            trainingHistory.push(gameData);
-            StorageUtil.setItem('training_history', trainingHistory);
+            try {
+                if (typeof StorageUtil !== 'undefined') {
+                    const trainingHistory = StorageUtil.getItem('training_history') || [];
+                    trainingHistory.push(gameData);
+                    StorageUtil.setItem('training_history', trainingHistory);
+                }
+            } catch (e) {
+                console.log('StorageUtil 未定义，跳过');
+            }
+
+            // 上传数据到后端
+            uploadTrainingData();
 
             // 显示游戏结束信息
             if (level > 5) {
-                alert(`🏆 恭喜你成为冰雪王国金牌小邮差！ 🏆\n\n你成功送达了所有雪花信件！\n得分：${score}\n闯过关卡：${level - 1}\n\n雪精灵为你的勇敢和智慧感到骄傲！`);
+                alert(`🏆 恭喜你成为冰雪王国金牌小邮差！ 🏆\n\n你成功送达了所有雪花信件！\n得分：${finalScore}\n闯过关卡：${level - 1}\n\n雪精灵为你的勇敢和智慧感到骄傲！`);
             } else {
-                alert(`❄️ 游戏结束！ ❄️\n\n得分：${score}\n闯过关卡：${level - 1}\n\n别灰心，冰雪小邮差！\n再试一次，你一定能成功送达所有信件的！`);
+                alert(`❄️ 游戏结束！ ❄️\n\n得分：${finalScore}\n闯过关卡：${level - 1}\n\n别灰心，冰雪小邮差！\n再试一次，你一定能成功送达所有信件的！`);
+            }
+        }
+
+        function uploadTrainingData() {
+            try {
+                const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+                const childId = typeof UserStateUtil !== 'undefined' ? (UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1) : 1;
+                let sessionId = null;
+                
+                // 计算抑制控制得分
+                const finalScore = calculateInhibitionScore();
+                const accuracy = level > 1 ? ((level - 1) / 10) * 100 : 0;
+            
+            // 开始训练会话
+            fetch('http://localhost:5000/api/training/session/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({
+                    child_id: childId,
+                    game_type: 'command-adventure',
+                    device_id: 'web'
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    sessionId = result.data.session_id;
+                    console.log('训练会话创建成功:', sessionId);
+                    
+                    // 上传游戏数据
+                    return fetch('http://localhost:5000/api/training/game-data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            request_id: Date.now().toString(),
+                            timestamp: new Date().toISOString(),
+                            event_type: 'game_complete',
+                            score: finalScore,
+                            accuracy: accuracy,
+                            level: level - 1,
+                            time: time,
+                            correct: score,
+                            error: errors || 0,
+                            total_target: 10,
+                            total_step: level - 1
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '创建会话失败');
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('游戏数据上传成功');
+                    
+                    // 清除能力评估页面的缓存
+                    const cacheKey = `child_data_${childId}`;
+                    localStorage.removeItem(cacheKey);
+                    console.log('已清除能力评估缓存:', cacheKey);
+                    
+                    // 结束训练会话
+                    return fetch('http://localhost:5000/api/training/session/end', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            final_score: finalScore,
+                            total_accuracy: accuracy
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '上传游戏数据失败');
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                    console.log('训练数据上传完成');
+                }
+            })
+            .catch(error => {
+                console.error('上传训练数据失败:', error);
+            });
+            } catch (e) {
+                console.error('uploadTrainingData 错误:', e);
             }
         }
 

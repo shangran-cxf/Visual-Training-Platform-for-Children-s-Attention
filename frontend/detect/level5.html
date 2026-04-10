@@ -489,6 +489,20 @@
             }
         }
 
+        // 计算抑制控制得分
+        function calculateInhibitionScore() {
+            const totalTrial = maxClicks;
+            const acc = totalTrial > 0 ? score / totalTrial : 0;
+            const impulse = totalTrial > 0 ? 1 - (clickCount - score) / totalTrial : 0;
+            const headStable = 0.8;
+            const faceStable = 0.8;
+            const blinkStable = 0.8;
+            const scoreValue = (
+                impulse * 0.40 + acc * 0.30 + headStable * 0.15 + faceStable * 0.08 + blinkStable * 0.07
+            ) * 100;
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
         function handleClickToAdd() {
             if (!gameActive) {
                 feedbackDiv.innerHTML = "🎮 游戏已经完成啦！点「重置游戏」继续训练吧 🎮";
@@ -532,10 +546,64 @@
                 }
 
                 // 统计游戏使用时间
-                GameTimeUtil.endGame('level5');
+                try {
+                    if (typeof GameTimeUtil !== 'undefined') {
+                        GameTimeUtil.endGame('level5');
+                    }
+                } catch (error) {
+                    console.log('GameTimeUtil not available');
+                }
 
                 const evaluation = getFocusEvaluation(score);
-                feedbackDiv.innerHTML = `🎉 游戏结束！最终得分：${score}分 🎉<br>评价：${evaluation}<br>点击重置开始新一局！`;
+                const inhibitionScore = calculateInhibitionScore();
+                feedbackDiv.innerHTML = `🎉 游戏结束！最终得分：${score}分 🎉<br>综合评分：${inhibitionScore}分<br>评价：${evaluation}<br>点击重置开始新一局！`;
+
+                // 保存数据
+                const data = {
+                    inhibition_control: inhibitionScore,
+                    score: score,
+                    total_clicks: clickCount
+                };
+                try {
+                    if (typeof StorageUtil !== 'undefined') {
+                        StorageUtil.setItem('level5_data', data);
+                    }
+                } catch (error) {
+                    console.log('StorageUtil not available');
+                }
+
+                // 上传训练数据
+                uploadTrainingData(inhibitionScore, score, clickCount);
+            }
+        }
+
+        // 上传训练数据
+        function uploadTrainingData(score, rawScore, clickCount) {
+            try {
+                if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+                    const user_id = UserStateUtil.getUserId();
+                    const payload = {
+                        user_id: user_id,
+                        game_type: 'inhibition_control',
+                        score: score,
+                        total_time: 60,
+                        total_click: clickCount,
+                        error_count: clickCount - rawScore,
+                        date: new Date().toISOString().split('T')[0]
+                    };
+
+                    fetch('http://localhost:3001/api/training', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(response => response.json())
+                      .then(data => console.log('Training data uploaded:', data))
+                      .catch(error => console.error('Error uploading training data:', error));
+                }
+            } catch (error) {
+                console.log('Error uploading training data:', error);
             }
         }
 

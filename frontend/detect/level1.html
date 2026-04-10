@@ -485,13 +485,37 @@
             requestAnimationFrame(updateTimer);
         }
 
+        // 计算选择性注意得分
+        function calculateSelectiveAttentionScore(totalTime) {
+            const totalTrial = targetClues.length;
+            const acc = totalTrial > 0 ? (selectedClues.filter(index => {
+                const clue = document.querySelector(`[data-index="${index}"]`);
+                return clue && clue.dataset.type === 'target';
+            }).length) / totalTrial : 0;
+            const speed = Math.max(0, 1 - totalTime / 60);
+            const errorRate = Math.max(0, 1 - errorCount / totalTrial);
+            const headStable = 0.8;
+            const faceStable = 0.8;
+            const blinkStable = 0.8;
+            const scoreValue = (
+                acc * 0.40 + speed * 0.25 + errorRate * 0.20 + headStable * 0.10 + faceStable * 0.03 + blinkStable * 0.02
+            ) * 100;
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
         // 结束游戏
         function endGame() {
             isGameStarted = false;
             endTime = Date.now();
 
             // 统计游戏使用时间
-            GameTimeUtil.endGame('level1');
+            try {
+                if (typeof GameTimeUtil !== 'undefined') {
+                    GameTimeUtil.endGame('level1');
+                }
+            } catch (error) {
+                console.log('GameTimeUtil not available');
+            }
 
             // 计算结果
             const totalTime = Math.floor((endTime - startTime) / 1000);
@@ -500,20 +524,70 @@
                 return clue && clue.dataset.type === 'target';
             }).length;
             const accuracy = Math.round((correctTargets / targetClues.length) * 100);
+            const score = calculateSelectiveAttentionScore(totalTime);
 
             // 显示反馈
             document.getElementById('accuracy').textContent = `${accuracy}%`;
             document.getElementById('time').textContent = totalTime;
             document.getElementById('errors').textContent = errorCount;
-            document.getElementById('feedback').style.display = 'block';
+            // 添加评分显示
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.innerHTML = `
+                <h3>关卡完成！</h3>
+                <p>正确率：<span id="accuracy">${accuracy}%</span></p>
+                <p>完成时间：<span id="time">${totalTime}</span>s</p>
+                <p>误点次数：<span id="errors">${errorCount}</span></p>
+                <p>综合评分：<span id="score">${score}</span>分</p>
+                <button class="btn" onclick="nextLevel()">下一关</button>
+            `;
+            feedbackDiv.style.display = 'block';
 
             // 保存数据
             const data = {
-                selective_attention: accuracy,
+                selective_attention: score,
                 completion_time: totalTime,
                 error_count: errorCount
             };
-            StorageUtil.setItem('level1_data', data);
+            try {
+                if (typeof StorageUtil !== 'undefined') {
+                    StorageUtil.setItem('level1_data', data);
+                }
+            } catch (error) {
+                console.log('StorageUtil not available');
+            }
+
+            // 上传训练数据
+            uploadTrainingData(score, totalTime, errorCount);
+        }
+
+        // 上传训练数据
+        function uploadTrainingData(score, totalTime, errorCount) {
+            try {
+                if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+                    const user_id = UserStateUtil.getUserId();
+                    const payload = {
+                        user_id: user_id,
+                        game_type: 'selective_attention',
+                        score: score,
+                        total_time: totalTime,
+                        total_click: selectedClues.length,
+                        error_count: errorCount,
+                        date: new Date().toISOString().split('T')[0]
+                    };
+
+                    fetch('http://localhost:3001/api/training', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(response => response.json())
+                      .then(data => console.log('Training data uploaded:', data))
+                      .catch(error => console.error('Error uploading training data:', error));
+                }
+            } catch (error) {
+                console.log('Error uploading training data:', error);
+            }
         }
 
         // 下一关

@@ -433,16 +433,36 @@
             isPaused = !isPaused;
         }
 
+        // 计算工作记忆得分
+        function calculateWorkingMemoryScore() {
+            const acc = accuracy / maxStages;
+            const speed = Math.max(0, 1 - (reactionTimes.length > 0 ? reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length / 1000 : 1));
+            const order = 1 - (sequenceErrors / maxStages);
+            const headStable = 0.8;
+            const blinkStable = 0.8;
+            const scoreValue = (
+                acc * 0.40 + order * 0.20 + speed * 0.20 + headStable * 0.12 + blinkStable * 0.08
+            ) * 100;
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
         // 结束游戏
         function endGame() {
             isGameStarted = false;
 
             // 统计游戏使用时间
-            GameTimeUtil.endGame('level4');
+            try {
+                if (typeof GameTimeUtil !== 'undefined') {
+                    GameTimeUtil.endGame('level4');
+                }
+            } catch (error) {
+                console.log('GameTimeUtil not available');
+            }
 
             // 计算结果
             const accuracyRate = Math.round((accuracy / maxStages) * 100);
             const avgReactionTime = reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) : 0;
+            const score = calculateWorkingMemoryScore();
 
             // 显示反馈
             document.getElementById('accuracy').textContent = `${accuracyRate}%`;
@@ -458,19 +478,61 @@
                 <p>点击错误次数：<span id="click-errors">${clickErrors}</span></p>
                 <p>正确轮数：<span id="correct-rounds">${accuracy}</span></p>
                 <p>操作反应时间：<span id="reaction-time">${avgReactionTime}</span>ms</p>
+                <p>综合评分：<span id="score">${score}</span>分</p>
                 <button class="btn" onclick="nextLevel()">下一关</button>
             `;
             feedbackDiv.style.display = 'block';
 
             // 保存数据
             const data = {
-                working_memory: accuracyRate,
+                working_memory: score,
                 sequence_errors: sequenceErrors,
                 click_errors: clickErrors,
                 correct_rounds: accuracy,
                 reaction_time: avgReactionTime
             };
-            StorageUtil.setItem('level4_data', data);
+            try {
+                if (typeof StorageUtil !== 'undefined') {
+                    StorageUtil.setItem('level4_data', data);
+                }
+            } catch (error) {
+                console.log('StorageUtil not available');
+            }
+
+            // 上传训练数据
+            uploadTrainingData(score, accuracyRate, avgReactionTime);
+        }
+
+        // 上传训练数据
+        function uploadTrainingData(score, accuracyRate, avgReactionTime) {
+            try {
+                if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+                    const user_id = UserStateUtil.getUserId();
+                    const payload = {
+                        user_id: user_id,
+                        game_type: 'working_memory',
+                        score: score,
+                        total_time: 60,
+                        total_click: reactionTimes.length,
+                        error_count: sequenceErrors + clickErrors,
+                        memory_load: maxStages,
+                        mean_rt: avgReactionTime,
+                        date: new Date().toISOString().split('T')[0]
+                    };
+
+                    fetch('http://localhost:3001/api/training', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(response => response.json())
+                      .then(data => console.log('Training data uploaded:', data))
+                      .catch(error => console.error('Error uploading training data:', error));
+                }
+            } catch (error) {
+                console.log('Error uploading training data:', error);
+            }
         }
 
         // 下一关

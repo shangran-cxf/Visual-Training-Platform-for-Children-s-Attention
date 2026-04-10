@@ -356,12 +356,33 @@
             }
         }
 
+        // 计算持续性注意得分
+        function calculateSustainedAttentionScore() {
+            const totalTime = 60;
+            const acc = Math.max(0, 1 - (falseAlarmCount / 10));
+            const consistency = Math.max(0, 1 - (falseAlarmCount / 10));
+            const speed = Math.max(0, 1 - (20 / 60));
+            const headStable = 0.8;
+            const faceStable = 0.8;
+            const blinkStable = 0.8;
+            const scoreValue = (
+                acc * 0.40 + consistency * 0.30 + speed * 0.15 + headStable * 0.10 + faceStable * 0.03 + blinkStable * 0.02
+            ) * 100;
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
         // 结束游戏
         function endGame() {
             isGameStarted = false;
 
             // 统计游戏使用时间
-            GameTimeUtil.endGame('level2');
+            try {
+                if (typeof GameTimeUtil !== 'undefined') {
+                    GameTimeUtil.endGame('level2');
+                }
+            } catch (error) {
+                console.log('GameTimeUtil not available');
+            }
 
             // 暂停视频
             if (videoElement) {
@@ -374,20 +395,66 @@
             // 计算结果
             const hitRate = totalThieves > 0 ? Math.round((hitCount / totalThieves) * 100) : 0;
             const falseAlarmRate = totalNonThieves > 0 ? Math.round((falseAlarmCount / totalNonThieves) * 100) : 0;
+            const score = calculateSustainedAttentionScore();
 
             // 显示反馈
-            document.getElementById('final-hit-rate').textContent = `${hitRate}%`;
-            document.getElementById('final-false-alarm').textContent = `${falseAlarmRate}%`;
-            document.getElementById('final-consecutive-correct').textContent = maxConsecutiveCorrect;
-            document.getElementById('feedback').style.display = 'block';
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.innerHTML = `
+                <h3>关卡完成！</h3>
+                <p>小偷识别击中率：<span id="final-hit-rate">${hitRate}%</span></p>
+                <p>路人/警察误点虚报率：<span id="final-false-alarm">${falseAlarmRate}%</span></p>
+                <p>连续正确识别次数：<span id="final-consecutive-correct">${maxConsecutiveCorrect}</span></p>
+                <p>综合评分：<span id="score">${score}</span>分</p>
+                <button class="btn" onclick="nextLevel()">下一关</button>
+            `;
+            feedbackDiv.style.display = 'block';
 
             // 保存数据
             const data = {
-                sustained_attention: hitRate,
+                sustained_attention: score,
                 false_alarm_rate: falseAlarmRate,
                 max_consecutive_correct: maxConsecutiveCorrect
             };
-            StorageUtil.setItem('level2_data', data);
+            try {
+                if (typeof StorageUtil !== 'undefined') {
+                    StorageUtil.setItem('level2_data', data);
+                }
+            } catch (error) {
+                console.log('StorageUtil not available');
+            }
+
+            // 上传训练数据
+            uploadTrainingData(score, hitRate, falseAlarmRate);
+        }
+
+        // 上传训练数据
+        function uploadTrainingData(score, hitRate, falseAlarmRate) {
+            try {
+                if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+                    const user_id = UserStateUtil.getUserId();
+                    const payload = {
+                        user_id: user_id,
+                        game_type: 'sustained_attention',
+                        score: score,
+                        total_time: 60,
+                        total_click: hitCount + falseAlarmCount,
+                        error_count: falseAlarmCount,
+                        date: new Date().toISOString().split('T')[0]
+                    };
+
+                    fetch('http://localhost:3001/api/training', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(response => response.json())
+                      .then(data => console.log('Training data uploaded:', data))
+                      .catch(error => console.error('Error uploading training data:', error));
+                }
+            } catch (error) {
+                console.log('Error uploading training data:', error);
+            }
         }
 
         // 下一关

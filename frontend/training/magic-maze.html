@@ -164,19 +164,119 @@
 
         @keyframes shineJump {
             0% {
-                transform: scale(1);
+                transform: scale(0.8) translateY(0);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.2) translateY(-20px);
                 opacity: 1;
             }
-
-            50% {
-                transform: scale(1.1);
+            100% {
+                transform: scale(1) translateY(0);
                 opacity: 0.8;
             }
+        }
 
-            100% {
-                transform: scale(1);
+        /* 游戏结束弹窗 */
+        .game-over-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-over-modal.show {
+            display: flex;
+        }
+
+        .game-over-content {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            animation: modalSlideIn 0.5s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
                 opacity: 1;
             }
+        }
+
+        .game-over-content h2 {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .modal-btn.restart {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .modal-btn.back {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .feedback {
@@ -325,6 +425,34 @@
         </div>
         <div class="literature">
             <p>文献依据：空间认知与注意力训练研究</p>
+        </div>
+        <!-- 游戏结束弹窗 -->
+        <div class="game-over-modal" id="gameOverModal" style="display: none;">
+            <div class="game-over-content">
+                <h2>🎉 游戏完成！🎉</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">🏆 得分</div>
+                        <div class="stat-value" id="modal-score" style="color: #ff9800; font-size: 36px;">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">⏱️ 用时</div>
+                        <div class="stat-value" id="modal-time">0s</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label"> 步数</div>
+                        <div class="stat-value" id="modal-steps">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">⭐ 难度</div>
+                        <div class="stat-value" id="modal-difficulty">简单</div>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn restart" onclick="restartGame()">🔄 再来一局</button>
+                    <button class="modal-btn back" onclick="backToStart()">🏠 返回开始</button>
+                </div>
+            </div>
         </div>
     </div>
     <script>
@@ -642,6 +770,7 @@
         let gameStarted = false;
         let timerInterval = null;
         let startTime = 0;
+        let elapsedTime = 0; // 游戏用时（全局变量）
 
         // 初始化游戏
         function initGame() {
@@ -673,7 +802,7 @@
         // 开始计时器
         function startTimer() {
             timerInterval = setInterval(() => {
-                const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                elapsedTime = Math.floor((Date.now() - startTime) / 1000);
                 const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
                 const seconds = (elapsedTime % 60).toString().padStart(2, '0');
                 document.getElementById('timer').textContent = `${minutes}:${seconds}`;
@@ -687,7 +816,13 @@
                 timerInterval = null;
 
                 // 统计游戏使用时间
-                GameTimeUtil.endGame('magic-maze');
+                try {
+                    if (typeof GameTimeUtil !== 'undefined') {
+                        GameTimeUtil.endGame('magic-maze');
+                    }
+                } catch (e) {
+                    console.log('GameTimeUtil 未定义，跳过');
+                }
             }
         }
 
@@ -837,12 +972,191 @@
 
             // 动画结束后回到开始游戏界面
             setTimeout(() => {
-                // 移除shine元素
+                // 移除 shine 元素
                 shineElement.remove();
 
-                // 重置游戏状态
-                resetGame();
-            }, 4500);
+                // 上传数据到后端
+                uploadTrainingData();
+                
+                // 显示游戏结束弹窗
+                showGameOverModal();
+            }, 2500);
+        }
+
+        function calculateSustainedAttentionScore(elapsedTime) {
+            // 计算各项指标
+            const totalTime = 60; // 目标时间60秒
+            const acc = 1; // 迷宫游戏只要完成就视为正确
+            const consistency = Math.max(0, 1 - (playerPath.length / 100)); // 步数越少，得分越高
+            const speed = Math.max(0, 1 - elapsedTime / totalTime); // 越快完成，得分越高
+            
+            // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
+            const headStable = 0.8; // 头部稳定性
+            const faceStable = 0.8; // 面部稳定性
+            const blinkStable = 0.8; // 眨眼稳定性
+            
+            // 计算最终得分
+            const scoreValue = (
+                acc * 0.40 +
+                consistency * 0.30 +
+                speed * 0.15 +
+                headStable * 0.10 +
+                faceStable * 0.03 +
+                blinkStable * 0.02
+            ) * 100;
+            
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
+        function showGameOverModal() {
+            try {
+                // 计算得分
+                const accuracy = 100;
+                const finalScore = calculateSustainedAttentionScore(elapsedTime);
+                
+                console.log('游戏结束 - 得分:', finalScore, '用时:', elapsedTime, '步数:', playerPath.length);
+                
+                // 填充数据
+                document.getElementById('modal-score').textContent = finalScore;
+                document.getElementById('modal-time').textContent = elapsedTime.toFixed(1) + 's';
+                document.getElementById('modal-steps').textContent = playerPath.length;
+                
+                const difficultyText = currentDifficulty === 1 ? '简单' : currentDifficulty === 2 ? '中等' : '困难';
+                document.getElementById('modal-difficulty').textContent = difficultyText;
+                
+                // 显示弹窗 - 同时添加类和设置 display 样式
+                const modal = document.getElementById('gameOverModal');
+                modal.classList.add('show');
+                modal.style.display = 'flex';
+            } catch (e) {
+                console.error('显示游戏结束弹窗失败:', e);
+                // 如果失败，尝试强制显示
+                try {
+                    const modal = document.getElementById('gameOverModal');
+                    if (modal) {
+                        modal.classList.add('show');
+                        modal.style.display = 'flex';
+                    }
+                } catch (e2) {
+                    console.error('强制显示弹窗也失败:', e2);
+                }
+            }
+        }
+
+        function restartGame() {
+            // 隐藏弹窗
+            const modal = document.getElementById('gameOverModal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            
+            // 重新开始游戏
+            resetGame();
+            setTimeout(() => {
+                startGame();
+            }, 500);
+        }
+
+        function backToStart() {
+            // 隐藏弹窗
+            const modal = document.getElementById('gameOverModal');
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            
+            // 返回到开始状态
+            resetGame();
+        }
+
+        function uploadTrainingData() {
+            const userInfo = UserStateUtil.getUserInfo();
+            const childId = UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1;
+            let sessionId = null;
+            
+            // 计算准确率和得分
+            const accuracy = 100;
+            const finalScore = Math.round((accuracy * 0.6) + ((100 - (playerPath.length * 2)) * 0.2) + (Math.max(0, 60 - elapsedTime) * 0.2));
+            
+            // 开始训练会话
+            fetch('http://localhost:5000/api/training/session/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({
+                    child_id: childId,
+                    game_type: 'magic-maze',
+                    device_id: 'web'
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    sessionId = result.data.session_id;
+                    console.log('训练会话创建成功:', sessionId);
+                    
+                    // 上传游戏数据
+                    return fetch('http://localhost:5000/api/training/game-data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            request_id: Date.now().toString(),
+                            timestamp: new Date().toISOString(),
+                            event_type: 'game_complete',
+                            score: finalScore,
+                            accuracy: accuracy,
+                            level: currentDifficulty,
+                            time: elapsedTime,
+                            correct: 1,
+                            error: 0,
+                            total_target: 1,
+                            total_step: playerPath.length
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '创建会话失败');
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('游戏数据上传成功');
+                    
+                    // 清除能力评估页面的缓存
+                    const cacheKey = `child_data_${childId}`;
+                    localStorage.removeItem(cacheKey);
+                    console.log('已清除能力评估缓存:', cacheKey);
+                    
+                    // 结束训练会话
+                    return fetch('http://localhost:5000/api/training/session/end', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            final_score: finalScore,
+                            total_accuracy: accuracy
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '上传游戏数据失败');
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                    console.log('训练数据上传完成');
+                }
+            })
+            .catch(error => {
+                console.error('上传训练数据失败:', error);
+            });
         }
 
         // 重置游戏

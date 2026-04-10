@@ -333,6 +333,10 @@
         let gameState = 'ready'; // ready → highlighting → moving → selecting
         let animationId = null;
         let moveEndTime;
+        let totalClick = 0;
+        let reactionTimes = [];
+        let selectionStartTime = 0;
+        let gameStartTime = 0;
 
         // 难度
         let difficulty = { count: 8, target: 2, speed: 7, moveTime: 3000, highTime: 1500 };
@@ -363,6 +367,9 @@
             score = 0;
             errors = 0;
             round = 1;
+            totalClick = 0;
+            reactionTimes = [];
+            selectionStartTime = 0;
             updateUI();
             startBtn.classList.remove('hidden');
             ctx.clearRect(0, 0, 500, 500);
@@ -421,6 +428,7 @@
             clearAnim();
             gameState = 'highlighting';
             startBtn.classList.add('hidden');
+            gameStartTime = Date.now(); // 记录游戏开始时间
             createObjects();
             animate();
             setTimeout(() => {
@@ -443,6 +451,7 @@
                 });
                 if (Date.now() > moveEndTime) {
                     gameState = 'selecting'; // ✅ 绝对能进入可点击状态
+                    selectionStartTime = Date.now(); // 记录选择开始时间
                 }
             }
 
@@ -505,6 +514,12 @@
         canvas.onclick = (e) => {
             if (gameState !== 'selecting') return;
 
+            // 计算反应时间
+            const clickTime = Date.now();
+            const reactionTime = clickTime - selectionStartTime;
+            reactionTimes.push(reactionTime);
+            totalClick++;
+
             const rect = canvas.getBoundingClientRect();
             const mx = e.clientX - rect.left;
             const my = e.clientY - rect.top;
@@ -553,14 +568,164 @@
             }, 600);
         }
 
+        function calculateTrackingScore() {
+            // 计算平均反应时间
+            const meanRt = reactionTimes.length > 0 ? reactionTimes.reduce((sum, rt) => sum + rt, 0) / reactionTimes.length : 1000;
+            
+            // 计算各项指标
+            const acc = totalClick > 0 ? score / totalClick : 0;
+            const speed = Math.max(0, 1 - (Date.now() - gameStartTime) / 60000);
+            const rtScore = Math.max(0, 1 - meanRt / 1000);
+            
+            // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
+            const headStable = 0.8; // 头部稳定性
+            const faceStable = 0.8; // 面部稳定性
+            
+            // 计算最终得分
+            const scoreValue = (
+                acc * 0.35 +
+                rtScore * 0.25 +
+                speed * 0.20 +
+                headStable * 0.12 +
+                faceStable * 0.08
+            ) * 100;
+            
+            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        }
+
         // 显示游戏结束弹窗
         function showGameOverModal() {
-            finalScore.textContent = score;
-            finalErrors.textContent = errors;
-            gameOverModal.classList.add('show');
+            try {
+                // 计算视觉追踪得分
+                const finalScoreValue = calculateTrackingScore();
+                
+                // 计算平均反应时间
+                const meanRt = reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((sum, rt) => sum + rt, 0) / reactionTimes.length) : 0;
+                
+                // 显示最终得分和相关数据
+                finalScore.textContent = finalScoreValue;
+                finalErrors.textContent = errors;
+                
+                console.log('游戏结束 - 上传到雷达的得分:', finalScoreValue, '正确率:', (score / totalClick * 100).toFixed(1) + '%', '错误:', errors, '总点击:', totalClick, '平均反应时间:', meanRt, 'ms');
+                
+                // 统计游戏使用时间
+                try {
+                    if (typeof GameTimeUtil !== 'undefined') {
+                        GameTimeUtil.endGame('animal-searching');
+                    }
+                } catch (e) {
+                    console.log('GameTimeUtil 未定义，跳过');
+                }
+                
+                // 上传数据到后端
+                uploadTrainingData();
+                
+                // 显示弹窗
+                gameOverModal.classList.add('show');
+            } catch (e) {
+                console.error('显示游戏结束弹窗失败:', e);
+            }
+        }
 
-            // 统计游戏使用时间
-            GameTimeUtil.endGame('animal-searching');
+        function uploadTrainingData() {
+            try {
+                const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+                const childId = typeof UserStateUtil !== 'undefined' ? (UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1) : 1;
+                let sessionId = null;
+                
+                // 计算视觉追踪得分
+                const finalScore = calculateTrackingScore();
+                
+                // 计算平均反应时间
+                const meanRt = reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((sum, rt) => sum + rt, 0) / reactionTimes.length) : 0;
+            
+            // 开始训练会话
+            fetch('http://localhost:5000/api/training/session/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({
+                    child_id: childId,
+                    game_type: 'animal-searching',
+                    device_id: 'web'
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    sessionId = result.data.session_id;
+                    console.log('训练会话创建成功:', sessionId);
+                    
+                    // 上传游戏数据
+                    return fetch('http://localhost:5000/api/training/game-data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            request_id: Date.now().toString(),
+                            timestamp: new Date().toISOString(),
+                            event_type: 'game_complete',
+                            score: finalScore,
+                            accuracy: score / totalClick * 100,
+                            level: difficulty.level || 1,
+                            time: Math.floor((Date.now() - gameStartTime) / 1000),
+                            correct: score,
+                            error: errors,
+                            total_target: score,
+                            total_step: totalClick,
+                            total_click: totalClick,
+                            mean_rt: meanRt
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '创建会话失败');
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    console.log('游戏数据上传成功');
+                    
+                    // 清除能力评估页面的缓存
+                    const cacheKey = `child_data_${childId}`;
+                    localStorage.removeItem(cacheKey);
+                    console.log('已清除能力评估缓存:', cacheKey);
+                    
+                    // 结束训练会话
+                    return fetch('http://localhost:5000/api/training/session/end', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            final_score: finalScore,
+                            total_accuracy: score / totalClick * 100
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '上传游戏数据失败');
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                    console.log('训练数据上传完成');
+                }
+            })
+            .catch(error => {
+                console.error('上传训练数据失败:', error);
+            });
+            } catch (e) {
+                console.error('uploadTrainingData 错误:', e);
+            }
         }
 
         // 重置游戏
