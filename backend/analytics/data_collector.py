@@ -180,7 +180,7 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         if row[6] == 0:
             distraction_count += 1
     
-    vision_scores = calculate_vision_scores(vision_data_list)
+    vision_scores = calculate_vision_scores(vision_data_list) if vision_data_list else {}
     
     score_result = calculate_score(attention_type, aggregated_game_data, vision_scores)
     
@@ -232,10 +232,11 @@ def check_and_award_badges(child_id, summary):
     earned_badges = []
     badge_dict = {b['id']: b for b in BADGES}
     
-    training_count = execute_db(
+    training_count_result = execute_db(
         'SELECT COUNT(*) FROM session_summaries WHERE child_id = ?',
         (child_id,)
-    )[0][0] + 1
+    )
+    training_count = training_count_result[0][0] + 1 if training_count_result else 1
     
     if training_count == 1:
         badge = next((b for b in BADGES if b['requirement_type'] == 'training_count' and b['requirement_value'] == 1), None)
@@ -576,7 +577,13 @@ def end_session():
         print(f'错误信息：{str(e)}')
         import traceback
         print(f'堆栈跟踪：{traceback.format_exc()}')
-        return error_response(f'服务器内部错误：{str(e)}', INTERNAL_ERROR, 500)
+        return {
+            'success': False,
+            'error': {
+                'code': 500,
+                'message': f'服务器内部错误：{str(e)}'
+            }
+        }, 500
 
 @data_collector_bp.route('/api/training/session/heartbeat', methods=['POST'])
 @require_auth

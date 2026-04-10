@@ -679,6 +679,7 @@
                     console.log('已清除能力评估缓存:', cacheKey);
                     
                     // 结束训练会话
+                    const accuracy = totalClick > 0 ? score / totalClick * 100 : 0;
                     return fetch('http://localhost:5000/api/training/session/end', {
                         method: 'POST',
                         headers: {
