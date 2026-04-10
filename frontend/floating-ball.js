@@ -130,7 +130,7 @@
         smoothBlinkRate = smoothBlinkRate === 0 ? currentRate : smoothBlinkRate * 0.6 + currentRate * 0.4;
         currentBlinkRate = smoothBlinkRate;
         
-        console.log(`👁️ 眨眼检测! 总次数: ${totalBlinks}, 频率: ${currentBlinkRate.toFixed(0)} 次/分`);
+        // // console.log(`👁️ 眨眼检测！总次数：${totalBlinks}, 频率：${currentBlinkRate.toFixed(0)} 次/分`);
         
         return currentBlinkRate;
     }
@@ -185,10 +185,10 @@
                 if (baselineSamples.length > 0) {
                     const sum = baselineSamples.reduce((a, b) => a + b.rate, 0);
                     baselineBlinkRate = sum / baselineSamples.length;
-                    console.log(`📊 眨眼基线已建立: ${baselineBlinkRate.toFixed(1)} 次/分`);
+                    // console.log(`📊 眨眼基线已建立: ${baselineBlinkRate.toFixed(1)} 次/分`);
                 } else {
                     baselineBlinkRate = 12;
-                    console.log(`📊 眨眼基线使用默认值: ${baselineBlinkRate} 次/分`);
+                    // console.log(`📊 眨眼基线使用默认值: ${baselineBlinkRate} 次/分`);
                 }
             }
         }
