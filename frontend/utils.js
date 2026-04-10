@@ -307,5 +307,78 @@ const ApiUtil = {
         });
 
         return response;
+    },
+
+    apiPost: async (url, data = {}) => {
+        const token = ApiUtil.getToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(data)
+        });
+        
+        return response;
+    }
+};
+
+const GameTimeUtil = {
+    gameStartTime: null,
+    currentGame: null,
+    
+    startGame: function(gameName) {
+        this.gameStartTime = Date.now();
+        this.currentGame = gameName;
+        console.log(`🎮 游戏开始: ${gameName}`);
+    },
+    
+    endGame: function(gameName) {
+        const endTime = Date.now();
+        
+        if (!this.gameStartTime) {
+            this.gameStartTime = endTime - 60000;
+            console.warn('GameTimeUtil: 游戏开始时间未记录，使用默认值');
+        }
+        
+        const duration = Math.floor((endTime - this.gameStartTime) / 1000);
+        
+        const gameData = {
+            gameName: gameName || this.currentGame || 'unknown',
+            startTime: new Date(this.gameStartTime).toISOString(),
+            endTime: new Date(endTime).toISOString(),
+            duration: duration
+        };
+        
+        console.log(`🎮 游戏结束: ${gameData.gameName}, 用时: ${duration}秒`);
+        
+        try {
+            const history = StorageUtil.getItem('game_time_history') || [];
+            history.push(gameData);
+            if (history.length > 50) history.shift();
+            StorageUtil.setItem('game_time_history', history);
+        } catch (e) {
+            console.warn('GameTimeUtil: 无法保存游戏历史', e);
+        }
+        
+        this.gameStartTime = null;
+        this.currentGame = null;
+        
+        return gameData;
+    },
+    
+    getGameDuration: function() {
+        if (!this.gameStartTime) return 0;
+        return Math.floor((Date.now() - this.gameStartTime) / 1000);
+    },
+    
+    isGameRunning: function() {
+        return this.gameStartTime !== null;
     }
 };

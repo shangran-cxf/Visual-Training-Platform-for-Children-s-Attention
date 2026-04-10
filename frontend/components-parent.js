@@ -925,12 +925,18 @@ const ParentComponents = {
 
     /**
      * 检查登录状态
+     * 只验证用户是否已登录，不验证 mode
+     * mode 是用户状态（parent/child），用于区分当前使用模式，不应用于页面访问权限判断
      */
     checkAuth: function () {
         const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo || (userInfo.mode !== 'parent' && userInfo.role !== 'parent' && userInfo.role !== 'admin')) {
+        if (!userInfo) {
             window.location.href = 'login.html';
             return null;
+        }
+        if (userInfo.mode === 'child') {
+            userInfo.mode = 'parent';
+            UserStateUtil.setUserInfo(userInfo);
         }
         return userInfo;
     },
