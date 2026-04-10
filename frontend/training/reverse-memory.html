@@ -292,6 +292,10 @@
                     <p id="score">0</p>
                 </div>
                 <div class="info-item">
+                    <h3>错误次数</h3>
+                    <p id="errors">0</p>
+                </div>
+                <div class="info-item">
                     <h3>时间</h3>
                     <p id="time">0</p>
                 </div>
@@ -329,6 +333,8 @@
                         style="font-weight: bold; color: #ff6699;"></span>枚</p>
                 <p style="font-size: 18px; color: #333; margin: 10px 0;">完成关卡：<span id="modal-level"
                         style="font-weight: bold; color: #ff6699;"></span>关</p>
+                <p style="font-size: 18px; color: #333; margin: 10px 0;">错误次数：<span id="modal-errors"
+                        style="font-weight: bold; color: #ff6699;"></span>次</p>
             </div>
             <button id="modal-close"
                 style="background-color: rgb(200, 77, 64); color: white; border: none; border-radius: 20px; padding: 12px 24px; font-size: 16px; cursor: pointer; transition: all 0.3s;">再来一次</button>
@@ -365,6 +371,7 @@
         let score = 0;
         let level = 1;
         let time = 30;
+        let errors = 0;
         let gameState = 'ready'; // ready, displaying, input, gameOver
         let currentSequence = [];
         let timeInterval;
@@ -426,6 +433,7 @@
                 score = 0;
                 level = 1;
                 time = 30;
+                errors = 0;
                 round = 0;
                 gameState = 'displaying';
 
@@ -554,6 +562,8 @@
                 if (isCorrect) {
                     score += 10;
                     level++;
+                } else {
+                    errors++;
                 }
 
                 // 增加轮数
@@ -601,6 +611,7 @@
             // 显示自定义游戏结束弹窗
             document.getElementById('modal-score').textContent = score / 10;
             document.getElementById('modal-level').textContent = level;
+            document.getElementById('modal-errors').textContent = errors;
             document.getElementById('game-over-modal').style.display = 'flex';
         }
 
@@ -613,6 +624,7 @@
         function updateUI() {
             document.getElementById('score').textContent = score;
             document.getElementById('level').textContent = level;
+            document.getElementById('errors').textContent = errors;
             document.getElementById('time').textContent = time;
         }
 

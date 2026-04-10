@@ -119,9 +119,8 @@
             background-repeat: no-repeat;
             border-radius: 10px;
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 155px;
+            left: 355px;
             transition: all 0.3s ease;
         }
 
@@ -137,18 +136,28 @@
         }
 
         .goal {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             background-image: url('../images/house.png');
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             border-radius: 15px;
             position: absolute;
+            transition: all 0.5s ease;
+        }
+
+        .goal-flag {
+            width: 120px;
+            height: 120px;
+            background-color: transparent;
+            position: absolute;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 48px;
+            transition: all 0.5s ease;
+            z-index: 50;
         }
 
         .command-area {
@@ -223,6 +232,12 @@
             background: linear-gradient(135deg, #29B6F6, #0288d1);
             transform: scale(1.05);
             box-shadow: 0 6px 15px rgba(0, 172, 237, 0.4);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #29B6F6, #01579B);
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(0, 172, 237, 0.5);
         }
 
         .btn-secondary {
@@ -353,6 +368,13 @@
             </div>
 
             <div class="controls">
+                <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 15px;">
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn difficulty-btn" onclick="setDifficulty('easy')" id="easy-btn">简单</button>
+                        <button class="btn difficulty-btn" onclick="setDifficulty('medium')" id="medium-btn">中等</button>
+                        <button class="btn difficulty-btn" onclick="setDifficulty('hard')" id="hard-btn">困难</button>
+                    </div>
+                </div>
                 <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 5px;">
                     <button class="control-btn" onclick="movePlayer('up')">↑</button>
                 </div>
@@ -389,10 +411,11 @@
             'left': 'left',
             'right': 'right'
         };
+        let difficulty = 'easy'; // easy, medium, hard
 
         // 游戏配置
         const config = {
-            playerSpeed: 20,
+            playerSpeed: 10,
             gameAreaWidth: 800,
             gameAreaHeight: 400
         };
@@ -409,6 +432,15 @@
             gameArea.style.margin = '0 auto';
 
             player = document.getElementById('player');
+            
+            // 默认选中简单难度
+            document.getElementById('easy-btn').classList.add('active');
+        }
+
+        // 重置玩家位置到原点
+        function resetPlayerPosition() {
+            player.style.top = '155px';
+            player.style.left = '355px';
         }
 
         // 开始游戏
@@ -439,33 +471,98 @@
 
         // 生成关卡
         function generateLevel() {
-            // 清除之前的障碍物和目标
+            // 清除之前的障碍物、目标和格子旗
             obstacles.forEach(obstacle => obstacle.remove());
             obstacles = [];
             if (goal) goal.remove();
+            const oldFlag = document.getElementById('goalFlag');
+            if (oldFlag) oldFlag.remove();
 
-            // 重置玩家位置
-            player.style.top = '50%';
-            player.style.left = '50%';
+            // 生成目标，确保不会与玩家初始位置重合
+            let validGoalPosition = false;
+            let goalTop, goalLeft;
+            
+            while (!validGoalPosition) {
+                goalTop = Math.random() * (config.gameAreaHeight - 120);
+                goalLeft = Math.random() * (config.gameAreaWidth - 120);
+                
+                // 检查是否与玩家初始位置重合
+                const playerInitialTop = 155;
+                const playerInitialLeft = 355;
+                const distanceToPlayer = Math.sqrt(
+                    Math.pow(goalTop + 60 - (playerInitialTop + 45), 2) + 
+                    Math.pow(goalLeft + 60 - (playerInitialLeft + 45), 2)
+                );
+                
+                // 离玩家初始位置至少150px，确保不会重合
+                if (distanceToPlayer > 150) {
+                    validGoalPosition = true;
+                }
+            }
+            
+            goal = document.createElement('div');
+            goal.className = 'goal';
+            goal.style.top = `${goalTop}px`;
+            goal.style.left = `${goalLeft}px`;
+            document.getElementById('gameArea').appendChild(goal);
+            
+            // 生成格子旗遮挡
+            const flag = document.createElement('div');
+            flag.className = 'goal-flag';
+            flag.textContent = '🏁';
+            flag.style.top = goal.style.top;
+            flag.style.left = goal.style.left;
+            flag.id = 'goalFlag';
+            document.getElementById('gameArea').appendChild(flag);
 
-            // 生成障碍物
-            const obstacleCount = level * 2 + 3;
+            // 重置玩家位置到原点
+            resetPlayerPosition();
+
+            // 根据难度生成不同数量的障碍物
+            let obstacleCount;
+            switch (difficulty) {
+                case 'easy':
+                    obstacleCount = 3;
+                    break;
+                case 'medium':
+                    obstacleCount = 6;
+                    break;
+                case 'hard':
+                    obstacleCount = 9;
+                    break;
+                default:
+                    obstacleCount = 3;
+            }
+            
+            // 生成障碍物，确保不会在房子周围生成过多障碍物
             for (let i = 0; i < obstacleCount; i++) {
+                let validPosition = false;
+                let top, left;
+                
+                while (!validPosition) {
+                    top = Math.random() * (config.gameAreaHeight - 30);
+                    left = Math.random() * (config.gameAreaWidth - 30);
+                    
+                    // 检查是否离房子太近
+                    const goalTop = parseInt(goal.style.top);
+                    const goalLeft = parseInt(goal.style.left);
+                    const distanceToGoal = Math.sqrt(
+                        Math.pow(top - (goalTop + 60), 2) + Math.pow(left - (goalLeft + 60), 2)
+                    );
+                    
+                    // 离房子至少100px，确保有通往房子的路
+                    if (distanceToGoal > 100) {
+                        validPosition = true;
+                    }
+                }
+                
                 const obstacle = document.createElement('div');
                 obstacle.className = 'obstacle';
-                obstacle.style.top = `${Math.random() * (config.gameAreaHeight - 30)}px`;
-                obstacle.style.left = `${Math.random() * (config.gameAreaWidth - 30)}px`;
+                obstacle.style.top = `${top}px`;
+                obstacle.style.left = `${left}px`;
                 document.getElementById('gameArea').appendChild(obstacle);
                 obstacles.push(obstacle);
             }
-
-            // 生成目标
-            goal = document.createElement('div');
-            goal.className = 'goal';
-            goal.textContent = '🏁';
-            goal.style.top = `${Math.random() * (config.gameAreaHeight - 60)}px`;
-            goal.style.left = `${Math.random() * (config.gameAreaWidth - 60)}px`;
-            document.getElementById('gameArea').appendChild(goal);
 
             // 生成指令
             generateCommand();
@@ -512,16 +609,34 @@
             }
         }
 
+        // 设置难度
+        function setDifficulty(level) {
+            difficulty = level;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`${level}-btn`).classList.add('active');
+            
+            // 重置游戏状态
+            if (gameState === 'playing') {
+                generateLevel();
+            }
+        }
+
         // 移动玩家
         function movePlayer(direction) {
             if (gameState !== 'playing') return;
 
-            // 应用指令映射
+            // 直接使用点击的方向
             const mappedDirection = commandMapping[direction];
 
-            let currentTop = parseInt(player.style.top) || config.gameAreaHeight / 2;
-            let currentLeft = parseInt(player.style.left) || config.gameAreaWidth / 2;
+            // 确保获取正确的当前位置
+            let currentTop = parseInt(player.style.top) || 155;
+            let currentLeft = parseInt(player.style.left) || 355;
 
+            // 严格按照点击的方向移动
             switch (mappedDirection) {
                 case 'up':
                     currentTop = Math.max(0, currentTop - config.playerSpeed);
@@ -537,6 +652,7 @@
                     break;
             }
 
+            // 确保位置值正确
             player.style.top = `${currentTop}px`;
             player.style.left = `${currentLeft}px`;
 
@@ -570,8 +686,8 @@
             for (const obstacle of obstacles) {
                 const obstacleRect = obstacle.getBoundingClientRect();
                 if (isColliding(playerRect, obstacleRect)) {
-                    // 碰撞障碍物，游戏结束
-                    endGame();
+                    // 碰撞障碍物，回到起点
+                    resetPlayerPosition();
                     return;
                 }
             }
@@ -579,23 +695,48 @@
             // 检查与目标碰撞
             const goalRect = goal.getBoundingClientRect();
             if (isColliding(playerRect, goalRect)) {
-                // 到达目标，进入下一关
-                score += 100;
-                level++;
-                time += 10;
-                generateLevel();
-                updateUI();
+                // 移除格子旗
+                const flag = document.getElementById('goalFlag');
+                if (flag) {
+                    flag.remove();
+                }
+                
+                // 小屋变大
+                goal.style.width = '150px';
+                goal.style.height = '150px';
+                
+                // 生成星星特效
+                const goalX = goalRect.left + goalRect.width / 2;
+                const goalY = goalRect.top + goalRect.height / 2;
+                // 转换为游戏区域内的相对坐标
+                const gameAreaRect = document.getElementById('gameArea').getBoundingClientRect();
+                createStarEffect(goalX - gameAreaRect.left, goalY - gameAreaRect.top);
+
+                // 到达目标，游戏结束
+                setTimeout(() => {
+                    endGame();
+                }, 500);
             }
         }
 
-        // 检查两个矩形是否碰撞
+        // 检查两个矩形是否碰撞（缩小触发范围，只检测中心区域）
         function isColliding(rect1, rect2) {
-            return (
-                rect1.left < rect2.right &&
-                rect1.right > rect2.left &&
-                rect1.top < rect2.bottom &&
-                rect1.bottom > rect2.top
-            );
+            // 计算两个矩形的中心坐标
+            const rect1CenterX = rect1.left + rect1.width / 2;
+            const rect1CenterY = rect1.top + rect1.height / 2;
+            const rect2CenterX = rect2.left + rect2.width / 2;
+            const rect2CenterY = rect2.top + rect2.height / 2;
+            
+            // 计算两个中心之间的距离
+            const distanceX = Math.abs(rect1CenterX - rect2CenterX);
+            const distanceY = Math.abs(rect1CenterY - rect2CenterY);
+            
+            // 计算最小碰撞距离（使用缩小后的范围，只取宽度和高度的40%）
+            const minDistanceX = (rect1.width + rect2.width) * 0.4 / 2;
+            const minDistanceY = (rect1.height + rect2.height) * 0.4 / 2;
+            
+            // 只有当中心距离小于最小碰撞距离时才触发碰撞
+            return distanceX < minDistanceX && distanceY < minDistanceY;
         }
 
         // 结束游戏
@@ -639,7 +780,6 @@
             initGame();
         };
     </script>
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>
