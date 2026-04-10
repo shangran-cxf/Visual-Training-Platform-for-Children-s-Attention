@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冰雪王国小邮差</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #e3f2fd;
+            color: #2A2C90;
+            background-image: url('../images/ground20.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #0288d1;
+            margin-bottom: 5px;
+        }
+
+        .header .source {
+            font-size: 1em;
+            color: #0277bd;
+            font-style: italic;
+        }
+
+        .game-container {
+            background-color: transparent;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(237, 245, 247, 0.3);
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px solid #ffffff;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(255, 245, 248, 0.9);
+            border-radius: 15px;
+            border: 2px dashed #ffffff;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item h3 {
+            color: #0277bd;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .info-item p {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #0277bd;
+        }
+
+        .game-area {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            min-height: 400px;
+            position: relative;
+            border: 3px solid #ffffff;
+            background-image: url('../images/ground21.png');
+            background-size: cover;
+            background-position: center;
+            max-width: 860px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .player {
+            width: 90px;
+            height: 90px;
+            background-image: url('../images/sender.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 10px;
+            position: absolute;
+            top: 155px;
+            left: 355px;
+            transition: all 0.3s ease;
+        }
+
+        .obstacle {
+            width: 30px;
+            height: 30px;
+            background-image: url('../images/obstacle.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .goal {
+            width: 120px;
+            height: 120px;
+            background-image: url('../images/house.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 15px;
+            position: absolute;
+            transition: all 0.5s ease;
+        }
+
+        .goal-flag {
+            width: 120px;
+            height: 120px;
+            background-color: transparent;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            transition: all 0.5s ease;
+            z-index: 50;
+        }
+
+        .command-area {
+            margin-bottom: 30px;
+        }
+
+        .command {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(255, 245, 248, 0.9);
+            border-radius: 15px;
+            border: 2px dashed #fcfcfc;
+            color: #3756B3;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #4FC3F7, #29B6F6);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 8px rgba(0, 172, 237, 0.3);
+            width: 70px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, #29B6F6, #0288d1);
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 172, 237, 0.4);
+        }
+
+        .controls .btn {
+            margin: 0 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4FC3F7, #29B6F6);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 3px 8px rgba(0, 172, 237, 0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #29B6F6, #0288d1);
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 172, 237, 0.4);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #29B6F6, #01579B);
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(0, 172, 237, 0.5);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffccdd, #ffb3cc);
+            color: #ff6699;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #ffb3cc, #ff99bb);
+        }
+
+        .instructions {
+            background-color: rgba(255, 245, 248, 0.5);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #ffffff;
+            text-align: center;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .instructions h2 {
+            color: #3756B3;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .instructions h3 {
+            color: #0288d1;
+            margin: 15px 0 10px;
+            font-size: 1.4em;
+        }
+
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.4;
+            font-size: 1.1em;
+        }
+
+        .instructions ul {
+            text-align: center;
+            list-style-position: inside;
+            margin-bottom: 15px;
+            padding-left: 0;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .footer {
+            text-align: center;
+            color: #0277bd;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='../child-home.html'" style="
+                background: linear-gradient(135deg, #0288d1, #03a9f4);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0, 172, 237, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>冰雪王国小邮差</h1>
+        </div>
+
+        <div class="instructions">
+            <p>冰雪王国的雪花信件要送给雪精灵！</p>
+            <p>你是可爱的冰雪小邮差，要按照指令穿过雪地，把信件送到黄色雪屋。路上有红色冰刺，千万不能碰到！</p>
+            <p>每关指令不同，要仔细阅读再行动。</p>
+        </div>
+
+        <div class="game-container">
+            <div class="game-info">
+                <div class="info-item">
+                    <h3>关卡</h3>
+                    <p id="level">1</p>
+                </div>
+                <div class="info-item">
+                    <h3>得分</h3>
+                    <p id="score">0</p>
+                </div>
+                <div class="info-item">
+                    <h3>时间</h3>
+                    <p id="time">60</p>
+                </div>
+            </div>
+
+            <div class="command-area">
+                <div class="command" id="command">使用方向键或按钮控制角色移动到黄色目标点</div>
+            </div>
+
+            <div class="game-area" id="gameArea">
+                <div class="player" id="player"></div>
+                <!-- 障碍物和目标将通过JavaScript动态生成 -->
+            </div>
+
+            <div class="controls">
+                <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 15px;">
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn difficulty-btn" onclick="setDifficulty('easy')" id="easy-btn">简单</button>
+                        <button class="btn difficulty-btn" onclick="setDifficulty('medium')" id="medium-btn">中等</button>
+                        <button class="btn difficulty-btn" onclick="setDifficulty('hard')" id="hard-btn">困难</button>
+                    </div>
+                </div>
+                <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 5px;">
+                    <button class="control-btn" onclick="movePlayer('up')">↑</button>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 8px;">
+                    <button class="control-btn" onclick="movePlayer('left')">←</button>
+                    <button class="control-btn" onclick="movePlayer('down')">↓</button>
+                    <button class="control-btn" onclick="movePlayer('right')">→</button>
+                </div>
+                <div style="width: 100%; display: flex; justify-content: center; margin-top: 10px;">
+                    <button class="btn" id="startBtn">开始游戏</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 注意力训练平台</p>
+        </div>
+    </div>
+
+    <script src="../utils.js"></script>
+    <script>
+        // 游戏变量
+        let player;
+        let obstacles = [];
+        let goal;
+        let level = 1;
+        let score = 0;
+        let time = 60;
+        let gameState = 'ready'; // ready, playing, gameOver
+        let timeInterval;
+        let commandMapping = {
+            'up': 'up',
+            'down': 'down',
+            'left': 'left',
+            'right': 'right'
+        };
+        let difficulty = 'easy'; // easy, medium, hard
+
+        // 游戏配置
+        const config = {
+            playerSpeed: 10,
+            gameAreaWidth: 800,
+            gameAreaHeight: 400
+        };
+
+        // 初始化游戏
+        function initGame() {
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.addEventListener('keydown', handleKeyPress);
+
+            // 设置游戏区域大小
+            const gameArea = document.getElementById('gameArea');
+            gameArea.style.width = `${config.gameAreaWidth}px`;
+            gameArea.style.height = `${config.gameAreaHeight}px`;
+            gameArea.style.margin = '0 auto';
+
+            player = document.getElementById('player');
+            
+            // 默认选中简单难度
+            document.getElementById('easy-btn').classList.add('active');
+        }
+
+        // 重置玩家位置到原点
+        function resetPlayerPosition() {
+            player.style.top = '155px';
+            player.style.left = '355px';
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (gameState === 'ready' || gameState === 'gameOver') {
+                // 重置游戏
+                level = 1;
+                score = 0;
+                time = 60;
+                gameState = 'playing';
+
+                // 生成第一关
+                generateLevel();
+
+                // 更新UI
+                updateUI();
+
+                // 开始计时
+                timeInterval = setInterval(() => {
+                    time--;
+                    updateUI();
+                    if (time <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+        }
+
+        // 生成关卡
+        function generateLevel() {
+            // 清除之前的障碍物、目标和格子旗
+            obstacles.forEach(obstacle => obstacle.remove());
+            obstacles = [];
+            if (goal) goal.remove();
+            const oldFlag = document.getElementById('goalFlag');
+            if (oldFlag) oldFlag.remove();
+
+            // 生成目标，确保不会与玩家初始位置重合
+            let validGoalPosition = false;
+            let goalTop, goalLeft;
+            
+            while (!validGoalPosition) {
+                goalTop = Math.random() * (config.gameAreaHeight - 120);
+                goalLeft = Math.random() * (config.gameAreaWidth - 120);
+                
+                // 检查是否与玩家初始位置重合
+                const playerInitialTop = 155;
+                const playerInitialLeft = 355;
+                const distanceToPlayer = Math.sqrt(
+                    Math.pow(goalTop + 60 - (playerInitialTop + 45), 2) + 
+                    Math.pow(goalLeft + 60 - (playerInitialLeft + 45), 2)
+                );
+                
+                // 离玩家初始位置至少150px，确保不会重合
+                if (distanceToPlayer > 150) {
+                    validGoalPosition = true;
+                }
+            }
+            
+            goal = document.createElement('div');
+            goal.className = 'goal';
+            goal.style.top = `${goalTop}px`;
+            goal.style.left = `${goalLeft}px`;
+            document.getElementById('gameArea').appendChild(goal);
+            
+            // 生成格子旗遮挡
+            const flag = document.createElement('div');
+            flag.className = 'goal-flag';
+            flag.textContent = '🏁';
+            flag.style.top = goal.style.top;
+            flag.style.left = goal.style.left;
+            flag.id = 'goalFlag';
+            document.getElementById('gameArea').appendChild(flag);
+
+            // 重置玩家位置到原点
+            resetPlayerPosition();
+
+            // 根据难度生成不同数量的障碍物
+            let obstacleCount;
+            switch (difficulty) {
+                case 'easy':
+                    obstacleCount = 3;
+                    break;
+                case 'medium':
+                    obstacleCount = 6;
+                    break;
+                case 'hard':
+                    obstacleCount = 9;
+                    break;
+                default:
+                    obstacleCount = 3;
+            }
+            
+            // 生成障碍物，确保不会在房子周围生成过多障碍物
+            for (let i = 0; i < obstacleCount; i++) {
+                let validPosition = false;
+                let top, left;
+                
+                while (!validPosition) {
+                    top = Math.random() * (config.gameAreaHeight - 30);
+                    left = Math.random() * (config.gameAreaWidth - 30);
+                    
+                    // 检查是否离房子太近
+                    const goalTop = parseInt(goal.style.top);
+                    const goalLeft = parseInt(goal.style.left);
+                    const distanceToGoal = Math.sqrt(
+                        Math.pow(top - (goalTop + 60), 2) + Math.pow(left - (goalLeft + 60), 2)
+                    );
+                    
+                    // 离房子至少100px，确保有通往房子的路
+                    if (distanceToGoal > 100) {
+                        validPosition = true;
+                    }
+                }
+                
+                const obstacle = document.createElement('div');
+                obstacle.className = 'obstacle';
+                obstacle.style.top = `${top}px`;
+                obstacle.style.left = `${left}px`;
+                document.getElementById('gameArea').appendChild(obstacle);
+                obstacles.push(obstacle);
+            }
+
+            // 生成指令
+            generateCommand();
+        }
+
+        // 生成指令
+        function generateCommand() {
+            const commandElement = document.getElementById('command');
+
+            // 随机生成指令类型
+            const commandType = Math.floor(Math.random() * 3);
+
+            switch (commandType) {
+                case 0:
+                    // 正常指令
+                    commandElement.textContent = '使用方向键或按钮控制角色移动到黄色目标点';
+                    commandMapping = {
+                        'up': 'up',
+                        'down': 'down',
+                        'left': 'left',
+                        'right': 'right'
+                    };
+                    break;
+                case 1:
+                    // 反向指令
+                    commandElement.textContent = '注意：方向相反！使用方向键或按钮控制角色移动到黄色目标点';
+                    commandMapping = {
+                        'up': 'down',
+                        'down': 'up',
+                        'left': 'right',
+                        'right': 'left'
+                    };
+                    break;
+                case 2:
+                    // 旋转指令
+                    commandElement.textContent = '注意：方向旋转！使用方向键或按钮控制角色移动到黄色目标点';
+                    commandMapping = {
+                        'up': 'right',
+                        'right': 'down',
+                        'down': 'left',
+                        'left': 'up'
+                    };
+                    break;
+            }
+        }
+
+        // 设置难度
+        function setDifficulty(level) {
+            difficulty = level;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`${level}-btn`).classList.add('active');
+            
+            // 重置游戏状态
+            if (gameState === 'playing') {
+                generateLevel();
+            }
+        }
+
+        // 移动玩家
+        function movePlayer(direction) {
+            if (gameState !== 'playing') return;
+
+            // 直接使用点击的方向
+            const mappedDirection = commandMapping[direction];
+
+            // 确保获取正确的当前位置
+            let currentTop = parseInt(player.style.top) || 155;
+            let currentLeft = parseInt(player.style.left) || 355;
+
+            // 严格按照点击的方向移动
+            switch (mappedDirection) {
+                case 'up':
+                    currentTop = Math.max(0, currentTop - config.playerSpeed);
+                    break;
+                case 'down':
+                    currentTop = Math.min(config.gameAreaHeight - 90, currentTop + config.playerSpeed);
+                    break;
+                case 'left':
+                    currentLeft = Math.max(0, currentLeft - config.playerSpeed);
+                    break;
+                case 'right':
+                    currentLeft = Math.min(config.gameAreaWidth - 90, currentLeft + config.playerSpeed);
+                    break;
+            }
+
+            // 确保位置值正确
+            player.style.top = `${currentTop}px`;
+            player.style.left = `${currentLeft}px`;
+
+            // 检查碰撞
+            checkCollision();
+        }
+
+        // 处理按键
+        function handleKeyPress(e) {
+            switch (e.key) {
+                case 'ArrowUp':
+                    movePlayer('up');
+                    break;
+                case 'ArrowDown':
+                    movePlayer('down');
+                    break;
+                case 'ArrowLeft':
+                    movePlayer('left');
+                    break;
+                case 'ArrowRight':
+                    movePlayer('right');
+                    break;
+            }
+        }
+
+        // 检查碰撞
+        function checkCollision() {
+            // 检查与障碍物碰撞
+            const playerRect = player.getBoundingClientRect();
+
+            for (const obstacle of obstacles) {
+                const obstacleRect = obstacle.getBoundingClientRect();
+                if (isColliding(playerRect, obstacleRect)) {
+                    // 碰撞障碍物，回到起点
+                    resetPlayerPosition();
+                    return;
+                }
+            }
+
+            // 检查与目标碰撞
+            const goalRect = goal.getBoundingClientRect();
+            if (isColliding(playerRect, goalRect)) {
+                // 移除格子旗
+                const flag = document.getElementById('goalFlag');
+                if (flag) {
+                    flag.remove();
+                }
+                
+                // 小屋变大
+                goal.style.width = '150px';
+                goal.style.height = '150px';
+                
+                // 生成星星特效
+                const goalX = goalRect.left + goalRect.width / 2;
+                const goalY = goalRect.top + goalRect.height / 2;
+                // 转换为游戏区域内的相对坐标
+                const gameAreaRect = document.getElementById('gameArea').getBoundingClientRect();
+                createStarEffect(goalX - gameAreaRect.left, goalY - gameAreaRect.top);
+
+                // 到达目标，游戏结束
+                setTimeout(() => {
+                    endGame();
+                }, 500);
+            }
+        }
+
+        // 检查两个矩形是否碰撞（缩小触发范围，只检测中心区域）
+        function isColliding(rect1, rect2) {
+            // 计算两个矩形的中心坐标
+            const rect1CenterX = rect1.left + rect1.width / 2;
+            const rect1CenterY = rect1.top + rect1.height / 2;
+            const rect2CenterX = rect2.left + rect2.width / 2;
+            const rect2CenterY = rect2.top + rect2.height / 2;
+            
+            // 计算两个中心之间的距离
+            const distanceX = Math.abs(rect1CenterX - rect2CenterX);
+            const distanceY = Math.abs(rect1CenterY - rect2CenterY);
+            
+            // 计算最小碰撞距离（使用缩小后的范围，只取宽度和高度的40%）
+            const minDistanceX = (rect1.width + rect2.width) * 0.4 / 2;
+            const minDistanceY = (rect1.height + rect2.height) * 0.4 / 2;
+            
+            // 只有当中心距离小于最小碰撞距离时才触发碰撞
+            return distanceX < minDistanceX && distanceY < minDistanceY;
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState = 'gameOver';
+            clearInterval(timeInterval);
+
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('command-adventure');
+
+            // 保存游戏数据
+            const gameData = {
+                gameName: 'command-adventure',
+                score: score,
+                level: level,
+                timestamp: new Date().toISOString()
+            };
+
+            // 保存到本地存储
+            const trainingHistory = StorageUtil.getItem('training_history') || [];
+            trainingHistory.push(gameData);
+            StorageUtil.setItem('training_history', trainingHistory);
+
+            // 显示游戏结束信息
+            if (level > 5) {
+                alert(`🏆 恭喜你成为冰雪王国金牌小邮差！ 🏆\n\n你成功送达了所有雪花信件！\n得分：${score}\n闯过关卡：${level - 1}\n\n雪精灵为你的勇敢和智慧感到骄傲！`);
+            } else {
+                alert(`❄️ 游戏结束！ ❄️\n\n得分：${score}\n闯过关卡：${level - 1}\n\n别灰心，冰雪小邮差！\n再试一次，你一定能成功送达所有信件的！`);
+            }
+        }
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('level').textContent = level;
+            document.getElementById('score').textContent = score;
+            document.getElementById('time').textContent = time;
+        }
+
+        // 页面加载时初始化游戏
+        window.onload = function () {
+            initGame();
+        };
+    </script>
+</body>
+
+</html>
