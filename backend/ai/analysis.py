@@ -1,11 +1,17 @@
 import json
 from openai import OpenAI
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, request, g
 from database import execute_db
 from utils.response_utils import success_response, error_response
 from middleware import require_auth
-from .config import AI_CONFIG, PROMPT_TEMPLATES, is_ai_configured
+from .config import AI_CONFIG, PROMPT_TEMPLATES, CACHE_CONFIG, is_ai_configured
+from .validator import (
+    is_empty_data,
+    get_cached_report_if_unchanged,
+    cache_report,
+    get_empty_report
+)
 
 ai_bp = Blueprint('ai', __name__)
 
@@ -84,8 +90,6 @@ def get_child_detection_data(child_id):
     return None
 
 def get_child_training_trend(child_id, days=30):
-    from datetime import datetime, timedelta
-    
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days)
     
@@ -125,6 +129,41 @@ def get_performance_level(score):
         return '一般'
     else:
         return '较弱'
+
+def get_evaluation_data(child_id):
+    stats = get_child_training_stats(child_id)
+    detection = get_child_detection_data(child_id)
+    
+    return {
+        'training_count': stats.get('training_count', 0),
+        'total_time': stats.get('total_time', 0),
+        'avg_score': stats.get('avg_score', 0),
+        'detection': detection
+    }
+
+def get_history_evaluation_data(child_id, days=30):
+    stats = get_child_training_stats(child_id)
+    trend = get_child_training_trend(child_id, days)
+    
+    return {
+        'training_count': stats.get('training_count', 0),
+        'total_time': stats.get('total_time', 0),
+        'avg_score': stats.get('avg_score', 0),
+        'trend': trend
+    }
+
+def get_analysis_data(child_id):
+    stats = get_child_training_stats(child_id)
+    detection = get_child_detection_data(child_id)
+    trend = get_child_training_trend(child_id)
+    
+    return {
+        'training_count': stats.get('training_count', 0),
+        'total_time': stats.get('total_time', 0),
+        'avg_score': stats.get('avg_score', 0),
+        'detection': detection,
+        'trend': trend
+    }
 
 def build_prompt_from_template(template_key, **kwargs):
     if template_key not in PROMPT_TEMPLATES:
@@ -242,6 +281,17 @@ def format_trend_data_for_prompt(child_id, days=30):
     
     return "\n".join(lines) if lines else "暂无训练趋势数据"
 
+def validate_child_access(child_id, user_id):
+    child_info = get_child_basic_info(child_id)
+    if not child_info:
+        return None, '儿童不存在', 404
+    
+    child_record = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
+    if child_record and child_record[0][0] != user_id:
+        return None, '无权访问该儿童数据', 403
+    
+    return child_info, None, None
+
 @ai_bp.route('/api/ai/current-training-evaluation', methods=['POST'])
 @require_auth
 def generate_current_training_evaluation():
@@ -251,13 +301,31 @@ def generate_current_training_evaluation():
     if not child_id:
         return error_response('child_id 不能为空', 'VALIDATION_ERROR', 400)
     
-    child_info = get_child_basic_info(child_id)
-    if not child_info:
-        return error_response('儿童不存在', 'NOT_FOUND', 404)
+    child_info, error_msg, error_code = validate_child_access(child_id, request.user_id)
+    if error_msg:
+        return error_response(error_msg, 'ACCESS_ERROR', error_code)
     
-    child_record = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
-    if child_record and child_record[0][0] != request.user_id:
-        return error_response('无权访问该儿童数据', 'PERMISSION_DENIED', 403)
+    evaluation_data = get_evaluation_data(child_id)
+    
+    if is_empty_data(evaluation_data):
+        return success_response({
+            'child_id': child_id,
+            'child_name': child_info.get('name'),
+            'evaluation': get_empty_report('current_training'),
+            'generated_at': datetime.now().isoformat(),
+            'is_cached': False,
+            'is_empty': True
+        }, '暂无训练数据，返回预设报告')
+    
+    cached_report = get_cached_report_if_unchanged(child_id, evaluation_data, CACHE_CONFIG)
+    if cached_report:
+        return success_response({
+            'child_id': child_id,
+            'child_name': child_info.get('name'),
+            'evaluation': cached_report,
+            'generated_at': datetime.now().isoformat(),
+            'is_cached': True
+        }, '返回缓存报告')
     
     prompts, error = build_prompt_from_template(
         'current_training_evaluation',
@@ -279,11 +347,14 @@ def generate_current_training_evaluation():
     if error:
         return error_response(error, 'AI_ERROR', 500)
     
+    cache_report(child_id, evaluation_data, result, 'current_training')
+    
     return success_response({
         'child_id': child_id,
         'child_name': child_info.get('name'),
         'evaluation': result,
-        'generated_at': datetime.now().isoformat()
+        'generated_at': datetime.now().isoformat(),
+        'is_cached': False
     }, '当前训练评价生成成功')
 
 @ai_bp.route('/api/ai/history-training-evaluation', methods=['POST'])
@@ -296,13 +367,33 @@ def generate_history_training_evaluation():
     if not child_id:
         return error_response('child_id 不能为空', 'VALIDATION_ERROR', 400)
     
-    child_info = get_child_basic_info(child_id)
-    if not child_info:
-        return error_response('儿童不存在', 'NOT_FOUND', 404)
+    child_info, error_msg, error_code = validate_child_access(child_id, request.user_id)
+    if error_msg:
+        return error_response(error_msg, 'ACCESS_ERROR', error_code)
     
-    child_record = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
-    if child_record and child_record[0][0] != request.user_id:
-        return error_response('无权访问该儿童数据', 'PERMISSION_DENIED', 403)
+    evaluation_data = get_history_evaluation_data(child_id, days)
+    
+    if is_empty_data(evaluation_data):
+        return success_response({
+            'child_id': child_id,
+            'child_name': child_info.get('name'),
+            'evaluation': get_empty_report('history_training'),
+            'generated_at': datetime.now().isoformat(),
+            'data_period_days': days,
+            'is_cached': False,
+            'is_empty': True
+        }, '暂无训练数据，返回预设报告')
+    
+    cached_report = get_cached_report_if_unchanged(child_id, evaluation_data, CACHE_CONFIG)
+    if cached_report:
+        return success_response({
+            'child_id': child_id,
+            'child_name': child_info.get('name'),
+            'evaluation': cached_report,
+            'generated_at': datetime.now().isoformat(),
+            'data_period_days': days,
+            'is_cached': True
+        }, '返回缓存报告')
     
     stats = get_child_training_stats(child_id)
     
@@ -328,12 +419,15 @@ def generate_history_training_evaluation():
     if error:
         return error_response(error, 'AI_ERROR', 500)
     
+    cache_report(child_id, evaluation_data, result, 'history_training')
+    
     return success_response({
         'child_id': child_id,
         'child_name': child_info.get('name'),
         'evaluation': result,
         'generated_at': datetime.now().isoformat(),
-        'data_period_days': days
+        'data_period_days': days,
+        'is_cached': False
     }, '历史训练评价生成成功')
 
 @ai_bp.route('/api/ai/generate', methods=['POST'])
@@ -378,13 +472,48 @@ def generate_training_analysis():
     if not child_id:
         return error_response('child_id 不能为空', 'VALIDATION_ERROR', 400)
     
-    child_info = get_child_basic_info(child_id)
-    if not child_info:
-        return error_response('儿童不存在', 'NOT_FOUND', 404)
+    child_info, error_msg, error_code = validate_child_access(child_id, request.user_id)
+    if error_msg:
+        return error_response(error_msg, 'ACCESS_ERROR', error_code)
     
-    child_record = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
-    if child_record and child_record[0][0] != request.user_id:
-        return error_response('无权访问该儿童数据', 'PERMISSION_DENIED', 403)
+    analysis_data = get_analysis_data(child_id)
+    
+    if is_empty_data(analysis_data):
+        return success_response({
+            'child_id': child_id,
+            'child_name': child_info.get('name'),
+            'analysis': get_empty_report('training_analysis').get('analysis'),
+            'generated_at': datetime.now().isoformat(),
+            'data_summary': {
+                'training_count': 0,
+                'total_time': 0,
+                'avg_score': 0,
+                'detection': None,
+                'trend_summary': {}
+            },
+            'is_cached': False,
+            'is_empty': True
+        }, '暂无训练数据，返回预设报告')
+    
+    cached_report = get_cached_report_if_unchanged(child_id, analysis_data, CACHE_CONFIG)
+    if cached_report:
+        stats = get_child_training_stats(child_id)
+        detection = get_child_detection_data(child_id)
+        trend = get_child_training_trend(child_id)
+        return success_response({
+            'child_id': child_id,
+            'child_name': child_info.get('name'),
+            'analysis': cached_report.get('analysis'),
+            'generated_at': datetime.now().isoformat(),
+            'data_summary': {
+                'training_count': stats.get('training_count', 0),
+                'total_time': stats.get('total_time', 0),
+                'avg_score': stats.get('avg_score', 0),
+                'detection': detection,
+                'trend_summary': {k: len(v) for k, v in trend.items()} if trend else {}
+            },
+            'is_cached': True
+        }, '返回缓存报告')
     
     stats = get_child_training_stats(child_id)
     detection = get_child_detection_data(child_id)
@@ -445,6 +574,8 @@ def generate_training_analysis():
     if error:
         return error_response(error, 'AI_ERROR', 500)
     
+    cache_report(child_id, analysis_data, {'analysis': analysis}, 'training_analysis')
+    
     return success_response({
         'child_id': child_id,
         'child_name': child_info.get('name'),
@@ -456,7 +587,8 @@ def generate_training_analysis():
             'avg_score': stats.get('avg_score', 0),
             'detection': detection,
             'trend_summary': {k: len(v) for k, v in trend.items()} if trend else {}
-        }
+        },
+        'is_cached': False
     }, '评析生成成功')
 
 @ai_bp.route('/api/ai/status', methods=['GET'])
@@ -464,5 +596,6 @@ def get_ai_status():
     return success_response({
         'configured': is_ai_configured(),
         'model': AI_CONFIG.get('model') if is_ai_configured() else None,
-        'available_templates': list(PROMPT_TEMPLATES.keys())
+        'available_templates': list(PROMPT_TEMPLATES.keys()),
+        'cache_enabled': CACHE_CONFIG.get('enabled', True)
     }, '查询成功')
