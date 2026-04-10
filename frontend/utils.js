@@ -102,7 +102,7 @@ const AudioUtil = {
  */
 const UserStateUtil = {
     USER_INFO_KEY: 'userInfo',
-    
+
     getUserInfo: () => {
         return StorageUtil.getItem(UserStateUtil.USER_INFO_KEY);
     },
@@ -116,7 +116,7 @@ const UserStateUtil = {
     },
 
     // ========== 身份认证相关（用于权限判断）==========
-    
+
     getRole: () => {
         const info = UserStateUtil.getUserInfo();
         return info ? info.role : null;
@@ -135,7 +135,7 @@ const UserStateUtil = {
     },
 
     // ========== 用户状态相关（不用于权限判断）==========
-    
+
     getMode: () => {
         const info = UserStateUtil.getUserInfo();
         return info ? info.mode : null;
@@ -270,12 +270,12 @@ const ApiUtil = {
         }
         return data.data !== undefined ? data.data : data;
     },
-    
+
     handleError: (error) => {
         console.error('API Error:', error);
         throw error;
     },
-    
+
     fetch: async (url, options = {}) => {
         try {
             const response = await fetch(url, options);
@@ -289,23 +289,23 @@ const ApiUtil = {
         const queryString = new URLSearchParams(
             Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
         ).toString();
-        
+
         const fullUrl = queryString ? `${url}?${queryString}` : url;
-        
+
         const token = ApiUtil.getToken();
         const headers = {
             'Content-Type': 'application/json'
         };
-        
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
-        
+
         const response = await fetch(fullUrl, {
             method: 'GET',
             headers
         });
-        
+
         return response;
     }
 };

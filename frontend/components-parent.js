@@ -168,9 +168,9 @@ const ParentComponents = {
             .logout-btn {
                 position: absolute;
                 bottom: 24px;
-                width: 55px;
-                height: 55px;
-                border-radius: 16px;
+                width: 70px;
+                height: 70px;
+                border-radius: 19px;
                 background: rgba(255, 255, 255, 0.9);
                 display: flex;
                 align-items: center;
@@ -184,18 +184,18 @@ const ParentComponents = {
 
             .logout-btn:hover {
                 transform: scale(1.05);
-                background: #fff;
-                border-color: #ff6b6b;
+                background: #503E78;
+                border-color: #503E78;
             }
 
             .logout-btn svg {
-                width: 25px;
-                height: 25px;
+                width: 35px;
+                height: 35px;
                 color: #343559;
             }
 
             .logout-btn:hover svg {
-                color: #ff6b6b;
+                color: #fff;
             }
 
             /* ===== 主内容区域 ===== */
@@ -867,14 +867,14 @@ const ParentComponents = {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 const data = result.data || result;
                 const avatarElement = document.getElementById('modal-avatar');
                 if (avatarElement && data.avatar_url) {
                     avatarElement.innerHTML = `<img src="${data.avatar_url}" alt="头像">`;
                 }
-                
+
                 // 更新本地存储中的头像URL
                 userInfo.avatar = data.avatar_url;
                 StorageUtil.setItem('userInfo', userInfo);
@@ -920,7 +920,7 @@ const ParentComponents = {
      */
     logout: function () {
         StorageUtil.removeItem('userInfo');
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
     },
 
     /**

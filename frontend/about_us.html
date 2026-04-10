@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关于我们 - 童眸智训</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #e9f6ff;
+      font-family: "Microsoft Yahei", sans-serif;
+    }
+
+    /* 返回按钮样式 */
+    .button {
+      text-align: center;
+      transition: 0.3s ease-in-out;
+      cursor: pointer;
+      background-color: #7ebefb;
+      filter: url(#handDrawnNoise);
+      display: inline-flex;
+      align-items: center;
+      user-select: none;
+      font-family: "Courier New", monospace;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 0.75em;
+      border-width: 0px;
+      border-radius: 1.5rem;
+      box-shadow: #33333366 3px 3px 0 1px;
+      animation: idle 1s infinite ease-in-out;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      color: #000;
+      text-decoration: none;
+      margin-top: 15px;
+    }
+
+    .highlight {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      fill: rgba(255, 225, 0, 0.8);
+      stroke: rgba(255, 225, 0, 0.8);
+      stroke-width: 10;
+      stroke-linecap: round;
+      pointer-events: none;
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      transition: stroke-dashoffset 0.5s ease-in-out;
+    }
+
+    @keyframes idle {
+      0% {
+        filter: url(#handDrawnNoise);
+      }
+
+      50% {
+        rotate: 2.5deg;
+        filter: url(#handDrawnNoise2);
+      }
+
+      100% {
+        filter: url(#handDrawnNoise);
+      }
+    }
+
+    .button-cosm {
+      fill: #33333366;
+      transition: 0.3s ease-out;
+      scale: 0.5;
+      position: absolute;
+      translate: calc(-100% + 24px) 1.5rem;
+    }
+
+    .button:hover {
+      font-weight: bold;
+      border-width: 0px;
+      border-radius: 2rem;
+      rotate: -2.5deg;
+      animation: hover 2.5s infinite ease-in-out;
+    }
+
+    .button:hover .highlight {
+      stroke-dashoffset: 0;
+    }
+
+    .button:active .highlight {
+      stroke-dashoffset: 1000;
+      animation:
+        highlight 5s infinite,
+        col 0.5s forwards;
+      stroke: #bc4e2666;
+    }
+
+    @keyframes col {
+      0% {
+        stroke: rgba(255, 225, 0, 0.5);
+      }
+
+      100% {
+        stroke: #1c98eb66;
+      }
+    }
+
+    @keyframes highlight {
+      0% {
+        stroke-dashoffset: 0;
+      }
+
+      25% {
+        stroke-dashoffset: 1000;
+      }
+
+      50% {
+        stroke-dashoffset: 1000;
+      }
+
+      100% {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes hover {
+      0% {
+        rotate: 0deg;
+        filter: url(#handDrawnNoise);
+        translate: 0 0px;
+      }
+
+      25% {
+        rotate: -1deg;
+        filter: url(#handDrawnNoise2);
+        translate: 0 -2px;
+      }
+
+      50% {
+        rotate: 0deg;
+        filter: url(#handDrawnNoise);
+        translate: 0 2px;
+      }
+
+      75% {
+        rotate: -1deg;
+        filter: url(#handDrawnNoise2);
+        translate: 0 -2px;
+      }
+
+      100% {
+        rotate: 0deg;
+        filter: url(#handDrawnNoise);
+        translate: 0 0px;
+      }
+    }
+
+    .button:hover .button-cosm {
+      rotate: -15deg;
+      translate: calc(-100% + 22px) 1.9rem;
+    }
+
+    .button:active .button-cosm {
+      fill: #333333f1;
+      rotate: -135deg;
+      translate: calc(-100% + 55px) 1.6rem;
+      animation: none;
+    }
+
+    .button:active {
+      font-weight: bold;
+      border-width: 0px;
+      border-radius: 2rem;
+      box-shadow: inset #333333f1 4px 4px 0 1px;
+      rotate: -2.5deg;
+      animation: active 1s infinite ease-in-out;
+    }
+
+    @keyframes active {
+      0% {
+        filter: url(#handDrawnNoiset);
+        translate: 0 -1px;
+      }
+
+      25% {
+        rotate: -3deg;
+      }
+
+      50% {
+        filter: url(#handDrawnNoiset2);
+        translate: 0 1px;
+      }
+
+      66% {
+        rotate: 1.5deg;
+      }
+
+      100% {
+        filter: url(#handDrawnNoiset);
+        translate: 0 -1px;
+      }
+    }
+
+    /* 页面根容器，控制整体尺寸 */
+    .page-container {
+      width: 100%;
+      max-width: 1920px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* 1. 底层浅蓝色大背景（效果图最底层的浅蓝色块） */
+    .bg-light-blue {
+      position: absolute;
+      top: 120px;
+      left: 0;
+      width: 100%;
+      height: 730px;
+      background-color: #9dd6ff;
+      z-index: 1;
+    }
+
+    /* 2. 右上角深蓝色小方块（叠加在浅蓝色背景上） */
+    .top-right-box {
+      position: absolute;
+      margin-top: -30px;
+      top: 100px;
+      right: 40px;
+      width: 400px;
+      height: 120px;
+      background-color: #3770bf;
+      border-radius: 12px;
+      z-index: 3;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* about 图片单独样式 */
+    .about-image {
+      width: 520%;
+      height: 520%;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+      margin-top: 110px;
+    }
+
+    .top-right-box:hover .about-image {
+      transform: scale(1.05);
+    }
+
+    /* 3. 左上角LOGO（放大并调整位置） */
+    .logo-box {
+      position: absolute;
+      top: -100px;
+      left: 150px;
+      width: 450px;
+      height: 450px;
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* 4. 三个深蓝色主卡片（叠加在浅蓝色背景上，层级高于背景、低于LOGO/右上角方块） */
+    .cards-container {
+      position: absolute;
+      top: 240px;
+      left: 80px;
+      right: 80px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 2;
+    }
+
+    .content-card {
+      width: 31%;
+      height: 590px;
+      background-color: #004e75;
+      padding: 25px;
+      color: #ffffff;
+      line-height: 1.7;
+      font-size: 18px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 第一个卡片：平台简介 - 方形 */
+    .content-card:nth-child(1) {
+      border-radius: 12px;
+      background-color: #fcc648;
+    }
+
+    /* 第二个卡片：核心理念 - 方形 */
+    .content-card:nth-child(2) {
+      border-radius: 12px;
+      background-color: #aecc73;
+    }
+
+    /* 第三个卡片：产品特色 - 方形 */
+    .content-card:nth-child(3) {
+      border-radius: 12px;
+      background-color: #b0b5fc;
+    }
+
+    /* 卡片悬停效果 */
+    .content-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 确保文字区域不受不规则形状影响 */
+    .content-card>* {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- SVG 滤镜定义 -->
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <filter id="handDrawnNoise">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="handDrawnNoise2">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="G" yChannelSelector="R" />
+      </filter>
+      <filter id="handDrawnNoiset">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="handDrawnNoiset2">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="G" yChannelSelector="R" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- 返回按钮 -->
+  <a href="index.html" class="button">
+    返回首页
+    <svg class="button-cosm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+    <svg class="highlight" viewBox="0 0 150 60" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M10 30h130" />
+    </svg>
+  </a>
+  <div class="page-container">
+    <!-- 1. 底层浅蓝色背景 -->
+    <div class="bg-light-blue"></div>
+
+    <!-- 2. 右上角about图片方块 -->
+    <div class="top-right-box">
+      <img class="about-image" src="index_images/about.png" alt="关于我们">
+    </div>
+
+    <!-- 3. 左上角LOGO -->
+    <div class="logo-box">
+      <img src="index_images/child.png" alt="童眸智训LOGO">
+    </div>
+
+    <!-- 4. 三个主内容卡片 -->
+    <div class="cards-container">
+      <!-- 第一个卡片：平台简介 -->
+      <div class="content-card">
+        <h3 style="font-size: 25px; margin-bottom: 12px; border-bottom: 2px solid #ED9455; padding-bottom: 6px;">平台简介
+        </h3>
+        <p>童眸智训是专注于儿童注意力评估与专注力训练的专业服务平台，面向6-12岁儿童提供科学、系统、趣味化的综合能力提升方案。</p>
+        <p style="margin-top: 10px;">
+          平台立足儿童认知发展规律，融合认知心理学、教育学与AI交互技术，将专业的注意力训练转化为适龄、易懂、易坚持的互动内容，帮助孩子改善注意力不集中、易分心、视觉追踪弱、执行效率不足等问题。</p>
+        <p style="margin-top: 10px;">我们以科技赋能成长教育，通过标准化测评、个性化训练与数据化追踪，为孩子构建科学的专注力提升路径，同时为家长提供清晰、可量化的成长反馈。</p>
+      </div>
+
+      <!-- 第二个卡片：核心理念 -->
+      <div class="content-card">
+        <h3 style="font-size: 25px; margin-bottom: 12px; border-bottom: 2px solid #64a386; padding-bottom: 6px;">核心理念
+        </h3>
+        <p>严谨：依托专业理论与儿童发展特点设计训练体系，拒绝无意义娱乐化。</p>
+        <p style="margin-top: 10px;">以儿童视角打造沉浸式交互场景，激发主动参与。</p>
+        <p style="margin-top: 10px;">个性化适配：智能匹配训练难度，实现因材施教，精准提升。</p>
+        <p style="margin-top: 10px;">家校共育：打通家长端与训练数据互通，同步引导、共同陪伴。</p>
+        <p style="margin-top: 10px;">安全守护：坚持健康使用时长、无广告干扰、护眼界面设计。</p>
+      </div>
+
+      <!-- 第三个卡片：产品特色 -->
+      <div class="content-card">
+        <h3 style="font-size: 25px; margin-bottom: 12px; border-bottom: 2px solid #694899; padding-bottom: 6px;">产品特色
+        </h3>
+        <p>🔍 科学测评</p>
+        <p>通过AI视觉与行为分析，精准评估儿童注意力水平，生成专业测评报告。</p>
+        <p style="margin-top: 10px;">🤖 训练课程</p>
+        <p>依据认知规律设计阶梯式训练课程，针对性提升视觉专注、反应力与逻辑能力。</p>
+        <p style="margin-top: 10px;">🎮 交互体验</p>
+        <p>采用趣味游戏化交互，让孩子在轻松互动中主动训练，提升专注时长。</p>
+        <p style="margin-top: 10px;">📊 可视化追踪</p>
+        <p>实时记录训练数据，生成成长曲线，家长可清晰查看进度与效果。</p>
+        <p style="margin-top: 10px;">🛡️ 安全守护</p>
+        <p>严控使用时长，护眼无广告，保护孩子隐私，营造安全纯净的训练环境。</p>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>

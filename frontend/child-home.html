@@ -1082,7 +1082,9 @@
       <h3>家长端登录</h3>
       <p>请输入密码</p>
       <form onsubmit="checkPassword(); return false;" autocomplete="on">
-        <input type="text" id="parent-username" autocomplete="username" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;" tabindex="-1" aria-hidden="true">
+        <input type="text" id="parent-username" autocomplete="username"
+          style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;"
+          tabindex="-1" aria-hidden="true">
         <input type="password" id="parent-password" placeholder="输入密码" autocomplete="current-password">
       </form>
       <div class="modal-buttons">
@@ -1384,18 +1386,18 @@
       const password = document.getElementById('parent-password').value;
       const userInfo = UserStateUtil.getUserInfo();
       const parentId = userInfo ? userInfo.parent_id : null;
-      
+
       if (!parentId) {
         alert('用户信息丢失，请重新登录');
         window.location.href = 'login.html';
         return;
       }
-      
+
       if (!password) {
         alert('请输入密码');
         return;
       }
-      
+
       try {
         const response = await fetch('/api/verify-password', {
           method: 'POST',
@@ -1407,9 +1409,9 @@
             password: password
           })
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok && data.valid) {
           UserStateUtil.switchToParentMode();
           window.location.href = 'child-document.html';
