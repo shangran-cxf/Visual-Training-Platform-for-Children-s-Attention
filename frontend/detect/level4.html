@@ -136,7 +136,6 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             text-align: center;
             display: none;
-            z-index: 100;
         }
 
         .feedback h3 {
@@ -151,6 +150,16 @@
             font-size: 18px;
             font-weight: bold;
             color: white;
+        }
+
+        .score-board {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-align: right;
         }
     </style>
 </head>
@@ -185,6 +194,10 @@
         </div>
         <div class="game-area">
             <div class="progress">阶段：<span id="stage">1</span>/3</div>
+            <div class="score-board">
+                <div>正确轮次：<span id="correct-rounds">0</span></div>
+                <div>错误轮次：<span id="error-rounds">0</span></div>
+            </div>
             <div class="instruction" id="instruction">准备就绪，点击开始按钮播放语音线索</div>
             <div class="clues-container" id="clues-container">
                 <!-- 线索图标将通过JavaScript生成 -->
@@ -210,7 +223,9 @@
         let isPaused = false;
         let isListening = false;
         let accuracy = 0;
+        let errorRounds = 0;
         let sequenceErrors = 0;
+        let clickErrors = 0;
         let reactionTimes = [];
         let lastClickTime = 0;
 
@@ -312,13 +327,24 @@
                 if (userSequence[i].image !== targetSequence[i].image) {
                     isCorrect = false;
                     sequenceErrors++;
+                    clickErrors++;
                     break;
                 }
             }
 
             if (isCorrect) {
                 accuracy++;
+                // 显示正确特效
+                showCorrectEffect();
+            } else {
+                errorRounds++;
+                // 显示错误特效
+                showErrorEffect();
             }
+            
+            // 更新UI显示
+            document.getElementById('correct-rounds').textContent = accuracy;
+            document.getElementById('error-rounds').textContent = errorRounds;
 
             // 进入下一阶段或结束游戏
             currentStage++;
@@ -337,6 +363,44 @@
             }
         }
 
+        // 显示正确特效
+        function showCorrectEffect() {
+            const effect = document.createElement('div');
+            effect.style.position = 'fixed';
+            effect.style.top = '50%';
+            effect.style.left = '50%';
+            effect.style.transform = 'translate(-50%, -50%)';
+            effect.style.fontSize = '48px';
+            effect.style.color = '#4CAF50';
+            effect.style.zIndex = '1000';
+            effect.style.animation = 'correctEffect 1s ease-out';
+            effect.textContent = '✅ 正确！';
+            document.body.appendChild(effect);
+            
+            setTimeout(() => {
+                effect.remove();
+            }, 1000);
+        }
+
+        // 显示错误特效
+        function showErrorEffect() {
+            const effect = document.createElement('div');
+            effect.style.position = 'fixed';
+            effect.style.top = '50%';
+            effect.style.left = '50%';
+            effect.style.transform = 'translate(-50%, -50%)';
+            effect.style.fontSize = '48px';
+            effect.style.color = '#f44336';
+            effect.style.zIndex = '1000';
+            effect.style.animation = 'errorEffect 1s ease-out';
+            effect.textContent = '❌ 错误！';
+            document.body.appendChild(effect);
+            
+            setTimeout(() => {
+                effect.remove();
+            }, 1000);
+        }
+
         // 开始游戏
         function startGame() {
             if (isGameStarted) return;
@@ -345,13 +409,19 @@
             currentStage = 1;
             userSequence = [];
             accuracy = 0;
+            errorRounds = 0;
             sequenceErrors = 0;
+            clickErrors = 0;
             reactionTimes = [];
 
             isGameStarted = true;
             isPaused = false;
 
+            // 更新UI显示
             document.getElementById('stage').textContent = currentStage;
+            document.getElementById('correct-rounds').textContent = accuracy;
+            document.getElementById('error-rounds').textContent = errorRounds;
+            
             generateClues();
             playClues();
         }
@@ -378,12 +448,26 @@
             document.getElementById('accuracy').textContent = `${accuracyRate}%`;
             document.getElementById('sequence-errors').textContent = sequenceErrors;
             document.getElementById('reaction-time').textContent = avgReactionTime;
-            document.getElementById('feedback').style.display = 'block';
+            
+            // 添加错误次数和正确轮数显示
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.innerHTML = `
+                <h3>关卡完成！</h3>
+                <p>线索匹配正确率：<span id="accuracy">${accuracyRate}%</span></p>
+                <p>线索顺序错误次数：<span id="sequence-errors">${sequenceErrors}</span></p>
+                <p>点击错误次数：<span id="click-errors">${clickErrors}</span></p>
+                <p>正确轮数：<span id="correct-rounds">${accuracy}</span></p>
+                <p>操作反应时间：<span id="reaction-time">${avgReactionTime}</span>ms</p>
+                <button class="btn" onclick="nextLevel()">下一关</button>
+            `;
+            feedbackDiv.style.display = 'block';
 
             // 保存数据
             const data = {
                 working_memory: accuracyRate,
                 sequence_errors: sequenceErrors,
+                click_errors: clickErrors,
+                correct_rounds: accuracy,
                 reaction_time: avgReactionTime
             };
             StorageUtil.setItem('level4_data', data);
@@ -400,7 +484,6 @@
             startGame();
         };
     </script>
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>
