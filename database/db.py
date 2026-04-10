@@ -1,12 +1,9 @@
 import sqlite3
 import os
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import DB_PATH
+from .config import DATABASE_PATH
 
 def get_db_path():
-    return DB_PATH
+    return DATABASE_PATH
 
 def get_db_connection():
     db_path = get_db_path()
@@ -20,14 +17,12 @@ def execute_db(query, params=(), fetch_last_id=False):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(query, params)
-        # 只有非SELECT查询才需要提交事务
         if not query.strip().upper().startswith('SELECT'):
             conn.commit()
         result = cursor.fetchall()
         last_id = cursor.lastrowid if fetch_last_id else None
         return (result, last_id) if fetch_last_id else result
     except Exception as e:
-        # 发生异常时回滚事务
         if conn:
             try:
                 conn.rollback()
@@ -35,7 +30,6 @@ def execute_db(query, params=(), fetch_last_id=False):
                 pass
         raise e
     finally:
-        # 无论是否发生异常，都关闭数据库连接
         if conn:
             try:
                 conn.close()

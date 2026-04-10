@@ -1,6 +1,6 @@
 import sqlite3
-import os
 from .db import get_db_path
+import os
 
 def init_db():
     db_path = get_db_path()
@@ -15,6 +15,10 @@ def init_db():
         password TEXT NOT NULL,
         email TEXT,
         role TEXT DEFAULT 'user',
+        avatar TEXT DEFAULT '',
+        level INTEGER DEFAULT 1,
+        experience INTEGER DEFAULT 0,
+        is_banned INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
@@ -53,6 +57,9 @@ def init_db():
         parent_id INTEGER NOT NULL,
         title TEXT NOT NULL,
         content TEXT NOT NULL,
+        category_id INTEGER,
+        is_pinned INTEGER DEFAULT 0,
+        is_essential INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         view_count INTEGER DEFAULT 0,
@@ -100,8 +107,6 @@ def init_db():
         FOREIGN KEY (child_id) REFERENCES children (id)
     )
     ''')
-    
-
     
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS user_badges (
@@ -160,13 +165,12 @@ def init_db():
     )
     ''')
     
-
-    
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS training_sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         child_id INTEGER NOT NULL,
         game_type TEXT NOT NULL,
+        attention_type TEXT,
         session_token TEXT NOT NULL,
         device_id TEXT,
         start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -188,6 +192,21 @@ def init_db():
         score INTEGER,
         accuracy REAL,
         level INTEGER,
+        time INTEGER DEFAULT 0,
+        correct INTEGER DEFAULT 0,
+        error INTEGER DEFAULT 0,
+        miss INTEGER DEFAULT 0,
+        leave INTEGER DEFAULT 0,
+        obstacle INTEGER DEFAULT 0,
+        total_target INTEGER DEFAULT 1,
+        total_step INTEGER DEFAULT 1,
+        total_click INTEGER DEFAULT 1,
+        total_trial INTEGER DEFAULT 1,
+        memory_load INTEGER DEFAULT 1,
+        order_error INTEGER DEFAULT 0,
+        late_error_ratio REAL DEFAULT 0,
+        mean_rt INTEGER DEFAULT 1000,
+        reaction_times TEXT,
         FOREIGN KEY (session_id) REFERENCES training_sessions (id)
     )
     ''')
@@ -202,7 +221,9 @@ def init_db():
         head_yaw REAL,
         head_pitch REAL,
         face_area REAL,
+        face_distance REAL,
         blink_rate REAL,
+        blink_count INTEGER DEFAULT 0,
         focus_duration REAL,
         FOREIGN KEY (session_id) REFERENCES training_sessions (id)
     )
