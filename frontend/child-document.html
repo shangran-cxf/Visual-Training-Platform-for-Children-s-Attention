@@ -368,37 +368,47 @@
     // 从后端获取儿童数据
     async function fetchChildData(childId) {
       try {
-        const [statsResponse, detectionResponse] = await Promise.all([
+        console.log('=== 能力评估数据获取调试信息 ===');
+        console.log('开始获取儿童数据，childId:', childId);
+        
+        const [statsResponse, trendResponse] = await Promise.all([
           ApiUtil.apiGet(`/api/children/${childId}/stats`),
-          ApiUtil.apiGet(`/api/get/detection`, { child_id: childId })
+          ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 30 })
         ]);
 
+        console.log('Stats API响应状态:', statsResponse.status);
+        console.log('Trend API响应状态:', trendResponse.status);
+        
         const statsResult = await statsResponse.json();
-        const detectionResult = await detectionResponse.json();
+        const trendResult = await trendResponse.json();
+
+        console.log('Stats API响应数据:', statsResult);
+        console.log('Trend API响应数据:', trendResult);
 
         const stats = statsResult.data || statsResult;
-        const detection = detectionResult.data || detectionResult;
+        const trend = trendResult.data || trendResult;
 
         const child = (childrenList && Array.isArray(childrenList)) 
           ? childrenList.find(c => c.id === childId) || {} 
           : {};
 
-        const latestDetection = Array.isArray(detection) && detection.length > 0 
-          ? detection[0] 
-          : null;
-
+        // 从训练趋势数据中获取各维度的平均得分
         let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
-        if (latestDetection) {
+        if (trend && trend.trend) {
+          console.log('训练趋势数据:', trend.trend);
           radarData = [
-            latestDetection.selective_attention || 0.5,
-            latestDetection.sustained_attention || 0.5,
-            latestDetection.visual_tracking || 0.5,
-            latestDetection.working_memory || 0.5,
-            latestDetection.inhibitory_control || 0.5
+            (trend.trend.selective?.avg_score || 50) / 100 || 0.5,
+            (trend.trend.sustained?.avg_score || 50) / 100 || 0.5,
+            (trend.trend.tracking?.avg_score || 50) / 100 || 0.5,
+            (trend.trend.memory?.avg_score || 50) / 100 || 0.5,
+            (trend.trend.inhibitory?.avg_score || 50) / 100 || 0.5
           ];
+          console.log('计算后的雷达图数据:', radarData);
+        } else {
+          console.log('未获取到训练趋势数据，使用默认值');
         }
 
-        return {
+        const result = {
           info: {
             name: child.name || '-',
             age: child.age ? `${child.age}岁` : '-',
@@ -409,8 +419,13 @@
           },
           radarData: radarData
         };
+        
+        console.log('最终返回的数据:', result);
+        return result;
       } catch (error) {
         console.error('获取儿童数据失败:', error);
+        console.error('错误详情:', error.message);
+        console.error('错误堆栈:', error.stack);
         return null;
       }
     }

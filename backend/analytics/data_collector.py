@@ -333,7 +333,14 @@ def start_session():
     
     active_session_id = check_active_session(child_id, game_type)
     if active_session_id:
-        return error_response('该孩子已有同类型的活跃会话', ACTIVE_SESSION_EXISTS, 409)
+        # 如果存在活跃会话，直接返回该会话信息
+        session_info = get_session_info(active_session_id)
+        return success_response({
+            'session_id': active_session_id,
+            'session_token': session_info['session_token'],
+            'game_type': game_type,
+            'game_name': GAME_TYPES[game_type]['name']
+        }, '使用已存在的活跃会话')
     
     session_token = generate_session_token()
     
@@ -823,103 +830,131 @@ def get_training_detail(session_id):
 @data_collector_bp.route('/api/training/trend/<int:child_id>', methods=['GET'])
 @require_auth
 def get_training_trend(child_id):
-    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
-    if not child:
-        return error_response('孩子不存在', NOT_FOUND, 404)
-    if child[0][0] != request.user_id:
-        return error_response('孩子不属于当前家长', CHILD_NOT_BELONG, 403)
-    
-    attention_type = request.args.get('attention_type')
-    days = request.args.get('days', 30, type=int)
-    
-    from datetime import datetime, timedelta
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=days)
-    
-    query = '''
-        SELECT ss.attention_type, DATE(s.start_time) as date, 
+    try:
+        child = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
+        if not child:
+            return error_response('孩子不存在', NOT_FOUND, 404)
+        if child[0][0] != request.user_id:
+            return error_response('孩子不属于当前家长', CHILD_NOT_BELONG, 403)
+        
+        attention_type = request.args.get('attention_type')
+        days = request.args.get('days', 30, type=int)
+        
+        from datetime import datetime, timedelta
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+        
+        print(f"时间范围: {start_date.strftime('%Y-%m-%d')} 到 {end_date.strftime('%Y-%m-%d')}")
+        
+        query = '''
+        SELECT s.attention_type, DATE(s.start_time) as date, 
                AVG(ss.overall_score) as avg_score,
                COUNT(*) as session_count
         FROM session_summaries ss
-        JOIN training_sessions s ON ss.session_id = s.id
+        JOIN training_sessions s ON CAST(ss.session_id AS INTEGER) = s.id
         WHERE s.child_id = ? AND DATE(s.start_time) >= ?
     '''
-    params = [child_id, start_date.strftime('%Y-%m-%d')]
-    
-    if attention_type:
-        query += ' AND ss.attention_type = ?'
-        params.append(attention_type)
-    
-    query += ' GROUP BY ss.attention_type, DATE(s.start_time) ORDER BY date'
-    
-    records = execute_db(query, tuple(params))
-    
-    from collections import defaultdict
-    trend_data = defaultdict(lambda: {'avg_score': 0, 'trend': 'stable', 'records': []})
-    
-    attention_types = ['selective', 'sustained', 'tracking', 'memory', 'inhibitory']
-    
-    for row in records:
-        at = row[0]
-        date = row[1]
-        avg_score = row[2]
-        trend_data[at]['records'].append({
-            'date': date,
-            'score': round(avg_score, 2)
-        })
-    
-    for at in attention_types:
-        if at in trend_data:
-            records_list = trend_data[at]['records']
-            if records_list:
-                scores = [r['score'] for r in records_list]
-                trend_data[at]['avg_score'] = round(sum(scores) / len(scores), 2)
-                
-                if len(scores) >= 2:
-                    first_half = sum(scores[:len(scores)//2]) / (len(scores)//2) if len(scores)//2 > 0 else 0
-                    second_half = sum(scores[len(scores)//2:]) / (len(scores) - len(scores)//2) if len(scores) - len(scores)//2 > 0 else 0
+        params = [child_id, start_date.strftime('%Y-%m-%d')]
+        
+        if attention_type:
+            query += ' AND s.attention_type = ?'
+            params.append(attention_type)
+        
+        query += ' GROUP BY s.attention_type, DATE(s.start_time) ORDER BY date'
+        
+        print(f"执行查询: {query}")
+        print(f"参数: {params}")
+        
+        records = execute_db(query, tuple(params))
+        print(f"查询结果数量: {len(records)}")
+        
+        from collections import defaultdict
+        trend_data = defaultdict(lambda: {'avg_score': 0, 'trend': 'stable', 'records': []})
+        
+        attention_types = ['selective', 'sustained', 'tracking', 'memory', 'inhibitory']
+        
+        for row in records:
+            try:
+                at = row[0]
+                date = row[1]
+                avg_score = row[2]
+                if avg_score is not None:
+                    trend_data[at]['records'].append({
+                        'date': date,
+                        'score': round(avg_score, 2)
+                    })
+            except Exception as e:
+                print(f"处理记录时出错: {e}")
+                continue
+        
+        for at in attention_types:
+            if at in trend_data:
+                records_list = trend_data[at]['records']
+                if records_list:
+                    scores = [r['score'] for r in records_list]
+                    trend_data[at]['avg_score'] = round(sum(scores) / len(scores), 2)
                     
-                    if second_half > first_half * 1.05:
-                        trend_data[at]['trend'] = 'up'
-                    elif second_half < first_half * 0.95:
-                        trend_data[at]['trend'] = 'down'
-                    else:
-                        trend_data[at]['trend'] = 'stable'
-    
-    overall_query = '''
-        SELECT AVG(ss.overall_score), COUNT(*)
-        FROM session_summaries ss
-        JOIN training_sessions s ON ss.session_id = s.id
-        WHERE s.child_id = ? AND DATE(s.start_time) >= ?
-    '''
-    overall_params = [child_id, start_date.strftime('%Y-%m-%d')]
-    if attention_type:
-        overall_query += ' AND ss.attention_type = ?'
-        overall_params.append(attention_type)
-    
-    overall_result = execute_db(overall_query, tuple(overall_params))
-    overall_avg = overall_result[0][0] if overall_result and overall_result[0][0] else 0
-    total_sessions = overall_result[0][1] if overall_result else 0
-    
-    return success_response({
-        'child_id': child_id,
-        'period': {
-            'start_date': start_date.strftime('%Y-%m-%d'),
-            'end_date': end_date.strftime('%Y-%m-%d'),
-            'days': days
-        },
-        'trend': {
-            'selective': trend_data.get('selective', {'avg_score': 0, 'trend': 'stable', 'records': []}),
-            'sustained': trend_data.get('sustained', {'avg_score': 0, 'trend': 'stable', 'records': []}),
-            'tracking': trend_data.get('tracking', {'avg_score': 0, 'trend': 'stable', 'records': []}),
-            'memory': trend_data.get('memory', {'avg_score': 0, 'trend': 'stable', 'records': []}),
-            'inhibitory': trend_data.get('inhibitory', {'avg_score': 0, 'trend': 'stable', 'records': []})
-        },
-        'overall': {
-            'avg_score': round(overall_avg, 2),
-            'total_sessions': total_sessions
+                    if len(scores) >= 2:
+                        first_half = sum(scores[:len(scores)//2]) / (len(scores)//2) if len(scores)//2 > 0 else 0
+                        second_half = sum(scores[len(scores)//2:]) / (len(scores) - len(scores)//2) if len(scores) - len(scores)//2 > 0 else 0
+                        
+                        if second_half > first_half * 1.05:
+                            trend_data[at]['trend'] = 'up'
+                        elif second_half < first_half * 0.95:
+                            trend_data[at]['trend'] = 'down'
+                        else:
+                            trend_data[at]['trend'] = 'stable'
+        
+        overall_query = '''
+            SELECT AVG(ss.overall_score), COUNT(*)
+            FROM session_summaries ss
+            JOIN training_sessions s ON CAST(ss.session_id AS INTEGER) = s.id
+            WHERE s.child_id = ? AND DATE(s.start_time) >= ?
+        '''
+        overall_params = [child_id, start_date.strftime('%Y-%m-%d')]
+        if attention_type:
+            overall_query += ' AND s.attention_type = ?'
+            overall_params.append(attention_type)
+        
+        print(f"执行总体查询: {overall_query}")
+        print(f"总体查询参数: {overall_params}")
+        
+        overall_result = execute_db(overall_query, tuple(overall_params))
+        print(f"总体查询结果: {overall_result}")
+        
+        overall_avg = overall_result[0][0] if overall_result and overall_result[0][0] else 0
+        total_sessions = overall_result[0][1] if overall_result else 0
+        
+        print(f"总体平均分数: {overall_avg}")
+        print(f"总会话数: {total_sessions}")
+        
+        result = {
+            'child_id': child_id,
+            'period': {
+                'start_date': start_date.strftime('%Y-%m-%d'),
+                'end_date': end_date.strftime('%Y-%m-%d'),
+                'days': days
+            },
+            'trend': {
+                'selective': trend_data.get('selective', {'avg_score': 0, 'trend': 'stable', 'records': []}),
+                'sustained': trend_data.get('sustained', {'avg_score': 0, 'trend': 'stable', 'records': []}),
+                'tracking': trend_data.get('tracking', {'avg_score': 0, 'trend': 'stable', 'records': []}),
+                'memory': trend_data.get('memory', {'avg_score': 0, 'trend': 'stable', 'records': []}),
+                'inhibitory': trend_data.get('inhibitory', {'avg_score': 0, 'trend': 'stable', 'records': []})
+            },
+            'overall': {
+                'avg_score': round(overall_avg, 2),
+                'total_sessions': total_sessions
+            }
         }
-    }, '查询成功')
+        
+        print(f"返回结果: {result}")
+        return success_response(result, '查询成功')
+    except Exception as e:
+        print(f"处理训练趋势查询时出错: {e}")
+        import traceback
+        traceback.print_exc()
+        return error_response('服务器内部错误', 'INTERNAL_ERROR', 500)
 
 
 @data_collector_bp.route('/api/upload/detection', methods=['POST'])
