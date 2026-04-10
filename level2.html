@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关卡2：监控摄像头 - 注意力全能小侦探</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #333;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-area {
+            width: 800px;
+            height: 500px;
+            background-color: #000;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .monitor {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .monitor video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        .monitor-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .character img {
+            width: 200px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .character.visible {
+            opacity: 1;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .stats {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: none;
+        }
+
+        .feedback h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 可爱的返回按钮 -->
+        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+            <button onclick="window.location.href='index.html'" style="
+                background: white;
+                color: black;
+                border: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s ease-in-out infinite alternate;
+            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
+                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
+                ←
+            </button>
+        </div>
+        <div class="header">
+            <h1>关卡2：监控摄像头</h1>
+            <p>请在小偷出现时点击屏幕，其他角色出现时不要点击</p>
+        </div>
+        <div class="game-area">
+            <div class="monitor" id="monitor">
+                <video src="../images/monitor.mov" autoplay loop muted></video>
+                <div class="monitor-content">
+                    <div class="character" id="character"></div>
+                </div>
+            </div>
+            <div class="stats">
+                <div>击中率：<span id="hit-rate">0%</span></div>
+                <div>虚报率：<span id="false-alarm">0%</span></div>
+                <div>连续正确：<span id="consecutive-correct">0</span></div>
+            </div>
+            <div class="feedback" id="feedback">
+                <h3>关卡完成！</h3>
+                <p>小偷识别击中率：<span id="final-hit-rate">0%</span></p>
+                <p>路人/警察误点虚报率：<span id="final-false-alarm">0%</span></p>
+                <p>连续正确识别次数：<span id="final-consecutive-correct">0</span></p>
+                <button class="btn" onclick="nextLevel()">下一关</button>
+            </div>
+        </div>
+
+    </div>
+    <script src="../utils.js"></script>
+    <script>
+        let characters = [];
+        let currentIndex = 0;
+        let isGameStarted = false;
+        let isPaused = false;
+        let hitCount = 0;
+        let falseAlarmCount = 0;
+        let totalThieves = 0;
+        let totalNonThieves = 0;
+        let consecutiveCorrect = 0;
+        let maxConsecutiveCorrect = 0;
+        let gameInterval;
+        let videoElement; // 视频元素引用
+
+        // 角色类型：小偷、男孩、女孩、警察
+        const characterTypes = [
+            { type: 'thief', image: '../images/thief.png', isTarget: true },
+            { type: 'boy', image: '../images/boy.png', isTarget: false },
+            { type: 'girl', image: '../images/girl.png', isTarget: false },
+            { type: 'policeman', image: '../images/policeman.png', isTarget: false }
+        ];
+
+        // 生成角色序列
+        function generateCharacters() {
+            characters = [];
+            // 生成20个角色，其中约30%是小偷
+            for (let i = 0; i < 20; i++) {
+                const isThief = Math.random() < 0.3;
+                if (isThief) {
+                    characters.push(characterTypes[0]); // 小偷
+                } else {
+                    const randomNonThief = Math.floor(Math.random() * 3) + 1; // 1-3，对应男孩、女孩、警察
+                    characters.push(characterTypes[randomNonThief]);
+                }
+            }
+        }
+
+        // 显示角色
+        function showCharacter() {
+            if (!isGameStarted || isPaused || currentIndex >= characters.length) return;
+
+            const character = characters[currentIndex];
+            const characterElement = document.getElementById('character');
+
+            // 显示角色在正中心
+            characterElement.innerHTML = `<img src="${character.image}" alt="${character.type}">`;
+            characterElement.style.position = 'absolute';
+            characterElement.style.top = '50%';
+            characterElement.style.left = '50%';
+            characterElement.style.transform = 'translate(-50%, -50%)'; // 居中变换
+            characterElement.style.opacity = '1'; // 直接设置不透明度，确保显示
+
+            // 2秒后隐藏角色
+            setTimeout(() => {
+                characterElement.style.opacity = '0';
+                currentIndex++;
+
+                // 检查是否完成所有角色
+                if (currentIndex >= characters.length) {
+                    endGame();
+                } else {
+                    // 短暂停顿后显示下一个角色
+                    setTimeout(showCharacter, 500);
+                }
+            }, 2000);
+        }
+
+        // 点击处理
+        function handleClick() {
+            if (!isGameStarted || isPaused || currentIndex >= characters.length) return;
+
+            const character = characters[currentIndex];
+            if (character.isTarget) {
+                // 正确击中
+                hitCount++;
+                consecutiveCorrect++;
+                if (consecutiveCorrect > maxConsecutiveCorrect) {
+                    maxConsecutiveCorrect = consecutiveCorrect;
+                }
+            } else {
+                // 误点
+                falseAlarmCount++;
+                consecutiveCorrect = 0;
+            }
+
+            updateStats();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const hitRate = totalThieves > 0 ? Math.round((hitCount / totalThieves) * 100) : 0;
+            const falseAlarmRate = totalNonThieves > 0 ? Math.round((falseAlarmCount / totalNonThieves) * 100) : 0;
+
+            document.getElementById('hit-rate').textContent = `${hitRate}%`;
+            document.getElementById('false-alarm').textContent = `${falseAlarmRate}%`;
+            document.getElementById('consecutive-correct').textContent = consecutiveCorrect;
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (isGameStarted) return;
+
+            // 重置游戏状态
+            generateCharacters();
+            currentIndex = 0;
+            hitCount = 0;
+            falseAlarmCount = 0;
+            totalThieves = characters.filter(c => c.isTarget).length;
+            totalNonThieves = characters.filter(c => !c.isTarget).length;
+            consecutiveCorrect = 0;
+            maxConsecutiveCorrect = 0;
+
+            isGameStarted = true;
+            isPaused = false;
+
+            // 开始播放视频
+            if (videoElement) {
+                videoElement.play();
+            }
+
+            // 添加点击事件
+            document.getElementById('monitor').addEventListener('click', handleClick);
+
+            // 开始显示角色
+            showCharacter();
+        }
+
+        // 暂停游戏
+        function pauseGame() {
+            if (!isGameStarted) return;
+
+            isPaused = !isPaused;
+            if (!isPaused && currentIndex < characters.length) {
+                showCharacter();
+            }
+        }
+
+        // 结束游戏
+        function endGame() {
+            isGameStarted = false;
+
+            // 统计游戏使用时间
+            GameTimeUtil.endGame('level2');
+
+            // 暂停视频
+            if (videoElement) {
+                videoElement.pause();
+            }
+
+            // 移除点击事件
+            document.getElementById('monitor').removeEventListener('click', handleClick);
+
+            // 计算结果
+            const hitRate = totalThieves > 0 ? Math.round((hitCount / totalThieves) * 100) : 0;
+            const falseAlarmRate = totalNonThieves > 0 ? Math.round((falseAlarmCount / totalNonThieves) * 100) : 0;
+
+            // 显示反馈
+            document.getElementById('final-hit-rate').textContent = `${hitRate}%`;
+            document.getElementById('final-false-alarm').textContent = `${falseAlarmRate}%`;
+            document.getElementById('final-consecutive-correct').textContent = maxConsecutiveCorrect;
+            document.getElementById('feedback').style.display = 'block';
+
+            // 保存数据
+            const data = {
+                sustained_attention: hitRate,
+                false_alarm_rate: falseAlarmRate,
+                max_consecutive_correct: maxConsecutiveCorrect
+            };
+            StorageUtil.setItem('level2_data', data);
+        }
+
+        // 下一关
+        function nextLevel() {
+            window.location.href = 'level3.html';
+        }
+
+        // 页面加载完成后获取视频元素引用并自动开始游戏
+        window.onload = function () {
+            videoElement = document.querySelector('.monitor video');
+            if (videoElement) {
+                videoElement.pause(); // 初始状态暂停视频
+            }
+            startGame();
+        };
+    </script>
+</body>
+
+</html>
