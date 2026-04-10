@@ -1,16 +1,16 @@
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from database import DATABASE_PATH, DATABASE_CONFIG
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, 'frontend')
 DATABASE_DIR = os.path.join(PROJECT_ROOT, 'database')
-DB_PATH = os.environ.get('DATABASE_PATH', os.path.join(DATABASE_DIR, 'attention.db'))
+DB_PATH = DATABASE_PATH
 
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production-2024'
-
-DATABASE_CONFIG = {
-    'db_path': DB_PATH
-}
 
 APP_CONFIG = {
     'debug': True,
