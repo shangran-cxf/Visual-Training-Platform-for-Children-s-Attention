@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="utils.js"></script>
   <script src="components-parent.js"></script>
+
   <style>
     /* ===== 页面特定样式 ===== */
 
@@ -230,25 +231,26 @@
     <!-- 右上卡片 - 儿童信息 -->
     <div class="card right-top-card">
       <div class="card-header">训练评析</div>
-      
+
       <!-- AI 评价区域 -->
-      <div id="ai-evaluation-container" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(52, 53, 89, 0.2);">
+      <div id="ai-evaluation-container"
+        style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(52, 53, 89, 0.2);">
         <div id="ai-evaluation-loading" style="text-align: center; padding: 20px; color: #666;">
           <p>正在生成评价...</p>
         </div>
         <div id="ai-evaluation-content" style="display: none;">
           <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">整体表现</h4>
           <p id="ai-summary" style="color: #555; line-height: 1.6; margin-bottom: 15px;"></p>
-          
+
           <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">优势领域</h4>
           <ul id="ai-strengths" style="color: #555; line-height: 1.6; margin-bottom: 15px; padding-left: 20px;"></ul>
-          
+
           <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">待提升领域</h4>
           <ul id="ai-weaknesses" style="color: #555; line-height: 1.6; margin-bottom: 15px; padding-left: 20px;"></ul>
-          
+
           <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">训练建议</h4>
           <ul id="ai-suggestions" style="color: #555; line-height: 1.6; margin-bottom: 15px; padding-left: 20px;"></ul>
-          
+
           <h4 style="color: #343559; margin-bottom: 10px; font-size: 16px;">家庭指导</h4>
           <p id="ai-home-guidance" style="color: #555; line-height: 1.6;"></p>
         </div>
@@ -268,6 +270,52 @@
   </div>
 
   <script>
+    // ===== API 工具函数 =====
+    const ApiUtil = {
+      async apiGet(url, params = {}) {
+        const queryString = new URLSearchParams(
+          Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
+        ).toString();
+
+        const fullUrl = queryString ? `${url}?${queryString}` : url;
+
+        try {
+          const response = await fetch(`http://localhost:5000${fullUrl}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+          });
+
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error('API GET 请求失败:', error);
+          return { success: false, error: { message: '网络错误' } };
+        }
+      },
+
+      async apiPost(url, data = {}) {
+        try {
+          const response = await fetch(`http://localhost:5000${url}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            },
+            body: JSON.stringify(data)
+          });
+
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error('API POST 请求失败:', error);
+          return { success: false, error: { message: '网络错误' } };
+        }
+      }
+    };
+
     // ===== 页面初始化 =====
 
     // 页面初始化在 DOMContentLoaded 事件中执行
@@ -297,8 +345,7 @@
           return;
         }
 
-        const response = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
-        const result = await response.json();
+        const result = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
         childrenList = result.data || result || [];
 
         const optionsContainer = document.querySelector('.child-selector-options');
@@ -317,7 +364,7 @@
           const option = document.createElement('div');
           option.className = 'child-option' + (index === 0 ? ' active' : '');
           option.textContent = child.name;
-          option.onclick = function() { selectChild(this, child.id); };
+          option.onclick = function () { selectChild(this, child.id); };
           optionsContainer.appendChild(option);
         });
 
@@ -368,23 +415,27 @@
     // 从后端获取儿童数据
     async function fetchChildData(childId) {
       try {
-        const [statsResponse, detectionResponse] = await Promise.all([
+        // 检查缓存
+        const cacheKey = `child_data_${childId}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+          return JSON.parse(cachedData);
+        }
+
+        const [statsResult, detectionResult] = await Promise.all([
           ApiUtil.apiGet(`/api/children/${childId}/stats`),
           ApiUtil.apiGet(`/api/get/detection`, { child_id: childId })
         ]);
 
-        const statsResult = await statsResponse.json();
-        const detectionResult = await detectionResponse.json();
-
         const stats = statsResult.data || statsResult;
         const detection = detectionResult.data || detectionResult;
 
-        const child = (childrenList && Array.isArray(childrenList)) 
-          ? childrenList.find(c => c.id === childId) || {} 
+        const child = (childrenList && Array.isArray(childrenList))
+          ? childrenList.find(c => c.id === childId) || {}
           : {};
 
-        const latestDetection = Array.isArray(detection) && detection.length > 0 
-          ? detection[0] 
+        const latestDetection = Array.isArray(detection) && detection.length > 0
+          ? detection[0]
           : null;
 
         let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
@@ -398,7 +449,7 @@
           ];
         }
 
-        return {
+        const result = {
           info: {
             name: child.name || '-',
             age: child.age ? `${child.age}岁` : '-',
@@ -409,6 +460,14 @@
           },
           radarData: radarData
         };
+
+        // 缓存数据（5分钟）
+        localStorage.setItem(cacheKey, JSON.stringify(result));
+        setTimeout(() => {
+          localStorage.removeItem(cacheKey);
+        }, 5 * 60 * 1000);
+
+        return result;
       } catch (error) {
         console.error('获取儿童数据失败:', error);
         return null;
@@ -426,26 +485,26 @@
         const trainingTimeEl = document.getElementById('training-time');
         const completedCoursesEl = document.getElementById('completed-courses');
         const currentLevelEl = document.getElementById('current-level');
-        
+
         if (childNameEl) childNameEl.textContent = info.name;
         if (childAgeEl) childAgeEl.textContent = info.age;
         if (childGenderEl) childGenderEl.textContent = info.gender;
         if (trainingTimeEl) trainingTimeEl.textContent = info.time;
         if (completedCoursesEl) completedCoursesEl.textContent = info.courses;
         if (currentLevelEl) currentLevelEl.textContent = info.level;
-        
+
         // 调用 AI 评价（传递 childData 用于缓存检测）
         await fetchAndDisplayAIEvaluation(childId, childData);
       }
     }
-    
+
     // 生成数据版本标识（用于检测数据是否更新）
     function generateDataVersion(childData) {
       if (!childData) return null;
-      
+
       const info = childData.info || {};
       const radarData = childData.radarData || [];
-      
+
       // 使用关键字段生成版本标识
       const versionData = {
         name: info.name,
@@ -454,10 +513,10 @@
         level: info.level,
         radarData: radarData.join(',')
       };
-      
+
       return JSON.stringify(versionData);
     }
-    
+
     // 缓存 AI 评价结果
     function cacheEvaluation(childId, childData, evaluation) {
       try {
@@ -473,17 +532,17 @@
         console.error('缓存评价失败:', error);
       }
     }
-    
+
     // 获取缓存的评价结果
     function getCachedEvaluation(childId, childData) {
       try {
         const cacheKey = `ai_evaluation_${childId}`;
         const cached = localStorage.getItem(cacheKey);
-        
+
         if (!cached) return null;
-        
+
         const cacheData = JSON.parse(cached);
-        
+
         // 检查数据版本是否一致
         const currentVersion = generateDataVersion(childData);
         if (cacheData.dataVersion === currentVersion) {
@@ -494,18 +553,18 @@
             return cacheData.evaluation;
           }
         }
-        
+
         return null;
       } catch (error) {
         console.error('获取缓存失败:', error);
         return null;
       }
     }
-    
+
     // 展示评价内容
     function displayEvaluation(evaluation) {
       document.getElementById('ai-summary').textContent = evaluation.summary || '暂时没有评价哦！快去做训练吧！';
-      
+
       // 展示优势
       const strengthsList = document.getElementById('ai-strengths');
       strengthsList.innerHTML = '';
@@ -518,7 +577,7 @@
       } else {
         strengthsList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
       }
-      
+
       // 展示待提升领域
       const weaknessesList = document.getElementById('ai-weaknesses');
       weaknessesList.innerHTML = '';
@@ -531,7 +590,7 @@
       } else {
         weaknessesList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
       }
-      
+
       // 展示训练建议
       const suggestionsList = document.getElementById('ai-suggestions');
       suggestionsList.innerHTML = '';
@@ -544,22 +603,22 @@
       } else {
         suggestionsList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
       }
-      
+
       // 展示家庭指导
       document.getElementById('ai-home-guidance').textContent = evaluation.home_guidance || '暂时没有指导哦！快去做训练吧！';
     }
-    
+
     // 获取并展示 AI 评价
     async function fetchAndDisplayAIEvaluation(childId, childData) {
       const loadingEl = document.getElementById('ai-evaluation-loading');
       const contentEl = document.getElementById('ai-evaluation-content');
       const errorEl = document.getElementById('ai-evaluation-error');
-      
+
       // 显示加载状态
       loadingEl.style.display = 'block';
       contentEl.style.display = 'none';
       errorEl.style.display = 'none';
-      
+
       try {
         // 检查缓存
         const cachedEvaluation = getCachedEvaluation(childId, childData);
@@ -570,23 +629,21 @@
           contentEl.style.display = 'block';
           return;
         }
-        
+
         // 缓存不存在或数据已更新，调用 AI 接口
-        const response = await ApiUtil.apiPost('/api/ai/current-training-evaluation', {
+        const result = await ApiUtil.apiPost('/api/ai/current-training-evaluation', {
           child_id: childId
         });
-        
-        const result = await response.json();
-        
+
         if (result.success && result.data && result.data.evaluation) {
           const evaluation = result.data.evaluation;
-          
+
           // 缓存评价结果
           cacheEvaluation(childId, childData, evaluation);
-          
+
           // 展示评价内容
           displayEvaluation(evaluation);
-          
+
           // 显示内容
           loadingEl.style.display = 'none';
           contentEl.style.display = 'block';
@@ -741,12 +798,26 @@
       }
 
       const ctx = canvas.getContext('2d');
-      
+
       // 页面加载完成后初始化
       try {
-        const response = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
-        const result = await response.json();
-        const trendData = result.data || result;
+        // 检查缓存
+        const cacheKey = `growth_data_${childId}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        let trendData;
+
+        if (cachedData) {
+          trendData = JSON.parse(cachedData);
+        } else {
+          const result = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
+          trendData = result.data || result;
+
+          // 缓存数据（10分钟）
+          localStorage.setItem(cacheKey, JSON.stringify(trendData));
+          setTimeout(() => {
+            localStorage.removeItem(cacheKey);
+          }, 10 * 60 * 1000);
+        }
 
         let labels = [];
         let data = [];
@@ -869,7 +940,7 @@
 
     // 防抖函数
     let resizeTimeout = null;
-    
+
     // 窗口大小改变时重绘图表
     window.addEventListener('resize', function () {
       if (currentChildId) {

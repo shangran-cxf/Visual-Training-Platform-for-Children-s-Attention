@@ -68,18 +68,25 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 100px;
+      margin-bottom: 20px;
     }
 
-    .logo-text {
-      font-size: 30px;
-      font-weight: 600;
-      color: #ffffff;
-      text-align: center;
-      line-height: 1.3;
-      margin-bottom: -75px;
-      margin-top: 15px;
-      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive, sans-serif;
+    .logo {
+      width: 100px;
+      height: 100px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 28px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .logo:hover {
+      transform: translateY(-3px) scale(1.05);
     }
 
     .nav-item {
@@ -1186,7 +1193,9 @@
   <!-- 侧边栏导航 -->
   <nav class="sidebar">
     <div class="logo-section">
-      <div class="logo-text">注意力<br>训练<br>平台</div>
+      <div class="logo">
+        <img src="images/logo.png" alt="注意力训练平台" style="width: 100%; height: 100%; object-fit: contain;">
+      </div>
     </div>
 
     <!-- 训练按钮：跳转到child-home.html -->

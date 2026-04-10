@@ -68,32 +68,24 @@ def get_child_stats(child_id):
     if not child:
         return error_response('孩子不存在', status=404)
     
-    training_count = execute_db(
-        'SELECT COUNT(*) FROM training_sessions WHERE child_id = ?',
-        (child_id,)
-    )[0][0]
-    
-    total_time = execute_db(
-        'SELECT COALESCE(SUM(duration), 0) FROM training_sessions WHERE child_id = ?',
-        (child_id,)
-    )[0][0]
-    
-    avg_score_result = execute_db(
-        'SELECT AVG(overall_score) FROM session_summaries WHERE child_id = ?',
-        (child_id,)
-    )
-    avg_score = round(avg_score_result[0][0], 2) if avg_score_result[0][0] else 0
-    
-    badges_count = execute_db(
-        'SELECT COUNT(*) FROM user_badges WHERE child_id = ?',
-        (child_id,)
-    )[0][0]
+    # 单次查询获取所有统计数据
+    stats_result = execute_db('''
+        SELECT 
+            COUNT(ts.id) as training_count,
+            COALESCE(SUM(ts.duration), 0) as total_time,
+            COALESCE(AVG(ss.overall_score), 0) as avg_score,
+            COUNT(ub.id) as badges_count
+        FROM training_sessions ts
+        LEFT JOIN session_summaries ss ON ts.id = ss.session_id
+        LEFT JOIN user_badges ub ON ts.child_id = ub.child_id
+        WHERE ts.child_id = ?
+    ''', (child_id,))
     
     return success_response({
-        'training_count': training_count,
-        'training_time': total_time,
-        'avg_score': avg_score,
-        'badges_count': badges_count
+        'training_count': stats_result[0][0],
+        'training_time': stats_result[0][1],
+        'avg_score': round(stats_result[0][2], 2) if stats_result[0][2] else 0,
+        'badges_count': stats_result[0][3]
     })
 
 @children_bp.route('/api/children/<int:child_id>/recent-training', methods=['GET'])
