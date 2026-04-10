@@ -798,7 +798,9 @@
             const totalTime = Math.floor((endTime - startTime) / 1000);
 
             // 统计游戏使用时间
-            GameTimeUtil.endGame('schulte');
+            if (typeof GameTimeUtil !== 'undefined' && GameTimeUtil.endGame) {
+                GameTimeUtil.endGame('schulte');
+            }
 
             // 计算正确率
             const totalCells = currentDifficulty * currentDifficulty;
@@ -826,21 +828,8 @@
             // 上传数据到后端
             const userInfo = UserStateUtil.getUserInfo();
             const parentId = userInfo?.parent_id || userInfo?.userId || userInfo?.id || 1;
-            const childId = userInfo?.currentChildId || 1;
+            const childId = UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1;
             let sessionId = null;
-            
-            console.log('=== 小火箭游戏数据上传调试信息 ===');
-            console.log('用户信息:', {
-                userInfo: userInfo,
-                parentId: parentId,
-                childId: childId
-            });
-            console.log('游戏数据:', {
-                accuracy: accuracy,
-                errorCount: errorCount,
-                totalTime: totalTime,
-                currentDifficulty: currentDifficulty
-            });
             
             // 开始训练会话
             fetch('http://localhost:5000/api/training/session/start', {
@@ -899,6 +888,11 @@
                 console.log('游戏数据上传响应数据:', result);
                 if (result.success) {
                     console.log('游戏数据上传成功');
+                    
+                    // 清除能力评估页面的缓存，确保下次打开时显示最新数据
+                    const cacheKey = `child_data_${childId}`;
+                    localStorage.removeItem(cacheKey);
+                    console.log('已清除能力评估缓存:', cacheKey);
                     
                     // 结束训练会话
                     return fetch('http://localhost:5000/api/training/session/end', {

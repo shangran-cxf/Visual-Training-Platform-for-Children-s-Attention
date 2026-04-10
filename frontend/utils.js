@@ -74,6 +74,10 @@ class UserStateUtil {
       token: response.token
     };
     StorageUtil.setItem('userInfo', userInfo);
+    // 同时保存 token 到 auth_token，方便后续 API 调用
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
+    }
     return userInfo;
   }
 

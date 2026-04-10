@@ -422,13 +422,15 @@
           return JSON.parse(cachedData);
         }
 
-        const [statsResult, detectionResult] = await Promise.all([
+        const [statsResult, detectionResult, trendResult] = await Promise.all([
           ApiUtil.apiGet(`/api/children/${childId}/stats`),
-          ApiUtil.apiGet(`/api/get/detection`, { child_id: childId })
+          ApiUtil.apiGet(`/api/get/detection`, { child_id: childId }),
+          ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 30 })
         ]);
 
         const stats = statsResult.data || statsResult;
         const detection = detectionResult.data || detectionResult;
+        const trend = trendResult.data || trendResult;
 
         const child = (childrenList && Array.isArray(childrenList))
           ? childrenList.find(c => c.id === childId) || {}
@@ -438,8 +440,19 @@
           ? detection[0]
           : null;
 
+        // 从训练趋势数据中获取各维度的平均得分
         let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
-        if (latestDetection) {
+        if (trend && trend.trend) {
+          console.log('训练趋势数据:', trend.trend);
+          radarData = [
+            (trend.trend.selective?.avg_score || 50) / 100 || 0.5,
+            (trend.trend.sustained?.avg_score || 50) / 100 || 0.5,
+            (trend.trend.tracking?.avg_score || 50) / 100 || 0.5,
+            (trend.trend.memory?.avg_score || 50) / 100 || 0.5,
+            (trend.trend.inhibitory?.avg_score || 50) / 100 || 0.5
+          ];
+          console.log('计算后的雷达图数据:', radarData);
+        } else if (latestDetection) {
           radarData = [
             latestDetection.selective_attention || 0.5,
             latestDetection.sustained_attention || 0.5,
@@ -447,6 +460,8 @@
             latestDetection.working_memory || 0.5,
             latestDetection.inhibitory_control || 0.5
           ];
+        } else {
+          console.log('未获取到训练趋势数据，使用默认值');
         }
 
         const result = {
