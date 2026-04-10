@@ -27,7 +27,7 @@
 
         /* 游戏容器 */
         .game-container {
-            background: #fef9e6;
+            background: rgba(254, 249, 230, 0.9);
             border-radius: 48px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 0 10px #B0D561, 0 0 0 15px #599958;
             max-width: 550px;
@@ -644,7 +644,7 @@
                 <div class="timer-fill" id="timerFill" style="width: 100%"></div>
             </div>
             <div class="timer-text" id="timerText">⏱️ ${(trial.timeLimit / 1000).toFixed(1)}秒</div>
-            <div class="instruction">🧠 根据图片的真实类别选择分类！</div>
+            <div class="instruction">根据图片的真实类别选择分类！</div>
             <div class="category-buttons" id="categoryButtons">
                 ${CATEGORIES.map(cat => `
                     <button class="cat-btn" data-category="${cat}">
@@ -689,7 +689,7 @@
                         canRespond = false;
                         gameState.totalCount++;
                         updateUIStats();
-                        showFeedbackMessage('⏰ 时间到啦~ 下次快一点点！', false);
+                        showFeedbackMessage('时间到啦~ 下次快一点点！', false);
                         recordTrialAndNext(false, limitMs);
                     }
                 }
@@ -876,8 +876,6 @@
         // 页面加载完成后初始化
         window.addEventListener('DOMContentLoaded', initGame);
     </script>
-    <script src="../utils.js"></script>
-    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

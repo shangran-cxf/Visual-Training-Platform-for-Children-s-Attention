@@ -824,24 +824,118 @@
             StorageUtil.setItem('training_schulte', trainingData);
 
             // 上传数据到后端
-            fetch('http://localhost:5000/api/upload/training', {
+            const userInfo = UserStateUtil.getUserInfo();
+            const parentId = userInfo?.parent_id || userInfo?.userId || userInfo?.id || 1;
+            const childId = userInfo?.currentChildId || 1;
+            let sessionId = null;
+            
+            console.log('=== 小火箭游戏数据上传调试信息 ===');
+            console.log('用户信息:', {
+                userInfo: userInfo,
+                parentId: parentId,
+                childId: childId
+            });
+            console.log('游戏数据:', {
+                accuracy: accuracy,
+                errorCount: errorCount,
+                totalTime: totalTime,
+                currentDifficulty: currentDifficulty
+            });
+            
+            // 开始训练会话
+            fetch('http://localhost:5000/api/training/session/start', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                 },
                 body: JSON.stringify({
-                    user_id: 1,
-                    ...trainingData
+                    child_id: childId,
+                    game_type: 'schulte',
+                    device_id: 'web'
                 })
             })
-                .then(response => response.json())
-                .then(result => {
-                    const data = result.data || result;
-                    console.log('训练数据上传成功:', data);
+            .then(response => {
+                console.log('会话创建响应状态:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('会话创建响应数据:', result);
+                if (result.success) {
+                    sessionId = result.data.session_id;
+                    console.log('训练会话创建成功:', sessionId);
+                    
+                    // 上传游戏数据
+                    return fetch('http://localhost:5000/api/training/game-data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            request_id: Date.now().toString(),
+                            timestamp: new Date().toISOString(),
+                            event_type: 'game_complete',
+                            score: Math.round((accuracy * 0.6) + ((100 - errorCount * 10) * 0.2) + (Math.max(0, 60 - totalTime) * 0.2)),
+                            accuracy: accuracy,
+                            level: currentDifficulty,
+                            time: totalTime,
+                            correct: currentDifficulty * currentDifficulty - errorCount,
+                            error: errorCount,
+                            total_target: currentDifficulty * currentDifficulty,
+                            total_step: currentDifficulty * currentDifficulty
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '创建会话失败');
+                }
+            })
+            .then(response => {
+                console.log('游戏数据上传响应状态:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('游戏数据上传响应数据:', result);
+                if (result.success) {
+                    console.log('游戏数据上传成功');
+                    
+                    // 结束训练会话
+                    return fetch('http://localhost:5000/api/training/session/end', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            final_score: Math.round((accuracy * 0.6) + ((100 - errorCount * 10) * 0.2) + (Math.max(0, 60 - totalTime) * 0.2)),
+                            total_accuracy: accuracy
+                        })
+                    });
+                } else {
+                    throw new Error(result.message || '上传游戏数据失败');
+                }
+            })
+            .then(response => {
+                console.log('会话结束响应状态:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                    console.log('训练会话结束成功:', result.data);
                     // 训练后迭代优化
                     postTrainingOptimization(trainingData);
-                })
-                .catch(error => console.error('训练数据上传失败:', error));
+                } else {
+                    throw new Error(result.message || '结束会话失败');
+                }
+            })
+            .catch(error => {
+                console.error('训练数据上传失败:', error);
+                // 即使上传失败，也显示训练完成
+                postTrainingOptimization(trainingData);
+            });
 
             // 显示开始按钮
             setTimeout(() => {
@@ -851,20 +945,58 @@
 
         // 训练后迭代优化
         function postTrainingOptimization(trainingData) {
-            const { completion_rate, accuracy, focus_level } = trainingData;
+            const { completion_rate, accuracy, focus_level, completion_time, error_count } = trainingData;
 
-            // 决策树规则迭代
-            if (completion_rate === 100 && accuracy >= 85) {
-                // 升级为进阶版
-                const nextDifficulty = Math.min(currentDifficulty + 1, 5);
-                showPostTrainingModal('太棒了！', `你的表现非常出色，下次将挑战${nextDifficulty}x${nextDifficulty}的进阶版！`, true);
-            } else if (completion_rate === 0) {
-                // 替换为更简单的游戏
-                showPostTrainingModal('别灰心！', '下次我们会为你推荐更适合的游戏，继续加油！', true);
-            } else {
-                // 显示专属训练推荐
-                showPostTrainingModal('训练完成！', '查看为你推荐的专属训练', true);
-            }
+            // 计算各项得分
+            const accuracyScore = Math.round(accuracy * 0.6);
+            const errorScore = Math.round(Math.max(0, 100 - error_count * 10) * 0.2);
+            
+            // 优化时间效率计算，根据难度调整时间阈值
+            const timeThreshold = currentDifficulty === 3 ? 15 : currentDifficulty === 5 ? 30 : 60;
+            const timeScore = Math.round(Math.max(0, timeThreshold - completion_time) * (20 / timeThreshold));
+            
+            const finalScore = Math.max(0, Math.min(100, accuracyScore + errorScore + timeScore));
+
+            // 调试信息
+            console.log('=== 小火箭游戏评分调试信息 ===');
+            console.log('原始数据:', {
+                accuracy: accuracy,
+                error_count: error_count,
+                completion_time: completion_time,
+                difficulty: currentDifficulty
+            });
+            console.log('计算过程:', {
+                accuracyScore: accuracyScore,
+                errorScore: errorScore,
+                timeThreshold: timeThreshold,
+                timeScore: timeScore,
+                finalScore: finalScore
+            });
+
+            // 准备得分明细数据
+            const scoreDetails = {
+                accuracy: {
+                    name: '准确率',
+                    score: accuracyScore,
+                    max: 60,
+                    color: '#4CAF50'
+                },
+                error: {
+                    name: '错误率',
+                    score: errorScore,
+                    max: 20,
+                    color: '#FF9800'
+                },
+                time: {
+                    name: '时间效率',
+                    score: timeScore,
+                    max: 20,
+                    color: '#2196F3'
+                }
+            };
+
+            // 只显示评分，不显示其他提示
+            showPostTrainingModal('训练完成', `你的评分为：${finalScore}分`, false, scoreDetails);
 
             // 保存历史表现数据
             const historicalData = StorageUtil.getItem('historical_performance') || [];
@@ -877,7 +1009,7 @@
         }
 
         // 显示训练后弹窗
-        function showPostTrainingModal(title, message, showRecommendation = false) {
+        function showPostTrainingModal(title, message, showRecommendation = false, scoreDetails = null) {
             const modal = document.createElement('div');
             modal.style.cssText = `
                 position: fixed;
@@ -899,7 +1031,7 @@
                 border-radius: 20px;
                 padding: 40px;
                 width: 90%;
-                max-width: 400px;
+                max-width: 500px;
                 box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
                 position: relative;
                 animation: bounceIn 0.5s ease-in-out;
@@ -927,8 +1059,84 @@
                 font-family: 'Comic Sans MS', 'Arial', sans-serif;
             `;
 
+            // 添加得分明细柱状图
+            if (scoreDetails) {
+                const detailsContainer = document.createElement('div');
+                detailsContainer.style.cssText = `
+                    margin-bottom: 30px;
+                    text-align: left;
+                `;
+
+                const detailsTitle = document.createElement('h4');
+                detailsTitle.textContent = '得分明细';
+                detailsTitle.style.cssText = `
+                    color: #4CAF50;
+                    margin-bottom: 15px;
+                    font-size: 1.2em;
+                    font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                `;
+                detailsContainer.appendChild(detailsTitle);
+
+                // 为每个得分项创建柱状图
+                Object.values(scoreDetails).forEach(detail => {
+                    const itemContainer = document.createElement('div');
+                    itemContainer.style.cssText = `
+                        margin-bottom: 10px;
+                        display: flex;
+                        align-items: center;
+                    `;
+
+                    const label = document.createElement('span');
+                    label.textContent = detail.name;
+                    label.style.cssText = `
+                        color: #a0a0ff;
+                        font-size: 14px;
+                        width: 80px;
+                        font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                    `;
+                    itemContainer.appendChild(label);
+
+                    const barContainer = document.createElement('div');
+                    barContainer.style.cssText = `
+                        flex: 1;
+                        height: 20px;
+                        background-color: rgba(255, 255, 255, 0.1);
+                        border-radius: 10px;
+                        overflow: hidden;
+                        margin: 0 10px;
+                    `;
+
+                    const bar = document.createElement('div');
+                    const percentage = (detail.score / detail.max) * 100;
+                    bar.style.cssText = `
+                        height: 100%;
+                        width: ${percentage}%;
+                        background-color: ${detail.color};
+                        border-radius: 10px;
+                        transition: width 1s ease-in-out;
+                    `;
+                    barContainer.appendChild(bar);
+                    itemContainer.appendChild(barContainer);
+
+                    const scoreValue = document.createElement('span');
+                    scoreValue.textContent = detail.score;
+                    scoreValue.style.cssText = `
+                        color: #a0a0ff;
+                        font-size: 14px;
+                        width: 30px;
+                        text-align: right;
+                        font-family: 'Comic Sans MS', 'Arial', sans-serif;
+                    `;
+                    itemContainer.appendChild(scoreValue);
+
+                    detailsContainer.appendChild(itemContainer);
+                });
+
+                modalContent.appendChild(detailsContainer);
+            }
+
             const confirmButton = document.createElement('button');
-            confirmButton.textContent = '确定';
+            confirmButton.textContent = '关闭';
             confirmButton.style.cssText = `
                 background: linear-gradient(90deg, #4caf50, #81c784);
                 color: white;
@@ -945,10 +1153,7 @@
 
             confirmButton.onclick = function () {
                 document.body.removeChild(modal);
-                if (showRecommendation) {
-                    // 跳转到专属训练推荐页面
-                    window.location.href = '../child-home.html#personalized';
-                }
+                // 不自动跳转到其他页面，由用户决定下一步操作
             };
 
             modalContent.appendChild(modalTitle);

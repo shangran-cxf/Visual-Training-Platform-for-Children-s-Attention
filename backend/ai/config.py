@@ -9,6 +9,12 @@ AI_CONFIG = {
     'max_response_length': 500,
 }
 
+CACHE_CONFIG = {
+    'enabled': True,
+    'expire_hours': 24,
+    'max_cache_size': 1000,
+}
+
 PROMPT_TEMPLATES = {
     'current_training_evaluation': {
         'name': '当前训练数据评价',
@@ -100,3 +106,9 @@ PROMPT_TEMPLATES = {
 
 def is_ai_configured():
     return bool(AI_CONFIG.get('base_url') and AI_CONFIG.get('api_key') and AI_CONFIG.get('model'))
+
+def is_cache_enabled():
+    return CACHE_CONFIG.get('enabled', True)
+
+def get_cache_expire_hours():
+    return CACHE_CONFIG.get('expire_hours', 24)
