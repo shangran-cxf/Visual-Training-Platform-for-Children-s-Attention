@@ -1,5 +1,7 @@
 /.trae
 /database/.idea
 /database/attention.db
-/backend/__pycache__
 *.pyc
+.env
+*.db
+__pycache__/

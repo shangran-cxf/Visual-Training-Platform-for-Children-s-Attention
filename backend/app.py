@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
 import traceback
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from config import FRONTEND_DIR, APP_CONFIG
 
