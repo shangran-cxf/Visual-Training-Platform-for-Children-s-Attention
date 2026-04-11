@@ -9,11 +9,11 @@ def is_empty_data(data: Dict[str, Any]) -> bool:
     if not data:
         return True
     
-    if data.get('training_count', 0) == 0 and not data.get('detection'):
-        return True
+    if data.get('training_count', 0) > 0:
+        return False
     
-    detection = data.get('detection')
-    if detection:
+    if data.get('detection'):
+        detection = data.get('detection')
         scores = [
             detection.get('selective_attention', 0),
             detection.get('sustained_attention', 0),
@@ -21,10 +21,15 @@ def is_empty_data(data: Dict[str, Any]) -> bool:
             detection.get('working_memory', 0),
             detection.get('inhibitory_control', 0),
         ]
-        if all(score == 0 for score in scores):
-            return True
+        if not all(score == 0 for score in scores):
+            return False
     
-    return False
+    if data.get('trend'):
+        trend = data.get('trend')
+        if any(records for records in trend.values()):
+            return False
+    
+    return True
 
 def generate_data_fingerprint(data: Dict[str, Any]) -> str:
     fingerprint_data = {

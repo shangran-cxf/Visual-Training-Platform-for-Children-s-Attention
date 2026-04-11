@@ -307,8 +307,8 @@
             body: JSON.stringify(data)
           });
 
-          const data = await response.json();
-          return data;
+          const result = await response.json();
+          return result;
         } catch (error) {
           console.error('API POST 请求失败:', error);
           return { success: false, error: { message: '网络错误' } };
@@ -865,8 +865,29 @@
         }
 
         if (labels.length === 0) {
-          labels = ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'];
-          data = [0, 0, 0, 0, 0, 0, 0, 0];
+          const detectionResult = await ApiUtil.apiGet(`/api/get/detection`, { child_id: childId });
+          const detectionData = detectionResult.data || detectionResult;
+          
+          if (detectionData && detectionData.length > 0) {
+            const sortedDetections = detectionData
+              .slice(0, 8)
+              .reverse();
+            
+            sortedDetections.forEach((detection, index) => {
+              const avgScore = Math.round(
+                ((detection.selective_attention || 0) +
+                 (detection.sustained_attention || 0) +
+                 (detection.visual_tracking || 0) +
+                 (detection.working_memory || 0) +
+                 (detection.inhibitory_control || 0)) / 5 * 100
+              );
+              labels.push(`评估${index + 1}`);
+              data.push(avgScore);
+            });
+          } else {
+            labels = ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'];
+            data = [0, 0, 0, 0, 0, 0, 0, 0];
+          }
         }
 
         growthChart = new Chart(ctx, {
