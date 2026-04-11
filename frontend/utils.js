@@ -1,3 +1,16 @@
+// API 基础地址配置
+window.API_BASE_URL = (function() {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:5000';
+  }
+  var protocol = window.location.protocol;
+  var host = window.location.host;
+  if (host.includes(':')) {
+    return protocol + '//' + host.split(':')[0] + ':5000';
+  }
+  return protocol + '//' + host;
+})();
+
 // 存储工具类
 class StorageUtil {
   // 获取存储项

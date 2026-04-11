@@ -9,7 +9,17 @@
     <script src="components-parent.js"></script>
     <script>
         window.API_CONFIG = {
-            BASE_URL: 'http://localhost:5000',
+            BASE_URL: (function() {
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    return 'http://localhost:5000';
+                }
+                var protocol = window.location.protocol;
+                var host = window.location.host;
+                if (host.includes(':')) {
+                    return protocol + '//' + host.split(':')[0] + ':5000';
+                }
+                return protocol + '//' + host;
+            })(),
             TIMEOUT: 30000,
             CONTENT_TYPE: 'application/json',
             TOKEN_KEY: 'auth_token'

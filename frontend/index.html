@@ -1357,6 +1357,19 @@
 
     <script src="utils.js"></script>
     <script>
+        window.API_BASE_URL = (function() {
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                return 'http://localhost:5000';
+            }
+            var protocol = window.location.protocol;
+            var host = window.location.host;
+            if (host.includes(':')) {
+                return protocol + '//' + host.split(':')[0] + ':5000';
+            }
+            return protocol + '//' + host;
+        })();
+    </script>
+    <script>
         // 登录弹窗功能
         const loginModal = document.getElementById('loginModal');
         const closeBtn = loginModal.querySelector('.close');
@@ -1548,7 +1561,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:5000/api/login', {
+                const response = await fetch(window.API_BASE_URL + '/api/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1762,7 +1775,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:5000/api/register', {
+                const response = await fetch(window.API_BASE_URL + '/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1831,7 +1844,7 @@
 
                 // 为每个儿童添加到数据库
                 for (let child of children) {
-                    await fetch('http://localhost:5000/api/children', {
+                    await fetch(window.API_BASE_URL + '/api/children', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

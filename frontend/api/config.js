@@ -1,5 +1,17 @@
+const getBaseURL = () => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    if (host.includes(':')) {
+        return `${protocol}//${host.split(':')[0]}:5000`;
+    }
+    return `${protocol}//${host}`;
+};
+
 const API_CONFIG = {
-    BASE_URL: 'http://localhost:5000',
+    BASE_URL: getBaseURL(),
     TIMEOUT: 30000,
     CONTENT_TYPE: 'application/json',
     TOKEN_KEY: 'auth_token'
