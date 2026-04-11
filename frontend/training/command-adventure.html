@@ -820,7 +820,7 @@
                 const accuracy = level > 1 ? ((level - 1) / 10) * 100 : 0;
             
             // 开始训练会话
-            fetch(window.API_BASE_URL + '/api/training/session/start', {
+            fetch('http://localhost:5000/api/training/session/start', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -839,7 +839,7 @@
                     console.log('训练会话创建成功:', sessionId);
                     
                     // 上传游戏数据
-                    return fetch(window.API_BASE_URL + '/api/training/game-data', {
+                    return fetch('http://localhost:5000/api/training/game-data', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -875,7 +875,7 @@
                     console.log('已清除能力评估缓存:', cacheKey);
                     
                     // 结束训练会话
-                    return fetch(window.API_BASE_URL + '/api/training/session/end', {
+                    return fetch('http://localhost:5000/api/training/session/end', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
