@@ -1,424 +1,426 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>关卡2：监控摄像头 - 注意力全能小侦探</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #000;
-            color: #333;
-            overflow: hidden;
-        }
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #000;
+        color: #333;
+        overflow: hidden;
+      }
 
-        .container {
-            max-width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+      .container {
+        max-width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
 
-        .header h1 {
-            color: white;
-            font-size: 2em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
+      .header h1 {
+        color: white;
+        font-size: 2em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
 
-        .header p {
-            font-size: 1.1em;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
+      .header p {
+        font-size: 1.1em;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      }
 
-        .game-area {
-            width: 800px;
-            height: 500px;
-            background-color: #000;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
+      .game-area {
+        width: 800px;
+        height: 500px;
+        background-color: #000;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
 
-        .monitor {
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
+      .monitor {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
 
-        .monitor video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-        }
+      .monitor video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+      }
 
-        .monitor-content {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+      .monitor-content {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-        .character {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
+      .character {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
 
-        .character img {
-            width: 200px;
-            height: auto;
-            object-fit: contain;
-        }
+      .character img {
+        width: 200px;
+        height: auto;
+        object-fit: contain;
+      }
 
-        .character.visible {
-            opacity: 1;
-        }
+      .character.visible {
+        opacity: 1;
+      }
 
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
+      .controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
 
-        .btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+      .btn {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
 
-        .btn:hover {
-            background-color: #45a049;
-        }
+      .btn:hover {
+        background-color: #45a049;
+      }
 
-        .btn-secondary {
-            background-color: #999;
-        }
+      .btn-secondary {
+        background-color: #999;
+      }
 
-        .btn-secondary:hover {
-            background-color: #777;
-        }
+      .btn-secondary:hover {
+        background-color: #777;
+      }
 
-        .stats {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            color: white;
-            font-size: 14px;
-        }
+      .stats {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        color: white;
+        font-size: 14px;
+      }
 
-        .feedback {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            display: none;
-            z-index: 20000;
-        }
+      .feedback {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        display: none;
+        z-index: 20000;
+      }
 
-        .feedback h3 {
-            color: #4CAF50;
-            margin-bottom: 10px;
-        }
+      .feedback h3 {
+        color: #4caf50;
+        margin-bottom: 10px;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="container">
-        <!-- 可爱的返回按钮 -->
-        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
-            <button onclick="window.location.href='index.html'" style="
-                background: white;
-                color: black;
-                border: none;
-                border-radius: 50%;
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-                cursor: pointer;
-                box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: bounce 2s ease-in-out infinite alternate;
-            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
-                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
-                ←
-            </button>
+      <!-- 可爱的返回按钮 -->
+      <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
+        <button
+          onclick="window.location.href = 'index.html'"
+          style="
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounce 2s ease-in-out infinite alternate;
+          "
+          onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
+          onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
+        >
+          ←
+        </button>
+      </div>
+      <div class="header">
+        <h1>关卡2：监控摄像头</h1>
+        <p>请在小偷出现时点击屏幕，其他角色出现时不要点击</p>
+      </div>
+      <div class="game-area">
+        <div class="monitor" id="monitor">
+          <video src="../images/monitor.mov" autoplay loop muted></video>
+          <div class="monitor-content">
+            <div class="character" id="character"></div>
+          </div>
         </div>
-        <div class="header">
-            <h1>关卡2：监控摄像头</h1>
-            <p>请在小偷出现时点击屏幕，其他角色出现时不要点击</p>
+        <div class="stats">
+          <div>击中率：<span id="hit-rate">0%</span></div>
+          <div>虚报率：<span id="false-alarm">0%</span></div>
+          <div>连续正确：<span id="consecutive-correct">0</span></div>
         </div>
-        <div class="game-area">
-            <div class="monitor" id="monitor">
-                <video src="../images/monitor.mov" autoplay loop muted></video>
-                <div class="monitor-content">
-                    <div class="character" id="character"></div>
-                </div>
-            </div>
-            <div class="stats">
-                <div>击中率：<span id="hit-rate">0%</span></div>
-                <div>虚报率：<span id="false-alarm">0%</span></div>
-                <div>连续正确：<span id="consecutive-correct">0</span></div>
-            </div>
-            <div class="feedback" id="feedback">
-                <h3>关卡完成！</h3>
-                <p>小偷识别击中率：<span id="final-hit-rate">0%</span></p>
-                <p>路人/警察误点虚报率：<span id="final-false-alarm">0%</span></p>
-                <p>连续正确识别次数：<span id="final-consecutive-correct">0</span></p>
-                <button class="btn" onclick="nextLevel()">下一关</button>
-            </div>
+        <div class="feedback" id="feedback">
+          <h3>关卡完成！</h3>
+          <p>小偷识别击中率：<span id="final-hit-rate">0%</span></p>
+          <p>路人/警察误点虚报率：<span id="final-false-alarm">0%</span></p>
+          <p>连续正确识别次数：<span id="final-consecutive-correct">0</span></p>
+          <button class="btn" onclick="nextLevel()">下一关</button>
         </div>
-
+      </div>
     </div>
     <script src="../utils.js"></script>
     <script>
-        let characters = [];
-        let currentIndex = 0;
-        let isGameStarted = false;
-        let isPaused = false;
-        let hitCount = 0;
-        let falseAlarmCount = 0;
-        let totalThieves = 0;
-        let totalNonThieves = 0;
-        let consecutiveCorrect = 0;
-        let maxConsecutiveCorrect = 0;
-        let currentCharacterClicked = false; // 跟踪当前角色是否已经被点击过
-        let gameInterval;
-        let videoElement; // 视频元素引用
+      let characters = [];
+      let currentIndex = 0;
+      let isGameStarted = false;
+      let isPaused = false;
+      let hitCount = 0;
+      let falseAlarmCount = 0;
+      let totalThieves = 0;
+      let totalNonThieves = 0;
+      let consecutiveCorrect = 0;
+      let maxConsecutiveCorrect = 0;
+      let currentCharacterClicked = false; // 跟踪当前角色是否已经被点击过
+      let gameInterval;
+      let videoElement; // 视频元素引用
 
-        // 角色类型：小偷、男孩、女孩、警察
-        const characterTypes = [
-            { type: 'thief', image: '../images/thief.png', isTarget: true },
-            { type: 'boy', image: '../images/boy.png', isTarget: false },
-            { type: 'girl', image: '../images/girl.png', isTarget: false },
-            { type: 'policeman', image: '../images/policeman.png', isTarget: false }
-        ];
+      // 角色类型：小偷、男孩、女孩、警察
+      const characterTypes = [
+        { type: 'thief', image: '../images/thief.png', isTarget: true },
+        { type: 'boy', image: '../images/boy.png', isTarget: false },
+        { type: 'girl', image: '../images/girl.png', isTarget: false },
+        { type: 'policeman', image: '../images/policeman.png', isTarget: false },
+      ];
 
-        // 生成角色序列
-        function generateCharacters() {
-            characters = [];
-            // 生成20个角色，其中约30%是小偷
-            for (let i = 0; i < 20; i++) {
-                const isThief = Math.random() < 0.3;
-                if (isThief) {
-                    characters.push(characterTypes[0]); // 小偷
-                } else {
-                    const randomNonThief = Math.floor(Math.random() * 3) + 1; // 1-3，对应男孩、女孩、警察
-                    characters.push(characterTypes[randomNonThief]);
-                }
-            }
+      // 生成角色序列
+      function generateCharacters() {
+        characters = [];
+        // 生成20个角色，其中约30%是小偷
+        for (let i = 0; i < 20; i++) {
+          const isThief = Math.random() < 0.3;
+          if (isThief) {
+            characters.push(characterTypes[0]); // 小偷
+          } else {
+            const randomNonThief = Math.floor(Math.random() * 3) + 1; // 1-3，对应男孩、女孩、警察
+            characters.push(characterTypes[randomNonThief]);
+          }
         }
+      }
 
-        // 显示角色
-        function showCharacter() {
-            if (!isGameStarted || isPaused || currentIndex >= characters.length) return;
+      // 显示角色
+      function showCharacter() {
+        if (!isGameStarted || isPaused || currentIndex >= characters.length) return;
 
-            const character = characters[currentIndex];
-            const characterElement = document.getElementById('character');
+        const character = characters[currentIndex];
+        const characterElement = document.getElementById('character');
 
-            // 重置当前角色点击状态
-            currentCharacterClicked = false;
+        // 重置当前角色点击状态
+        currentCharacterClicked = false;
 
-            // 显示角色在正中心
-            characterElement.innerHTML = `<img src="${character.image}" alt="${character.type}">`;
-            characterElement.style.position = 'absolute';
-            characterElement.style.top = '50%';
-            characterElement.style.left = '50%';
-            characterElement.style.transform = 'translate(-50%, -50%)'; // 居中变换
-            characterElement.style.opacity = '1'; // 直接设置不透明度，确保显示
+        // 显示角色在正中心
+        characterElement.innerHTML = `<img src="${character.image}" alt="${character.type}">`;
+        characterElement.style.position = 'absolute';
+        characterElement.style.top = '50%';
+        characterElement.style.left = '50%';
+        characterElement.style.transform = 'translate(-50%, -50%)'; // 居中变换
+        characterElement.style.opacity = '1'; // 直接设置不透明度，确保显示
 
-            // 2秒后隐藏角色
-            setTimeout(() => {
-                // 如果是小偷且没有被点击，算误点
-                if (character.isTarget && !currentCharacterClicked) {
-                    falseAlarmCount++;
-                    consecutiveCorrect = 0;
-                    updateStats();
-                }
-
-                characterElement.style.opacity = '0';
-                currentIndex++;
-
-                // 检查是否完成所有角色
-                if (currentIndex >= characters.length) {
-                    endGame();
-                } else {
-                    // 短暂停顿后显示下一个角色
-                    setTimeout(showCharacter, 500);
-                }
-            }, 2000);
-        }
-
-        // 点击处理
-        function handleClick() {
-            if (!isGameStarted || isPaused || currentIndex >= characters.length || currentCharacterClicked) return;
-
-            // 标记当前角色已经被点击
-            currentCharacterClicked = true;
-
-            const character = characters[currentIndex];
-            if (character.isTarget) {
-                // 正确击中
-                hitCount++;
-                consecutiveCorrect++;
-                if (consecutiveCorrect > maxConsecutiveCorrect) {
-                    maxConsecutiveCorrect = consecutiveCorrect;
-                }
-            } else {
-                // 误点
-                falseAlarmCount++;
-                consecutiveCorrect = 0;
-            }
-
-            updateStats();
-        }
-
-        // 更新统计信息
-        function updateStats() {
-            const totalCharacters = characters.length;
-            let hitRate = totalCharacters > 0 ? Math.round((hitCount / totalCharacters) * 100) : 0;
-            // 确保击中率和虚报率的和为 100%
-            const falseAlarmRate = 100 - hitRate;
-
-            document.getElementById('hit-rate').textContent = `${hitRate}%`;
-            document.getElementById('false-alarm').textContent = `${falseAlarmRate}%`;
-            document.getElementById('consecutive-correct').textContent = consecutiveCorrect;
-        }
-
-        // 开始游戏
-        function startGame() {
-            if (isGameStarted) return;
-
-            // 重置游戏状态
-            generateCharacters();
-            currentIndex = 0;
-            hitCount = 0;
-            falseAlarmCount = 0;
-            totalThieves = characters.filter(c => c.isTarget).length;
-            totalNonThieves = characters.filter(c => !c.isTarget).length;
+        // 2秒后隐藏角色
+        setTimeout(() => {
+          // 如果是小偷且没有被点击，算误点
+          if (character.isTarget && !currentCharacterClicked) {
+            falseAlarmCount++;
             consecutiveCorrect = 0;
-            maxConsecutiveCorrect = 0;
+            updateStats();
+          }
 
-            isGameStarted = true;
-            isPaused = false;
+          characterElement.style.opacity = '0';
+          currentIndex++;
 
-            // 开始播放视频
-            if (videoElement) {
-                videoElement.play();
-            }
+          // 检查是否完成所有角色
+          if (currentIndex >= characters.length) {
+            endGame();
+          } else {
+            // 短暂停顿后显示下一个角色
+            setTimeout(showCharacter, 500);
+          }
+        }, 2000);
+      }
 
-            // 添加点击事件
-            document.getElementById('monitor').addEventListener('click', handleClick);
+      // 点击处理
+      function handleClick() {
+        if (!isGameStarted || isPaused || currentIndex >= characters.length || currentCharacterClicked) return;
 
-            // 开始显示角色
-            showCharacter();
+        // 标记当前角色已经被点击
+        currentCharacterClicked = true;
+
+        const character = characters[currentIndex];
+        if (character.isTarget) {
+          // 正确击中
+          hitCount++;
+          consecutiveCorrect++;
+          if (consecutiveCorrect > maxConsecutiveCorrect) {
+            maxConsecutiveCorrect = consecutiveCorrect;
+          }
+        } else {
+          // 误点
+          falseAlarmCount++;
+          consecutiveCorrect = 0;
         }
 
-        // 暂停游戏
-        function pauseGame() {
-            if (!isGameStarted) return;
+        updateStats();
+      }
 
-            isPaused = !isPaused;
-            if (!isPaused && currentIndex < characters.length) {
-                showCharacter();
-            }
+      // 更新统计信息
+      function updateStats() {
+        const totalCharacters = characters.length;
+        let hitRate = totalCharacters > 0 ? Math.round((hitCount / totalCharacters) * 100) : 0;
+        // 确保击中率和虚报率的和为 100%
+        const falseAlarmRate = 100 - hitRate;
+
+        document.getElementById('hit-rate').textContent = `${hitRate}%`;
+        document.getElementById('false-alarm').textContent = `${falseAlarmRate}%`;
+        document.getElementById('consecutive-correct').textContent = consecutiveCorrect;
+      }
+
+      // 开始游戏
+      function startGame() {
+        if (isGameStarted) return;
+
+        // 重置游戏状态
+        generateCharacters();
+        currentIndex = 0;
+        hitCount = 0;
+        falseAlarmCount = 0;
+        totalThieves = characters.filter((c) => c.isTarget).length;
+        totalNonThieves = characters.filter((c) => !c.isTarget).length;
+        consecutiveCorrect = 0;
+        maxConsecutiveCorrect = 0;
+
+        isGameStarted = true;
+        isPaused = false;
+
+        // 开始播放视频
+        if (videoElement) {
+          videoElement.play();
         }
 
-        // 计算持续性注意得分
-        function calculateSustainedAttentionScore() {
-            const totalTime = 60;
-            const acc = Math.max(0, 1 - (falseAlarmCount / 10));
-            const consistency = Math.max(0, 1 - (falseAlarmCount / 10));
-            const speed = Math.max(0, 1 - (20 / 60));
-            const headStable = 0.8;
-            const faceStable = 0.8;
-            const blinkStable = 0.8;
-            const scoreValue = (
-                acc * 0.40 + consistency * 0.30 + speed * 0.15 + headStable * 0.10 + faceStable * 0.03 + blinkStable * 0.02
-            ) * 100;
-            return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        // 添加点击事件
+        document.getElementById('monitor').addEventListener('click', handleClick);
+
+        // 开始显示角色
+        showCharacter();
+      }
+
+      // 暂停游戏
+      function pauseGame() {
+        if (!isGameStarted) return;
+
+        isPaused = !isPaused;
+        if (!isPaused && currentIndex < characters.length) {
+          showCharacter();
+        }
+      }
+
+      // 计算持续性注意得分
+      function calculateSustainedAttentionScore() {
+        const totalTime = 60;
+        const acc = Math.max(0, 1 - falseAlarmCount / 10);
+        const consistency = Math.max(0, 1 - falseAlarmCount / 10);
+        const speed = Math.max(0, 1 - 20 / 60);
+        const headStable = 0.8;
+        const faceStable = 0.8;
+        const blinkStable = 0.8;
+        const scoreValue =
+          (acc * 0.4 + consistency * 0.3 + speed * 0.15 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) *
+          100;
+        return Math.max(0, Math.min(100, Math.round(scoreValue)));
+      }
+
+      // 结束游戏
+      function endGame() {
+        isGameStarted = false;
+
+        // 统计游戏使用时间
+        try {
+          if (typeof GameTimeUtil !== 'undefined') {
+            GameTimeUtil.endGame('level2');
+          }
+        } catch (error) {
+          console.log('GameTimeUtil not available');
         }
 
-        // 结束游戏
-        function endGame() {
-            isGameStarted = false;
+        // 暂停视频
+        if (videoElement) {
+          videoElement.pause();
+        }
 
-            // 统计游戏使用时间
-            try {
-                if (typeof GameTimeUtil !== 'undefined') {
-                    GameTimeUtil.endGame('level2');
-                }
-            } catch (error) {
-                console.log('GameTimeUtil not available');
-            }
+        // 移除点击事件
+        document.getElementById('monitor').removeEventListener('click', handleClick);
 
-            // 暂停视频
-            if (videoElement) {
-                videoElement.pause();
-            }
+        // 计算结果
+        const totalCharacters = characters.length;
+        let hitRate = totalCharacters > 0 ? Math.round((hitCount / totalCharacters) * 100) : 0;
+        // 确保击中率和虚报率的和为 100%
+        const falseAlarmRate = 100 - hitRate;
+        const score = calculateSustainedAttentionScore();
 
-            // 移除点击事件
-            document.getElementById('monitor').removeEventListener('click', handleClick);
-
-            // 计算结果
-            const totalCharacters = characters.length;
-            let hitRate = totalCharacters > 0 ? Math.round((hitCount / totalCharacters) * 100) : 0;
-            // 确保击中率和虚报率的和为 100%
-            const falseAlarmRate = 100 - hitRate;
-            const score = calculateSustainedAttentionScore();
-
-            // 显示反馈
-            const feedbackDiv = document.getElementById('feedback');
-            feedbackDiv.innerHTML = `
+        // 显示反馈
+        const feedbackDiv = document.getElementById('feedback');
+        feedbackDiv.innerHTML = `
                 <h3>关卡完成！</h3>
                 <p>小偷识别击中率：<span id="final-hit-rate">${hitRate}%</span></p>
                 <p>路人/警察误点虚报率：<span id="final-false-alarm">${falseAlarmRate}%</span></p>
@@ -426,143 +428,142 @@
                 <p>综合评分：<span id="score">${score}</span>分</p>
                 <button class="btn" id="next-level-btn">下一关</button>
             `;
-            feedbackDiv.style.display = 'block';
+        feedbackDiv.style.display = 'block';
 
-            // 绑定下一关按钮的点击事件
-            document.getElementById('next-level-btn').addEventListener('click', nextLevel);
+        // 绑定下一关按钮的点击事件
+        document.getElementById('next-level-btn').addEventListener('click', nextLevel);
 
-            // 保存数据
-            const data = {
-                sustained_attention: score,
-                false_alarm_rate: falseAlarmRate,
-                max_consecutive_correct: maxConsecutiveCorrect
-            };
-            try {
-                if (typeof StorageUtil !== 'undefined') {
-                    StorageUtil.setItem('level2_data', data);
-                }
-            } catch (error) {
-                console.log('StorageUtil not available');
-            }
-
-            // 上传训练数据
-            uploadTrainingData(score, hitRate, falseAlarmRate);
+        // 保存数据
+        const data = {
+          sustained_attention: score,
+          false_alarm_rate: falseAlarmRate,
+          max_consecutive_correct: maxConsecutiveCorrect,
+        };
+        try {
+          if (typeof StorageUtil !== 'undefined') {
+            StorageUtil.setItem('level2_data', data);
+          }
+        } catch (error) {
+          console.log('StorageUtil not available');
         }
 
         // 上传训练数据
-        function uploadTrainingData(score, hitRate, falseAlarmRate) {
-            try {
-                if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-                    // 检测当前环境，自动切换 API 地址
-                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+        uploadTrainingData(score, hitRate, falseAlarmRate);
+      }
 
-                    const childId = UserStateUtil.getCurrentChildId();
-                    let sessionId = null;
+      // 上传训练数据
+      function uploadTrainingData(score, hitRate, falseAlarmRate) {
+        try {
+          if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+            // 检测当前环境，自动切换 API 地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-                    // 开始训练会话
-                    fetch(`${baseUrl}/api/training/session/start`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify({
-                            child_id: childId,
-                            game_type: 'sustained',
-                            device_id: 'web'
-                        })
-                    })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                sessionId = result.data.session_id;
-                                console.log('训练会话创建成功:', sessionId);
+            const childId = UserStateUtil.getCurrentChildId();
+            let sessionId = null;
 
-                                // 上传游戏数据
-                                return fetch(`${baseUrl}/api/training/game-data`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                                    },
-                                    body: JSON.stringify({
-                                        session_id: sessionId,
-                                        request_id: Date.now().toString(),
-                                        timestamp: new Date().toISOString(),
-                                        event_type: 'game_complete',
-                                        score: score,
-                                        accuracy: hitRate,
-                                        level: 2,
-                                        time: 60,
-                                        correct: hitCount,
-                                        error: falseAlarmCount,
-                                        total_target: characters.length,
-                                        total_step: characters.length
-                                    })
-                                });
-                            } else {
-                                throw new Error(result.message || '创建会话失败');
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                console.log('游戏数据上传成功');
+            // 开始训练会话
+            fetch(`${baseUrl}/api/training/session/start`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                child_id: childId,
+                game_type: 'sustained',
+                device_id: 'web',
+              }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  sessionId = result.data.session_id;
+                  console.log('训练会话创建成功:', sessionId);
 
-                                // 结束训练会话
-                                return fetch(`${baseUrl}/api/training/session/end`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                                    },
-                                    body: JSON.stringify({
-                                        session_id: sessionId,
-                                        final_score: score,
-                                        total_accuracy: hitRate
-                                    })
-                                });
-                            } else {
-                                throw new Error(result.message || '上传游戏数据失败');
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(result => {
-                            console.log('会话结束响应数据:', result);
-                            if (result.success) {
-                                console.log('训练数据上传完成');
-
-                                // 清除能力评估页面的缓存
-                                const cacheKey = `child_data_${childId}`;
-                                localStorage.removeItem(cacheKey);
-                                console.log('已清除能力评估缓存:', cacheKey);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('上传训练数据失败:', error);
-                        });
+                  // 上传游戏数据
+                  return fetch(`${baseUrl}/api/training/game-data`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: sessionId,
+                      request_id: Date.now().toString(),
+                      timestamp: new Date().toISOString(),
+                      event_type: 'game_complete',
+                      score: score,
+                      accuracy: hitRate,
+                      level: 2,
+                      time: 60,
+                      correct: hitCount,
+                      error: falseAlarmCount,
+                      total_target: characters.length,
+                      total_step: characters.length,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '创建会话失败');
                 }
-            } catch (e) {
-                console.error('uploadTrainingData 错误:', e);
-            }
-        }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
 
-        // 下一关
-        function nextLevel() {
-            window.location.href = 'level3.html';
-        }
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: sessionId,
+                      final_score: score,
+                      total_accuracy: hitRate,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
+                }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
 
-        // 页面加载完成后获取视频元素引用并自动开始游戏
-        window.onload = function () {
-            videoElement = document.querySelector('.monitor video');
-            if (videoElement) {
-                videoElement.pause(); // 初始状态暂停视频
-            }
-            startGame();
-        };
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
+                }
+              })
+              .catch((error) => {
+                console.error('上传训练数据失败:', error);
+              });
+          }
+        } catch (e) {
+          console.error('uploadTrainingData 错误:', e);
+        }
+      }
+
+      // 下一关
+      function nextLevel() {
+        window.location.href = 'level3.html';
+      }
+
+      // 页面加载完成后获取视频元素引用并自动开始游戏
+      window.onload = function () {
+        videoElement = document.querySelector('.monitor video');
+        if (videoElement) {
+          videoElement.pause(); // 初始状态暂停视频
+        }
+        startGame();
+      };
     </script>
     <script src="../attention-loader.js"></script>
-</body>
-
+  </body>
 </html>

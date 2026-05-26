@@ -1,14 +1,16 @@
-﻿import sqlite3
-from .db import get_db_path
-import os
+import sqlite3
+
 import bcrypt
+
+from .db import get_db_path
+
 
 def init_db():
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
-    cursor.execute('''
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS parents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         uid INTEGER UNIQUE NOT NULL,
@@ -22,34 +24,36 @@ def init_db():
         is_banned INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-    ''')
-    
+    """)
+
     try:
-        cursor.execute('ALTER TABLE parents ADD COLUMN uid INTEGER UNIQUE')
+        cursor.execute("ALTER TABLE parents ADD COLUMN uid INTEGER UNIQUE")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE parents ADD COLUMN role TEXT DEFAULT \'user\'')
+        cursor.execute("ALTER TABLE parents ADD COLUMN role TEXT DEFAULT 'user'")
     except sqlite3.OperationalError:
         pass
-    
+
     cursor.execute("SELECT COUNT(*) FROM parents WHERE username = 'admin'")
     if cursor.fetchone()[0] == 0:
         # Avoid startup crash when uid=100000 is already occupied by non-admin data.
-        cursor.execute('SELECT MAX(uid) FROM parents')
+        cursor.execute("SELECT MAX(uid) FROM parents")
         max_uid_row = cursor.fetchone()
         max_uid = max_uid_row[0] if max_uid_row and max_uid_row[0] is not None else 99999
         next_uid = max(max_uid + 1, 100000)
         # 使用 bcrypt 加密管理员密码，避免明文存储
-        hashed_password = bcrypt.hashpw('123456'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        cursor.execute('''
+        hashed_password = bcrypt.hashpw(b"123456", bcrypt.gensalt()).decode("utf-8")
+        cursor.execute(
+            """
             INSERT INTO parents (uid, username, password, email, role)
             VALUES (?, ?, ?, ?, ?)
-        ''', (next_uid, 'admin', hashed_password, 'admin@system.com', 'admin'))
-    
+        """,
+            (next_uid, "admin", hashed_password, "admin@system.com", "admin"),
+        )
 
-    cursor.execute('''
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS children (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         parent_id INTEGER NOT NULL,
@@ -58,9 +62,9 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (parent_id) REFERENCES parents (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS forum_posts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         parent_id INTEGER NOT NULL,
@@ -74,9 +78,9 @@ def init_db():
         view_count INTEGER DEFAULT 0,
         FOREIGN KEY (parent_id) REFERENCES parents (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS forum_comments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         post_id INTEGER NOT NULL,
@@ -86,9 +90,9 @@ def init_db():
         FOREIGN KEY (post_id) REFERENCES forum_posts (id),
         FOREIGN KEY (parent_id) REFERENCES parents (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS forum_votes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         post_id INTEGER,
@@ -100,9 +104,9 @@ def init_db():
         FOREIGN KEY (comment_id) REFERENCES forum_comments (id),
         FOREIGN KEY (parent_id) REFERENCES parents (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS detection_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         child_id INTEGER NOT NULL,
@@ -115,9 +119,9 @@ def init_db():
         total_score REAL,
         FOREIGN KEY (child_id) REFERENCES children (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS user_badges (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         child_id INTEGER NOT NULL,
@@ -125,44 +129,44 @@ def init_db():
         earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (child_id) REFERENCES children (id)
     )
-    ''')
-    
+    """)
+
     try:
-        cursor.execute('ALTER TABLE parents ADD COLUMN avatar TEXT DEFAULT \'\'')
+        cursor.execute("ALTER TABLE parents ADD COLUMN avatar TEXT DEFAULT ''")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE parents ADD COLUMN level INTEGER DEFAULT 1')
+        cursor.execute("ALTER TABLE parents ADD COLUMN level INTEGER DEFAULT 1")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE parents ADD COLUMN experience INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE parents ADD COLUMN experience INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE parents ADD COLUMN is_banned INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE parents ADD COLUMN is_banned INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE forum_posts ADD COLUMN category_id INTEGER')
+        cursor.execute("ALTER TABLE forum_posts ADD COLUMN category_id INTEGER")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE forum_posts ADD COLUMN is_pinned INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE forum_posts ADD COLUMN is_pinned INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE forum_posts ADD COLUMN is_essential INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE forum_posts ADD COLUMN is_essential INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
-    cursor.execute('''
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS favorites (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         parent_id INTEGER NOT NULL,
@@ -172,9 +176,9 @@ def init_db():
         FOREIGN KEY (post_id) REFERENCES forum_posts (id),
         UNIQUE(parent_id, post_id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS training_sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         child_id INTEGER NOT NULL,
@@ -189,9 +193,9 @@ def init_db():
         last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (child_id) REFERENCES children (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS game_raw_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id INTEGER NOT NULL,
@@ -218,9 +222,9 @@ def init_db():
         reaction_times TEXT,
         FOREIGN KEY (session_id) REFERENCES training_sessions (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS vision_raw_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id INTEGER NOT NULL,
@@ -236,9 +240,9 @@ def init_db():
         focus_duration REAL,
         FOREIGN KEY (session_id) REFERENCES training_sessions (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS session_summaries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id INTEGER NOT NULL,
@@ -277,9 +281,9 @@ def init_db():
         FOREIGN KEY (session_id) REFERENCES training_sessions (id),
         FOREIGN KEY (child_id) REFERENCES children (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS child_reports (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         child_id INTEGER NOT NULL,
@@ -311,259 +315,259 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (child_id) REFERENCES children (id)
     )
-    ''')
-    
-    cursor.execute('''
+    """)
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS processed_requests (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         request_id TEXT NOT NULL UNIQUE,
         processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-    ''')
-    
+    """)
+
     try:
-        cursor.execute('ALTER TABLE training_sessions ADD COLUMN attention_type TEXT')
+        cursor.execute("ALTER TABLE training_sessions ADD COLUMN attention_type TEXT")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN time INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN time INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN correct INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN correct INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN error INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN error INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN miss INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN miss INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN leave INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN leave INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN obstacle INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN obstacle INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN total_target INTEGER DEFAULT 1')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN total_target INTEGER DEFAULT 1")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN total_step INTEGER DEFAULT 1')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN total_step INTEGER DEFAULT 1")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN total_click INTEGER DEFAULT 1')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN total_click INTEGER DEFAULT 1")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN total_trial INTEGER DEFAULT 1')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN total_trial INTEGER DEFAULT 1")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN memory_load INTEGER DEFAULT 1')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN memory_load INTEGER DEFAULT 1")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN order_error INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN order_error INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN late_error_ratio REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN late_error_ratio REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN mean_rt INTEGER DEFAULT 1000')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN mean_rt INTEGER DEFAULT 1000")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE game_raw_data ADD COLUMN reaction_times TEXT')
+        cursor.execute("ALTER TABLE game_raw_data ADD COLUMN reaction_times TEXT")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE vision_raw_data ADD COLUMN face_distance REAL')
+        cursor.execute("ALTER TABLE vision_raw_data ADD COLUMN face_distance REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE vision_raw_data ADD COLUMN blink_count INTEGER DEFAULT 0')
+        cursor.execute("ALTER TABLE vision_raw_data ADD COLUMN blink_count INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     # session_summaries 表新增列兼容旧数据库
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN attention_type TEXT')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN attention_type TEXT")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN final_score INTEGER')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN final_score INTEGER")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN total_accuracy REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN total_accuracy REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN total_time INTEGER')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN total_time INTEGER")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN total_errors INTEGER')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN total_errors INTEGER")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN levels_completed INTEGER')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN levels_completed INTEGER")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN avg_attention_score REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN avg_attention_score REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN max_attention_score REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN max_attention_score REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN min_attention_score REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN min_attention_score REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN attention_stability REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN attention_stability REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN avg_head_deviation REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN avg_head_deviation REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN avg_blink_rate REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN avg_blink_rate REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN total_focus_time REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN total_focus_time REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN distraction_count INTEGER')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN distraction_count INTEGER")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN overall_score REAL')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN overall_score REAL")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN performance_level TEXT')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN performance_level TEXT")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN accuracy_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN accuracy_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN precision_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN precision_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN speed_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN speed_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN head_stable_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN head_stable_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN face_stable_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN face_stable_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN blink_stable_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN blink_stable_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN impulse_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN impulse_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN memory_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN memory_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN no_fatigue_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN no_fatigue_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN rt_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN rt_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN order_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN order_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN stable_act_score REAL DEFAULT 0')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN stable_act_score REAL DEFAULT 0")
     except sqlite3.OperationalError:
         pass
-    
+
     try:
-        cursor.execute('ALTER TABLE session_summaries ADD COLUMN game_data TEXT')
+        cursor.execute("ALTER TABLE session_summaries ADD COLUMN game_data TEXT")
     except sqlite3.OperationalError:
         pass
-    
+
     # 为管理员插入默认孩子"小A"（需在 children 表创建之后）
-    admin_row = cursor.execute('SELECT id FROM parents WHERE username = ?', ('admin',)).fetchone()
+    admin_row = cursor.execute("SELECT id FROM parents WHERE username = ?", ("admin",)).fetchone()
     if admin_row:
         admin_id = admin_row[0]
-        cursor.execute('SELECT COUNT(*) FROM children WHERE parent_id = ? AND name = ?', (admin_id, '小A'))
+        cursor.execute("SELECT COUNT(*) FROM children WHERE parent_id = ? AND name = ?", (admin_id, "小A"))
         if cursor.fetchone()[0] == 0:
-            cursor.execute('INSERT INTO children (parent_id, name, age) VALUES (?, ?, ?)', (admin_id, '小A', 7))
+            cursor.execute("INSERT INTO children (parent_id, name, age) VALUES (?, ?, ?)", (admin_id, "小A", 7))
 
     conn.commit()
     conn.close()

@@ -1,0 +1,20 @@
+# Prettier 忽略文件
+node_modules/
+package-lock.json
+
+# 非源码
+*.min.js
+*.min.css
+
+# 图片和二进制文件
+**/images/
+**/index_images/
+**/medal-image/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.db
+*.pyc

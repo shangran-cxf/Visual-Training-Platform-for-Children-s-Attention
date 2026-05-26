@@ -1,37 +1,37 @@
-﻿import os
+import os
 from pathlib import Path
 
-_env_path = Path(__file__).parent / '.env'
+_env_path = Path(__file__).parent / ".env"
 if _env_path.exists():
-    with open(_env_path, 'r', encoding='utf-8-sig') as f:
+    with open(_env_path, encoding="utf-8-sig") as f:
         for line in f:
             line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
                 os.environ.setdefault(key.strip(), value.strip())
 
 AI_CONFIG = {
-    'base_url': os.environ.get('AI_BASE_URL', ''),  # API 地址
-    'api_key': os.environ.get('AI_API_KEY', ''),    # API Key
-    'model': os.environ.get('AI_MODEL', ''),        # 模型名称
-    'timeout': int(os.environ.get('AI_TIMEOUT', '30')),
-    'max_tokens': int(os.environ.get('AI_MAX_TOKENS', '1000')),
-    'temperature': float(os.environ.get('AI_TEMPERATURE', '0.7')),
-    'output_format': 'json',
-    'max_response_length': 500,
+    "base_url": os.environ.get("AI_BASE_URL", ""),  # API 地址
+    "api_key": os.environ.get("AI_API_KEY", ""),  # API Key
+    "model": os.environ.get("AI_MODEL", ""),  # 模型名称
+    "timeout": int(os.environ.get("AI_TIMEOUT", "30")),
+    "max_tokens": int(os.environ.get("AI_MAX_TOKENS", "1000")),
+    "temperature": float(os.environ.get("AI_TEMPERATURE", "0.7")),
+    "output_format": "json",
+    "max_response_length": 500,
 }
 
 CACHE_CONFIG = {
-    'enabled': True,
-    'expire_hours': 24,
-    'max_cache_size': 1000,
+    "enabled": True,
+    "expire_hours": 24,
+    "max_cache_size": 1000,
 }
 
 PROMPT_TEMPLATES = {
-    'current_training_evaluation': {
-        'name': '当前训练数据评价',
-        'system_prompt': '你是一位专业又亲切的儿童注意力训练专家。请用温暖、专业的语言，为家长提供直观易懂的训练反馈。你的回答必须是严格的JSON格式，不要包含任何其他文字说明。',
-        'user_prompt_template': '''请根据以下儿童的训练数据，为家长生成一份专业、易懂、实用的评价反馈。
+    "current_training_evaluation": {
+        "name": "当前训练数据评价",
+        "system_prompt": "你是一位专业又亲切的儿童注意力训练专家。请用温暖、专业的语言，为家长提供直观易懂的训练反馈。你的回答必须是严格的JSON格式，不要包含任何其他文字说明。",
+        "user_prompt_template": """请根据以下儿童的训练数据，为家长生成一份专业、易懂、实用的评价反馈。
 
 ## 儿童信息
 姓名：{child_name}，年龄：{child_age}岁
@@ -66,13 +66,12 @@ PROMPT_TEMPLATES = {
 2. 每条内容尽量精炼有力，避免冗长重复
 3. 必须用数据说话，但不要堆砌数字
 4. 建议要具体可操作，家长容易执行
-5. 必须返回有效的JSON格式''',
+5. 必须返回有效的JSON格式""",
     },
-    
-    'history_training_evaluation': {
-        'name': '历史训练状态评价',
-        'system_prompt': '你是一位专业又亲切的儿童注意力训练专家。请用温暖、专业的语言，为家长分析孩子的训练进步情况。你的回答必须是严格的JSON格式，不要包含任何其他文字说明。',
-        'user_prompt_template': '''请根据以下儿童的历史训练数据，为家长生成一份专业、易懂、鼓舞人心的进步分析。
+    "history_training_evaluation": {
+        "name": "历史训练状态评价",
+        "system_prompt": "你是一位专业又亲切的儿童注意力训练专家。请用温暖、专业的语言，为家长分析孩子的训练进步情况。你的回答必须是严格的JSON格式，不要包含任何其他文字说明。",
+        "user_prompt_template": """请根据以下儿童的历史训练数据，为家长生成一份专业、易懂、鼓舞人心的进步分析。
 
 ## 儿童信息
 姓名：{child_name}，年龄：{child_age}岁
@@ -110,15 +109,18 @@ PROMPT_TEMPLATES = {
 2. 突出亮点，淡化不足，以鼓励为主
 3. 每条内容尽量精炼有力，避免冗长重复
 4. 建议要具体可行，家长容易执行
-5. 必须返回有效的JSON格式''',
+5. 必须返回有效的JSON格式""",
     },
 }
 
+
 def is_ai_configured():
-    return bool(AI_CONFIG.get('base_url') and AI_CONFIG.get('api_key') and AI_CONFIG.get('model'))
+    return bool(AI_CONFIG.get("base_url") and AI_CONFIG.get("api_key") and AI_CONFIG.get("model"))
+
 
 def is_cache_enabled():
-    return CACHE_CONFIG.get('enabled', True)
+    return CACHE_CONFIG.get("enabled", True)
+
 
 def get_cache_expire_hours():
-    return CACHE_CONFIG.get('expire_hours', 24)
+    return CACHE_CONFIG.get("expire_hours", 24)

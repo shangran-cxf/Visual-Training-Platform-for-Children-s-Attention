@@ -1,586 +1,581 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>帖子详情 - 家长论坛</title>
     <script src="utils.js"></script>
     <script src="components-parent.js"></script>
     <script>
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        window.API_CONFIG = {
-            BASE_URL: isLocal ? 'http://localhost:5000' : window.location.origin,
-            TIMEOUT: 30000,
-            CONTENT_TYPE: 'application/json',
-            TOKEN_KEY: 'auth_token'
-        };
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      window.API_CONFIG = {
+        BASE_URL: isLocal ? 'http://localhost:5000' : window.location.origin,
+        TIMEOUT: 30000,
+        CONTENT_TYPE: 'application/json',
+        TOKEN_KEY: 'auth_token',
+      };
     </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        html,
-        body {
-            overflow-x: hidden;
-            overflow-y: hidden;
-            height: 100%;
-        }
+      html,
+      body {
+        overflow-x: hidden;
+        overflow-y: hidden;
+        height: 100%;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
 
-        .main-content {
-            padding: 24px;
-            overflow-y: hidden;
-        }
+      .main-content {
+        padding: 24px;
+        overflow-y: hidden;
+      }
 
-        /* 隐藏滚动条 */
-        ::-webkit-scrollbar {
-            width: 0;
-            height: 0;
-        }
+      /* 隐藏滚动条 */
+      ::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+      }
 
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
 
-        ::-webkit-scrollbar-thumb {
-            background: transparent;
-        }
+      ::-webkit-scrollbar-thumb {
+        background: transparent;
+      }
 
-        .main-content-inner {
-            width: 100%;
-        }
+      .main-content-inner {
+        width: 100%;
+      }
 
+      .container {
+        max-width: 900px;
+        width: 100%;
+        margin: 0 auto;
+      }
+
+      .content-sidebar {
+        display: none;
+      }
+
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 18px;
+        background: #886ec5;
+        border: 1px solid #e0e0e0;
+        border-radius: 25px;
+        color: #ffff;
+        font-weight: 500;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 16px;
+        text-decoration: none;
+      }
+
+      .back-btn:hover {
+        background: #7a5cb8;
+        border-color: #667eea;
+      }
+
+      .post-detail {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        margin-bottom: 24px;
+      }
+
+      .post-header {
+        padding: 28px 32px;
+        border-bottom: 1px solid #f5f5f5;
+      }
+
+      .post-meta {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+
+      .author-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 19px;
+      }
+
+      .author-info {
+        flex: 1;
+      }
+
+      .author-name {
+        font-weight: 600;
+        font-size: 17px;
+        color: #222;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .author-level {
+        font-size: 12px;
+        padding: 2px 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+      }
+
+      .post-time {
+        font-size: 13px;
+        color: #999;
+        margin-top: 4px;
+      }
+
+      .post-badges {
+        display: flex;
+        gap: 8px;
+      }
+
+      .badge {
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-weight: 500;
+      }
+
+      .badge-pinned {
+        background: #ff9800;
+        color: white;
+      }
+
+      .badge-essential {
+        background: #e91e63;
+        color: white;
+      }
+
+      .badge-category {
+        background: #f0f0f0;
+        color: #555;
+        font-size: 13px;
+        padding: 5px 11px;
+      }
+
+      .post-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #222;
+        line-height: 1.4;
+        margin-bottom: 0;
+      }
+
+      .post-content {
+        padding: 32px;
+        font-size: 16px;
+        color: #333;
+        line-height: 1.85;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .post-content img {
+        max-width: 100%;
+        border-radius: 10px;
+        margin: 12px 0;
+      }
+
+      .post-footer {
+        padding: 20px 32px;
+        border-top: 1px solid #f5f5f5;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        background: #fafbfc;
+      }
+
+      .post-stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 15px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;
+        padding: 6px 12px;
+        border-radius: 20px;
+      }
+
+      .post-stat:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        transform: translateY(-2px);
+      }
+
+      .post-stat:active {
+        transform: translateY(0);
+      }
+
+      .post-stat.liked {
+        color: #4caf50;
+        font-weight: bold;
+      }
+
+      .post-stat.disliked {
+        color: #f44336;
+        font-weight: bold;
+      }
+
+      .post-stat.favorited {
+        color: #ff9800;
+      }
+
+      .comments-section {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+      }
+
+      .comments-header {
+        padding: 22px 32px;
+        border-bottom: 1px solid #f5f5f5;
+        font-size: 17px;
+        font-weight: 600;
+        color: #222;
+      }
+
+      .comment-form-section {
+        padding: 24px 32px;
+        border-bottom: 1px solid #f5f5f5;
+      }
+
+      .comment-form {
+        display: flex;
+        gap: 12px;
+      }
+
+      .comment-form textarea {
+        flex: 1;
+        padding: 14px;
+        border: 2px solid #eee;
+        border-radius: 10px;
+        font-size: 15px;
+        resize: vertical;
+        min-height: 90px;
+        transition: border-color 0.3s ease;
+      }
+
+      .comment-form textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .comment-form button {
+        padding: 14px 26px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        align-self: flex-end;
+      }
+
+      .comment-form button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+      }
+
+      .comments-list {
+        padding: 0;
+      }
+
+      .comment-item {
+        padding: 22px 32px;
+        border-bottom: 1px solid #f8f8f8;
+      }
+
+      .comment-item:last-child {
+        border-bottom: none;
+      }
+
+      .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .comment-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .comment-author {
+        font-size: 16px;
+        font-weight: 500;
+        color: #222;
+      }
+
+      .comment-time {
+        font-size: 13px;
+        color: #999;
+        margin-left: auto;
+      }
+
+      .comment-content {
+        font-size: 16px;
+        color: #333;
+        line-height: 1.6;
+        margin-left: 56px;
+      }
+
+      .comment-actions {
+        display: flex;
+        gap: 12px;
+        margin-left: 56px;
+        margin-top: 12px;
+      }
+
+      .comment-action {
+        font-size: 14px;
+        color: #888;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;
+        padding: 6px 12px;
+        border-radius: 20px;
+      }
+
+      .comment-action:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        transform: translateY(-2px);
+      }
+
+      .comment-action:active {
+        transform: translateY(0);
+      }
+
+      .comment-action.liked {
+        color: #4caf50;
+        font-weight: bold;
+      }
+
+      .comment-action.disliked {
+        color: #f44336;
+        font-weight: bold;
+      }
+
+      .empty-comments {
+        padding: 70px 32px;
+        text-align: center;
+        color: #aaa;
+      }
+
+      .empty-comments-icon {
+        font-size: 52px;
+        margin-bottom: 14px;
+      }
+
+      .footer {
+        background: #f5f7fa;
+        color: #999;
+        text-align: center;
+        padding: 24px 0;
+        margin-top: 40px;
+        clear: both;
+      }
+
+      .footer p {
+        font-size: 13px;
+      }
+
+      @media (max-width: 768px) {
         .container {
-            max-width: 900px;
-            width: 100%;
-            margin: 0 auto;
+          margin: 20px auto;
         }
 
-        .content-sidebar {
-            display: none;
+        .post-header,
+        .post-content,
+        .post-footer,
+        .comments-header,
+        .comment-form-section,
+        .comment-item {
+          padding-left: 20px;
+          padding-right: 20px;
         }
 
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 18px;
-            background: #886ec5;
-            border: 1px solid #e0e0e0;
-            border-radius: 25px;
-            color: #ffff;
-            font-weight: 500;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-bottom: 16px;
-            text-decoration: none;
-        }
-
-        .back-btn:hover {
-            background: #7a5cb8;
-            border-color: #667eea;
-        }
-
-        .post-detail {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            margin-bottom: 24px;
-        }
-
-        .post-header {
-            padding: 28px 32px;
-            border-bottom: 1px solid #f5f5f5;
-        }
-
-        .post-meta {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-
-        .author-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 19px;
-        }
-
-        .author-info {
-            flex: 1;
-        }
-
-        .author-name {
-            font-weight: 600;
-            font-size: 17px;
-            color: #222;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .author-level {
-            font-size: 12px;
-            padding: 2px 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px;
-        }
-
-        .post-time {
-            font-size: 13px;
-            color: #999;
-            margin-top: 4px;
-        }
-
-        .post-badges {
-            display: flex;
-            gap: 8px;
-        }
-
-        .badge {
-            font-size: 12px;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-weight: 500;
-        }
-
-        .badge-pinned {
-            background: #ff9800;
-            color: white;
-        }
-
-        .badge-essential {
-            background: #e91e63;
-            color: white;
-        }
-
-        .badge-category {
-            background: #f0f0f0;
-            color: #555;
-            font-size: 13px;
-            padding: 5px 11px;
-        }
-
-        .post-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #222;
-            line-height: 1.4;
-            margin-bottom: 0;
-        }
-
-        .post-content {
-            padding: 32px;
-            font-size: 16px;
-            color: #333;
-            line-height: 1.85;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .post-content img {
-            max-width: 100%;
-            border-radius: 10px;
-            margin: 12px 0;
+        .comment-content,
+        .comment-actions {
+          margin-left: 0;
         }
 
         .post-footer {
-            padding: 20px 32px;
-            border-top: 1px solid #f5f5f5;
-            display: flex;
-            align-items: center;
-            gap: 28px;
-            background: #fafbfc;
+          flex-wrap: wrap;
+          gap: 16px;
         }
-
-        .post-stat {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 15px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            user-select: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-
-        .post-stat:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            transform: translateY(-2px);
-        }
-
-        .post-stat:active {
-            transform: translateY(0);
-        }
-
-        .post-stat.liked {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-
-        .post-stat.disliked {
-            color: #F44336;
-            font-weight: bold;
-        }
-
-        .post-stat.favorited {
-            color: #ff9800;
-        }
-
-        .comments-section {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-        }
-
-        .comments-header {
-            padding: 22px 32px;
-            border-bottom: 1px solid #f5f5f5;
-            font-size: 17px;
-            font-weight: 600;
-            color: #222;
-        }
-
-        .comment-form-section {
-            padding: 24px 32px;
-            border-bottom: 1px solid #f5f5f5;
-        }
-
-        .comment-form {
-            display: flex;
-            gap: 12px;
-        }
-
-        .comment-form textarea {
-            flex: 1;
-            padding: 14px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            font-size: 15px;
-            resize: vertical;
-            min-height: 90px;
-            transition: border-color 0.3s ease;
-        }
-
-        .comment-form textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .comment-form button {
-            padding: 14px 26px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            align-self: flex-end;
-        }
-
-        .comment-form button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
-        }
-
-        .comments-list {
-            padding: 0;
-        }
-
-        .comment-item {
-            padding: 22px 32px;
-            border-bottom: 1px solid #f8f8f8;
-        }
-
-        .comment-item:last-child {
-            border-bottom: none;
-        }
-
-        .comment-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .comment-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .comment-author {
-            font-size: 16px;
-            font-weight: 500;
-            color: #222;
-        }
-
-        .comment-time {
-            font-size: 13px;
-            color: #999;
-            margin-left: auto;
-        }
-
-        .comment-content {
-            font-size: 16px;
-            color: #333;
-            line-height: 1.6;
-            margin-left: 56px;
-        }
-
-        .comment-actions {
-            display: flex;
-            gap: 12px;
-            margin-left: 56px;
-            margin-top: 12px;
-        }
-
-        .comment-action {
-            font-size: 14px;
-            color: #888;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            user-select: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-
-        .comment-action:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            transform: translateY(-2px);
-        }
-
-        .comment-action:active {
-            transform: translateY(0);
-        }
-
-        .comment-action.liked {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-
-        .comment-action.disliked {
-            color: #F44336;
-            font-weight: bold;
-        }
-
-        .empty-comments {
-            padding: 70px 32px;
-            text-align: center;
-            color: #aaa;
-        }
-
-        .empty-comments-icon {
-            font-size: 52px;
-            margin-bottom: 14px;
-        }
-
-        .footer {
-            background: #f5f7fa;
-            color: #999;
-            text-align: center;
-            padding: 24px 0;
-            margin-top: 40px;
-            clear: both;
-        }
-
-        .footer p {
-            font-size: 13px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 20px auto;
-            }
-
-            .post-header,
-            .post-content,
-            .post-footer,
-            .comments-header,
-            .comment-form-section,
-            .comment-item {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-
-            .comment-content,
-            .comment-actions {
-                margin-left: 0;
-            }
-
-            .post-footer {
-                flex-wrap: wrap;
-                gap: 16px;
-            }
-        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="main-content">
-        <div class="main-content-inner">
-            <div class="container">
-                <button class="back-btn" onclick="window.location.href='forum.html'">← 返回论坛</button>
+      <div class="main-content-inner">
+        <div class="container">
+          <button class="back-btn" onclick="window.location.href = 'forum.html'">← 返回论坛</button>
 
-                <div class="post-detail" id="post-detail">
-                    <div class="post-header">
-                        <div class="post-meta">
-                            <div class="author-avatar" id="author-avatar">U</div>
-                            <div class="author-info">
-                                <div class="author-name">
-                                    <span id="author-name">用户</span>
-                                    <span class="author-level" id="author-level">Lv.1</span>
-                                </div>
-                                <div class="post-time" id="post-time">2024-01-01 00:00:00</div>
-                            </div>
-                            <div class="post-badges" id="post-badges"></div>
-                        </div>
-                        <h1 class="post-title" id="post-title">加载中...</h1>
-                    </div>
-                    <div class="post-content" id="post-content">加载中...</div>
-                    <div class="post-footer" id="post-footer">
-                        <div class="post-stat" id="view-count">
-                            <span>👁</span> <span>0</span>
-                        </div>
-                        <div class="post-stat" id="like-btn" onclick="likePost()">
-                            <span>👍</span> <span id="like-count">0</span>
-                        </div>
-                        <div class="post-stat" id="dislike-btn" onclick="dislikePost()">
-                            <span>👎</span> <span id="dislike-count">0</span>
-                        </div>
-                    </div>
+          <div class="post-detail" id="post-detail">
+            <div class="post-header">
+              <div class="post-meta">
+                <div class="author-avatar" id="author-avatar">U</div>
+                <div class="author-info">
+                  <div class="author-name">
+                    <span id="author-name">用户</span>
+                    <span class="author-level" id="author-level">Lv.1</span>
+                  </div>
+                  <div class="post-time" id="post-time">2024-01-01 00:00:00</div>
                 </div>
-
-                <div class="comments-section">
-                    <div class="comments-header">
-                        💬 评论 (<span id="comment-count">0</span>)
-                    </div>
-                    <div class="comment-form-section">
-                        <div class="comment-form">
-                            <textarea id="comment-input" placeholder="写下你的评论..."></textarea>
-                            <button onclick="addComment()">发表</button>
-                        </div>
-                    </div>
-                    <div class="comments-list" id="comments-list">
-                        <div class="empty-comments">
-                            <div class="empty-comments-icon">💭</div>
-                            <div>暂无评论，快来发表第一条评论吧！</div>
-                        </div>
-                    </div>
-                </div>
+                <div class="post-badges" id="post-badges"></div>
+              </div>
+              <h1 class="post-title" id="post-title">加载中...</h1>
             </div>
-        </div>
+            <div class="post-content" id="post-content">加载中...</div>
+            <div class="post-footer" id="post-footer">
+              <div class="post-stat" id="view-count"><span>👁</span> <span>0</span></div>
+              <div class="post-stat" id="like-btn" onclick="likePost()">
+                <span>👍</span> <span id="like-count">0</span>
+              </div>
+              <div class="post-stat" id="dislike-btn" onclick="dislikePost()">
+                <span>👎</span> <span id="dislike-count">0</span>
+              </div>
+            </div>
+          </div>
 
-        <div class="content-sidebar"></div>
+          <div class="comments-section">
+            <div class="comments-header">💬 评论 (<span id="comment-count">0</span>)</div>
+            <div class="comment-form-section">
+              <div class="comment-form">
+                <textarea id="comment-input" placeholder="写下你的评论..."></textarea>
+                <button onclick="addComment()">发表</button>
+              </div>
+            </div>
+            <div class="comments-list" id="comments-list">
+              <div class="empty-comments">
+                <div class="empty-comments-icon">💭</div>
+                <div>暂无评论，快来发表第一条评论吧！</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-sidebar"></div>
     </div>
 
     <script>
-        let postId = null;
-        let postData = null;
+      let postId = null;
+      let postData = null;
 
-        function checkAuth() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo) {
-                window.location.href = 'login.html';
-                return null;
-            }
-            return userInfo;
+      function checkAuth() {
+        const userInfo = StorageUtil.getItem('userInfo');
+        if (!userInfo) {
+          window.location.href = 'login.html';
+          return null;
+        }
+        return userInfo;
+      }
+
+      function getPostIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('id');
+      }
+
+      async function loadPost() {
+        postId = getPostIdFromUrl();
+        if (!postId) {
+          window.location.href = 'forum.html';
+          return;
         }
 
-        function getPostIdFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('id');
+        try {
+          const userInfo = StorageUtil.getItem('userInfo');
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+          if (userInfo && userInfo.token) {
+            headers['Authorization'] = `Bearer ${userInfo.token}`;
+          }
+
+          const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`, {
+            headers: headers,
+          });
+          const responseData = await response.json();
+
+          if (!response.ok || !responseData.success) {
+            window.location.href = 'forum.html';
+            return;
+          }
+
+          const data = responseData.data;
+          postData = data;
+          renderPost(data);
+          loadComments();
+        } catch (error) {
+          console.error('加载帖子失败:', error);
+          window.location.href = 'forum.html';
         }
+      }
 
-        async function loadPost() {
-            postId = getPostIdFromUrl();
-            if (!postId) {
-                window.location.href = 'forum.html';
-                return;
-            }
+      function renderPost(data) {
+        const initial = (data.author_name || '用户').charAt(0).toUpperCase();
+        document.getElementById('author-avatar').textContent = initial;
+        document.getElementById('author-name').textContent = data.author_name || '用户';
+        document.getElementById('author-level').textContent = `Lv.${data.author_level || 1}`;
+        document.getElementById('post-time').textContent = data.created_at;
+        document.getElementById('post-title').textContent = data.title;
+        document.getElementById('post-content').textContent = data.content;
 
-            try {
-                const userInfo = StorageUtil.getItem('userInfo');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                if (userInfo && userInfo.token) {
-                    headers['Authorization'] = `Bearer ${userInfo.token}`;
-                }
+        let badgesHtml = '';
+        if (data.is_pinned) badgesHtml += '<span class="badge badge-pinned">置顶</span>';
+        if (data.is_essential) badgesHtml += '<span class="badge badge-essential">精华</span>';
+        document.getElementById('post-badges').innerHTML = badgesHtml;
 
-                const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`, {
-                    headers: headers
-                });
-                const responseData = await response.json();
+        const userInfo = StorageUtil.getItem('userInfo');
+        const footer = document.getElementById('post-footer');
+        footer.innerHTML = '';
 
-                if (!response.ok || !responseData.success) {
-                    window.location.href = 'forum.html';
-                    return;
-                }
-
-                const data = responseData.data;
-                postData = data;
-                renderPost(data);
-                loadComments();
-            } catch (error) {
-                console.error('加载帖子失败:', error);
-                window.location.href = 'forum.html';
-            }
-        }
-
-        function renderPost(data) {
-            const initial = (data.author_name || '用户').charAt(0).toUpperCase();
-            document.getElementById('author-avatar').textContent = initial;
-            document.getElementById('author-name').textContent = data.author_name || '用户';
-            document.getElementById('author-level').textContent = `Lv.${data.author_level || 1}`;
-            document.getElementById('post-time').textContent = data.created_at;
-            document.getElementById('post-title').textContent = data.title;
-            document.getElementById('post-content').textContent = data.content;
-
-            let badgesHtml = '';
-            if (data.is_pinned) badgesHtml += '<span class="badge badge-pinned">置顶</span>';
-            if (data.is_essential) badgesHtml += '<span class="badge badge-essential">精华</span>';
-            document.getElementById('post-badges').innerHTML = badgesHtml;
-
-            const userInfo = StorageUtil.getItem('userInfo');
-            const footer = document.getElementById('post-footer');
-            footer.innerHTML = '';
-
-            footer.innerHTML += `
+        footer.innerHTML += `
                 <div class="post-stat" id="view-count">
                     <span>👁</span> <span>${data.view_count || 0}</span>
                 </div>
@@ -595,52 +590,51 @@
                 </div>
             `;
 
-            if (userInfo && (userInfo.parent_id === data.parent_id || userInfo.role === 'admin')) {
-                footer.innerHTML += `
+        if (userInfo && (userInfo.parent_id === data.parent_id || userInfo.role === 'admin')) {
+          footer.innerHTML += `
                     <div class="post-stat" onclick="editPost()"><span>✏️</span> <span>编辑</span></div>
                     <div class="post-stat" onclick="deletePost()"><span>🗑️</span> <span>删除</span></div>
                 `;
-            }
+        }
 
-            if (userInfo && userInfo.role === 'admin') {
-                footer.innerHTML += `
+        if (userInfo && userInfo.role === 'admin') {
+          footer.innerHTML += `
                     <div class="post-stat" onclick="pinPost()"><span>📌</span> <span>${data.is_pinned ? '取消置顶' : '置顶'}</span></div>
                     <div class="post-stat" onclick="essentialPost()"><span>💎</span> <span>${data.is_essential ? '取消精华' : '精华'}</span></div>
                 `;
-            }
-
-
-
-            const likeBtn = document.getElementById('like-btn');
-            const dislikeBtn = document.getElementById('dislike-btn');
-            likeBtn.classList.remove('liked');
-            dislikeBtn.classList.remove('disliked');
-
-            const favoriteBtn = document.getElementById('favorite-btn');
-            favoriteBtn.classList.remove('active');
-            if (data.is_favorited) {
-                favoriteBtn.classList.add('active');
-            }
-
-            if (data.user_vote === 1) {
-                likeBtn.classList.add('liked');
-            } else if (data.user_vote === -1) {
-                dislikeBtn.classList.add('disliked');
-            }
         }
 
-        async function loadComments() {
-            try {
-                const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/comments?post_id=${postId}`);
-                const responseData = await response.json();
-                const commentsList = document.getElementById('comments-list');
-                const data = responseData.data || [];
-                document.getElementById('comment-count').textContent = data.length;
+        const likeBtn = document.getElementById('like-btn');
+        const dislikeBtn = document.getElementById('dislike-btn');
+        likeBtn.classList.remove('liked');
+        dislikeBtn.classList.remove('disliked');
 
-                if (data && data.length > 0) {
-                    commentsList.innerHTML = data.map(comment => {
-                        const initial = (comment.author_name || '用户').charAt(0).toUpperCase();
-                        return `
+        const favoriteBtn = document.getElementById('favorite-btn');
+        favoriteBtn.classList.remove('active');
+        if (data.is_favorited) {
+          favoriteBtn.classList.add('active');
+        }
+
+        if (data.user_vote === 1) {
+          likeBtn.classList.add('liked');
+        } else if (data.user_vote === -1) {
+          dislikeBtn.classList.add('disliked');
+        }
+      }
+
+      async function loadComments() {
+        try {
+          const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/comments?post_id=${postId}`);
+          const responseData = await response.json();
+          const commentsList = document.getElementById('comments-list');
+          const data = responseData.data || [];
+          document.getElementById('comment-count').textContent = data.length;
+
+          if (data && data.length > 0) {
+            commentsList.innerHTML = data
+              .map((comment) => {
+                const initial = (comment.author_name || '用户').charAt(0).toUpperCase();
+                return `
                     <div class="comment-item">
                         <div class="comment-header">
                             <div class="comment-avatar">${initial}</div>
@@ -653,89 +647,95 @@
                             <span class="comment-action ${comment.user_vote === -1 ? 'disliked' : ''}" onclick="dislikeComment(${comment.id})"><span>👎</span> ${Math.max(0, comment.dislike_count || 0)}</span>
                         </div>
                     </div>
-                `}).join('');
-                } else {
-                    commentsList.innerHTML = `<div class="empty-comments"><div class="empty-comments-icon">💭</div><div>暂无评论，快来发表第一条评论吧！</div></div>`;
-                }
-            } catch (error) {
-                console.error('加载评论失败:', error);
+                `;
+              })
+              .join('');
+          } else {
+            commentsList.innerHTML = `<div class="empty-comments"><div class="empty-comments-icon">💭</div><div>暂无评论，快来发表第一条评论吧！</div></div>`;
+          }
+        } catch (error) {
+          console.error('加载评论失败:', error);
+        }
+      }
+
+      async function likePost() {
+        const userInfo = StorageUtil.getItem('userInfo');
+        if (!userInfo) return;
+        try {
+          const likeBtn = document.getElementById('like-btn');
+          const dislikeBtn = document.getElementById('dislike-btn');
+          const isCurrentlyLiked = likeBtn.classList.contains('liked');
+          const voteType = isCurrentlyLiked ? 0 : 1;
+
+          const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/vote`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${userInfo.token}`,
+            },
+            body: JSON.stringify({ parent_id: userInfo.parent_id, post_id: postId, vote_type: voteType }),
+          });
+          const responseData = await response.json();
+          if (responseData.success) {
+            if (voteType === 0) {
+              likeBtn.classList.remove('liked');
+            } else {
+              likeBtn.classList.add('liked');
+              dislikeBtn.classList.remove('disliked');
             }
+            const postResponse = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`);
+            const postData = await postResponse.json();
+            if (postData.success) {
+              document.getElementById('like-count').textContent = Math.max(0, postData.data.like_count || 0);
+              document.getElementById('dislike-count').textContent = Math.max(0, postData.data.dislike_count || 0);
+            }
+          }
+        } catch (e) {
+          console.error(e);
         }
+      }
 
-        async function likePost() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo) return;
-            try {
-                const likeBtn = document.getElementById('like-btn');
-                const dislikeBtn = document.getElementById('dislike-btn');
-                const isCurrentlyLiked = likeBtn.classList.contains('liked');
-                const voteType = isCurrentlyLiked ? 0 : 1;
+      async function dislikePost() {
+        const userInfo = StorageUtil.getItem('userInfo');
+        if (!userInfo) return;
+        try {
+          const dislikeBtn = document.getElementById('dislike-btn');
+          const likeBtn = document.getElementById('like-btn');
+          const isCurrentlyDisliked = dislikeBtn.classList.contains('disliked');
+          const voteType = isCurrentlyDisliked ? 0 : -1;
 
-                const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/vote`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userInfo.token}`
-                    },
-                    body: JSON.stringify({ parent_id: userInfo.parent_id, post_id: postId, vote_type: voteType })
-                });
-                const responseData = await response.json();
-                if (responseData.success) {
-                    if (voteType === 0) {
-                        likeBtn.classList.remove('liked');
-                    } else {
-                        likeBtn.classList.add('liked');
-                        dislikeBtn.classList.remove('disliked');
-                    }
-                    const postResponse = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`);
-                    const postData = await postResponse.json();
-                    if (postData.success) {
-                        document.getElementById('like-count').textContent = Math.max(0, postData.data.like_count || 0);
-                        document.getElementById('dislike-count').textContent = Math.max(0, postData.data.dislike_count || 0);
-                    }
-                }
-            } catch (e) { console.error(e); }
+          const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/vote`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${userInfo.token}`,
+            },
+            body: JSON.stringify({ parent_id: userInfo.parent_id, post_id: postId, vote_type: voteType }),
+          });
+          const responseData = await response.json();
+          if (responseData.success) {
+            if (voteType === 0) {
+              dislikeBtn.classList.remove('disliked');
+            } else {
+              dislikeBtn.classList.add('disliked');
+              likeBtn.classList.remove('liked');
+            }
+            const postResponse = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`);
+            const postData = await postResponse.json();
+            if (postData.success) {
+              document.getElementById('like-count').textContent = Math.max(0, postData.data.like_count || 0);
+              document.getElementById('dislike-count').textContent = Math.max(0, postData.data.dislike_count || 0);
+            }
+          }
+        } catch (e) {
+          console.error(e);
         }
+      }
 
-        async function dislikePost() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo) return;
-            try {
-                const dislikeBtn = document.getElementById('dislike-btn');
-                const likeBtn = document.getElementById('like-btn');
-                const isCurrentlyDisliked = dislikeBtn.classList.contains('disliked');
-                const voteType = isCurrentlyDisliked ? 0 : -1;
-
-                const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/vote`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userInfo.token}`
-                    },
-                    body: JSON.stringify({ parent_id: userInfo.parent_id, post_id: postId, vote_type: voteType })
-                });
-                const responseData = await response.json();
-                if (responseData.success) {
-                    if (voteType === 0) {
-                        dislikeBtn.classList.remove('disliked');
-                    } else {
-                        dislikeBtn.classList.add('disliked');
-                        likeBtn.classList.remove('liked');
-                    }
-                    const postResponse = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`);
-                    const postData = await postResponse.json();
-                    if (postData.success) {
-                        document.getElementById('like-count').textContent = Math.max(0, postData.data.like_count || 0);
-                        document.getElementById('dislike-count').textContent = Math.max(0, postData.data.dislike_count || 0);
-                    }
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function confirmCancelFavorite() {
-            // 创建自定义确认弹窗
-            const modal = document.createElement('div');
-            modal.style.cssText = `
+      function confirmCancelFavorite() {
+        // 创建自定义确认弹窗
+        const modal = document.createElement('div');
+        modal.style.cssText = `
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -748,8 +748,8 @@
                 z-index: 10000;
             `;
 
-            const content = document.createElement('div');
-            content.style.cssText = `
+        const content = document.createElement('div');
+        content.style.cssText = `
                 background: white;
                 border-radius: 20px;
                 padding: 30px;
@@ -759,34 +759,34 @@
                 text-align: center;
             `;
 
-            const title = document.createElement('h3');
-            title.textContent = '取消收藏';
-            title.style.cssText = `
+        const title = document.createElement('h3');
+        title.textContent = '取消收藏';
+        title.style.cssText = `
                 margin: 0 0 20px 0;
                 font-size: 16px;
                 font-weight: 600;
                 color: #333;
             `;
 
-            const message = document.createElement('p');
-            message.textContent = '确定要取消收藏这篇帖子吗？';
-            message.style.cssText = `
+        const message = document.createElement('p');
+        message.textContent = '确定要取消收藏这篇帖子吗？';
+        message.style.cssText = `
                 margin: 0 0 30px 0;
                 font-size: 16px;
                 color: #666;
                 line-height: 1.5;
             `;
 
-            const buttons = document.createElement('div');
-            buttons.style.cssText = `
+        const buttons = document.createElement('div');
+        buttons.style.cssText = `
                 display: flex;
                 gap: 12px;
                 justify-content: center;
             `;
 
-            const cancelBtn = document.createElement('button');
-            cancelBtn.textContent = '取消';
-            cancelBtn.style.cssText = `
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '取消';
+        cancelBtn.style.cssText = `
                 padding: 10px 24px;
                 border: 2px solid #e5e7eb;
                 background: white;
@@ -797,18 +797,18 @@
                 cursor: pointer;
                 transition: all 0.3s ease;
             `;
-            cancelBtn.onmouseover = function () {
-                this.style.borderColor = '#d1d5db';
-                this.style.transform = 'translateY(-2px)';
-            };
-            cancelBtn.onmouseout = function () {
-                this.style.borderColor = '#e5e7eb';
-                this.style.transform = 'translateY(0)';
-            };
+        cancelBtn.onmouseover = function () {
+          this.style.borderColor = '#d1d5db';
+          this.style.transform = 'translateY(-2px)';
+        };
+        cancelBtn.onmouseout = function () {
+          this.style.borderColor = '#e5e7eb';
+          this.style.transform = 'translateY(0)';
+        };
 
-            const confirmBtn = document.createElement('button');
-            confirmBtn.textContent = '确定';
-            confirmBtn.style.cssText = `
+        const confirmBtn = document.createElement('button');
+        confirmBtn.textContent = '确定';
+        confirmBtn.style.cssText = `
                 padding: 10px 24px;
                 background: #8849a7;
                 color: white;
@@ -820,234 +820,244 @@
                 transition: all 0.3s ease;
                 box-shadow: 0 4px 12px rgba(136, 73, 167, 0.3);
             `;
-            confirmBtn.onmouseover = function () {
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 6px 16px rgba(136, 73, 167, 0.4)';
-            };
-            confirmBtn.onmouseout = function () {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 4px 12px rgba(136, 73, 167, 0.3)';
-            };
-
-            buttons.appendChild(cancelBtn);
-            buttons.appendChild(confirmBtn);
-            content.appendChild(title);
-            content.appendChild(message);
-            content.appendChild(buttons);
-            modal.appendChild(content);
-            document.body.appendChild(modal);
-
-            // 阻止点击弹窗外部关闭
-            modal.onclick = function (e) {
-                if (e.target === modal) {
-                    e.stopPropagation();
-                }
-            };
-
-            // 使用Promise等待用户操作
-            return new Promise((resolve) => {
-                cancelBtn.onclick = function () {
-                    document.body.removeChild(modal);
-                    resolve(false);
-                };
-
-                confirmBtn.onclick = function () {
-                    document.body.removeChild(modal);
-                    resolve(true);
-                };
-            });
-        }
-
-        async function toggleFavorite() {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo) { alert('请先登录'); return; }
-
-            const favoriteBtn = document.getElementById('favorite-btn');
-            const isFavorited = favoriteBtn.classList.contains('active');
-
-            // 如果是取消收藏，显示确认弹窗
-            if (isFavorited) {
-                const confirmed = await confirmCancelFavorite();
-                if (!confirmed) {
-                    return;
-                }
-            }
-
-            try {
-                const method = isFavorited ? 'DELETE' : 'POST';
-                const token = localStorage.getItem('auth_token') || userInfo.token;
-                const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/favorites/${postId}`, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ parent_id: userInfo.parent_id })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    if (isFavorited) {
-                        favoriteBtn.classList.remove('active');
-                    } else {
-                        favoriteBtn.classList.add('active');
-                    }
-                    // 重新加载帖子信息，更新收藏数
-                    const postResponse = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`);
-                    const postData = await postResponse.json();
-                    if (postData.success) {
-                        document.getElementById('favorite-count').textContent = Math.max(0, postData.data.favorite_count || 0);
-                    }
-                } else {
-                    alert(result.message || result.error?.message || '操作失败');
-                }
-            } catch (error) {
-                console.error('收藏操作失败:', error);
-                alert('操作失败，请稍后再试');
-            }
-        }
-
-        async function addComment() {
-            const content = document.getElementById('comment-input').value.trim();
-            if (!content) { alert('请输入评论'); return; }
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (!userInfo) { alert('请登录'); return; }
-            try {
-                const res = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/comments`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userInfo.token}`
-                    },
-                    body: JSON.stringify({ post_id: postId, parent_id: userInfo.parent_id, content })
-                });
-                if (res.ok) {
-                    document.getElementById('comment-input').value = '';
-                    loadComments();
-                } else {
-                    alert('发表失败');
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        async function likeComment(cid) {
-            const user = StorageUtil.getItem('userInfo');
-            if (!user) return;
-            try {
-                const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/vote`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}`
-                    },
-                    body: JSON.stringify({ parent_id: user.parent_id, comment_id: cid, vote_type: 1 })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    loadComments();
-                }
-            } catch (error) {
-                console.error('评论点赞失败:', error);
-            }
-        }
-
-        async function dislikeComment(cid) {
-            const user = StorageUtil.getItem('userInfo');
-            if (!user) return;
-            try {
-                const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/vote`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}`
-                    },
-                    body: JSON.stringify({ parent_id: user.parent_id, comment_id: cid, vote_type: -1 })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    loadComments();
-                }
-            } catch (error) {
-                console.error('评论点踩失败:', error);
-            }
-        }
-
-        function editPost() {
-            // 打开编辑表单
-            window.openPostForm(postId, postData);
-        }
-
-        // 从父页面继承的函数
-        if (!window.openPostForm) {
-            // 如果父页面没有提供，使用默认实现
-            window.openPostForm = function (postId, postData) {
-                const t = prompt('新标题：', postData.title);
-                if (!t) return;
-                const c = prompt('新内容：', postData.content);
-                if (!c) return;
-                const user = StorageUtil.getItem('userInfo');
-                fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.token}`
-                    },
-                    body: JSON.stringify({ parent_id: user.parent_id, title: t, content: c })
-                }).then(res => {
-                    if (res.ok) loadPost();
-                    else alert('失败');
-                });
-            };
-        }
-
-        async function deletePost() {
-            if (!confirm('确定删除？')) return;
-            const user = StorageUtil.getItem('userInfo');
-            const res = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token}`
-                },
-                body: JSON.stringify({ parent_id: user.parent_id })
-            });
-            if (res.ok) {
-                alert('删除成功');
-                location.href = 'forum.html';
-            } else alert('失败');
-        }
-
-        async function pinPost() {
-            const user = StorageUtil.getItem('userInfo');
-            await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}/pin`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token}`
-                },
-                body: JSON.stringify({ parent_id: user.parent_id, is_pinned: postData.is_pinned ? 0 : 1 })
-            });
-            loadPost();
-        }
-
-        async function essentialPost() {
-            const user = StorageUtil.getItem('userInfo');
-            await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}/essential`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token}`
-                },
-                body: JSON.stringify({ parent_id: user.parent_id, is_essential: postData.is_essential ? 0 : 1 })
-            });
-            loadPost();
-        }
-
-        window.onload = function () {
-            ParentComponents.initPage('forum');
-            const user = checkAuth();
-            if (user) loadPost();
+        confirmBtn.onmouseover = function () {
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = '0 6px 16px rgba(136, 73, 167, 0.4)';
         };
-    </script>
-</body>
+        confirmBtn.onmouseout = function () {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = '0 4px 12px rgba(136, 73, 167, 0.3)';
+        };
 
+        buttons.appendChild(cancelBtn);
+        buttons.appendChild(confirmBtn);
+        content.appendChild(title);
+        content.appendChild(message);
+        content.appendChild(buttons);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+
+        // 阻止点击弹窗外部关闭
+        modal.onclick = function (e) {
+          if (e.target === modal) {
+            e.stopPropagation();
+          }
+        };
+
+        // 使用Promise等待用户操作
+        return new Promise((resolve) => {
+          cancelBtn.onclick = function () {
+            document.body.removeChild(modal);
+            resolve(false);
+          };
+
+          confirmBtn.onclick = function () {
+            document.body.removeChild(modal);
+            resolve(true);
+          };
+        });
+      }
+
+      async function toggleFavorite() {
+        const userInfo = StorageUtil.getItem('userInfo');
+        if (!userInfo) {
+          alert('请先登录');
+          return;
+        }
+
+        const favoriteBtn = document.getElementById('favorite-btn');
+        const isFavorited = favoriteBtn.classList.contains('active');
+
+        // 如果是取消收藏，显示确认弹窗
+        if (isFavorited) {
+          const confirmed = await confirmCancelFavorite();
+          if (!confirmed) {
+            return;
+          }
+        }
+
+        try {
+          const method = isFavorited ? 'DELETE' : 'POST';
+          const token = localStorage.getItem('auth_token') || userInfo.token;
+          const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/favorites/${postId}`, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ parent_id: userInfo.parent_id }),
+          });
+          const result = await response.json();
+          if (result.success) {
+            if (isFavorited) {
+              favoriteBtn.classList.remove('active');
+            } else {
+              favoriteBtn.classList.add('active');
+            }
+            // 重新加载帖子信息，更新收藏数
+            const postResponse = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`);
+            const postData = await postResponse.json();
+            if (postData.success) {
+              document.getElementById('favorite-count').textContent = Math.max(0, postData.data.favorite_count || 0);
+            }
+          } else {
+            alert(result.message || result.error?.message || '操作失败');
+          }
+        } catch (error) {
+          console.error('收藏操作失败:', error);
+          alert('操作失败，请稍后再试');
+        }
+      }
+
+      async function addComment() {
+        const content = document.getElementById('comment-input').value.trim();
+        if (!content) {
+          alert('请输入评论');
+          return;
+        }
+        const userInfo = StorageUtil.getItem('userInfo');
+        if (!userInfo) {
+          alert('请登录');
+          return;
+        }
+        try {
+          const res = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/comments`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${userInfo.token}`,
+            },
+            body: JSON.stringify({ post_id: postId, parent_id: userInfo.parent_id, content }),
+          });
+          if (res.ok) {
+            document.getElementById('comment-input').value = '';
+            loadComments();
+          } else {
+            alert('发表失败');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function likeComment(cid) {
+        const user = StorageUtil.getItem('userInfo');
+        if (!user) return;
+        try {
+          const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/vote`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${user.token}`,
+            },
+            body: JSON.stringify({ parent_id: user.parent_id, comment_id: cid, vote_type: 1 }),
+          });
+          const result = await response.json();
+          if (result.success) {
+            loadComments();
+          }
+        } catch (error) {
+          console.error('评论点赞失败:', error);
+        }
+      }
+
+      async function dislikeComment(cid) {
+        const user = StorageUtil.getItem('userInfo');
+        if (!user) return;
+        try {
+          const response = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/vote`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${user.token}`,
+            },
+            body: JSON.stringify({ parent_id: user.parent_id, comment_id: cid, vote_type: -1 }),
+          });
+          const result = await response.json();
+          if (result.success) {
+            loadComments();
+          }
+        } catch (error) {
+          console.error('评论点踩失败:', error);
+        }
+      }
+
+      function editPost() {
+        // 打开编辑表单
+        window.openPostForm(postId, postData);
+      }
+
+      // 从父页面继承的函数
+      if (!window.openPostForm) {
+        // 如果父页面没有提供，使用默认实现
+        window.openPostForm = function (postId, postData) {
+          const t = prompt('新标题：', postData.title);
+          if (!t) return;
+          const c = prompt('新内容：', postData.content);
+          if (!c) return;
+          const user = StorageUtil.getItem('userInfo');
+          fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${user.token}`,
+            },
+            body: JSON.stringify({ parent_id: user.parent_id, title: t, content: c }),
+          }).then((res) => {
+            if (res.ok) loadPost();
+            else alert('失败');
+          });
+        };
+      }
+
+      async function deletePost() {
+        if (!confirm('确定删除？')) return;
+        const user = StorageUtil.getItem('userInfo');
+        const res = await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({ parent_id: user.parent_id }),
+        });
+        if (res.ok) {
+          alert('删除成功');
+          location.href = 'forum.html';
+        } else alert('失败');
+      }
+
+      async function pinPost() {
+        const user = StorageUtil.getItem('userInfo');
+        await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}/pin`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({ parent_id: user.parent_id, is_pinned: postData.is_pinned ? 0 : 1 }),
+        });
+        loadPost();
+      }
+
+      async function essentialPost() {
+        const user = StorageUtil.getItem('userInfo');
+        await fetch(`${window.API_CONFIG.BASE_URL}/api/forum/posts/${postId}/essential`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({ parent_id: user.parent_id, is_essential: postData.is_essential ? 0 : 1 }),
+        });
+        loadPost();
+      }
+
+      window.onload = function () {
+        ParentComponents.initPage('forum');
+        const user = checkAuth();
+        if (user) loadPost();
+      };
+    </script>
+  </body>
 </html>

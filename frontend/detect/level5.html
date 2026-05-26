@@ -1,767 +1,797 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-
-<head>
+  <head>
        
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
        
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-        <title>红绿灯抑制训练营</title>
-        <style>
-        * {
-            user-select: none;
-            box-sizing: border-box;
-        }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+       
+    <title>红绿灯抑制训练营</title>
+       
+    <style>
+      * {
+        user-select: none;
+        box-sizing: border-box;
+      }
 
-        /* ========== 自定义图片背景 ========== */
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
-            padding: 20px;
+      /* ========== 自定义图片背景 ========== */
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+        padding: 20px;
 
-            /* 你的背景图片（放在同一文件夹） */
-            background-image: url("../images/ground22.png");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-        }
+        /* 你的背景图片（放在同一文件夹） */
+        background-image: url('../images/ground22.png');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+      }
 
-        /* 卡通主卡片 */
+      /* 卡通主卡片 */
+      .game-container {
+        background-color: #fff9e8;
+        border-radius: 80px 80px 70px 70px;
+        box-shadow:
+          0 20px 35px rgba(0, 0, 0, 0.2),
+          inset 0 1px 4px rgba(255, 255, 200, 0.8);
+        padding: 20px 25px 35px 25px;
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+        transition: all 0.2s ease;
+        border: 5px solid #ffcf9a;
+        position: relative;
+        z-index: 10;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin: 0 0 5px 0;
+        color: #333333;
+        letter-spacing: 2px;
+      }
+
+      .sub {
+        font-size: 1rem;
+        background: #ffe3b5;
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 40px;
+        color: #b45f2b;
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
+
+      .difficulty-panel {
+        background: #ffefcf;
+        border-radius: 60px;
+        padding: 12px 15px;
+        margin: 10px 0 20px;
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        border: 2px solid #ffc48a;
+      }
+
+      .difficulty-btn {
+        font-size: 1.1rem;
+        font-weight: bold;
+        padding: 8px 24px;
+        border: none;
+        border-radius: 50px;
+        background: #fdd998;
+        cursor: pointer;
+        font-family: inherit;
+        transition: 0.1s linear;
+        color: #77450e;
+        box-shadow: 0 5px 0 #b97f3b;
+      }
+
+      .difficulty-btn.active {
+        background: #ff9f4b;
+        color: white;
+        box-shadow: 0 2px 0 #b85e1a;
+        transform: translateY(3px);
+      }
+
+      .difficulty-btn:active {
+        transform: translateY(3px);
+        box-shadow: 0 1px 0 #b85e1a;
+      }
+
+      .traffic-scene {
+        background: #ffe1aa;
+        border-radius: 70px;
+        padding: 25px 15px 20px;
+        margin: 5px 0 15px;
+        box-shadow:
+          inset 0 0 0 5px #fff1cf,
+          0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .light-box {
+        background: #3b2a1f;
+        width: 220px;
+        height: 220px;
+        margin: 0 auto;
+        border-radius: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+          0 12px 0 #1f140c,
+          inset 0 0 0 6px #fbe6a0;
+        transition: all 0.1s;
+      }
+
+      .bulb {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: gray;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        font-weight: bold;
+        text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .prompt-area {
+        background: #ffd49f;
+        margin-top: 20px;
+        border-radius: 60px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .prompt-card {
+        background: white;
+        border-radius: 50px;
+        padding: 10px 25px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 5px 0 #cca86e;
+        white-space: nowrap;
+      }
+
+      .prompt-text {
+        margin-left: 10px;
+        background: #fef2cf;
+        padding: 8px 20px;
+        border-radius: 45px;
+        font-size: 2rem;
+        letter-spacing: 2px;
+        font-weight: bold;
+        color: #ce7e2e;
+      }
+
+      /* ========== 更有质感的加分按钮 ========== */
+      .action-btn {
+        background: linear-gradient(180deg, #82d879, #52b348);
+        border: none;
+        font-size: 1.8rem;
+        font-family: inherit;
+        font-weight: bold;
+        padding: 14px 40px;
+        border-radius: 60px;
+        color: white;
+        cursor: pointer;
+        box-shadow:
+          0 8px 0 #367c2c,
+          0 4px 15px rgba(110, 220, 100, 0.4);
+        text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+        transition: 0.08s ease;
+        margin-top: 8px;
+      }
+
+      .action-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 3px 0 #367c2c;
+      }
+
+      .score-board {
+        background: #ffd966;
+        border-radius: 50px;
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 25px;
+        margin: 20px 0 5px;
+        font-weight: bold;
+        font-size: 1.5rem;
+        color: #4a2a0a;
+        border: 2px solid #ffbc6e;
+        white-space: nowrap;
+      }
+
+      .score,
+      .message-area {
+        background: #fff2d2;
+        padding: 6px 10px;
+        border-radius: 30px;
+      }
+
+      .message-area {
+        font-size: 1rem;
+        background: #ffecb3;
+        color: #b95f1a;
+      }
+
+      .feedback {
+        min-height: 55px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0px;
+        font-size: 1rem;
+        margin-top: 5px;
+      }
+
+      .reset-icon {
+        background: #f4b942;
+        border: none;
+        font-size: 1rem;
+        padding: 6px 18px;
+        border-radius: 40px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-left: 10px;
+      }
+
+      footer {
+        font-size: 0.7rem;
+        margin-top: 20px;
+        color: #bb872b;
+      }
+
+      @media (max-width: 480px) {
         .game-container {
-            background-color: #fff9e8;
-            border-radius: 80px 80px 70px 70px;
-            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2), inset 0 1px 4px rgba(255, 255, 200, 0.8);
-            padding: 20px 25px 35px 25px;
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-            transition: all 0.2s ease;
-            border: 5px solid #ffcf9a;
-            position: relative;
-            z-index: 10;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            margin: 0 0 5px 0;
-            color: #333333;
-            letter-spacing: 2px;
-        }
-
-        .sub {
-            font-size: 1rem;
-            background: #ffe3b5;
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 40px;
-            color: #b45f2b;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .difficulty-panel {
-            background: #ffefcf;
-            border-radius: 60px;
-            padding: 12px 15px;
-            margin: 10px 0 20px;
-            display: flex;
-            justify-content: center;
-            gap: 18px;
-            flex-wrap: wrap;
-            border: 2px solid #ffc48a;
-        }
-
-        .difficulty-btn {
-            font-size: 1.1rem;
-            font-weight: bold;
-            padding: 8px 24px;
-            border: none;
-            border-radius: 50px;
-            background: #fdd998;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.1s linear;
-            color: #77450e;
-            box-shadow: 0 5px 0 #b97f3b;
-        }
-
-        .difficulty-btn.active {
-            background: #ff9f4b;
-            color: white;
-            box-shadow: 0 2px 0 #b85e1a;
-            transform: translateY(3px);
-        }
-
-        .difficulty-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #b85e1a;
-        }
-
-        .traffic-scene {
-            background: #ffe1aa;
-            border-radius: 70px;
-            padding: 25px 15px 20px;
-            margin: 5px 0 15px;
-            box-shadow: inset 0 0 0 5px #fff1cf, 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .light-box {
-            background: #3b2a1f;
-            width: 220px;
-            height: 220px;
-            margin: 0 auto;
-            border-radius: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 12px 0 #1f140c, inset 0 0 0 6px #fbe6a0;
-            transition: all 0.1s;
+          padding: 15px;
         }
 
         .bulb {
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            background: gray;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4rem;
-            font-weight: bold;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+          width: 120px;
+          height: 120px;
+          font-size: 2.8rem;
         }
 
-        .prompt-area {
-            background: #ffd49f;
-            margin-top: 20px;
-            border-radius: 60px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .prompt-card {
-            background: white;
-            border-radius: 50px;
-            padding: 10px 25px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 5px 0 #cca86e;
-            white-space: nowrap;
+        .light-box {
+          width: 170px;
+          height: 170px;
         }
 
         .prompt-text {
-            margin-left: 10px;
-            background: #fef2cf;
-            padding: 8px 20px;
-            border-radius: 45px;
-            font-size: 2rem;
-            letter-spacing: 2px;
-            font-weight: bold;
-            color: #ce7e2e;
+          font-size: 1.5rem;
         }
 
-        /* ========== 更有质感的加分按钮 ========== */
         .action-btn {
-            background: linear-gradient(180deg, #82d879, #52b348);
-            border: none;
-            font-size: 1.8rem;
-            font-family: inherit;
-            font-weight: bold;
-            padding: 14px 40px;
-            border-radius: 60px;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #367c2c, 0 4px 15px rgba(110, 220, 100, 0.4);
-            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-            transition: 0.08s ease;
-            margin-top: 8px;
+          font-size: 1.4rem;
+          padding: 10px 25px;
+        }
+      }
+
+      @keyframes bounce {
+        0% {
+          transform: translateY(0);
         }
 
-        .action-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 3px 0 #367c2c;
+        100% {
+          transform: translateY(-10px);
         }
+      }
 
-        .score-board {
-            background: #ffd966;
-            border-radius: 50px;
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 25px;
-            margin: 20px 0 5px;
-            font-weight: bold;
-            font-size: 1.5rem;
-            color: #4a2a0a;
-            border: 2px solid #ffbc6e;
-            white-space: nowrap;
-        }
-
-        .score,
-        .message-area {
-            background: #fff2d2;
-            padding: 6px 10px;
-            border-radius: 30px;
-        }
-
-        .message-area {
-            font-size: 1rem;
-            background: #ffecb3;
-            color: #b95f1a;
-        }
-
-        .feedback {
-            min-height: 55px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0px;
-            font-size: 1rem;
-            margin-top: 5px;
-        }
-
-        .reset-icon {
-            background: #f4b942;
-            border: none;
-            font-size: 1rem;
-            padding: 6px 18px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-
-        footer {
-            font-size: 0.7rem;
-            margin-top: 20px;
-            color: #bb872b;
-        }
-
-        @media (max-width: 480px) {
-            .game-container {
-                padding: 15px;
-            }
-
-            .bulb {
-                width: 120px;
-                height: 120px;
-                font-size: 2.8rem;
-            }
-
-            .light-box {
-                width: 170px;
-                height: 170px;
-            }
-
-            .prompt-text {
-                font-size: 1.5rem;
-            }
-
-            .action-btn {
-                font-size: 1.4rem;
-                padding: 10px 25px;
-            }
-        }
-
-        @keyframes bounce {
-            0% {
-                transform: translateY(0);
-            }
-
-            100% {
-                transform: translateY(-10px);
-            }
-        }
-
-        button {
-            cursor: pointer;
-        }
+      button {
+        cursor: pointer;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <!-- 可爱的返回按钮 -->
-    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
-        <button onclick="window.location.href='index.html'" style="
-            background: linear-gradient(135deg, #4caf50, #81c784);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: bounce 2s ease-in-out infinite alternate;
-        " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
-            onmouseout="this.style.transform='scale(1) rotate(0deg)';">
-            ←
-        </button>
+    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
+      <button
+        onclick="window.location.href = 'index.html'"
+        style="
+          background: linear-gradient(135deg, #4caf50, #81c784);
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 60px;
+          height: 60px;
+          font-size: 24px;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: bounce 2s ease-in-out infinite alternate;
+        "
+        onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
+        onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
+      >
+        ←
+      </button>
     </div>
     <div class="game-container">
-            <h1>🚦 专注小特工 🚦</h1>
+         
+      <h1>🚦 专注小特工 🚦</h1>
 
-            <div class="difficulty-panel">
-                    <div class="sub">颜色一致才能加分</div>
-                </div>
+         
+      <div class="difficulty-panel">
+               
+        <div class="sub">颜色一致才能加分</div>
+           
+      </div>
 
-            <div class="traffic-scene">
-                    <div class="light-box">
-                            <div class="bulb" id="lightBulb">⚫</div>
-                        </div>
-                    <div class="prompt-area">
-                            <div class="prompt-card">
-                                    📢 提示颜色：
-                                    <span id="promptWord" class="prompt-text">红</span>
-                                </div>
-                        </div>
-                </div>
+         
+      <div class="traffic-scene">
+               
+        <div class="light-box">
+                     
+          <div class="bulb" id="lightBulb">⚫</div>
+                 
+        </div>
+               
+        <div class="prompt-area">
+                     
+          <div class="prompt-card">
+                            📢 提示颜色：                 <span id="promptWord" class="prompt-text">红</span>          
+             
+          </div>
+                 
+        </div>
+           
+      </div>
 
-            <!-- ========== 质感按钮文字 ========== -->
-            <button id="clickBtn" class="action-btn">🎯 正确加分</button>
+         
+      <!-- ========== 质感按钮文字 ========== -->
+          <button id="clickBtn" class="action-btn">🎯 正确加分</button>
 
-            <div class="score-board">
-                    <span>🏆 当前得分</span>
-                    <span id="scoreValue" class="score">0</span>
-                    <span>⏰ 时间</span>
-                    <span id="timeLeft" class="score">60</span>
-                </div>
-            <div class="feedback" id="feedbackMsg">
-                    🧸 点击按钮，匹配颜色得1分！
-                </div>
-            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 8px;">
-                    <button id="resetGameBtn" class="reset-icon">🔄 重置游戏</button>
-                </div>
-            <footer>⚡ 只有【亮灯颜色】和【提示文字颜色】相同才能加分！不同就忍住喔~</footer>
+         
+      <div class="score-board">
+                <span>🏆 当前得分</span>         <span id="scoreValue" class="score">0</span>        
+        <span>⏰ 时间</span>         <span id="timeLeft" class="score">60</span>    
+      </div>
+         
+      <div class="feedback" id="feedbackMsg">        🧸 点击按钮，匹配颜色得1分！    </div>
+         
+      <div style="display: flex; justify-content: center; gap: 12px; margin-top: 8px">
+                <button id="resetGameBtn" class="reset-icon">🔄 重置游戏</button>    
+      </div>
+         
+      <footer>⚡ 只有【亮灯颜色】和【提示文字颜色】相同才能加分！不同就忍住喔~</footer>
     </div>
 
     <script>
-        const COLORS = [
-            { name: "红", code: "#E34234", emoji: "🔴", rgbLight: "radial-gradient(circle at 35% 35%, #ff7b6b, #c0311a)" },
-            { name: "绿", code: "#3cb371", emoji: "🟢", rgbLight: "radial-gradient(circle at 35% 35%, #6fdc8c, #228b22)" },
-            { name: "黄", code: "#F4D03F", emoji: "🟡", rgbLight: "radial-gradient(circle at 35% 35%, #ffe28a, #e6b422)" }
-        ];
+      const COLORS = [
+        { name: '红', code: '#E34234', emoji: '🔴', rgbLight: 'radial-gradient(circle at 35% 35%, #ff7b6b, #c0311a)' },
+        { name: '绿', code: '#3cb371', emoji: '🟢', rgbLight: 'radial-gradient(circle at 35% 35%, #6fdc8c, #228b22)' },
+        { name: '黄', code: '#F4D03F', emoji: '🟡', rgbLight: 'radial-gradient(circle at 35% 35%, #ffe28a, #e6b422)' },
+      ];
 
-        const lightBulb = document.getElementById('lightBulb');
-        const promptWordSpan = document.getElementById('promptWord');
-        const scoreSpan = document.getElementById('scoreValue');
-        const clickBtn = document.getElementById('clickBtn');
-        const resetBtn = document.getElementById('resetGameBtn');
-        const feedbackDiv = document.getElementById('feedbackMsg');
+      const lightBulb = document.getElementById('lightBulb');
+      const promptWordSpan = document.getElementById('promptWord');
+      const scoreSpan = document.getElementById('scoreValue');
+      const clickBtn = document.getElementById('clickBtn');
+      const resetBtn = document.getElementById('resetGameBtn');
+      const feedbackDiv = document.getElementById('feedbackMsg');
 
-        // 新游戏机制变量
-        let currentLightColorObj = null;
-        let currentPromptColorObj = null;
-        let score = 0;
-        let gameActive = true;
-        let switchTimer = null;
+      // 新游戏机制变量
+      let currentLightColorObj = null;
+      let currentPromptColorObj = null;
+      let score = 0;
+      let gameActive = true;
+      let switchTimer = null;
 
-        // 核心新机制变量
-        const maxClicks = 100;
-        let clickCount = 0;
-        let streak = 0;
+      // 核心新机制变量
+      const maxClicks = 100;
+      let clickCount = 0;
+      let streak = 0;
 
-        // 倒计时相关变量
-        const gameDuration = 60; // 游戏时长（秒）
-        let timeLeft = gameDuration;
-        let countdownTimer = null;
+      // 倒计时相关变量
+      const gameDuration = 60; // 游戏时长（秒）
+      let timeLeft = gameDuration;
+      let countdownTimer = null;
 
-        // 自适应难度参数
-        const baseSpeed = 1000; // 基础切换间隔
-        const minSpeed = 600;   // 速度上限
-        const baseMatchRate = 0.5; // 基础一致概率
-        const minMatchRate = 0.25; // 最低一致概率
-        let currentSpeed = baseSpeed;
-        let currentMatchRate = baseMatchRate;
+      // 自适应难度参数
+      const baseSpeed = 1000; // 基础切换间隔
+      const minSpeed = 600; // 速度上限
+      const baseMatchRate = 0.5; // 基础一致概率
+      const minMatchRate = 0.25; // 最低一致概率
+      let currentSpeed = baseSpeed;
+      let currentMatchRate = baseMatchRate;
 
-        function getRandomColor() {
-            const randomIndex = Math.floor(Math.random() * COLORS.length);
-            return { ...COLORS[randomIndex] };
+      function getRandomColor() {
+        const randomIndex = Math.floor(Math.random() * COLORS.length);
+        return { ...COLORS[randomIndex] };
+      }
+
+      function updateLightUI(colorObj) {
+        let bgStyle = '';
+        if (colorObj.name === '红') bgStyle = 'radial-gradient(circle at 35% 35%, #ff6b5e, #b32d1a)';
+        else if (colorObj.name === '绿') bgStyle = 'radial-gradient(circle at 35% 35%, #6fdc8c, #2c6e2c)';
+        else if (colorObj.name === '黄') bgStyle = 'radial-gradient(circle at 35% 35%, #ffe174, #d4a017)';
+        lightBulb.style.background = bgStyle;
+        lightBulb.style.boxShadow = `0 0 28px ${colorObj.name === '红' ? '#ff7b5e' : colorObj.name === '绿' ? '#6fdc8c' : '#ffdd77'}`;
+        lightBulb.innerText = colorObj.emoji;
+        lightBulb.style.fontSize = '4.5rem';
+        lightBulb.style.display = 'flex';
+        lightBulb.style.alignItems = 'center';
+        lightBulb.style.justifyContent = 'center';
+      }
+
+      function updatePromptUI(colorObj) {
+        promptWordSpan.innerText = colorObj.name;
+        // 只显示橙色
+        promptWordSpan.style.color = '#ff9966';
+        promptWordSpan.style.textShadow = '0 2px 4px rgba(0,0,0,0.1)';
+      }
+
+      function generateNewRound() {
+        if (!gameActive) return;
+
+        const newLight = getRandomColor();
+        let newPrompt;
+
+        // 根据当前匹配率决定是否生成一致颜色
+        if (Math.random() < currentMatchRate) {
+          // 生成一致颜色
+          newPrompt = { ...newLight };
+        } else {
+          // 生成不一致颜色
+          do {
+            newPrompt = getRandomColor();
+          } while (newPrompt.name === newLight.name);
         }
 
-        function updateLightUI(colorObj) {
-            let bgStyle = "";
-            if (colorObj.name === "红") bgStyle = "radial-gradient(circle at 35% 35%, #ff6b5e, #b32d1a)";
-            else if (colorObj.name === "绿") bgStyle = "radial-gradient(circle at 35% 35%, #6fdc8c, #2c6e2c)";
-            else if (colorObj.name === "黄") bgStyle = "radial-gradient(circle at 35% 35%, #ffe174, #d4a017)";
-            lightBulb.style.background = bgStyle;
-            lightBulb.style.boxShadow = `0 0 28px ${colorObj.name === "红" ? "#ff7b5e" : (colorObj.name === "绿" ? "#6fdc8c" : "#ffdd77")}`;
-            lightBulb.innerText = colorObj.emoji;
-            lightBulb.style.fontSize = "4.5rem";
-            lightBulb.style.display = "flex";
-            lightBulb.style.alignItems = "center";
-            lightBulb.style.justifyContent = "center";
+        currentLightColorObj = newLight;
+        currentPromptColorObj = newPrompt;
+
+        updateLightUI(currentLightColorObj);
+        updatePromptUI(currentPromptColorObj);
+      }
+
+      function resetGame() {
+        // 清除所有定时器
+        if (switchTimer) {
+          clearInterval(switchTimer);
+          switchTimer = null;
+        }
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
         }
 
-        function updatePromptUI(colorObj) {
-            promptWordSpan.innerText = colorObj.name;
-            // 只显示橙色
-            promptWordSpan.style.color = "#ff9966";
-            promptWordSpan.style.textShadow = "0 2px 4px rgba(0,0,0,0.1)";
+        // 重置游戏状态
+        score = 0;
+        clickCount = 0;
+        streak = 0;
+        currentSpeed = baseSpeed;
+        currentMatchRate = baseMatchRate;
+        updateScoreUI();
+        gameActive = true;
+        currentLightColorObj = getRandomColor();
+        currentPromptColorObj = getRandomColor();
+        updateLightUI(currentLightColorObj);
+        updatePromptUI(currentPromptColorObj);
+        feedbackDiv.innerHTML = '🧸 新的一局！记得颜色一致才能点击加分哟~';
+
+        // 开始切换和倒计时
+        startSwitching();
+        startCountdown();
+      }
+
+      function startSwitching() {
+        if (switchTimer) {
+          clearInterval(switchTimer);
+          switchTimer = null;
+        }
+        switchTimer = setInterval(() => {
+          if (!gameActive) return;
+          generateNewRound();
+        }, currentSpeed);
+      }
+
+      function updateScoreUI() {
+        scoreSpan.innerText = score;
+      }
+
+      function updateTimeUI() {
+        const timeLeftElement = document.getElementById('timeLeft');
+        if (timeLeftElement) {
+          timeLeftElement.innerText = timeLeft;
+        }
+      }
+
+      function startCountdown() {
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
         }
 
-        function generateNewRound() {
-            if (!gameActive) return;
+        timeLeft = gameDuration;
+        updateTimeUI();
 
-            const newLight = getRandomColor();
-            let newPrompt;
+        countdownTimer = setInterval(() => {
+          if (!gameActive) return;
 
-            // 根据当前匹配率决定是否生成一致颜色
-            if (Math.random() < currentMatchRate) {
-                // 生成一致颜色
-                newPrompt = { ...newLight };
-            } else {
-                // 生成不一致颜色
-                do {
-                    newPrompt = getRandomColor();
-                } while (newPrompt.name === newLight.name);
-            }
+          timeLeft--;
+          updateTimeUI();
 
-            currentLightColorObj = newLight;
-            currentPromptColorObj = newPrompt;
+          // 检查时间是否到了
+          if (timeLeft <= 0) {
+            endGame();
+          }
+        }, 1000);
+      }
 
-            updateLightUI(currentLightColorObj);
-            updatePromptUI(currentPromptColorObj);
+      function endGame() {
+        gameActive = false;
+
+        // 清除所有定时器
+        if (switchTimer) {
+          clearInterval(switchTimer);
+          switchTimer = null;
+        }
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
         }
 
-        function resetGame() {
-            // 清除所有定时器
-            if (switchTimer) {
-                clearInterval(switchTimer);
-                switchTimer = null;
-            }
-            if (countdownTimer) {
-                clearInterval(countdownTimer);
-                countdownTimer = null;
-            }
-
-            // 重置游戏状态
-            score = 0;
-            clickCount = 0;
-            streak = 0;
-            currentSpeed = baseSpeed;
-            currentMatchRate = baseMatchRate;
-            updateScoreUI();
-            gameActive = true;
-            currentLightColorObj = getRandomColor();
-            currentPromptColorObj = getRandomColor();
-            updateLightUI(currentLightColorObj);
-            updatePromptUI(currentPromptColorObj);
-            feedbackDiv.innerHTML = "🧸 新的一局！记得颜色一致才能点击加分哟~";
-
-            // 开始切换和倒计时
-            startSwitching();
-            startCountdown();
+        // 统计游戏使用时间
+        try {
+          if (typeof GameTimeUtil !== 'undefined') {
+            GameTimeUtil.endGame('level5');
+          }
+        } catch (error) {
+          console.log('GameTimeUtil not available');
         }
 
-        function startSwitching() {
-            if (switchTimer) {
-                clearInterval(switchTimer);
-                switchTimer = null;
-            }
-            switchTimer = setInterval(() => {
-                if (!gameActive) return;
-                generateNewRound();
-            }, currentSpeed);
-        }
+        const evaluation = getFocusEvaluation(score);
+        const inhibitionScore = calculateInhibitionScore();
+        feedbackDiv.innerHTML = `🎉 游戏结束！最终得分：${score}分 🎉<br>综合评分：${inhibitionScore}分<br>评价：${evaluation}<br>点击重置开始新一局！`;
 
-        function updateScoreUI() {
-            scoreSpan.innerText = score;
-        }
-
-        function updateTimeUI() {
-            const timeLeftElement = document.getElementById('timeLeft');
-            if (timeLeftElement) {
-                timeLeftElement.innerText = timeLeft;
-            }
-        }
-
-        function startCountdown() {
-            if (countdownTimer) {
-                clearInterval(countdownTimer);
-                countdownTimer = null;
-            }
-
-            timeLeft = gameDuration;
-            updateTimeUI();
-
-            countdownTimer = setInterval(() => {
-                if (!gameActive) return;
-
-                timeLeft--;
-                updateTimeUI();
-
-                // 检查时间是否到了
-                if (timeLeft <= 0) {
-                    endGame();
-                }
-            }, 1000);
-        }
-
-        function endGame() {
-            gameActive = false;
-
-            // 清除所有定时器
-            if (switchTimer) {
-                clearInterval(switchTimer);
-                switchTimer = null;
-            }
-            if (countdownTimer) {
-                clearInterval(countdownTimer);
-                countdownTimer = null;
-            }
-
-            // 统计游戏使用时间
-            try {
-                if (typeof GameTimeUtil !== 'undefined') {
-                    GameTimeUtil.endGame('level5');
-                }
-            } catch (error) {
-                console.log('GameTimeUtil not available');
-            }
-
-            const evaluation = getFocusEvaluation(score);
-            const inhibitionScore = calculateInhibitionScore();
-            feedbackDiv.innerHTML = `🎉 游戏结束！最终得分：${score}分 🎉<br>综合评分：${inhibitionScore}分<br>评价：${evaluation}<br>点击重置开始新一局！`;
-
-            // 保存数据
-            const data = {
-                inhibition_control: inhibitionScore,
-                score: score,
-                total_clicks: clickCount
-            };
-            try {
-                if (typeof StorageUtil !== 'undefined') {
-                    StorageUtil.setItem('level5_data', data);
-                }
-            } catch (error) {
-                console.log('StorageUtil not available');
-            }
-
-            // 上传训练数据
-            uploadTrainingData(inhibitionScore, score, clickCount);
-        }
-
-        function getFocusEvaluation(score) {
-            if (score >= 76) {
-                return "专注力极强，抑制控制优秀";
-            } else if (score >= 51) {
-                return "专注力良好，有一定自控力";
-            } else if (score >= 26) {
-                return "专注力一般，需要多训练";
-            } else {
-                return "容易冲动，抑制能力较弱，建议坚持练习";
-            }
-        }
-
-        function updateDifficulty() {
-            if (streak >= 3) {
-                // 每连续正确3次，增加难度
-                currentSpeed = Math.max(minSpeed, baseSpeed - streak * 50);
-                currentMatchRate = Math.max(minMatchRate, baseMatchRate - streak * 0.05);
-                // 重启定时器以应用新速度
-                startSwitching();
-            }
-        }
-
-        // 计算抑制控制得分
-        function calculateInhibitionScore() {
-            const totalTrial = maxClicks;
-            const acc = totalTrial > 0 ? score / totalTrial : 0;
-            const impulse = totalTrial > 0 ? 1 - (clickCount - score) / totalTrial : 0;
-            const headStable = 0.8;
-            const faceStable = 0.8;
-            const blinkStable = 0.8;
-            const scoreValue = (
-                impulse * 0.40 + acc * 0.30 + headStable * 0.15 + faceStable * 0.08 + blinkStable * 0.07
-            ) * 100;
-            return Math.max(0, Math.min(100, Math.round(scoreValue)));
-        }
-
-        function handleClickToAdd() {
-            if (!gameActive) {
-                feedbackDiv.innerHTML = "🎮 游戏已经完成啦！点「重置游戏」继续训练吧 🎮";
-                return;
-            }
-
-            // 增加点击次数
-            clickCount++;
-
-            const isMatch = (currentLightColorObj.name === currentPromptColorObj.name);
-
-            if (isMatch) {
-                score++;
-                streak++;
-                updateScoreUI();
-                feedbackDiv.innerHTML = `✅ 正确！颜色一致！ +1分 ✅ 🎈 继续加油！`;
-                lightBulb.style.transform = "scale(1.02)";
-                setTimeout(() => { if (lightBulb) lightBulb.style.transform = ""; }, 150);
-                // 更新难度
-                updateDifficulty();
-            } else {
-                streak = 0;
-                // 重置为当前基准难度
-                currentSpeed = baseSpeed;
-                currentMatchRate = baseMatchRate;
-                startSwitching();
-                feedbackDiv.innerHTML = "❌ 哎呀！亮灯颜色和提示词不一样，不能加分哦～ ❌ 再观察一下！";
-                const btn = clickBtn;
-                btn.style.transform = "translateX(4px)";
-                setTimeout(() => { if (btn) btn.style.transform = ""; }, 120);
-                lightBulb.style.filter = "brightness(0.7)";
-                setTimeout(() => { if (lightBulb) lightBulb.style.filter = ""; }, 200);
-            }
-
-            // 游戏会在时间到了之后自动结束
-            // 这里不再检查点击次数上限
+        // 保存数据
+        const data = {
+          inhibition_control: inhibitionScore,
+          score: score,
+          total_clicks: clickCount,
+        };
+        try {
+          if (typeof StorageUtil !== 'undefined') {
+            StorageUtil.setItem('level5_data', data);
+          }
+        } catch (error) {
+          console.log('StorageUtil not available');
         }
 
         // 上传训练数据
-        function uploadTrainingData(score, rawScore, clickCount) {
-            try {
-                if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-                    // 检测当前环境，自动切换 API 地址
-                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+        uploadTrainingData(inhibitionScore, score, clickCount);
+      }
 
-                    const childId = UserStateUtil.getCurrentChildId();
-                    let sessionId = null;
+      function getFocusEvaluation(score) {
+        if (score >= 76) {
+          return '专注力极强，抑制控制优秀';
+        } else if (score >= 51) {
+          return '专注力良好，有一定自控力';
+        } else if (score >= 26) {
+          return '专注力一般，需要多训练';
+        } else {
+          return '容易冲动，抑制能力较弱，建议坚持练习';
+        }
+      }
 
-                    // 开始训练会话
-                    fetch(`${baseUrl}/api/training/session/start`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify({
-                            child_id: childId,
-                            game_type: 'inhibitory',
-                            device_id: 'web'
-                        })
-                    })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                sessionId = result.data.session_id;
-                                console.log('训练会话创建成功:', sessionId);
+      function updateDifficulty() {
+        if (streak >= 3) {
+          // 每连续正确3次，增加难度
+          currentSpeed = Math.max(minSpeed, baseSpeed - streak * 50);
+          currentMatchRate = Math.max(minMatchRate, baseMatchRate - streak * 0.05);
+          // 重启定时器以应用新速度
+          startSwitching();
+        }
+      }
 
-                                // 上传游戏数据
-                                return fetch(`${baseUrl}/api/training/game-data`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                                    },
-                                    body: JSON.stringify({
-                                        session_id: sessionId,
-                                        request_id: Date.now().toString(),
-                                        timestamp: new Date().toISOString(),
-                                        event_type: 'game_complete',
-                                        score: score,
-                                        accuracy: rawScore / clickCount * 100 || 0,
-                                        level: 5,
-                                        time: 60,
-                                        correct: rawScore,
-                                        error: clickCount - rawScore,
-                                        total_target: clickCount,
-                                        total_step: clickCount
-                                    })
-                                });
-                            } else {
-                                throw new Error(result.message || '创建会话失败');
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                console.log('游戏数据上传成功');
+      // 计算抑制控制得分
+      function calculateInhibitionScore() {
+        const totalTrial = maxClicks;
+        const acc = totalTrial > 0 ? score / totalTrial : 0;
+        const impulse = totalTrial > 0 ? 1 - (clickCount - score) / totalTrial : 0;
+        const headStable = 0.8;
+        const faceStable = 0.8;
+        const blinkStable = 0.8;
+        const scoreValue =
+          (impulse * 0.4 + acc * 0.3 + headStable * 0.15 + faceStable * 0.08 + blinkStable * 0.07) * 100;
+        return Math.max(0, Math.min(100, Math.round(scoreValue)));
+      }
 
-                                // 结束训练会话
-                                return fetch(`${baseUrl}/api/training/session/end`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                                    },
-                                    body: JSON.stringify({
-                                        session_id: sessionId,
-                                        final_score: score,
-                                        total_accuracy: rawScore / clickCount * 100 || 0
-                                    })
-                                });
-                            } else {
-                                throw new Error(result.message || '上传游戏数据失败');
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(result => {
-                            console.log('会话结束响应数据:', result);
-                            if (result.success) {
-                                console.log('训练数据上传完成');
+      function handleClickToAdd() {
+        if (!gameActive) {
+          feedbackDiv.innerHTML = '🎮 游戏已经完成啦！点「重置游戏」继续训练吧 🎮';
+          return;
+        }
 
-                                // 清除能力评估页面的缓存
-                                const cacheKey = `child_data_${childId}`;
-                                localStorage.removeItem(cacheKey);
-                                console.log('已清除能力评估缓存:', cacheKey);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('上传训练数据失败:', error);
-                        });
+        // 增加点击次数
+        clickCount++;
+
+        const isMatch = currentLightColorObj.name === currentPromptColorObj.name;
+
+        if (isMatch) {
+          score++;
+          streak++;
+          updateScoreUI();
+          feedbackDiv.innerHTML = `✅ 正确！颜色一致！ +1分 ✅ 🎈 继续加油！`;
+          lightBulb.style.transform = 'scale(1.02)';
+          setTimeout(() => {
+            if (lightBulb) lightBulb.style.transform = '';
+          }, 150);
+          // 更新难度
+          updateDifficulty();
+        } else {
+          streak = 0;
+          // 重置为当前基准难度
+          currentSpeed = baseSpeed;
+          currentMatchRate = baseMatchRate;
+          startSwitching();
+          feedbackDiv.innerHTML = '❌ 哎呀！亮灯颜色和提示词不一样，不能加分哦～ ❌ 再观察一下！';
+          const btn = clickBtn;
+          btn.style.transform = 'translateX(4px)';
+          setTimeout(() => {
+            if (btn) btn.style.transform = '';
+          }, 120);
+          lightBulb.style.filter = 'brightness(0.7)';
+          setTimeout(() => {
+            if (lightBulb) lightBulb.style.filter = '';
+          }, 200);
+        }
+
+        // 游戏会在时间到了之后自动结束
+        // 这里不再检查点击次数上限
+      }
+
+      // 上传训练数据
+      function uploadTrainingData(score, rawScore, clickCount) {
+        try {
+          if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+            // 检测当前环境，自动切换 API 地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+            const childId = UserStateUtil.getCurrentChildId();
+            let sessionId = null;
+
+            // 开始训练会话
+            fetch(`${baseUrl}/api/training/session/start`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                child_id: childId,
+                game_type: 'inhibitory',
+                device_id: 'web',
+              }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  sessionId = result.data.session_id;
+                  console.log('训练会话创建成功:', sessionId);
+
+                  // 上传游戏数据
+                  return fetch(`${baseUrl}/api/training/game-data`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: sessionId,
+                      request_id: Date.now().toString(),
+                      timestamp: new Date().toISOString(),
+                      event_type: 'game_complete',
+                      score: score,
+                      accuracy: (rawScore / clickCount) * 100 || 0,
+                      level: 5,
+                      time: 60,
+                      correct: rawScore,
+                      error: clickCount - rawScore,
+                      total_target: clickCount,
+                      total_step: clickCount,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '创建会话失败');
                 }
-            } catch (e) {
-                console.error('uploadTrainingData 错误:', e);
-            }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
+
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: sessionId,
+                      final_score: score,
+                      total_accuracy: (rawScore / clickCount) * 100 || 0,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
+                }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
+
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
+                }
+              })
+              .catch((error) => {
+                console.error('上传训练数据失败:', error);
+              });
+          }
+        } catch (e) {
+          console.error('uploadTrainingData 错误:', e);
         }
+      }
 
-        clickBtn.addEventListener('click', handleClickToAdd);
-        resetBtn.addEventListener('click', () => {
-            resetGame();
-        });
+      clickBtn.addEventListener('click', handleClickToAdd);
+      resetBtn.addEventListener('click', () => {
+        resetGame();
+      });
 
-        function initGame() {
-            score = 0;
-            clickCount = 0;
-            streak = 0;
-            currentSpeed = baseSpeed;
-            currentMatchRate = baseMatchRate;
-            updateScoreUI();
-            gameActive = true;
-            currentLightColorObj = getRandomColor();
-            currentPromptColorObj = getRandomColor();
-            updateLightUI(currentLightColorObj);
-            updatePromptUI(currentPromptColorObj);
-            startSwitching();
-            startCountdown();
-            feedbackDiv.innerHTML = "🧸 游戏开始！记得颜色一致才能点击加分哟~";
-        }
+      function initGame() {
+        score = 0;
+        clickCount = 0;
+        streak = 0;
+        currentSpeed = baseSpeed;
+        currentMatchRate = baseMatchRate;
+        updateScoreUI();
+        gameActive = true;
+        currentLightColorObj = getRandomColor();
+        currentPromptColorObj = getRandomColor();
+        updateLightUI(currentLightColorObj);
+        updatePromptUI(currentPromptColorObj);
+        startSwitching();
+        startCountdown();
+        feedbackDiv.innerHTML = '🧸 游戏开始！记得颜色一致才能点击加分哟~';
+      }
 
-        initGame();
+      initGame();
 
-        window.addEventListener('beforeunload', () => {
-            if (switchTimer) clearInterval(switchTimer);
-        });
+      window.addEventListener('beforeunload', () => {
+        if (switchTimer) clearInterval(switchTimer);
+      });
     </script>
     <script src="../attention-loader.js"></script>
-</body>
-
+  </body>
 </html>

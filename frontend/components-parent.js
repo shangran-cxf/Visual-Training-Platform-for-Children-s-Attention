@@ -4,11 +4,11 @@
  */
 
 const ParentComponents = {
-    /**
-     * 获取通用CSS样式
-     */
-    getStyles: function () {
-        return `
+  /**
+   * 获取通用CSS样式
+   */
+  getStyles: function () {
+    return `
             /* ===== CSS变量 ===== */
             :root {
                 --primary: #4F46E5;
@@ -407,26 +407,33 @@ const ParentComponents = {
                 }
             }
         `;
-    },
+  },
 
-    /**
-     * 获取侧边栏HTML
-     * @param {string} activePage - 当前活动页面ID
-     */
-    getSidebar: function (activePage = '') {
-        const navItems = [
-            { id: 'profile', label: '儿童档案', href: 'child-document.html', icon: this.getIcons().document },
-            { id: 'knowledge', label: '科普知识', href: 'knowledge.html', icon: this.getIcons().book },
-            { id: 'forum', label: '论坛', href: 'forum.html', icon: this.getIcons().message },
-            { id: 'child', label: '儿童端', href: '#', icon: this.getIcons().game, action: 'ParentComponents.switchToChildMode(); return false;' }
-        ];
+  /**
+   * 获取侧边栏HTML
+   * @param {string} activePage - 当前活动页面ID
+   */
+  getSidebar: function (activePage = '') {
+    const navItems = [
+      { id: 'profile', label: '儿童档案', href: 'child-document.html', icon: this.getIcons().document },
+      { id: 'knowledge', label: '科普知识', href: 'knowledge.html', icon: this.getIcons().book },
+      { id: 'forum', label: '论坛', href: 'forum.html', icon: this.getIcons().message },
+      {
+        id: 'child',
+        label: '儿童端',
+        href: '#',
+        icon: this.getIcons().game,
+        action: 'ParentComponents.switchToChildMode(); return false;',
+      },
+    ];
 
-        let navItemsHtml = navItems.map((item, index) => {
-            const activeClass = item.id === activePage ? 'active' : '';
-            const firstClass = index === 0 ? 'first-nav-item' : '';
-            const clickAction = item.action ? `onclick="${item.action}; return false;"` : '';
+    let navItemsHtml = navItems
+      .map((item, index) => {
+        const activeClass = item.id === activePage ? 'active' : '';
+        const firstClass = index === 0 ? 'first-nav-item' : '';
+        const clickAction = item.action ? `onclick="${item.action}; return false;"` : '';
 
-            return `
+        return `
                 <a href="${item.href}" class="nav-item ${activeClass} ${firstClass}" ${clickAction}>
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         ${item.icon}
@@ -434,23 +441,24 @@ const ParentComponents = {
                     <span class="nav-label">${item.label}</span>
                 </a>
             `;
-        }).join('');
+      })
+      .join('');
 
-        // 获取用户头像
-        let avatarHtml = `
+    // 获取用户头像
+    let avatarHtml = `
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#343559" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
             </svg>
         `;
 
-        // 尝试从本地存储获取用户信息
-        const userInfo = StorageUtil.getItem('userInfo');
-        if (userInfo && userInfo.avatar) {
-            avatarHtml = `<img src="${userInfo.avatar}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
-        }
+    // 尝试从本地存储获取用户信息
+    const userInfo = StorageUtil.getItem('userInfo');
+    if (userInfo && userInfo.avatar) {
+      avatarHtml = `<img src="${userInfo.avatar}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
+    }
 
-        return `
+    return `
             <div class="sidebar">
                 <div class="user-avatar-sidebar" onclick="ParentComponents.showProfileModal()" data-avatar-updatable="true">
                     ${avatarHtml}
@@ -479,13 +487,13 @@ const ParentComponents = {
                 }, 500);
             </script>
         `;
-    },
+  },
 
-    /**
-     * 获取个人中心弹窗HTML
-     */
-    getProfileModal: function () {
-        return `
+  /**
+   * 获取个人中心弹窗HTML
+   */
+  getProfileModal: function () {
+    return `
             <div class="modal-overlay" id="profile-modal">
                 <div class="modal-content profile-modal-content">
                     <div class="modal-header">
@@ -546,403 +554,405 @@ const ParentComponents = {
                 </div>
             </div>
         `;
-    },
+  },
 
-    /**
-     * 获取图标SVG路径
-     */
-    getIcons: function () {
-        return {
-            document: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
-            book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
-            message: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>',
-            game: '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>'
-        };
-    },
+  /**
+   * 获取图标SVG路径
+   */
+  getIcons: function () {
+    return {
+      document:
+        '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
+      book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
+      message:
+        '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>',
+      game: '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>',
+    };
+  },
 
-    /**
-     * 初始化页面
-     * @param {string} activePage - 当前活动页面ID
-     */
-    initPage: function (activePage = '') {
-        // 插入样式
-        const styleElement = document.createElement('style');
-        styleElement.textContent = this.getStyles();
-        document.head.appendChild(styleElement);
+  /**
+   * 初始化页面
+   * @param {string} activePage - 当前活动页面ID
+   */
+  initPage: function (activePage = '') {
+    // 插入样式
+    const styleElement = document.createElement('style');
+    styleElement.textContent = this.getStyles();
+    document.head.appendChild(styleElement);
 
-        // 插入侧边栏
-        const sidebarHtml = this.getSidebar(activePage);
-        document.body.insertAdjacentHTML('afterbegin', sidebarHtml);
+    // 插入侧边栏
+    const sidebarHtml = this.getSidebar(activePage);
+    document.body.insertAdjacentHTML('afterbegin', sidebarHtml);
 
-        // 插入个人中心弹窗
-        const modalHtml = this.getProfileModal();
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    // 插入个人中心弹窗
+    const modalHtml = this.getProfileModal();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-        // 加载用户信息
-        this.loadProfileInfo();
-    },
+    // 加载用户信息
+    this.loadProfileInfo();
+  },
 
-    /**
-     * 显示个人中心弹窗
-     */
-    showProfileModal: function () {
-        const modal = document.getElementById('profile-modal');
-        if (modal) {
-            modal.classList.add('show');
-            this.loadProfileInfo();
+  /**
+   * 显示个人中心弹窗
+   */
+  showProfileModal: function () {
+    const modal = document.getElementById('profile-modal');
+    if (modal) {
+      modal.classList.add('show');
+      this.loadProfileInfo();
+    }
+  },
+
+  /**
+   * 关闭个人中心弹窗
+   */
+  closeProfileModal: function () {
+    const modal = document.getElementById('profile-modal');
+    if (modal) {
+      modal.classList.remove('show');
+      this.cancelEdit();
+    }
+  },
+
+  /**
+   * 加载用户信息
+   */
+  loadProfileInfo: async function () {
+    const userInfo = StorageUtil.getItem('userInfo');
+    if (!userInfo) return;
+
+    const uidElement = document.getElementById('profile-uid');
+    const usernameElement = document.getElementById('profile-username');
+    const emailElement = document.getElementById('profile-email-display');
+    const createdElement = document.getElementById('profile-created');
+    const avatarElement = document.getElementById('modal-avatar');
+    const avatarInitialElement = document.getElementById('modal-avatar-initial');
+    const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
+
+    if (uidElement) uidElement.textContent = userInfo.uid || '-';
+    if (usernameElement) usernameElement.textContent = userInfo.username || '加载中...';
+
+    try {
+      const response = await fetch(`/api/user/query?type=id&value=${userInfo.parent_id}`);
+      const result = await response.json();
+      const data = result.data || result;
+
+      if (usernameElement) usernameElement.textContent = data.username || userInfo.username || '-';
+      if (emailElement) emailElement.textContent = data.email || '-';
+      if (createdElement && data.created_at) createdElement.textContent = data.created_at.split(' ')[0];
+
+      // 填充编辑表单
+      const editUsername = document.getElementById('edit-username');
+      const editEmail = document.getElementById('edit-email');
+      if (editUsername) editUsername.value = data.username || userInfo.username || '';
+      if (editEmail) editEmail.value = data.email || '';
+
+      // 设置头像
+      if (data.avatar) {
+        // 更新本地存储中的头像URL
+        userInfo.avatar = data.avatar;
+        StorageUtil.setItem('userInfo', userInfo);
+
+        // 更新弹窗头像
+        if (avatarElement) {
+          avatarElement.innerHTML = `<img src="${data.avatar}" alt="头像">`;
         }
-    },
 
-    /**
-     * 关闭个人中心弹窗
-     */
-    closeProfileModal: function () {
-        const modal = document.getElementById('profile-modal');
-        if (modal) {
-            modal.classList.remove('show');
-            this.cancelEdit();
+        // 更新侧边栏头像
+        if (sidebarAvatar) {
+          sidebarAvatar.innerHTML = `<img src="${data.avatar}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
         }
-    },
+      } else if (avatarInitialElement) {
+        const initial = (data.username || userInfo.username || 'U').charAt(0).toUpperCase();
+        avatarInitialElement.textContent = initial;
+      }
+    } catch (err) {
+      console.error('获取用户信息失败:', err);
+    }
+  },
 
-    /**
-     * 加载用户信息
-     */
-    loadProfileInfo: async function () {
-        const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) return;
+  /**
+   * 切换编辑模式
+   */
+  toggleEditMode: function () {
+    const editSection = document.getElementById('edit-profile-section');
+    const editButton = document.querySelector('.profile-actions-outside');
+    const modalContent = document.querySelector('.profile-modal-content');
 
-        const uidElement = document.getElementById('profile-uid');
-        const usernameElement = document.getElementById('profile-username');
-        const emailElement = document.getElementById('profile-email-display');
-        const createdElement = document.getElementById('profile-created');
-        const avatarElement = document.getElementById('modal-avatar');
-        const avatarInitialElement = document.getElementById('modal-avatar-initial');
-        const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
-
-        if (uidElement) uidElement.textContent = userInfo.uid || '-';
-        if (usernameElement) usernameElement.textContent = userInfo.username || '加载中...';
-
-        try {
-            const response = await fetch(`/api/user/query?type=id&value=${userInfo.parent_id}`);
-            const result = await response.json();
-            const data = result.data || result;
-
-            if (usernameElement) usernameElement.textContent = data.username || userInfo.username || '-';
-            if (emailElement) emailElement.textContent = data.email || '-';
-            if (createdElement && data.created_at) createdElement.textContent = data.created_at.split(' ')[0];
-
-            // 填充编辑表单
-            const editUsername = document.getElementById('edit-username');
-            const editEmail = document.getElementById('edit-email');
-            if (editUsername) editUsername.value = data.username || userInfo.username || '';
-            if (editEmail) editEmail.value = data.email || '';
-
-            // 设置头像
-            if (data.avatar) {
-                // 更新本地存储中的头像URL
-                userInfo.avatar = data.avatar;
-                StorageUtil.setItem('userInfo', userInfo);
-
-                // 更新弹窗头像
-                if (avatarElement) {
-                    avatarElement.innerHTML = `<img src="${data.avatar}" alt="头像">`;
-                }
-
-                // 更新侧边栏头像
-                if (sidebarAvatar) {
-                    sidebarAvatar.innerHTML = `<img src="${data.avatar}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
-                }
-            } else if (avatarInitialElement) {
-                const initial = (data.username || userInfo.username || 'U').charAt(0).toUpperCase();
-                avatarInitialElement.textContent = initial;
-            }
-        } catch (err) {
-            console.error('获取用户信息失败:', err);
-        }
-    },
-
-    /**
-     * 切换编辑模式
-     */
-    toggleEditMode: function () {
-        const editSection = document.getElementById('edit-profile-section');
-        const editButton = document.querySelector('.profile-actions-outside');
-        const modalContent = document.querySelector('.profile-modal-content');
-
-        if (editSection && editButton) {
-            if (editSection.style.display === 'none') {
-                editButton.style.display = 'none';
-                editSection.style.display = 'block';
-                if (modalContent) modalContent.style.minHeight = '750px';
-            } else {
-                editButton.style.display = 'block';
-                editSection.style.display = 'none';
-                if (modalContent) modalContent.style.minHeight = '200px';
-            }
-        }
-    },
-
-    /**
-     * 取消编辑
-     */
-    cancelEdit: function () {
-        const editSection = document.getElementById('edit-profile-section');
-        const editButton = document.querySelector('.profile-actions-outside');
-        const modalContent = document.querySelector('.profile-modal-content');
-
-        if (editSection) editSection.style.display = 'none';
-        if (editButton) editButton.style.display = 'block';
+    if (editSection && editButton) {
+      if (editSection.style.display === 'none') {
+        editButton.style.display = 'none';
+        editSection.style.display = 'block';
+        if (modalContent) modalContent.style.minHeight = '750px';
+      } else {
+        editButton.style.display = 'block';
+        editSection.style.display = 'none';
         if (modalContent) modalContent.style.minHeight = '200px';
+      }
+    }
+  },
 
-        // 重置表单
-        const userInfo = StorageUtil.getItem('userInfo');
-        const editUsername = document.getElementById('edit-username');
-        const editEmail = document.getElementById('edit-email');
-        const oldPassword = document.getElementById('edit-old-password');
-        const newPassword = document.getElementById('edit-password');
-        const confirmPassword = document.getElementById('edit-confirm-password');
-        const oldPasswordError = document.getElementById('old-password-error');
+  /**
+   * 取消编辑
+   */
+  cancelEdit: function () {
+    const editSection = document.getElementById('edit-profile-section');
+    const editButton = document.querySelector('.profile-actions-outside');
+    const modalContent = document.querySelector('.profile-modal-content');
 
-        if (editUsername && userInfo) editUsername.value = userInfo.username || '';
-        if (editEmail) editEmail.value = '';
-        if (oldPassword) oldPassword.value = '';
-        if (newPassword) {
-            newPassword.value = '';
-            newPassword.disabled = true;
-        }
-        if (confirmPassword) {
-            confirmPassword.value = '';
-            confirmPassword.disabled = true;
-        }
-        if (oldPasswordError) oldPasswordError.textContent = '';
+    if (editSection) editSection.style.display = 'none';
+    if (editButton) editButton.style.display = 'block';
+    if (modalContent) modalContent.style.minHeight = '200px';
 
+    // 重置表单
+    const userInfo = StorageUtil.getItem('userInfo');
+    const editUsername = document.getElementById('edit-username');
+    const editEmail = document.getElementById('edit-email');
+    const oldPassword = document.getElementById('edit-old-password');
+    const newPassword = document.getElementById('edit-password');
+    const confirmPassword = document.getElementById('edit-confirm-password');
+    const oldPasswordError = document.getElementById('old-password-error');
+
+    if (editUsername && userInfo) editUsername.value = userInfo.username || '';
+    if (editEmail) editEmail.value = '';
+    if (oldPassword) oldPassword.value = '';
+    if (newPassword) {
+      newPassword.value = '';
+      newPassword.disabled = true;
+    }
+    if (confirmPassword) {
+      confirmPassword.value = '';
+      confirmPassword.disabled = true;
+    }
+    if (oldPasswordError) oldPasswordError.textContent = '';
+
+    this.oldPasswordVerified = false;
+  },
+
+  /**
+   * 验证旧密码
+   */
+  verifyOldPassword: async function () {
+    const oldPasswordInput = document.getElementById('edit-old-password');
+    const newPasswordInput = document.getElementById('edit-password');
+    const confirmPasswordInput = document.getElementById('edit-confirm-password');
+    const errorElement = document.getElementById('old-password-error');
+
+    if (!oldPasswordInput) return;
+
+    const oldPassword = oldPasswordInput.value.trim();
+
+    if (!oldPassword) {
+      if (errorElement) errorElement.textContent = '';
+      if (newPasswordInput) newPasswordInput.disabled = true;
+      if (confirmPasswordInput) confirmPasswordInput.disabled = true;
+      this.oldPasswordVerified = false;
+      return;
+    }
+
+    const userInfo = StorageUtil.getItem('userInfo');
+    if (!userInfo) return;
+
+    try {
+      const response = await fetch('/api/user/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          parent_id: userInfo.parent_id,
+          old_password: oldPassword,
+        }),
+      });
+
+      const result = await response.json();
+      const data = result.data || result;
+
+      if (response.ok && data.valid) {
+        if (errorElement) errorElement.textContent = '';
+        if (newPasswordInput) newPasswordInput.disabled = false;
+        if (confirmPasswordInput) confirmPasswordInput.disabled = false;
+        this.oldPasswordVerified = true;
+      } else {
+        if (errorElement) errorElement.textContent = '旧密码错误，请重新输入！';
+        if (newPasswordInput) newPasswordInput.disabled = true;
+        if (confirmPasswordInput) confirmPasswordInput.disabled = true;
         this.oldPasswordVerified = false;
-    },
+      }
+    } catch (err) {
+      console.error('验证旧密码失败:', err);
+      if (errorElement) errorElement.textContent = '验证失败，请稍后再试';
+    }
+  },
 
-    /**
-     * 验证旧密码
-     */
-    verifyOldPassword: async function () {
-        const oldPasswordInput = document.getElementById('edit-old-password');
-        const newPasswordInput = document.getElementById('edit-password');
-        const confirmPasswordInput = document.getElementById('edit-confirm-password');
-        const errorElement = document.getElementById('old-password-error');
+  /**
+   * 保存个人信息
+   */
+  saveProfile: async function () {
+    const username = document.getElementById('edit-username')?.value.trim();
+    const email = document.getElementById('edit-email')?.value.trim();
+    const oldPassword = document.getElementById('edit-old-password')?.value.trim();
+    const newPassword = document.getElementById('edit-password')?.value.trim();
+    const confirmPassword = document.getElementById('edit-confirm-password')?.value.trim();
 
-        if (!oldPasswordInput) return;
+    if (!username) {
+      alert('请输入用户名');
+      return;
+    }
 
-        const oldPassword = oldPasswordInput.value.trim();
+    if (!email) {
+      alert('请输入邮箱');
+      return;
+    }
 
-        if (!oldPassword) {
-            if (errorElement) errorElement.textContent = '';
-            if (newPasswordInput) newPasswordInput.disabled = true;
-            if (confirmPasswordInput) confirmPasswordInput.disabled = true;
-            this.oldPasswordVerified = false;
-            return;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('请输入有效的邮箱地址');
+      return;
+    }
+
+    if (newPassword) {
+      if (!this.oldPasswordVerified) {
+        alert('请先输入正确的旧密码');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        const confirmError = document.getElementById('confirm-password-error');
+        if (confirmError) confirmError.textContent = '两次输入的密码不一致！';
+        return;
+      }
+      if (newPassword.length < 6) {
+        alert('新密码长度至少为6位');
+        return;
+      }
+    }
+
+    const userInfo = StorageUtil.getItem('userInfo');
+    if (!userInfo) return;
+
+    try {
+      const response = await fetch('/api/user/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          parent_id: userInfo.parent_id,
+          username: username,
+          email: email,
+          old_password: oldPassword,
+          password: newPassword,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('个人信息更新成功');
+        this.loadProfileInfo();
+        this.cancelEdit();
+      } else {
+        alert(result.error?.message || result.error || '更新失败');
+      }
+    } catch (err) {
+      console.error('更新个人信息失败:', err);
+      alert('更新失败，请稍后再试');
+    }
+  },
+
+  /**
+   * 上传头像
+   */
+  uploadAvatar: async function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const userInfo = StorageUtil.getItem('userInfo');
+    if (!userInfo) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+    formData.append('parent_id', userInfo.parent_id);
+
+    try {
+      const response = await fetch('/api/user/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const data = result.data || result;
+        const avatarElement = document.getElementById('modal-avatar');
+        if (avatarElement && data.avatar_url) {
+          avatarElement.innerHTML = `<img src="${data.avatar_url}" alt="头像">`;
         }
 
-        const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) return;
+        // 更新本地存储中的头像URL
+        userInfo.avatar = data.avatar_url;
+        StorageUtil.setItem('userInfo', userInfo);
 
-        try {
-            const response = await fetch('/api/user/verify-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    parent_id: userInfo.parent_id,
-                    old_password: oldPassword
-                })
-            });
-
-            const result = await response.json();
-            const data = result.data || result;
-
-            if (response.ok && data.valid) {
-                if (errorElement) errorElement.textContent = '';
-                if (newPasswordInput) newPasswordInput.disabled = false;
-                if (confirmPasswordInput) confirmPasswordInput.disabled = false;
-                this.oldPasswordVerified = true;
-            } else {
-                if (errorElement) errorElement.textContent = '旧密码错误，请重新输入！';
-                if (newPasswordInput) newPasswordInput.disabled = true;
-                if (confirmPasswordInput) confirmPasswordInput.disabled = true;
-                this.oldPasswordVerified = false;
-            }
-        } catch (err) {
-            console.error('验证旧密码失败:', err);
-            if (errorElement) errorElement.textContent = '验证失败，请稍后再试';
-        }
-    },
-
-    /**
-     * 保存个人信息
-     */
-    saveProfile: async function () {
-        const username = document.getElementById('edit-username')?.value.trim();
-        const email = document.getElementById('edit-email')?.value.trim();
-        const oldPassword = document.getElementById('edit-old-password')?.value.trim();
-        const newPassword = document.getElementById('edit-password')?.value.trim();
-        const confirmPassword = document.getElementById('edit-confirm-password')?.value.trim();
-
-        if (!username) {
-            alert('请输入用户名');
-            return;
+        // 更新侧边栏头像
+        const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
+        if (sidebarAvatar && data.avatar_url) {
+          sidebarAvatar.innerHTML = `<img src="${data.avatar_url}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
         }
 
-        if (!email) {
-            alert('请输入邮箱');
-            return;
-        }
+        alert('头像上传成功');
+      } else {
+        alert(result.error?.message || '头像上传失败');
+      }
+    } catch (err) {
+      console.error('上传头像失败:', err);
+      alert('上传失败，请稍后再试');
+    }
+  },
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            alert('请输入有效的邮箱地址');
-            return;
-        }
+  /**
+   * 切换到儿童模式
+   */
+  switchToChildMode: function () {
+    const userInfo = StorageUtil.getItem('userInfo');
+    if (!userInfo) {
+      window.location.href = 'login.html';
+      return;
+    }
 
-        if (newPassword) {
-            if (!this.oldPasswordVerified) {
-                alert('请先输入正确的旧密码');
-                return;
-            }
-            if (newPassword !== confirmPassword) {
-                const confirmError = document.getElementById('confirm-password-error');
-                if (confirmError) confirmError.textContent = '两次输入的密码不一致！';
-                return;
-            }
-            if (newPassword.length < 6) {
-                alert('新密码长度至少为6位');
-                return;
-            }
-        }
+    if (!userInfo.children || userInfo.children.length === 0) {
+      alert('请先添加儿童信息');
+      window.location.href = 'child-document.html';
+      return;
+    }
 
-        const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) return;
+    UserStateUtil.switchToChildMode(userInfo.children[0].id, userInfo.children[0].name);
+    window.location.href = 'child-home.html';
+  },
 
-        try {
-            const response = await fetch('/api/user/update-profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    parent_id: userInfo.parent_id,
-                    username: username,
-                    email: email,
-                    old_password: oldPassword,
-                    password: newPassword
-                })
-            });
+  /**
+   * 退出登录
+   */
+  logout: function () {
+    StorageUtil.removeItem('userInfo');
+    window.location.href = 'index.html';
+  },
 
-            const result = await response.json();
+  /**
+   * 检查登录状态
+   * 只验证用户是否已登录，不验证 mode
+   * mode 是用户状态（parent/child），用于区分当前使用模式，不应用于页面访问权限判断
+   */
+  checkAuth: function () {
+    const userInfo = StorageUtil.getItem('userInfo');
+    if (!userInfo) {
+      window.location.href = 'login.html';
+      return null;
+    }
+    if (userInfo.mode === 'child') {
+      userInfo.mode = 'parent';
+      StorageUtil.setItem('userInfo', userInfo);
+    }
+    return userInfo;
+  },
 
-            if (result.success) {
-                alert('个人信息更新成功');
-                this.loadProfileInfo();
-                this.cancelEdit();
-            } else {
-                alert(result.error?.message || result.error || '更新失败');
-            }
-        } catch (err) {
-            console.error('更新个人信息失败:', err);
-            alert('更新失败，请稍后再试');
-        }
-    },
-
-    /**
-     * 上传头像
-     */
-    uploadAvatar: async function (event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) return;
-
-        const formData = new FormData();
-        formData.append('avatar', file);
-        formData.append('parent_id', userInfo.parent_id);
-
-        try {
-            const response = await fetch('/api/user/avatar', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                const data = result.data || result;
-                const avatarElement = document.getElementById('modal-avatar');
-                if (avatarElement && data.avatar_url) {
-                    avatarElement.innerHTML = `<img src="${data.avatar_url}" alt="头像">`;
-                }
-
-                // 更新本地存储中的头像URL
-                userInfo.avatar = data.avatar_url;
-                StorageUtil.setItem('userInfo', userInfo);
-
-                // 更新侧边栏头像
-                const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
-                if (sidebarAvatar && data.avatar_url) {
-                    sidebarAvatar.innerHTML = `<img src="${data.avatar_url}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
-                }
-
-                alert('头像上传成功');
-            } else {
-                alert(result.error?.message || '头像上传失败');
-            }
-        } catch (err) {
-            console.error('上传头像失败:', err);
-            alert('上传失败，请稍后再试');
-        }
-    },
-
-    /**
-     * 切换到儿童模式
-     */
-    switchToChildMode: function () {
-        const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        if (!userInfo.children || userInfo.children.length === 0) {
-            alert('请先添加儿童信息');
-            window.location.href = 'child-document.html';
-            return;
-        }
-
-        UserStateUtil.switchToChildMode(userInfo.children[0].id, userInfo.children[0].name);
-        window.location.href = 'child-home.html';
-    },
-
-    /**
-     * 退出登录
-     */
-    logout: function () {
-        StorageUtil.removeItem('userInfo');
-        window.location.href = 'index.html';
-    },
-
-    /**
-     * 检查登录状态
-     * 只验证用户是否已登录，不验证 mode
-     * mode 是用户状态（parent/child），用于区分当前使用模式，不应用于页面访问权限判断
-     */
-    checkAuth: function () {
-        const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) {
-            window.location.href = 'login.html';
-            return null;
-        }
-        if (userInfo.mode === 'child') {
-            userInfo.mode = 'parent';
-            StorageUtil.setItem('userInfo', userInfo);
-        }
-        return userInfo;
-    },
-
-    // 旧密码验证状态
-    oldPasswordVerified: false
+  // 旧密码验证状态
+  oldPasswordVerified: false,
 };
 
 // 添加弹窗相关样式
@@ -1104,6 +1114,5 @@ ParentComponents._originalGetStyles = ParentComponents.getStyles;
 
 // 将弹窗样式添加到组件库
 ParentComponents.getStyles = function () {
-    return this._originalGetStyles() + profileModalStyles;
+  return this._originalGetStyles() + profileModalStyles;
 };
-

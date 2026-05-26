@@ -1,560 +1,578 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>科普知识 - 儿童注意力训练平台</title>
     <script src="utils.js"></script>
     <script src="components-parent.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-        /* body样式会被components-parent.js覆盖 */
+      /* body样式会被components-parent.js覆盖 */
 
-        /* ====================== */
-        /* 搜索框样式（带特效） */
-        /* ====================== */
-        .search-container {
-            width: 100%;
-            max-width: 700px;
-            margin: 0 auto 24px;
-        }
+      /* ====================== */
+      /* 搜索框样式（带特效） */
+      /* ====================== */
+      .search-container {
+        width: 100%;
+        max-width: 700px;
+        margin: 0 auto 24px;
+      }
 
-        .search-box {
-            display: flex;
-            align-items: center;
-            height: 60px;
-            background: #fff;
-            border: 2px solid #e5e7eb;
-            border-radius: 32px;
-            padding: 0 24px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
+      .search-box {
+        display: flex;
+        align-items: center;
+        height: 60px;
+        background: #fff;
+        border: 2px solid #e5e7eb;
+        border-radius: 32px;
+        padding: 0 24px;
+        transition: all 0.3s ease;
+        position: relative;
+      }
 
-        /* 点击后特效（图二） */
-        .search-box.active {
-            background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
-            border-color: #8849a7;
-            transform: scale(1.02);
-            box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
-        }
+      /* 点击后特效（图二） */
+      .search-box.active {
+        background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
+        border-color: #8849a7;
+        transform: scale(1.02);
+        box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+      }
 
-        .search-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 14px;
-            color: #9ca3af;
-            transition: color 0.3s ease;
-        }
+      .search-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 14px;
+        color: #9ca3af;
+        transition: color 0.3s ease;
+      }
 
-        .search-box.active .search-icon {
-            color: #8849a7;
-        }
+      .search-box.active .search-icon {
+        color: #8849a7;
+      }
 
-        .search-input {
-            flex: 1;
-            height: 100%;
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 15px;
-            /* 放大搜索输入字体 */
-        }
+      .search-input {
+        flex: 1;
+        height: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 15px;
+        /* 放大搜索输入字体 */
+      }
 
-        .search-btn {
-            padding: 15px 28px;
-            border-radius: 30px;
-            background: linear-gradient(135deg, #9f5cc0, #91a7e1);
-            color: white;
-            border: none;
-            font-weight: 600;
-            font-size: 15px;
-            /* 放大搜索按钮字体 */
-            cursor: pointer;
-            white-space: nowrap;
-            margin-right: -19px;
-        }
+      .search-btn {
+        padding: 15px 28px;
+        border-radius: 30px;
+        background: linear-gradient(135deg, #9f5cc0, #91a7e1);
+        color: white;
+        border: none;
+        font-weight: 600;
+        font-size: 15px;
+        /* 放大搜索按钮字体 */
+        cursor: pointer;
+        white-space: nowrap;
+        margin-right: -19px;
+      }
 
-        /* 原有页面样式 */
-        .knowledge-header {
-            background: white;
-            border-radius: 24px;
-            padding: 28px;
-            margin-bottom: 28px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
+      /* 原有页面样式 */
+      .knowledge-header {
+        background: white;
+        border-radius: 24px;
+        padding: 28px;
+        margin-bottom: 28px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      }
 
-        .filter-section {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
+      .filter-section {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
 
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
 
-        .filter-label {
-            font-size: 15px;
-            /* 放大标签文字 */
-            color: #666;
-            min-width: 90px;
-            font-weight: 500;
-        }
+      .filter-label {
+        font-size: 15px;
+        /* 放大标签文字 */
+        color: #666;
+        min-width: 90px;
+        font-weight: 500;
+      }
 
-        .filter-btn {
-            padding: 10px 20px;
-            background: #f5f5f5;
-            border: none;
-            border-radius: 24px;
-            font-size: 15px;
-            /* 放大按钮文字 */
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+      .filter-btn {
+        padding: 10px 20px;
+        background: #f5f5f5;
+        border: none;
+        border-radius: 24px;
+        font-size: 15px;
+        /* 放大按钮文字 */
+        cursor: pointer;
+        transition: background 0.2s;
+      }
 
-        .filter-btn:hover {
-            background: #e9e9e9;
-        }
+      .filter-btn:hover {
+        background: #e9e9e9;
+      }
 
-        .filter-btn.active {
-            background: #73408a;
-            color: white;
-        }
+      .filter-btn.active {
+        background: #73408a;
+        color: white;
+      }
 
-        .knowledge-section {
-            padding: 0;
-        }
+      .knowledge-section {
+        padding: 0;
+      }
 
-        /* --- 核心修改：瀑布流布局 --- */
+      /* --- 核心修改：瀑布流布局 --- */
+      .knowledge-articles {
+        /* 采用 column-count 实现经典瀑布流 */
+        column-count: 3;
+        column-gap: 24px;
+      }
+
+      /* 每一列中的卡片 */
+      .knowledge-card {
+        break-inside: avoid;
+        /* 防止卡片被截断 */
+        margin-bottom: 24px;
+        padding: 20px;
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .knowledge-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+
+      /* 放大标题字体 */
+      .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        line-height: 1.5;
+        flex: 1;
+      }
+
+      .card-title:hover {
+        color: #8849a7;
+      }
+
+      .card-difficulty {
+        font-size: 13px;
+        padding: 5px 12px;
+        border-radius: 14px;
+        font-weight: 500;
+        flex-shrink: 0;
+        margin-left: -10px;
+      }
+
+      .difficulty-easy {
+        background: #e8f5e9;
+        color: #4caf50;
+      }
+
+      .difficulty-medium {
+        background: #fff3e0;
+        color: #ff9800;
+      }
+
+      .difficulty-hard {
+        background: #ffebee;
+        color: #f44336;
+      }
+
+      /* 放大摘要字体 */
+      .card-summary {
+        font-size: 15px;
+        color: #4b5563;
+        line-height: 1.7;
+        margin-bottom: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        /* 增加显示行数 */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex-grow: 1;
+      }
+
+      .card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .card-tag {
+        font-size: 14px;
+        padding: 6px 12px;
+        background: #f5f5f5;
+        color: #666;
+        border-radius: 14px;
+      }
+
+      /* 放大底部信息字体 */
+      .card-footer {
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+        font-size: 11px;
+        color: #999;
+        margin-top: auto;
+      }
+
+      .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .card-meta span {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #999;
+        font-size: 16px;
+      }
+
+      .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+      }
+
+      #article-detail-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        padding: 15px;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 24px;
+        padding: 40px;
+        width: 92%;
+        max-width: 900px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+        position: relative;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #f3f4f6;
+        color: #666;
+        border: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .modal-close:hover {
+        background: #213074;
+        color: white;
+      }
+
+      /* 放大弹窗标题 */
+      .modal-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 20px;
+        padding-right: 60px;
+        line-height: 1.4;
+      }
+
+      .modal-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 14px;
+        /* 放大弹窗元信息 */
+      }
+
+      .modal-meta-item {
+        font-size: 16px;
+        color: #4b5563;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .modal-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 24px;
+      }
+
+      .modal-tag {
+        font-size: 14px;
+        padding: 9px 15px;
+        background: #b37ad1;
+        color: white;
+        border-radius: 14px;
+      }
+
+      .modal-summary {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        border-left: 4px solid #73408a;
+      }
+
+      .modal-summary-label {
+        font-weight: 600;
+        color: #73408a;
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+
+      /* 放大弹窗内容 */
+      .modal-content-text {
+        font-size: 15px;
+        line-height: 2;
+        color: #333;
+      }
+
+      .modal-content-text p {
+        margin-bottom: 20px;
+        text-indent: 2em;
+      }
+
+      /* 响应式调整：瀑布流列数自适应 */
+      @media (max-width: 1200px) {
         .knowledge-articles {
-            /* 采用 column-count 实现经典瀑布流 */
-            column-count: 3;
-            column-gap: 24px;
+          column-count: 2;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .knowledge-articles {
+          column-count: 1;
         }
 
-        /* 每一列中的卡片 */
-        .knowledge-card {
-            break-inside: avoid;
-            /* 防止卡片被截断 */
-            margin-bottom: 24px;
-            padding: 20px;
-            border-radius: 20px;
-            background: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
+        .main-content {
+          padding: 15px;
         }
-
-        .knowledge-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-
-        /* 放大标题字体 */
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #111827;
-            line-height: 1.5;
-            flex: 1;
-        }
-
-        .card-title:hover {
-            color: #8849a7;
-        }
-
-        .card-difficulty {
-            font-size: 13px;
-            padding: 5px 12px;
-            border-radius: 14px;
-            font-weight: 500;
-            flex-shrink: 0;
-            margin-left: -10px;
-        }
-
-        .difficulty-easy {
-            background: #e8f5e9;
-            color: #4caf50;
-        }
-
-        .difficulty-medium {
-            background: #fff3e0;
-            color: #ff9800;
-        }
-
-        .difficulty-hard {
-            background: #ffebee;
-            color: #f44336;
-        }
-
-        /* 放大摘要字体 */
-        .card-summary {
-            font-size: 15px;
-            color: #4b5563;
-            line-height: 1.7;
-            margin-bottom: 16px;
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            /* 增加显示行数 */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            flex-grow: 1;
-        }
-
-        .card-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .card-tag {
-            font-size: 14px;
-            padding: 6px 12px;
-            background: #f5f5f5;
-            color: #666;
-            border-radius: 14px;
-        }
-
-        /* 放大底部信息字体 */
-        .card-footer {
-            padding-top: 12px;
-            border-top: 1px solid #f0f0f0;
-            font-size: 11px;
-            color: #999;
-            margin-top: auto;
-        }
-
-        .card-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-        }
-
-        .card-meta span {
-            display: flex;
-            align-items: center;
-            gap: 1px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: #999;
-            font-size: 16px;
-        }
-
-        .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-
-        #article-detail-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            padding: 15px;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 40px;
-            width: 92%;
-            max-width: 900px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #f3f4f6;
-            color: #666;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-close:hover {
-            background: #213074;
-            color: white;
-        }
-
-        /* 放大弹窗标题 */
-        .modal-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 20px;
-            padding-right: 60px;
-            line-height: 1.4;
-        }
-
-        .modal-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 14px;
-            /* 放大弹窗元信息 */
-        }
-
-        .modal-meta-item {
-            font-size: 16px;
-            color: #4b5563;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .modal-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 24px;
-        }
-
-        .modal-tag {
-            font-size: 14px;
-            padding: 9px 15px;
-            background: #b37ad1;
-            color: white;
-            border-radius: 14px;
-        }
-
-        .modal-summary {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            border-left: 4px solid #73408a;
-        }
-
-        .modal-summary-label {
-            font-weight: 600;
-            color: #73408a;
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-
-        /* 放大弹窗内容 */
-        .modal-content-text {
-            font-size: 15px;
-            line-height: 2;
-            color: #333;
-        }
-
-        .modal-content-text p {
-            margin-bottom: 20px;
-            text-indent: 2em;
-        }
-
-        /* 响应式调整：瀑布流列数自适应 */
-        @media (max-width: 1200px) {
-            .knowledge-articles {
-                column-count: 2;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .knowledge-articles {
-                column-count: 1;
-            }
-
-            .main-content {
-                padding: 15px;
-            }
-        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="main-content">
-        <div class="knowledge-header">
-            <!-- 搜索框（一定显示） -->
-            <div class="search-container">
-                <div class="search-box" id="searchBox">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <input type="text" class="search-input" id="searchInput" placeholder="搜索知识文章...">
-                    <button class="search-btn" onclick="doSearch()">搜索</button>
-                </div>
-            </div>
-
-            <div class="filter-section">
-                <div class="filter-group">
-                    <label class="filter-label">发布时间：</label>
-                    <div class="filter-options" id="date-filter">
-                        <button class="filter-btn active" data-value="">全部</button>
-                        <button class="filter-btn" data-value="week">最近一周</button>
-                        <button class="filter-btn" data-value="month">最近一月</button>
-                        <button class="filter-btn" data-value="quarter">最近三月</button>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">难度等级：</label>
-                    <div class="filter-options" id="difficulty-filter">
-                        <button class="filter-btn active" data-value="">全部</button>
-                        <button class="filter-btn" data-value="初级">初级</button>
-                        <button class="filter-btn" data-value="中级">中级</button>
-                        <button class="filter-btn" data-value="高级">高级</button>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">阅读时间：</label>
-                    <div class="filter-options" id="readtime-filter">
-                        <button class="filter-btn active" data-value="">全部</button>
-                        <button class="filter-btn" data-value="short">5分钟以内</button>
-                        <button class="filter-btn" data-value="medium">5-10分钟</button>
-                        <button class="filter-btn" data-value="long">10分钟以上</button>
-                    </div>
-                </div>
-            </div>
+      <div class="knowledge-header">
+        <!-- 搜索框（一定显示） -->
+        <div class="search-container">
+          <div class="search-box" id="searchBox">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索知识文章..." />
+            <button class="search-btn" onclick="doSearch()">搜索</button>
+          </div>
         </div>
 
-        <div class="knowledge-section">
-            <div class="knowledge-articles" id="knowledge-articles-container"></div>
+        <div class="filter-section">
+          <div class="filter-group">
+            <label class="filter-label">发布时间：</label>
+            <div class="filter-options" id="date-filter">
+              <button class="filter-btn active" data-value="">全部</button>
+              <button class="filter-btn" data-value="week">最近一周</button>
+              <button class="filter-btn" data-value="month">最近一月</button>
+              <button class="filter-btn" data-value="quarter">最近三月</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">难度等级：</label>
+            <div class="filter-options" id="difficulty-filter">
+              <button class="filter-btn active" data-value="">全部</button>
+              <button class="filter-btn" data-value="初级">初级</button>
+              <button class="filter-btn" data-value="中级">中级</button>
+              <button class="filter-btn" data-value="高级">高级</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">阅读时间：</label>
+            <div class="filter-options" id="readtime-filter">
+              <button class="filter-btn active" data-value="">全部</button>
+              <button class="filter-btn" data-value="short">5分钟以内</button>
+              <button class="filter-btn" data-value="medium">5-10分钟</button>
+              <button class="filter-btn" data-value="long">10分钟以上</button>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div class="knowledge-section">
+        <div class="knowledge-articles" id="knowledge-articles-container"></div>
+      </div>
     </div>
 
     <!-- 搜索框动画（核心） -->
     <script>
-        window.onload = function () {
-            ParentComponents.initPage('knowledge');
-            const userInfo = ParentComponents.checkAuth();
-            if (userInfo) {
-                initFilterListeners();
-                loadKnowledgeArticles();
-            }
-        };
-
-        let currentDateFilter = '';
-        let currentDifficultyFilter = '';
-        let currentReadtimeFilter = '';
-        let currentKeyword = '';
-        let allArticles = [];
-
-        function logout() { ParentComponents.logout(); }
-        function switchToChild() { ParentComponents.switchToChildMode(); }
-        function checkAuth() { return ParentComponents.checkAuth(); }
-
-        async function doSearch() {
-            currentKeyword = document.getElementById('searchInput').value.trim();
-            await loadKnowledgeArticles();
+      window.onload = function () {
+        ParentComponents.initPage('knowledge');
+        const userInfo = ParentComponents.checkAuth();
+        if (userInfo) {
+          initFilterListeners();
+          loadKnowledgeArticles();
         }
+      };
 
-        async function loadKnowledgeArticles() {
-            const container = document.getElementById('knowledge-articles-container');
-            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+      let currentDateFilter = '';
+      let currentDifficultyFilter = '';
+      let currentReadtimeFilter = '';
+      let currentKeyword = '';
+      let allArticles = [];
 
-            try {
-                let url = '/api/knowledge/articles';
-                if (currentKeyword) url += `?keyword=${encodeURIComponent(currentKeyword)}`;
-                if (currentDateFilter) url += `&date=${currentDateFilter}`;
-                if (currentDifficultyFilter) url += `&difficulty=${currentDifficultyFilter}`;
-                if (currentReadtimeFilter) url += `&readtime=${currentReadtimeFilter}`;
+      function logout() {
+        ParentComponents.logout();
+      }
+      function switchToChild() {
+        ParentComponents.switchToChildMode();
+      }
+      function checkAuth() {
+        return ParentComponents.checkAuth();
+      }
 
-                const response = await fetch(url);
-                const result = await response.json();
-                const data = result.data || result;
+      async function doSearch() {
+        currentKeyword = document.getElementById('searchInput').value.trim();
+        await loadKnowledgeArticles();
+      }
 
-                allArticles = Array.isArray(data) ? data : (data.articles || []);
-                applyFiltersAndDisplay();
-            } catch (error) {
-                console.error(error);
-                try {
-                    const localResponse = await fetch('./knowledge/knowledge-data.json');
-                    const localData = await localResponse.json();
-                    allArticles = Array.isArray(localData) ? localData : (localData.articles || []);
-                    applyFiltersAndDisplay();
-                } catch (localError) {
-                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">加载失败</div></div>';
-                }
-            }
+      async function loadKnowledgeArticles() {
+        const container = document.getElementById('knowledge-articles-container');
+        container.innerHTML =
+          '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+
+        try {
+          let url = '/api/knowledge/articles';
+          if (currentKeyword) url += `?keyword=${encodeURIComponent(currentKeyword)}`;
+          if (currentDateFilter) url += `&date=${currentDateFilter}`;
+          if (currentDifficultyFilter) url += `&difficulty=${currentDifficultyFilter}`;
+          if (currentReadtimeFilter) url += `&readtime=${currentReadtimeFilter}`;
+
+          const response = await fetch(url);
+          const result = await response.json();
+          const data = result.data || result;
+
+          allArticles = Array.isArray(data) ? data : data.articles || [];
+          applyFiltersAndDisplay();
+        } catch (error) {
+          console.error(error);
+          try {
+            const localResponse = await fetch('./knowledge/knowledge-data.json');
+            const localData = await localResponse.json();
+            allArticles = Array.isArray(localData) ? localData : localData.articles || [];
+            applyFiltersAndDisplay();
+          } catch (localError) {
+            container.innerHTML =
+              '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">加载失败</div></div>';
+          }
         }
+      }
 
-        function filterByDate(a) {
-            if (!currentDateFilter) return true;
-            const d = new Date(a.date); const now = new Date();
-            const days = (now - d) / (1000 * 60 * 60 * 24);
-            if (currentDateFilter === 'week') return days <= 7;
-            if (currentDateFilter === 'month') return days <= 30;
-            if (currentDateFilter === 'quarter') return days <= 90;
-            return true;
-        }
-        function filterByDifficulty(a) { return !currentDifficultyFilter || a.difficulty === currentDifficultyFilter; }
-        function filterByReadtime(a) {
-            if (!currentReadtimeFilter) return true;
-            const t = a.reading_time || a.readTime || 0;
-            if (currentReadtimeFilter === 'short') return t <= 5;
-            if (currentReadtimeFilter === 'medium') return t > 5 && t <= 10;
-            if (currentReadtimeFilter === 'long') return t > 10;
-            return true;
-        }
-        function filterByKeyword(a) {
-            if (!currentKeyword) return true;
-            const k = currentKeyword.toLowerCase();
-            return (a.title?.toLowerCase().includes(k) || a.summary?.toLowerCase().includes(k) || a.content?.toLowerCase().includes(k) || a.tags?.some(t => t.toLowerCase().includes(k)));
-        }
-        function applyFiltersAndDisplay() {
-            const filtered = allArticles.filter(a => filterByDate(a) && filterByDifficulty(a) && filterByReadtime(a) && filterByKeyword(a));
-            displayKnowledgeArticles(filtered);
-        }
+      function filterByDate(a) {
+        if (!currentDateFilter) return true;
+        const d = new Date(a.date);
+        const now = new Date();
+        const days = (now - d) / (1000 * 60 * 60 * 24);
+        if (currentDateFilter === 'week') return days <= 7;
+        if (currentDateFilter === 'month') return days <= 30;
+        if (currentDateFilter === 'quarter') return days <= 90;
+        return true;
+      }
+      function filterByDifficulty(a) {
+        return !currentDifficultyFilter || a.difficulty === currentDifficultyFilter;
+      }
+      function filterByReadtime(a) {
+        if (!currentReadtimeFilter) return true;
+        const t = a.reading_time || a.readTime || 0;
+        if (currentReadtimeFilter === 'short') return t <= 5;
+        if (currentReadtimeFilter === 'medium') return t > 5 && t <= 10;
+        if (currentReadtimeFilter === 'long') return t > 10;
+        return true;
+      }
+      function filterByKeyword(a) {
+        if (!currentKeyword) return true;
+        const k = currentKeyword.toLowerCase();
+        return (
+          a.title?.toLowerCase().includes(k) ||
+          a.summary?.toLowerCase().includes(k) ||
+          a.content?.toLowerCase().includes(k) ||
+          a.tags?.some((t) => t.toLowerCase().includes(k))
+        );
+      }
+      function applyFiltersAndDisplay() {
+        const filtered = allArticles.filter(
+          (a) => filterByDate(a) && filterByDifficulty(a) && filterByReadtime(a) && filterByKeyword(a),
+        );
+        displayKnowledgeArticles(filtered);
+      }
 
-        function displayKnowledgeArticles(articles) {
-            const c = document.getElementById('knowledge-articles-container');
-            if (!articles || articles.length === 0) {
-                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无文章</div></div>';
-                return;
-            }
-            articles.sort((a, b) => new Date(b.date) - new Date(a.date));
-            let html = '';
-            articles.forEach(a => {
-                const tags = a.tags ? a.tags.map(t => `<span class="card-tag">${t}</span>`).join('') : '';
-                let diffCls = '';
-                if (a.difficulty === '初级') diffCls = 'difficulty-easy';
-                else if (a.difficulty === '中级') diffCls = 'difficulty-medium';
-                else if (a.difficulty === '高级') diffCls = 'difficulty-hard';
-                const summary = a.summary || (a.content.length > 120 ? a.content.substring(0, 120) + '...' : a.content);
-                html += `
+      function displayKnowledgeArticles(articles) {
+        const c = document.getElementById('knowledge-articles-container');
+        if (!articles || articles.length === 0) {
+          c.innerHTML =
+            '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无文章</div></div>';
+          return;
+        }
+        articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+        let html = '';
+        articles.forEach((a) => {
+          const tags = a.tags ? a.tags.map((t) => `<span class="card-tag">${t}</span>`).join('') : '';
+          let diffCls = '';
+          if (a.difficulty === '初级') diffCls = 'difficulty-easy';
+          else if (a.difficulty === '中级') diffCls = 'difficulty-medium';
+          else if (a.difficulty === '高级') diffCls = 'difficulty-hard';
+          const summary = a.summary || (a.content.length > 120 ? a.content.substring(0, 120) + '...' : a.content);
+          html += `
                 <div class="knowledge-card" onclick="showArticleDetail(${a.id})">
                     <div class="card-header">
                         <div class="card-title">${a.title}</div>
@@ -572,27 +590,27 @@
                         </div>
                     </div>
                 </div>`;
-            });
-            c.innerHTML = html;
-            window.knowledgeArticlesData = articles;
-        }
+        });
+        c.innerHTML = html;
+        window.knowledgeArticlesData = articles;
+      }
 
-        function formatArticleContent(c) {
-            let f = c.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
-            return `<p>${f}</p>`;
-        }
-        function showArticleDetail(id) {
-            const a = window.knowledgeArticlesData.find(x => x.id === id);
-            if (!a) return;
-            const tags = a.tags ? a.tags.map(t => `<span class="modal-tag">${t}</span>`).join('') : '';
-            let diffCls = '';
-            if (a.difficulty === '初级') diffCls = 'difficulty-easy';
-            else if (a.difficulty === '中级') diffCls = 'difficulty-medium';
-            else if (a.difficulty === '高级') diffCls = 'difficulty-hard';
-            const content = formatArticleContent(a.content);
-            const m = document.createElement('div');
-            m.id = 'article-detail-modal';
-            m.innerHTML = `
+      function formatArticleContent(c) {
+        let f = c.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+        return `<p>${f}</p>`;
+      }
+      function showArticleDetail(id) {
+        const a = window.knowledgeArticlesData.find((x) => x.id === id);
+        if (!a) return;
+        const tags = a.tags ? a.tags.map((t) => `<span class="modal-tag">${t}</span>`).join('') : '';
+        let diffCls = '';
+        if (a.difficulty === '初级') diffCls = 'difficulty-easy';
+        else if (a.difficulty === '中级') diffCls = 'difficulty-medium';
+        else if (a.difficulty === '高级') diffCls = 'difficulty-hard';
+        const content = formatArticleContent(a.content);
+        const m = document.createElement('div');
+        m.id = 'article-detail-modal';
+        m.innerHTML = `
             <div class="modal-content">
                 <button class="modal-close" onclick="closeArticleDetail()">×</button>
                 <h2 class="modal-title">${a.title}</h2>
@@ -607,54 +625,59 @@
                 ${a.summary ? `<div class="modal-summary"><div class="modal-summary-label">摘要</div><div>${a.summary}</div></div>` : ''}
                 <div class="modal-content-text">${content}</div>
             </div>`;
-            document.body.appendChild(m);
-            m.onclick = e => e.target === m && closeArticleDetail();
-            document.addEventListener('keydown', e => e.key === 'Escape' && closeArticleDetail());
-        }
-        function closeArticleDetail() {
-            const m = document.getElementById('article-detail-modal');
-            m && m.remove();
-        }
+        document.body.appendChild(m);
+        m.onclick = (e) => e.target === m && closeArticleDetail();
+        document.addEventListener('keydown', (e) => e.key === 'Escape' && closeArticleDetail());
+      }
+      function closeArticleDetail() {
+        const m = document.getElementById('article-detail-modal');
+        m && m.remove();
+      }
 
-        function initFilterListeners() {
-            document.querySelectorAll('#date-filter .filter-btn').forEach(b => {
-                b.onclick = () => {
-                    document.querySelectorAll('#date-filter .filter-btn').forEach(x => x.classList.remove('active'));
-                    b.classList.add('active'); currentDateFilter = b.dataset.value; applyFiltersAndDisplay();
-                }
-            });
-            document.querySelectorAll('#difficulty-filter .filter-btn').forEach(b => {
-                b.onclick = () => {
-                    document.querySelectorAll('#difficulty-filter .filter-btn').forEach(x => x.classList.remove('active'));
-                    b.classList.add('active'); currentDifficultyFilter = b.dataset.value; applyFiltersAndDisplay();
-                }
-            });
-            document.querySelectorAll('#readtime-filter .filter-btn').forEach(b => {
-                b.onclick = () => {
-                    document.querySelectorAll('#readtime-filter .filter-btn').forEach(x => x.classList.remove('active'));
-                    b.classList.add('active'); currentReadtimeFilter = b.dataset.value; applyFiltersAndDisplay();
-                }
-            });
-        }
-
-        const searchBox = document.getElementById("searchBox");
-        const searchInput = document.getElementById("searchInput");
-
-        // 点击/聚焦 开启特效
-        searchInput.addEventListener("focus", () => {
-            searchBox.classList.add("active");
+      function initFilterListeners() {
+        document.querySelectorAll('#date-filter .filter-btn').forEach((b) => {
+          b.onclick = () => {
+            document.querySelectorAll('#date-filter .filter-btn').forEach((x) => x.classList.remove('active'));
+            b.classList.add('active');
+            currentDateFilter = b.dataset.value;
+            applyFiltersAndDisplay();
+          };
         });
-
-        // 失去焦点 关闭特效
-        searchInput.addEventListener("blur", () => {
-            searchBox.classList.remove("active");
+        document.querySelectorAll('#difficulty-filter .filter-btn').forEach((b) => {
+          b.onclick = () => {
+            document.querySelectorAll('#difficulty-filter .filter-btn').forEach((x) => x.classList.remove('active'));
+            b.classList.add('active');
+            currentDifficultyFilter = b.dataset.value;
+            applyFiltersAndDisplay();
+          };
         });
-
-        // 回车键搜索
-        searchInput.addEventListener('keypress', e => {
-            if (e.key === 'Enter') doSearch();
+        document.querySelectorAll('#readtime-filter .filter-btn').forEach((b) => {
+          b.onclick = () => {
+            document.querySelectorAll('#readtime-filter .filter-btn').forEach((x) => x.classList.remove('active'));
+            b.classList.add('active');
+            currentReadtimeFilter = b.dataset.value;
+            applyFiltersAndDisplay();
+          };
         });
+      }
+
+      const searchBox = document.getElementById('searchBox');
+      const searchInput = document.getElementById('searchInput');
+
+      // 点击/聚焦 开启特效
+      searchInput.addEventListener('focus', () => {
+        searchBox.classList.add('active');
+      });
+
+      // 失去焦点 关闭特效
+      searchInput.addEventListener('blur', () => {
+        searchBox.classList.remove('active');
+      });
+
+      // 回车键搜索
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') doSearch();
+      });
     </script>
-</body>
-
+  </body>
 </html>

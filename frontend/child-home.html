@@ -1,1429 +1,1428 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿<!doctype html>
 <html lang="zh-CN">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>儿童注意力训练平台</title>
-  <!-- 字体设置 -->
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --primary: #4F46E5;
-      --primary-light: #818CF8;
-      --secondary: #F97316;
-      --secondary-light: #FDBA74;
-      --bg-color: #EEF2FF;
-      --card-bg: #FFFFFF;
-      --text-dark: #1E1B4B;
-      --text-light: #6366F1;
-      --accent-green: #CEEFDD;
-      --accent-pink: #EC4899;
-      --accent-yellow: #F2E1C4;
-      --accent-cyan: #06B6D4;
-      --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
-      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
-      --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
-    }
-
-    html,
-    body {
-      overflow-x: hidden;
-    }
-
-    body {
-      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
-      background: #fff4a2;
-      color: var(--text-dark);
-      min-height: 100vh;
-      display: flex;
-      gap: 24px;
-      padding: 24px;
-    }
-
-    /* 左侧导航栏 - 粘土风格 */
-    .sidebar {
-      width: 130px;
-      background: #62B4A5;
-      box-shadow: var(--shadow-soft);
-      padding: 24px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 30px;
-      border-radius: 32px;
-      position: relative;
-    }
-
-    .logo-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .logo-text {
-      font-size: 30px;
-      font-weight: 600;
-      color: #ffffff;
-      text-align: center;
-      line-height: 1.3;
-      margin-bottom: -75px;
-      margin-top: 15px;
-      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive, sans-serif;
-    }
-
-    .logo {
-      width: 70px;
-      height: 70px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 800;
-      font-size: 28px;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      cursor: pointer;
-    }
-
-    .logo:hover {
-      transform: translateY(-3px) scale(1.05);
-      /* box-shadow: 0 10px 30px rgba(79, 70, 229, 0.5); */
-    }
-
-    .nav-item {
-      width: 85px;
-      height: 85px;
-      margin-left: 12px;
-      margin-right: 12px;
-      margin-bottom: 12px;
-      border-radius: 24px;
-      background: #FFFFFF;
-      color: #000000;
-      font-size: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      border: 3px solid transparent;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 2px 0 rgba(255, 255, 255, 0.8);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .nav-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .nav-item:hover {
-      transform: translateY(-4px) scale(1.02);
-    }
-
-    .nav-item:hover::before {
-      opacity: 1;
-    }
-
-    .nav-item.active {
-      background: #ffd387;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-    }
-
-    .nav-item.active .nav-icon {
-      filter: none;
-      color: white;
-    }
-
-    .nav-item.active .nav-label {
-      color: white;
-    }
-
-    .nav-icon {
-      width: 28px;
-      height: 28px;
-      transition: transform 0.3s ease;
-    }
-
-    .nav-item:hover .nav-icon {
-      transform: scale(1.1);
-    }
-
-    .nav-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-top: 4px;
-      transition: color 0.3s ease;
-    }
-
-    .user-avatar-sidebar {
-      position: absolute;
-      bottom: 24px;
-      width: 56px;
-      height: 56px;
-      border-radius: 20px;
-      background: linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      border: 3px solid var(--primary-light);
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .user-avatar-sidebar:hover {
-      transform: scale(1.1);
-    }
-
-    .user-avatar-sidebar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* 主内容区 */
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      max-width: calc(100% - 134px);
-    }
-
-    /* 顶部欢迎区 */
-    .top-section {
-      margin-top: 20px;
-      display: flex;
-      justify-content: flex-end;
-      align-items: flex-start;
-      padding: 0;
-    }
-
-    .welcome-text {
-      font-size: 35px;
-      font-weight: 800;
-      color: #3D547A;
-    }
-
-    .welcome-text span {
-      color: #6BBFEA;
-      font-weight: 1000;
-    }
-
-    /* 训练标题区 */
-    .title-section {
-      margin-bottom: 40px;
-      margin-top: -35px;
-    }
-
-    .page-title h1 {
-      font-size: 90px;
-      color: #51915f;
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: -1px;
-    }
-
-    .page-title .subtitle {
-      font-size: 50px;
-      color: #51915f;
-      font-weight: 600;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-
-    /* 分类标签 - 胶囊按钮 */
-    .category-tabs {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 40px;
-      flex-wrap: wrap;
-    }
-
-    .category-tab {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-right: 10px;
-      padding: 25px 20px;
-      border-radius: 50px;
-      margin-top: -15px;
-      margin-bottom: -15px;
-      background: #f5c9b7;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 20px;
-      font-weight: 600;
-      min-width: 100px;
-      justify-content: flex-start;
-      border: none;
-      outline: none;
-    }
-
-    .category-tab:hover {
-      transform: translateY(-2px);
-    }
-
-    .category-tab.active {
-      background: #e99e80;
-      color: #FFFFFF;
-    }
-
-    .category-tab.active .category-icon {
-      background: #ffe2d5;
-      border-color: #ffffff;
-    }
-
-    .category-icon {
-      width: 75px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #ffe2d5;
-      border-radius: 70px;
-      font-size: 16px;
-      position: relative;
-      overflow: hidden;
-      margin-left: -15px;
-      margin-top: -25px;
-      margin-bottom: -25px;
-    }
-
-    .category-icon iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      border-radius: 50%;
-    }
-
-    .category-icon img {
-      width: 30px !important;
-      height: 30px !important;
-    }
-
-    /* 游戏卡片网格 */
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 24px;
-    }
-
-    .game-card {
-      background: var(--card-bg);
-      border-radius: 28px;
-      padding: 24px;
-      min-height: 450px;
-      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-    }
-
-    .game-card::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-
-    .game-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.2);
-    }
-
-    .game-card:hover::before {
-      opacity: 1;
-    }
-
-    .game-card.beige {
-      background: linear-gradient(145deg, #f2c674 0%, #ecad64 100%);
-    }
-
-    .game-card.purple {
-      background: linear-gradient(145deg, #d9d3f0 0%, #a899c9 100%);
-    }
-
-    .game-card.blue {
-      background: linear-gradient(145deg, #b7d6e9 0%, #499bc0 100%);
-    }
-
-    .game-card.green {
-      background: linear-gradient(145deg, #c2ded0 0%, #a2c9ae 100%);
-    }
-
-    .game-card.pink {
-      background: linear-gradient(145deg, #F9c5c9 0%, #f7b0b8 100%);
-    }
-
-    .game-card.cyan {
-      background: linear-gradient(145deg, #b0dcd5 0%, #acdae0 100%);
-    }
-
-    .game-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .game-icon-wrapper {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      background: rgba(255, 242, 177, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s ease;
-    }
-
-    .game-card:hover .game-icon-wrapper {
-      transform: scale(1.1) rotate(5deg);
-    }
-
-    .game-icon {
-      width: 32px;
-      height: 32px;
-    }
-
-    .game-category {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-dark);
-      background: rgba(255, 255, 255, 0.7);
-      padding: 6px 12px;
-      border-radius: 20px;
-      backdrop-filter: blur(4px);
-    }
-
-    .game-name {
-      font-size: 25px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      margin-left: 50px;
-      color: var(--text-dark);
-    }
-
-    .game-description {
-      font-size: 16px;
-      color: var(--text-dark);
-      opacity: 0.7;
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
-
-    .game-stats {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--text-dark);
-      opacity: 0.8;
-      margin-bottom: 16px;
-      font-weight: 500;
-    }
-
-    .game-stats span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .btn {
-      background: #fff6a7;
-      color: #465477;
-      border: none;
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      font-size: 20px;
-      font-weight: 1000;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      width: 140px;
-      height: 140px;
-      margin-left: 50px;
-      margin-bottom: 12px;
-      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      transition: left 0.5s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn:hover::before {
-      left: 100%;
-    }
-
-    .btn:active {
-      transform: translateY(1px);
-      box-shadow: var(--shadow-pressed);
-    }
-
-    /* 不同形状的按钮 */
-    .btn-shape-1 {
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-    }
-
-    .btn-shape-2 {
-      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    }
-
-    .btn-shape-3 {
-      border-radius: 50%;
-    }
-
-    .btn-shape-4 {
-      border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%;
-    }
-
-    .btn-shape-5 {
-      border-radius: 70% 30% 30% 70% / 50% 50% 50% 50%;
-    }
-
-    .btn-shape-6 {
-      border-radius: 60% 40% 70% 30% / 30% 60% 40% 70%;
-    }
-
-    .btn-shape-7 {
-      border-radius: 50% 50% 30% 70% / 50% 30% 70% 50%;
-    }
-
-    .btn-shape-8 {
-      border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
-    }
-
-    .btn-shape-9 {
-      border-radius: 30% 70% 40% 60% / 70% 30% 60% 40%;
-    }
-
-    .btn-shape-10 {
-      border-radius: 50% 50% 50% 50% / 60% 40% 60% 40%;
-    }
-
-    /* 待续卡片 */
-    .game-card.coming-soon {
-      background: linear-gradient(145deg, #F1F5F9 0%, #E2E8F0 100%);
-      border: 3px dashed #CBD5E1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 450px;
-    }
-
-    .coming-soon-text {
-      font-size: 40px;
-      font-weight: 700;
-      color: #94A3B8;
-      text-align: center;
-      line-height: 1.6;
-    }
-
-    .coming-soon-icon {
-      width: 64px;
-      height: 64px;
-      opacity: 0.5;
-      margin-bottom: 16px;
-    }
-
-    /* 装饰元素 */
-    .floating-shapes {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: -1;
-      overflow: hidden;
-    }
-
-    .shape {
-      position: absolute;
-      opacity: 0.15;
-      animation: float 20s ease-in-out infinite;
-    }
-
-    .shape-1 {
-      top: 10%;
-      left: 5%;
-      width: 120px;
-      height: 120px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation-delay: 0s;
-    }
-
-    .shape-2 {
-      top: 60%;
-      right: 5%;
-      width: 140px;
-      height: 140px;
-      background: var(--secondary);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -1s;
-    }
-
-    .shape-3 {
-      bottom: 20%;
-      left: 15%;
-      width: 100px;
-      height: 100px;
-      background: var(--accent-green);
-      border-radius: 50%;
-      animation-delay: -2s;
-    }
-
-    .shape-4 {
-      top: 30%;
-      right: 20%;
-      width: 130px;
-      height: 130px;
-      background: var(--accent-pink);
-      border-radius: 50%;
-      animation-delay: -3s;
-    }
-
-    .shape-5 {
-      top: 70%;
-      left: 30%;
-      width: 110px;
-      height: 110px;
-      background: var(--accent-cyan);
-      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-      animation-delay: -4s;
-    }
-
-    .shape-6 {
-      top: 20%;
-      left: 70%;
-      width: 125px;
-      height: 125px;
-      background: var(--primary-light);
-      border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%;
-      animation-delay: -5s;
-    }
-
-    .shape-7 {
-      bottom: 40%;
-      right: 30%;
-      width: 90px;
-      height: 90px;
-      background: var(--secondary-light);
-      border-radius: 50%;
-      animation-delay: -6s;
-    }
-
-    .shape-8 {
-      top: 50%;
-      left: 50%;
-      width: 150px;
-      height: 150px;
-      background: var(--accent-yellow);
-      border-radius: 30% 70% 50% 50% / 50% 30% 70% 50%;
-      animation-delay: -7s;
-    }
-
-    .shape-9 {
-      top: 10%;
-      right: 10%;
-      width: 105px;
-      height: 105px;
-      background: var(--primary);
-      border-radius: 70% 30% 40% 60% / 30% 40% 60% 70%;
-      animation-delay: -8s;
-    }
-
-    .shape-10 {
-      bottom: 10%;
-      left: 80%;
-      width: 115px;
-      height: 115px;
-      background: var(--accent-green);
-      border-radius: 50% 50% 30% 70% / 60% 40% 60% 40%;
-      animation-delay: -9s;
-    }
-
-    .shape-11 {
-      top: 40%;
-      left: 5%;
-      width: 120px;
-      height: 120px;
-      background: var(--primary-light);
-      border-radius: 60% 40% 70% 30% / 30% 60% 40% 70%;
-      animation-delay: -10s;
-    }
-
-    .shape-12 {
-      top: 80%;
-      left: 10%;
-      width: 100px;
-      height: 100px;
-      background: var(--accent-pink);
-      border-radius: 50% 50% 50% 50% / 60% 40% 60% 40%;
-      animation-delay: -11s;
-    }
-
-    .shape-13 {
-      top: 15%;
-      left: 15%;
-      width: 95px;
-      height: 95px;
-      background: var(--secondary);
-      border-radius: 70% 30% 40% 60% / 50% 70% 30% 50%;
-      animation-delay: -12s;
-    }
-
-    .shape-14 {
-      top: 65%;
-      left: 20%;
-      width: 125px;
-      height: 125px;
-      background: var(--accent-cyan);
-      border-radius: 40% 60% 30% 70% / 70% 30% 60% 40%;
-      animation-delay: -13s;
-    }
-
-    .shape-15 {
-      top: 25%;
-      left: 40%;
-      width: 110px;
-      height: 110px;
-      background: var(--primary);
-      border-radius: 50% 50% 70% 30% / 30% 60% 40% 70%;
-      animation-delay: -14s;
-    }
-
-    .shape-16 {
-      bottom: 30%;
-      right: 40%;
-      width: 500px;
-      height: 500px;
-      background: var(--accent-yellow);
-      border-radius: 60% 40% 40% 60% / 60% 60% 40% 40%;
-      animation-delay: -15s;
-    }
-
-    .shape-17 {
-      top: 75%;
-      right: 15%;
-      width: 115px;
-      height: 115px;
-      background: var(--primary-light);
-      border-radius: 70% 30% 50% 50% / 50% 70% 30% 50%;
-      animation-delay: -16s;
-    }
-
-    .shape-18 {
-      top: 35%;
-      left: 60%;
-      width: 120px;
-      height: 120px;
-      background: var(--accent-green);
-      border-radius: 40% 60% 60% 40% / 30% 30% 70% 70%;
-      animation-delay: -17s;
-    }
-
-    .shape-19 {
-      bottom: 50%;
-      left: 25%;
-      width: 100px;
-      height: 100px;
-      background: var(--secondary);
-      border-radius: 50% 50% 50% 50% / 70% 30% 70% 30%;
-      animation-delay: -18s;
-    }
-
-    .shape-20 {
-      top: 55%;
-      right: 25%;
-      width: 110px;
-      height: 110px;
-      background: var(--accent-pink);
-      border-radius: 30% 70% 40% 60% / 60% 30% 70% 40%;
-      animation-delay: -19s;
-    }
-
-    @keyframes float {
-
-      0%,
-      100% {
-        transform: translateY(0) rotate(0deg);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>儿童注意力训练平台</title>
+    <!-- 字体设置 -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      25% {
-        transform: translateY(-20px) rotate(5deg);
+      :root {
+        --primary: #4f46e5;
+        --primary-light: #818cf8;
+        --secondary: #f97316;
+        --secondary-light: #fdba74;
+        --bg-color: #eef2ff;
+        --card-bg: #ffffff;
+        --text-dark: #1e1b4b;
+        --text-light: #6366f1;
+        --accent-green: #ceefdd;
+        --accent-pink: #ec4899;
+        --accent-yellow: #f2e1c4;
+        --accent-cyan: #06b6d4;
+        --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
+        --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+        --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
       }
 
-      50% {
-        transform: translateY(0) rotate(0deg);
-      }
-
-      75% {
-        transform: translateY(20px) rotate(-5deg);
-      }
-    }
-
-    /* 响应式 */
-    @media (max-width: 1200px) {
-      .games-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media (max-width: 992px) {
-      .games-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 768px) {
+      html,
       body {
-        flex-direction: column;
-        padding: 16px;
-        gap: 16px;
+        overflow-x: hidden;
       }
 
+      body {
+        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
+        background: #fff4a2;
+        color: var(--text-dark);
+        min-height: 100vh;
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+      }
+
+      /* 左侧导航栏 - 粘土风格 */
       .sidebar {
-        width: 100%;
-        flex-direction: row;
-        padding: 16px 20px;
-        gap: 12px;
-        border-radius: 24px;
+        width: 130px;
+        background: #62b4a5;
+        box-shadow: var(--shadow-soft);
+        padding: 24px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+        border-radius: 32px;
         position: relative;
-        overflow-x: auto;
       }
 
       .logo-section {
-        flex-direction: row;
-        margin-bottom: 0;
-        margin-right: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
       }
 
       .logo-text {
-        display: none;
+        font-size: 30px;
+        font-weight: 600;
+        color: #ffffff;
+        text-align: center;
+        line-height: 1.3;
+        margin-bottom: -75px;
+        margin-top: 15px;
+        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive, sans-serif;
+      }
+
+      .logo {
+        width: 70px;
+        height: 70px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 28px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer;
+      }
+
+      .logo:hover {
+        transform: translateY(-3px) scale(1.05);
+        /* box-shadow: 0 10px 30px rgba(79, 70, 229, 0.5); */
+      }
+
+      .nav-item {
+        width: 85px;
+        height: 85px;
+        margin-left: 12px;
+        margin-right: 12px;
+        margin-bottom: 12px;
+        border-radius: 24px;
+        background: #ffffff;
+        color: #000000;
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 3px solid transparent;
+        box-shadow:
+          0 4px 12px rgba(0, 0, 0, 0.06),
+          inset 0 2px 0 rgba(255, 255, 255, 0.8);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .nav-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .nav-item:hover {
+        transform: translateY(-4px) scale(1.02);
+      }
+
+      .nav-item:hover::before {
+        opacity: 1;
+      }
+
+      .nav-item.active {
+        background: #ffd387;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-item.active .nav-icon {
+        filter: none;
+        color: white;
+      }
+
+      .nav-item.active .nav-label {
+        color: white;
+      }
+
+      .nav-icon {
+        width: 28px;
+        height: 28px;
+        transition: transform 0.3s ease;
+      }
+
+      .nav-item:hover .nav-icon {
+        transform: scale(1.1);
+      }
+
+      .nav-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-top: 4px;
+        transition: color 0.3s ease;
       }
 
       .user-avatar-sidebar {
-        position: static;
-        margin-left: auto;
-      }
-
-      .main-content {
-        max-width: 100%;
-      }
-
-      .top-section {
+        position: absolute;
+        bottom: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 20px;
+        background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+        display: flex;
+        align-items: center;
         justify-content: center;
-        text-align: center;
+        overflow: hidden;
+        border: 3px solid var(--primary-light);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .user-avatar-sidebar:hover {
+        transform: scale(1.1);
+      }
+
+      .user-avatar-sidebar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* 主内容区 */
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-width: calc(100% - 134px);
+      }
+
+      /* 顶部欢迎区 */
+      .top-section {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        padding: 0;
+      }
+
+      .welcome-text {
+        font-size: 35px;
+        font-weight: 800;
+        color: #3d547a;
+      }
+
+      .welcome-text span {
+        color: #6bbfea;
+        font-weight: 1000;
+      }
+
+      /* 训练标题区 */
+      .title-section {
+        margin-bottom: 40px;
+        margin-top: -35px;
       }
 
       .page-title h1 {
-        font-size: 40px;
+        font-size: 90px;
+        color: #51915f;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -1px;
       }
 
+      .page-title .subtitle {
+        font-size: 50px;
+        color: #51915f;
+        font-weight: 600;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+
+      /* 分类标签 - 胶囊按钮 */
       .category-tabs {
-        justify-content: center;
+        display: flex;
+        gap: 16px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
       }
 
       .category-tab {
-        padding: 12px 20px;
-        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-right: 10px;
+        padding: 25px 20px;
+        border-radius: 50px;
+        margin-top: -15px;
+        margin-bottom: -15px;
+        background: #f5c9b7;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 20px;
+        font-weight: 600;
+        min-width: 100px;
+        justify-content: flex-start;
+        border: none;
+        outline: none;
       }
 
+      .category-tab:hover {
+        transform: translateY(-2px);
+      }
+
+      .category-tab.active {
+        background: #e99e80;
+        color: #ffffff;
+      }
+
+      .category-tab.active .category-icon {
+        background: #ffe2d5;
+        border-color: #ffffff;
+      }
+
+      .category-icon {
+        width: 75px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffe2d5;
+        border-radius: 70px;
+        font-size: 16px;
+        position: relative;
+        overflow: hidden;
+        margin-left: -15px;
+        margin-top: -25px;
+        margin-bottom: -25px;
+      }
+
+      .category-icon iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 50%;
+      }
+
+      .category-icon img {
+        width: 30px !important;
+        height: 30px !important;
+      }
+
+      /* 游戏卡片网格 */
       .games-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 24px;
       }
-    }
 
-    /* 家长端登录弹窗 */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      animation: fadeIn 0.3s ease;
-    }
+      .game-card {
+        background: var(--card-bg);
+        border-radius: 28px;
+        padding: 24px;
+        min-height: 450px;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+      }
 
-    @keyframes fadeIn {
-      from {
+      .game-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
         opacity: 0;
+        transition: opacity 0.4s ease;
       }
 
-      to {
+      .game-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 16px 40px rgba(79, 70, 229, 0.2);
+      }
+
+      .game-card:hover::before {
         opacity: 1;
       }
-    }
 
-    .modal-content {
-      background: #ffd38b;
-      padding: 40px 30px;
-      border-radius: 24px;
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
+      .game-card.beige {
+        background: linear-gradient(145deg, #f2c674 0%, #ecad64 100%);
       }
 
-      to {
+      .game-card.purple {
+        background: linear-gradient(145deg, #d9d3f0 0%, #a899c9 100%);
+      }
+
+      .game-card.blue {
+        background: linear-gradient(145deg, #b7d6e9 0%, #499bc0 100%);
+      }
+
+      .game-card.green {
+        background: linear-gradient(145deg, #c2ded0 0%, #a2c9ae 100%);
+      }
+
+      .game-card.pink {
+        background: linear-gradient(145deg, #f9c5c9 0%, #f7b0b8 100%);
+      }
+
+      .game-card.cyan {
+        background: linear-gradient(145deg, #b0dcd5 0%, #acdae0 100%);
+      }
+
+      .game-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .game-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: rgba(255, 242, 177, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+      }
+
+      .game-card:hover .game-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+      }
+
+      .game-icon {
+        width: 32px;
+        height: 32px;
+      }
+
+      .game-category {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-dark);
+        background: rgba(255, 255, 255, 0.7);
+        padding: 6px 12px;
+        border-radius: 20px;
+        backdrop-filter: blur(4px);
+      }
+
+      .game-name {
+        font-size: 25px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        margin-left: 50px;
+        color: var(--text-dark);
+      }
+
+      .game-description {
+        font-size: 16px;
+        color: var(--text-dark);
+        opacity: 0.7;
+        margin-bottom: 16px;
+        line-height: 1.5;
+      }
+
+      .game-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--text-dark);
+        opacity: 0.8;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+
+      .game-stats span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .btn {
+        background: #fff6a7;
+        color: #465477;
+        border: none;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        font-size: 20px;
+        font-weight: 1000;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        width: 140px;
+        height: 140px;
+        margin-left: 50px;
+        margin-bottom: 12px;
+        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        transition: left 0.5s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn:hover::before {
+        left: 100%;
+      }
+
+      .btn:active {
+        transform: translateY(1px);
+        box-shadow: var(--shadow-pressed);
+      }
+
+      /* 不同形状的按钮 */
+      .btn-shape-1 {
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      }
+
+      .btn-shape-2 {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      }
+
+      .btn-shape-3 {
+        border-radius: 50%;
+      }
+
+      .btn-shape-4 {
+        border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%;
+      }
+
+      .btn-shape-5 {
+        border-radius: 70% 30% 30% 70% / 50% 50% 50% 50%;
+      }
+
+      .btn-shape-6 {
+        border-radius: 60% 40% 70% 30% / 30% 60% 40% 70%;
+      }
+
+      .btn-shape-7 {
+        border-radius: 50% 50% 30% 70% / 50% 30% 70% 50%;
+      }
+
+      .btn-shape-8 {
+        border-radius: 40% 60% 60% 40% / 60% 40% 60% 40%;
+      }
+
+      .btn-shape-9 {
+        border-radius: 30% 70% 40% 60% / 70% 30% 60% 40%;
+      }
+
+      .btn-shape-10 {
+        border-radius: 50% 50% 50% 50% / 60% 40% 60% 40%;
+      }
+
+      /* 待续卡片 */
+      .game-card.coming-soon {
+        background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
+        border: 3px dashed #cbd5e1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 450px;
+      }
+
+      .coming-soon-text {
+        font-size: 40px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-align: center;
+        line-height: 1.6;
+      }
+
+      .coming-soon-icon {
+        width: 64px;
+        height: 64px;
+        opacity: 0.5;
+        margin-bottom: 16px;
+      }
+
+      /* 装饰元素 */
+      .floating-shapes {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .shape {
+        position: absolute;
+        opacity: 0.15;
+        animation: float 20s ease-in-out infinite;
+      }
+
+      .shape-1 {
+        top: 10%;
+        left: 5%;
+        width: 120px;
+        height: 120px;
+        background: var(--primary);
+        border-radius: 50%;
+        animation-delay: 0s;
+      }
+
+      .shape-2 {
+        top: 60%;
+        right: 5%;
+        width: 140px;
+        height: 140px;
+        background: var(--secondary);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -1s;
+      }
+
+      .shape-3 {
+        bottom: 20%;
+        left: 15%;
+        width: 100px;
+        height: 100px;
+        background: var(--accent-green);
+        border-radius: 50%;
+        animation-delay: -2s;
+      }
+
+      .shape-4 {
+        top: 30%;
+        right: 20%;
+        width: 130px;
+        height: 130px;
+        background: var(--accent-pink);
+        border-radius: 50%;
+        animation-delay: -3s;
+      }
+
+      .shape-5 {
+        top: 70%;
+        left: 30%;
+        width: 110px;
+        height: 110px;
+        background: var(--accent-cyan);
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        animation-delay: -4s;
+      }
+
+      .shape-6 {
+        top: 20%;
+        left: 70%;
+        width: 125px;
+        height: 125px;
+        background: var(--primary-light);
+        border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%;
+        animation-delay: -5s;
+      }
+
+      .shape-7 {
+        bottom: 40%;
+        right: 30%;
+        width: 90px;
+        height: 90px;
+        background: var(--secondary-light);
+        border-radius: 50%;
+        animation-delay: -6s;
+      }
+
+      .shape-8 {
+        top: 50%;
+        left: 50%;
+        width: 150px;
+        height: 150px;
+        background: var(--accent-yellow);
+        border-radius: 30% 70% 50% 50% / 50% 30% 70% 50%;
+        animation-delay: -7s;
+      }
+
+      .shape-9 {
+        top: 10%;
+        right: 10%;
+        width: 105px;
+        height: 105px;
+        background: var(--primary);
+        border-radius: 70% 30% 40% 60% / 30% 40% 60% 70%;
+        animation-delay: -8s;
+      }
+
+      .shape-10 {
+        bottom: 10%;
+        left: 80%;
+        width: 115px;
+        height: 115px;
+        background: var(--accent-green);
+        border-radius: 50% 50% 30% 70% / 60% 40% 60% 40%;
+        animation-delay: -9s;
+      }
+
+      .shape-11 {
+        top: 40%;
+        left: 5%;
+        width: 120px;
+        height: 120px;
+        background: var(--primary-light);
+        border-radius: 60% 40% 70% 30% / 30% 60% 40% 70%;
+        animation-delay: -10s;
+      }
+
+      .shape-12 {
+        top: 80%;
+        left: 10%;
+        width: 100px;
+        height: 100px;
+        background: var(--accent-pink);
+        border-radius: 50% 50% 50% 50% / 60% 40% 60% 40%;
+        animation-delay: -11s;
+      }
+
+      .shape-13 {
+        top: 15%;
+        left: 15%;
+        width: 95px;
+        height: 95px;
+        background: var(--secondary);
+        border-radius: 70% 30% 40% 60% / 50% 70% 30% 50%;
+        animation-delay: -12s;
+      }
+
+      .shape-14 {
+        top: 65%;
+        left: 20%;
+        width: 125px;
+        height: 125px;
+        background: var(--accent-cyan);
+        border-radius: 40% 60% 30% 70% / 70% 30% 60% 40%;
+        animation-delay: -13s;
+      }
+
+      .shape-15 {
+        top: 25%;
+        left: 40%;
+        width: 110px;
+        height: 110px;
+        background: var(--primary);
+        border-radius: 50% 50% 70% 30% / 30% 60% 40% 70%;
+        animation-delay: -14s;
+      }
+
+      .shape-16 {
+        bottom: 30%;
+        right: 40%;
+        width: 500px;
+        height: 500px;
+        background: var(--accent-yellow);
+        border-radius: 60% 40% 40% 60% / 60% 60% 40% 40%;
+        animation-delay: -15s;
+      }
+
+      .shape-17 {
+        top: 75%;
+        right: 15%;
+        width: 115px;
+        height: 115px;
+        background: var(--primary-light);
+        border-radius: 70% 30% 50% 50% / 50% 70% 30% 50%;
+        animation-delay: -16s;
+      }
+
+      .shape-18 {
+        top: 35%;
+        left: 60%;
+        width: 120px;
+        height: 120px;
+        background: var(--accent-green);
+        border-radius: 40% 60% 60% 40% / 30% 30% 70% 70%;
+        animation-delay: -17s;
+      }
+
+      .shape-19 {
+        bottom: 50%;
+        left: 25%;
+        width: 100px;
+        height: 100px;
+        background: var(--secondary);
+        border-radius: 50% 50% 50% 50% / 70% 30% 70% 30%;
+        animation-delay: -18s;
+      }
+
+      .shape-20 {
+        top: 55%;
+        right: 25%;
+        width: 110px;
+        height: 110px;
+        background: var(--accent-pink);
+        border-radius: 30% 70% 40% 60% / 60% 30% 70% 40%;
+        animation-delay: -19s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+
+        25% {
+          transform: translateY(-20px) rotate(5deg);
+        }
+
+        50% {
+          transform: translateY(0) rotate(0deg);
+        }
+
+        75% {
+          transform: translateY(20px) rotate(-5deg);
+        }
+      }
+
+      /* 响应式 */
+      @media (max-width: 1200px) {
+        .games-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      @media (max-width: 992px) {
+        .games-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+          padding: 16px;
+          gap: 16px;
+        }
+
+        .sidebar {
+          width: 100%;
+          flex-direction: row;
+          padding: 16px 20px;
+          gap: 12px;
+          border-radius: 24px;
+          position: relative;
+          overflow-x: auto;
+        }
+
+        .logo-section {
+          flex-direction: row;
+          margin-bottom: 0;
+          margin-right: 8px;
+        }
+
+        .logo-text {
+          display: none;
+        }
+
+        .user-avatar-sidebar {
+          position: static;
+          margin-left: auto;
+        }
+
+        .main-content {
+          max-width: 100%;
+        }
+
+        .top-section {
+          justify-content: center;
+          text-align: center;
+        }
+
+        .page-title h1 {
+          font-size: 40px;
+        }
+
+        .category-tabs {
+          justify-content: center;
+        }
+
+        .category-tab {
+          padding: 12px 20px;
+          font-size: 14px;
+        }
+
+        .games-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* 家长端登录弹窗 */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: #ffd38b;
+        padding: 40px 30px;
+        border-radius: 24px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .modal-content h3 {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+        background: #fff;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .modal-content p {
+        font-size: 16px;
+        color: #fff;
+        margin-bottom: 30px;
         opacity: 1;
-        transform: translateY(0) scale(1);
       }
-    }
 
-    .modal-content h3 {
-      font-size: 28px;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 10px;
-      background: #fff;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .modal-content p {
-      font-size: 16px;
-      color: #fff;
-      margin-bottom: 30px;
-      opacity: 1;
-    }
-
-    .modal-content input {
-      width: 100%;
-      padding: 15px;
-      border-radius: 12px;
-      font-size: 16px;
-      margin-bottom: 30px;
-      background: white;
-      transition: all 0.3s ease;
-      border: none;
-    }
-
-    .modal-content input:focus {
-      outline: none;
-      border-color: #ffd38b;
-      transform: translateY(-2px);
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-    }
-
-    .modal-buttons button {
-      background: #ca6a16;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .modal-buttons button:hover {
-      transform: translateY(-2px);
-    }
-
-    .modal-buttons button:last-child {
-      background: #ca6a16;
-      color: #fff;
-    }
-
-    .modal-buttons button:last-child:hover {
-      transform: translateY(-2px);
-    }
-
-    /* 减少动画偏好 */
-    @media (prefers-reduced-motion: reduce) {
-
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+      .modal-content input {
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        font-size: 16px;
+        margin-bottom: 30px;
+        background: white;
+        transition: all 0.3s ease;
+        border: none;
       }
-    }
-  </style>
-</head>
 
-<body>
-  <!-- 浮动装饰元素 -->
-  <div class="floating-shapes">
-    <div class="shape shape-1"></div>
-    <div class="shape shape-2"></div>
-    <div class="shape shape-3"></div>
-    <div class="shape shape-4"></div>
-    <div class="shape shape-5"></div>
-    <div class="shape shape-6"></div>
-    <div class="shape shape-7"></div>
-    <div class="shape shape-8"></div>
-    <div class="shape shape-9"></div>
-    <div class="shape shape-10"></div>
-    <div class="shape shape-11"></div>
-    <div class="shape shape-12"></div>
-    <div class="shape shape-13"></div>
-    <div class="shape shape-14"></div>
-    <div class="shape shape-15"></div>
-    <div class="shape shape-16"></div>
-    <div class="shape shape-17"></div>
-    <div class="shape shape-18"></div>
-    <div class="shape shape-19"></div>
-    <div class="shape shape-20"></div>
-  </div>
+      .modal-content input:focus {
+        outline: none;
+        border-color: #ffd38b;
+        transform: translateY(-2px);
+      }
 
-  <!-- 侧边栏导航 -->
-  <nav class="sidebar">
-    <div class="logo-section">
-      <img src="images/logo.png" alt="注意力训练平台" style="width: 100px; height: 100px; object-fit: contain;">
+      .modal-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+      }
+
+      .modal-buttons button {
+        background: #ca6a16;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .modal-buttons button:hover {
+        transform: translateY(-2px);
+      }
+
+      .modal-buttons button:last-child {
+        background: #ca6a16;
+        color: #fff;
+      }
+
+      .modal-buttons button:last-child:hover {
+        transform: translateY(-2px);
+      }
+
+      /* 减少动画偏好 */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- 浮动装饰元素 -->
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div class="shape shape-5"></div>
+      <div class="shape shape-6"></div>
+      <div class="shape shape-7"></div>
+      <div class="shape shape-8"></div>
+      <div class="shape shape-9"></div>
+      <div class="shape shape-10"></div>
+      <div class="shape shape-11"></div>
+      <div class="shape shape-12"></div>
+      <div class="shape shape-13"></div>
+      <div class="shape shape-14"></div>
+      <div class="shape shape-15"></div>
+      <div class="shape shape-16"></div>
+      <div class="shape shape-17"></div>
+      <div class="shape shape-18"></div>
+      <div class="shape shape-19"></div>
+      <div class="shape shape-20"></div>
     </div>
 
-    <div class="nav-item active" onclick="showSection('training')" role="button" tabindex="0">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-      </svg>
-      <span class="nav-label">训练</span>
-    </div>
-
-    <div class="nav-item" onclick="showSection('comprehensive')" role="button" tabindex="0">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 6v6l4 2" />
-      </svg>
-      <span class="nav-label">综合训练</span>
-    </div>
-
-    <div class="nav-item" onclick="showSection('today')" role="button" tabindex="0">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-      <span class="nav-label">今日训练</span>
-    </div>
-
-    <div class="nav-item" onclick="window.location.href='medal-wall.html'" role="button" tabindex="0">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="8" r="7" />
-        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-      </svg>
-      <span class="nav-label">勋章墙</span>
-    </div>
-
-    <div class="nav-item" onclick="showSection('parent')" role="button" tabindex="0">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-      <span class="nav-label">家长端</span>
-    </div>
-
-
-  </nav>
-
-  <!-- 主内容区 -->
-  <main class="main-content">
-    <!-- 顶部欢迎区 -->
-    <header class="top-section">
-      <div class="welcome-text">欢迎回来<span id="child-name"></span>，继续训练吧！</div>
-    </header>
-
-    <!-- 训练标题 -->
-    <div class="title-section">
-      <div class="page-title">
-        <h1>训练</h1>
-        <div class="subtitle">TRAINING</div>
+    <!-- 侧边栏导航 -->
+    <nav class="sidebar">
+      <div class="logo-section">
+        <img src="images/logo.png" alt="注意力训练平台" style="width: 100px; height: 100px; object-fit: contain" />
       </div>
-    </div>
 
-    <!-- 分类标签 -->
-    <div class="category-tabs" role="tablist">
-      <button class="category-tab active" onclick="showCategory('selective')" role="tab" aria-selected="true">
-        <div class="category-icon">
-          <img src="images/icon1.png" alt="选择性注意" style="width: 40px; height: 40px;">
-        </div>
-        选择性注意
-      </button>
-      <button class="category-tab" onclick="showCategory('sustained')" role="tab" aria-selected="false">
-        <div class="category-icon">
-          <img src="images/icon2.png" alt="持续性注意" style="width: 40px; height: 40px;">
-        </div>
-        持续性注意
-      </button>
-      <button class="category-tab" onclick="showCategory('visual')" role="tab" aria-selected="false">
-        <div class="category-icon">
-          <img src="images/icon3.png" alt="视觉追踪" style="width: 40px; height: 40px;">
-        </div>
-        视觉追踪
-      </button>
-      <button class="category-tab" onclick="showCategory('memory')" role="tab" aria-selected="false">
-        <div class="category-icon">
-          <img src="images/icon4.png" alt="工作记忆" style="width: 40px; height: 40px;">
-        </div>
-        工作记忆
-      </button>
-      <button class="category-tab" onclick="showCategory('inhibition')" role="tab" aria-selected="false">
-        <div class="category-icon">
-          <img src="images/icon5.png" alt="抑制控制" style="width: 40px; height: 40px;">
-        </div>
-        抑制控制
-      </button>
-    </div>
+      <div class="nav-item active" onclick="showSection('training')" role="button" tabindex="0">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+        </svg>
+        <span class="nav-label">训练</span>
+      </div>
 
-    <!-- 游戏卡片网格 -->
-    <div class="games-grid" id="games-grid">
-      <!-- 太空小火箭 -->
-      <article class="game-card blue" data-category="selective">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#F97316" stroke="none">
-              <path d="M12 2.5s-4 4.5-4 9c0 2.5 1.5 4.5 4 6.5 2.5-2 4-4 4-6.5 0-4.5-4-9-4-9z" />
-              <circle cx="12" cy="9" r="2" fill="white" />
-              <path d="M8 16c-2 1-3 3-3 5.5h6M16 16c2 1 3 3 3 5.5h-6" fill="#FDBA74" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">太空小火箭</h3>
-        <p class="game-description">小火箭点火起飞，我们一起去星际大冒险啦！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-1" onclick="startGame('schulte')">开始训练</button>
-      </article>
-
-      <!-- 垃圾小卫士 -->
-      <article class="game-card green" data-category="selective">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#8B5CF6" stroke="none">
-              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              <line x1="10" y1="11" x2="10" y2="17" stroke="white" stroke-width="2" />
-              <line x1="14" y1="11" x2="14" y2="17" stroke="white" stroke-width="2" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">垃圾小卫士</h3>
-        <p class="game-description">垃圾小卫士上线，把垃圾通通送回家！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-2" onclick="startGame('find-numbers')">开始训练</button>
-      </article>
-
-      <!-- 魔法迷宫 -->
-      <article class="game-card purple" data-category="sustained" style="display: none;">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#3B82F6" stroke="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" opacity="0.5" />
-              <path d="M2 12l10 5 10-5" opacity="0.7" />
-              <circle cx="12" cy="12" r="3" fill="#FBBF24" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">魔法迷宫</h3>
-        <p class="game-description">穿过魔法迷宫，走到终点就能成功施展超厉害的魔法啦！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-3" onclick="startGame('magic-maze')">开始训练</button>
-      </article>
-
-      <!-- 植物浇水 -->
-      <article class="game-card green" data-category="sustained" style="display: none;">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#10B981" stroke="none">
-              <path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9z" />
-              <path d="M12 22c-4.97 0-9-4.03-9-9 4.97 0 9 4.03 9 9z" opacity="0.5" />
-              <path d="M12 13c3.5 0 6.5-3 6.5-7 0 0-3 2-6.5 2S5.5 6 5.5 6c0 4 3 7 6.5 7z" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">植物浇水</h3>
-        <p class="game-description">照顾可爱的植物，让它们茁壮成长！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-4" onclick="startGame('water-plants')">开始训练</button>
-      </article>
-
-      <!-- 追太阳 -->
-      <article class="game-card beige" data-category="visual" style="display: none;">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#06B6D4" stroke="none">
-              <circle cx="12" cy="12" r="5" />
-              <line x1="12" y1="1" x2="12" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" />
-              <line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">追太阳</h3>
-        <p class="game-description">追踪太阳，记录它在天际移动的每一刻！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-5" onclick="startGame('sun-tracking')">开始训练</button>
-      </article>
-
-      <!-- 森林小动物追踪 -->
-      <article class="game-card cyan" data-category="visual" style="display: none;">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#EC4899" stroke="none">
-              <path
-                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">森林小动物追踪</h3>
-        <p class="game-description">追踪森林里的小动物，跟着它们的足迹探索神秘大自然！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-6" onclick="startGame('animal-searching')">开始训练</button>
-      </article>
-
-      <!-- 甜品店小帮贡 -->
-      <article class="game-card pink" data-category="memory" style="display: none;">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#F97316" stroke="none">
-              <path
-                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">甜品店小帮工</h3>
-        <p class="game-description">化身甜品店小帮工，把甜蜜和温柔装进每一份点心里！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-7" onclick="startGame('reverse-memory')">开始训练</button>
-      </article>
-
-      <!-- 海底小管家 -->
-      <article class="game-card blue" data-category="memory" style="display: none;">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#3B82F6" stroke="none">
-              <path
-                d="M19 10c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-3.87 3.13-7 7-7s7 3.13 7 7zm-7-5c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">海底捉迷藏</h3>
-        <p class="game-description">在斑斓海底和海洋小伙伴玩一场温柔又神秘的捉迷藏。！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-8" onclick="startGame('card-matching')">开始训练</button>
-      </article>
-
-      <!-- 环保小卫士 -->
-      <article class="game-card cyan" data-category="inhibition" style="display: none;">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#10B981" stroke="none">
-              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">环保小卫士</h3>
-        <p class="game-description">认真分类垃圾，让每一份废弃物都回到正确的家！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-9" onclick="startGame('traffic-light')">开始训练</button>
-      </article>
-
-      <!-- 冰雪王国小邮差 -->
-      <article class="game-card cyan" data-category="inhibition" style="display: none;">
-        <div class="game-header">
-          <div class="game-icon-wrapper">
-            <svg class="game-icon" viewBox="0 0 24 24" fill="#06B6D4" stroke="none">
-              <path
-                d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="game-name">冰雪王国小邮差</h3>
-        <p class="game-description">踏着雪花送信，把温暖与惊喜送到每一户！</p>
-        <div style="height: 40px;"></div>
-        <button class="btn btn-shape-10" onclick="startGame('command-adventure')">开始训练</button>
-      </article>
-
-      <!-- 待续卡片 -->
-      <article class="game-card coming-soon" data-category="selective">
-        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+      <div class="nav-item" onclick="showSection('comprehensive')" role="button" tabindex="0">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 6v6l4 2" />
         </svg>
-        <div class="coming-soon-text">to be<br>continued</div>
-      </article>
-      <article class="game-card coming-soon" data-category="sustained">
-        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
+        <span class="nav-label">综合训练</span>
+      </div>
+
+      <div class="nav-item" onclick="showSection('today')" role="button" tabindex="0">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
-        <div class="coming-soon-text">to be<br>continued</div>
-      </article>
-      <article class="game-card coming-soon" data-category="visual">
-        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
+        <span class="nav-label">今日训练</span>
+      </div>
+
+      <div class="nav-item" onclick="window.location.href = 'medal-wall.html'" role="button" tabindex="0">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="7" />
+          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
         </svg>
-        <div class="coming-soon-text">to be<br>continued</div>
-      </article>
-      <article class="game-card coming-soon" data-category="memory">
-        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
+        <span class="nav-label">勋章墙</span>
+      </div>
+
+      <div class="nav-item" onclick="showSection('parent')" role="button" tabindex="0">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
         </svg>
-        <div class="coming-soon-text">to be<br>continued</div>
-      </article>
-      <article class="game-card coming-soon" data-category="inhibition">
-        <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
-        </svg>
-        <div class="coming-soon-text">to be<br>continued</div>
-      </article>
-    </div>
-  </main>
+        <span class="nav-label">家长端</span>
+      </div>
+    </nav>
 
-  <script src="utils.js"></script>
-  <script>
-    // 显示指定板块
-    function showSection(sectionId) {
-      // 页面跳转
-      if (sectionId === 'comprehensive') {
-        window.location.href = 'detect/index.html';
-      } else if (sectionId === 'today') {
-        window.location.href = 'today-training.html';
-      } else if (sectionId === 'parent') {
-        UserStateUtil.switchToParentMode();
-        window.location.href = 'child-document.html';
-      }
-    }
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <!-- 顶部欢迎区 -->
+      <header class="top-section">
+        <div class="welcome-text">欢迎回来<span id="child-name"></span>，继续训练吧！</div>
+      </header>
 
-    // 显示用户资料
-    function showProfile() {
-      console.log('显示用户资料');
-    }
+      <!-- 训练标题 -->
+      <div class="title-section">
+        <div class="page-title">
+          <h1>训练</h1>
+          <div class="subtitle">TRAINING</div>
+        </div>
+      </div>
 
-    // 开始游戏
-    function startGame(gameName) {
-      // 记录游戏开始时间
-      const gameStartTime = new Date().getTime();
-      // 存储到localStorage
-      localStorage.setItem('gameStartTime', gameStartTime);
-      localStorage.setItem('currentGame', gameName);
-      window.location.href = `training/${gameName}.html`;
-    }
+      <!-- 分类标签 -->
+      <div class="category-tabs" role="tablist">
+        <button class="category-tab active" onclick="showCategory('selective')" role="tab" aria-selected="true">
+          <div class="category-icon">
+            <img src="images/icon1.png" alt="选择性注意" style="width: 40px; height: 40px" />
+          </div>
+          选择性注意
+        </button>
+        <button class="category-tab" onclick="showCategory('sustained')" role="tab" aria-selected="false">
+          <div class="category-icon">
+            <img src="images/icon2.png" alt="持续性注意" style="width: 40px; height: 40px" />
+          </div>
+          持续性注意
+        </button>
+        <button class="category-tab" onclick="showCategory('visual')" role="tab" aria-selected="false">
+          <div class="category-icon">
+            <img src="images/icon3.png" alt="视觉追踪" style="width: 40px; height: 40px" />
+          </div>
+          视觉追踪
+        </button>
+        <button class="category-tab" onclick="showCategory('memory')" role="tab" aria-selected="false">
+          <div class="category-icon">
+            <img src="images/icon4.png" alt="工作记忆" style="width: 40px; height: 40px" />
+          </div>
+          工作记忆
+        </button>
+        <button class="category-tab" onclick="showCategory('inhibition')" role="tab" aria-selected="false">
+          <div class="category-icon">
+            <img src="images/icon5.png" alt="抑制控制" style="width: 40px; height: 40px" />
+          </div>
+          抑制控制
+        </button>
+      </div>
 
-    // 显示指定分类
-    function showCategory(categoryId) {
-      // 更新分类标签状态
-      document.querySelectorAll('.category-tab').forEach(tab => {
-        tab.classList.remove('active');
-        tab.setAttribute('aria-selected', 'false');
-      });
+      <!-- 游戏卡片网格 -->
+      <div class="games-grid" id="games-grid">
+        <!-- 太空小火箭 -->
+        <article class="game-card blue" data-category="selective">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#F97316" stroke="none">
+                <path d="M12 2.5s-4 4.5-4 9c0 2.5 1.5 4.5 4 6.5 2.5-2 4-4 4-6.5 0-4.5-4-9-4-9z" />
+                <circle cx="12" cy="9" r="2" fill="white" />
+                <path d="M8 16c-2 1-3 3-3 5.5h6M16 16c2 1 3 3 3 5.5h-6" fill="#FDBA74" />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">太空小火箭</h3>
+          <p class="game-description">小火箭点火起飞，我们一起去星际大冒险啦！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-1" onclick="startGame('schulte')">开始训练</button>
+        </article>
 
-      // 为对应的分类标签添加active类
-      const categoryTab = document.querySelector(`[onclick="showCategory('${categoryId}')"]`);
-      if (categoryTab) {
-        categoryTab.classList.add('active');
-        categoryTab.setAttribute('aria-selected', 'true');
-      }
+        <!-- 垃圾小卫士 -->
+        <article class="game-card green" data-category="selective">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#8B5CF6" stroke="none">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" stroke="white" stroke-width="2" />
+                <line x1="14" y1="11" x2="14" y2="17" stroke="white" stroke-width="2" />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">垃圾小卫士</h3>
+          <p class="game-description">垃圾小卫士上线，把垃圾通通送回家！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-2" onclick="startGame('find-numbers')">开始训练</button>
+        </article>
 
-      // 筛选游戏卡片
-      const gameCards = document.querySelectorAll('.game-card');
-      gameCards.forEach(card => {
-        if (card.dataset.category === categoryId) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
+        <!-- 魔法迷宫 -->
+        <article class="game-card purple" data-category="sustained" style="display: none">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#3B82F6" stroke="none">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" opacity="0.5" />
+                <path d="M2 12l10 5 10-5" opacity="0.7" />
+                <circle cx="12" cy="12" r="3" fill="#FBBF24" />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">魔法迷宫</h3>
+          <p class="game-description">穿过魔法迷宫，走到终点就能成功施展超厉害的魔法啦！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-3" onclick="startGame('magic-maze')">开始训练</button>
+        </article>
+
+        <!-- 植物浇水 -->
+        <article class="game-card green" data-category="sustained" style="display: none">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#10B981" stroke="none">
+                <path d="M12 22c4.97 0 9-4.03 9-9-4.97 0-9 4.03-9 9z" />
+                <path d="M12 22c-4.97 0-9-4.03-9-9 4.97 0 9 4.03 9 9z" opacity="0.5" />
+                <path d="M12 13c3.5 0 6.5-3 6.5-7 0 0-3 2-6.5 2S5.5 6 5.5 6c0 4 3 7 6.5 7z" />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">植物浇水</h3>
+          <p class="game-description">照顾可爱的植物，让它们茁壮成长！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-4" onclick="startGame('water-plants')">开始训练</button>
+        </article>
+
+        <!-- 追太阳 -->
+        <article class="game-card beige" data-category="visual" style="display: none">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#06B6D4" stroke="none">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">追太阳</h3>
+          <p class="game-description">追踪太阳，记录它在天际移动的每一刻！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-5" onclick="startGame('sun-tracking')">开始训练</button>
+        </article>
+
+        <!-- 森林小动物追踪 -->
+        <article class="game-card cyan" data-category="visual" style="display: none">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#EC4899" stroke="none">
+                <path
+                  d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+                />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">森林小动物追踪</h3>
+          <p class="game-description">追踪森林里的小动物，跟着它们的足迹探索神秘大自然！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-6" onclick="startGame('animal-searching')">开始训练</button>
+        </article>
+
+        <!-- 甜品店小帮贡 -->
+        <article class="game-card pink" data-category="memory" style="display: none">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#F97316" stroke="none">
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">甜品店小帮工</h3>
+          <p class="game-description">化身甜品店小帮工，把甜蜜和温柔装进每一份点心里！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-7" onclick="startGame('reverse-memory')">开始训练</button>
+        </article>
+
+        <!-- 海底小管家 -->
+        <article class="game-card blue" data-category="memory" style="display: none">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#3B82F6" stroke="none">
+                <path
+                  d="M19 10c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-3.87 3.13-7 7-7s7 3.13 7 7zm-7-5c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"
+                />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">海底捉迷藏</h3>
+          <p class="game-description">在斑斓海底和海洋小伙伴玩一场温柔又神秘的捉迷藏。！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-8" onclick="startGame('card-matching')">开始训练</button>
+        </article>
+
+        <!-- 环保小卫士 -->
+        <article class="game-card cyan" data-category="inhibition" style="display: none">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#10B981" stroke="none">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">环保小卫士</h3>
+          <p class="game-description">认真分类垃圾，让每一份废弃物都回到正确的家！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-9" onclick="startGame('traffic-light')">开始训练</button>
+        </article>
+
+        <!-- 冰雪王国小邮差 -->
+        <article class="game-card cyan" data-category="inhibition" style="display: none">
+          <div class="game-header">
+            <div class="game-icon-wrapper">
+              <svg class="game-icon" viewBox="0 0 24 24" fill="#06B6D4" stroke="none">
+                <path
+                  d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                />
+              </svg>
+            </div>
+          </div>
+          <h3 class="game-name">冰雪王国小邮差</h3>
+          <p class="game-description">踏着雪花送信，把温暖与惊喜送到每一户！</p>
+          <div style="height: 40px"></div>
+          <button class="btn btn-shape-10" onclick="startGame('command-adventure')">开始训练</button>
+        </article>
+
+        <!-- 待续卡片 -->
+        <article class="game-card coming-soon" data-category="selective">
+          <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+          <div class="coming-soon-text">to be<br />continued</div>
+        </article>
+        <article class="game-card coming-soon" data-category="sustained">
+          <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+          <div class="coming-soon-text">to be<br />continued</div>
+        </article>
+        <article class="game-card coming-soon" data-category="visual">
+          <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+          <div class="coming-soon-text">to be<br />continued</div>
+        </article>
+        <article class="game-card coming-soon" data-category="memory">
+          <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+          <div class="coming-soon-text">to be<br />continued</div>
+        </article>
+        <article class="game-card coming-soon" data-category="inhibition">
+          <svg class="coming-soon-icon" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+          <div class="coming-soon-text">to be<br />continued</div>
+        </article>
+      </div>
+    </main>
+
+    <script src="utils.js"></script>
+    <script>
+      // 显示指定板块
+      function showSection(sectionId) {
+        // 页面跳转
+        if (sectionId === 'comprehensive') {
+          window.location.href = 'detect/index.html';
+        } else if (sectionId === 'today') {
+          window.location.href = 'today-training.html';
+        } else if (sectionId === 'parent') {
+          UserStateUtil.switchToParentMode();
+          window.location.href = 'child-document.html';
         }
-      });
-
-      console.log('切换到分类:', categoryId);
-    }
-
-    // 页面加载时检查用户登录状态
-    window.onload = function () {
-      // 身份认证只验证登录状态，不验证 mode
-      if (!UserStateUtil.isLoggedIn()) {
-        window.location.href = 'login.html';
-        return;
       }
 
-      // 更新欢迎标语中的孩子名字
-      const childNameElement = document.getElementById('child-name');
-      const childName = UserStateUtil.getCurrentChildName();
-      if (childNameElement && childName) {
-        childNameElement.textContent = childName;
+      // 显示用户资料
+      function showProfile() {
+        console.log('显示用户资料');
       }
 
-      // 默认显示选择性注意分类
-      showCategory('selective');
-    };
+      // 开始游戏
+      function startGame(gameName) {
+        // 记录游戏开始时间
+        const gameStartTime = new Date().getTime();
+        // 存储到localStorage
+        localStorage.setItem('gameStartTime', gameStartTime);
+        localStorage.setItem('currentGame', gameName);
+        window.location.href = `training/${gameName}.html`;
+      }
 
-    // 键盘导航支持
-    document.querySelectorAll('.nav-item, .category-tab, .btn').forEach(el => {
-      el.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          el.click();
+      // 显示指定分类
+      function showCategory(categoryId) {
+        // 更新分类标签状态
+        document.querySelectorAll('.category-tab').forEach((tab) => {
+          tab.classList.remove('active');
+          tab.setAttribute('aria-selected', 'false');
+        });
+
+        // 为对应的分类标签添加active类
+        const categoryTab = document.querySelector(`[onclick="showCategory('${categoryId}')"]`);
+        if (categoryTab) {
+          categoryTab.classList.add('active');
+          categoryTab.setAttribute('aria-selected', 'true');
         }
-      });
-    });
-  </script>
-</body>
 
+        // 筛选游戏卡片
+        const gameCards = document.querySelectorAll('.game-card');
+        gameCards.forEach((card) => {
+          if (card.dataset.category === categoryId) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        console.log('切换到分类:', categoryId);
+      }
+
+      // 页面加载时检查用户登录状态
+      window.onload = function () {
+        // 身份认证只验证登录状态，不验证 mode
+        if (!UserStateUtil.isLoggedIn()) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        // 更新欢迎标语中的孩子名字
+        const childNameElement = document.getElementById('child-name');
+        const childName = UserStateUtil.getCurrentChildName();
+        if (childNameElement && childName) {
+          childNameElement.textContent = childName;
+        }
+
+        // 默认显示选择性注意分类
+        showCategory('selective');
+      };
+
+      // 键盘导航支持
+      document.querySelectorAll('.nav-item, .category-tab, .btn').forEach((el) => {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            el.click();
+          }
+        });
+      });
+    </script>
+  </body>
 </html>

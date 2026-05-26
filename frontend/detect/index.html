@@ -1,1157 +1,1152 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿<!doctype html>
 <html lang="zh-CN">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>儿童注意力训练平台 - 综合训练</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #4f46e5;
+        --primary-light: #818cf8;
+        --secondary: #f97316;
+        --secondary-light: #fdba74;
+        --bg-color: #eef2ff;
+        --card-bg: #ffffff;
+        --text-dark: #1e1b4b;
+        --text-light: #6366f1;
+        --accent-green: #ceefdd;
+        --accent-pink: #ec4899;
+        --accent-yellow: #f2e1c4;
+        --accent-cyan: #06b6d4;
+        --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
+        --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+        --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
+      }
+
+      html,
+      body {
+        overflow-x: hidden;
+      }
+
+      body {
+        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
+        background: #fff4a2;
+        color: var(--text-dark);
+        min-height: 100vh;
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+      }
+
+      .sidebar {
+        width: 130px;
+        background: #62b4a5;
+        box-shadow: var(--shadow-soft);
+        padding: 24px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+        border-radius: 32px;
+        position: relative;
+      }
+
+      .logo-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 28px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer;
+      }
+
+      .logo:hover {
+        transform: translateY(-3px) scale(1.05);
+      }
+
+      .nav-item {
+        width: 85px;
+        height: 85px;
+        margin: 0 12px 12px;
+        border-radius: 24px;
+        background: #ffffff;
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 3px solid transparent;
+        box-shadow:
+          0 4px 12px rgba(0, 0, 0, 0.06),
+          inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      }
+
+      .nav-item:hover {
+        transform: translateY(-4px) scale(1.02);
+      }
+
+      .nav-item.active {
+        background: #ffd387;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-item.active .nav-icon,
+      .nav-item.active .nav-label {
+        color: white;
+      }
+
+      .nav-icon {
+        width: 28px;
+        height: 28px;
+        transition: transform 0.3s ease;
+      }
+
+      .nav-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-top: 4px;
+      }
+
+      .user-avatar-sidebar {
+        position: absolute;
+        bottom: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 20px;
+        background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid var(--primary-light);
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .user-avatar-sidebar:hover {
+        transform: scale(1.1);
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-width: calc(100% - 134px);
+      }
+
+      .title-section {
+        margin-bottom: 40px;
+        margin-top: 35px;
+      }
+
+      .page-title h1 {
+        font-size: 90px;
+        color: #51915f;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .page-title .subtitle {
+        font-size: 50px;
+        color: #51915f;
+        font-weight: 600;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+
+      /* 综合训练主布局：注意力小侦探 */
+      .comprehensive-container {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        padding: 0 40px 0 0;
+        background: rgb(190, 241, 200, 0.8);
+        border-radius: 300px 22px 22px 300px;
+        box-shadow: var(--shadow-soft);
+        margin-top: -16px;
+        margin-left: 10px;
+        height: 550px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* 注意力小侦探标志 */
+      .detective-logo {
+        width: 300px;
+        height: 600px;
+        background: #40b1d9;
+        border-radius: 300px 32px 32px 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 45px;
+        font-weight: 800;
+        color: #ffffff;
+        text-align: center;
+        line-height: 1.3;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        margin-left: -40px;
+      }
+
+      /* 关卡卡片容器 */
+      .levels-container {
+        flex: 1;
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding: 40px 0 40px 20px;
+      }
+
+      .levels-container::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      .levels-container::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+      }
+
+      .levels-container::-webkit-scrollbar-thumb {
+        background: #4583bd;
+        border-radius: 10px;
+      }
+
+      .levels-container::-webkit-scrollbar-thumb:hover {
+        background: #3a6ea5;
+      }
+
+      /* 为Chrome隐藏滚动条 */
+      .levels-container.no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* 滚动提示箭头 */
+      .scroll-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4583bd;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .scroll-arrow:hover {
+        background: rgba(255, 255, 255, 1);
+        transform: translateY(-50%) scale(1.1);
+      }
+
+      .left-arrow {
+        left: 240px;
+      }
+
+      .right-arrow {
+        right: 40px;
+      }
+
+      .scroll-arrow.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* 关卡卡片 */
+      .level-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 500px;
+        min-width: 200px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer;
+      }
+
+      .level-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+      }
+
+      .level-number {
+        margin-bottom: 15px;
+        margin-top: 40px;
+      }
+
+      .level-number img {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+      }
+
+      .level-card h3 {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .level-card p {
+        font-size: 20px;
+        color: var(--text-dark);
+        opacity: 0.7;
+        text-align: center;
+        margin-bottom: 15px;
+        flex: 1;
+      }
+
+      .btn-start {
+        border: none;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        font-size: 20px;
+        margin-bottom: 50px;
+        font-weight: bold;
+        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .level-card:nth-child(1) {
+        background: #fcceb4;
+        color: white;
+      }
+
+      .level-card:nth-child(2) {
+        background: #abd7fb;
+        color: white;
+      }
+
+      .level-card:nth-child(3) {
+        background: #d2e0aa;
+        color: white;
+      }
+
+      .level-card:nth-child(4) {
+        background: #d5d6f2;
+        color: white;
+      }
+
+      .level-card:nth-child(5) {
+        background: #ffd1dc;
+        color: white;
+      }
+
+      .level-card:nth-child(1) h3,
+      .level-card:nth-child(1) p {
+        color: white;
+      }
+
+      .level-card:nth-child(2) h3,
+      .level-card:nth-child(2) p {
+        color: white;
+      }
+
+      .level-card:nth-child(3) h3,
+      .level-card:nth-child(3) p {
+        color: white;
+      }
+
+      .level-card:nth-child(4) h3,
+      .level-card:nth-child(4) p {
+        color: white;
+      }
+
+      .level-card:nth-child(5) h3,
+      .level-card:nth-child(5) p {
+        color: white;
+      }
+
+      .level-card:nth-child(1) .btn-start {
+        background: white;
+        color: #ff9800;
+      }
+
+      .level-card:nth-child(2) .btn-start {
+        background: white;
+        color: #21beda;
+      }
+
+      .level-card:nth-child(3) .btn-start {
+        background: white;
+        color: #7eb11f;
+      }
+
+      .level-card:nth-child(4) .btn-start {
+        background: white;
+        color: #835fc3;
+      }
+
+      .level-card:nth-child(5) .btn-start {
+        background: white;
+        color: #ffabda;
+      }
+
+      .btn-start:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      /* 浮动装饰 */
+      .floating-shapes {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .shape {
+        position: absolute;
+        opacity: 0.15;
+        animation: float 20s ease-in-out infinite;
+      }
+
+      /* 形状大小和位置 */
+      .shape-1 {
+        top: 10%;
+        left: 5%;
+        width: 150px;
+        height: 150px;
+        background: #d1e760;
+        border-radius: 50%;
+        animation-delay: 0s;
+      }
+
+      .shape-2 {
+        top: 60%;
+        right: 5%;
+        width: 180px;
+        height: 180px;
+        background: #4583bd;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -1s;
+      }
+
+      .shape-3 {
+        bottom: 20%;
+        left: 15%;
+        width: 130px;
+        height: 130px;
+        background: #b99ad9;
+        border-radius: 50%;
+        animation-delay: -2s;
+      }
+
+      .shape-4 {
+        top: 30%;
+        right: 20%;
+        width: 160px;
+        height: 160px;
+        background: #eec16d;
+        border-radius: 50%;
+        animation-delay: -3s;
+      }
+
+      .shape-5 {
+        top: 20%;
+        right: 10%;
+        width: 140px;
+        height: 140px;
+        background: #fd9b80;
+        border-radius: 50%;
+        animation-delay: -4s;
+      }
+
+      .shape-6 {
+        bottom: 10%;
+        right: 15%;
+        width: 120px;
+        height: 120px;
+        background: #fbadff;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -5s;
+      }
+
+      .shape-7 {
+        top: 40%;
+        left: 10%;
+        width: 170px;
+        height: 170px;
+        background: #8a9cff;
+        border-radius: 50%;
+        animation-delay: -6s;
+      }
+
+      .shape-8 {
+        bottom: 30%;
+        left: 25%;
+        width: 110px;
+        height: 110px;
+        background: #bfffb6;
+        border-radius: 50%;
+        animation-delay: -7s;
+      }
+
+      .shape-9 {
+        top: 50%;
+        right: 25%;
+        width: 150px;
+        height: 150px;
+        background: #9ff5ff;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -8s;
+      }
+
+      .shape-10 {
+        top: 15%;
+        left: 20%;
+        width: 130px;
+        height: 130px;
+        background: #c4ffa4;
+        border-radius: 50%;
+        animation-delay: -9s;
+      }
+
+      .shape-11 {
+        bottom: 40%;
+        right: 10%;
+        width: 160px;
+        height: 160px;
+        background: #e7d5ff;
+        border-radius: 50%;
+        animation-delay: -10s;
+      }
+
+      .shape-12 {
+        top: 25%;
+        left: 30%;
+        width: 120px;
+        height: 120px;
+        background: #ffe387;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -11s;
+      }
+
+      .shape-13 {
+        bottom: 15%;
+        left: 35%;
+        width: 140px;
+        height: 140px;
+        background: #4583bd;
+        border-radius: 50%;
+        animation-delay: -12s;
+      }
+
+      .shape-14 {
+        top: 35%;
+        right: 30%;
+        width: 170px;
+        height: 170px;
+        background: #4583bd;
+        border-radius: 50%;
+        animation-delay: -13s;
+      }
+
+      .shape-15 {
+        top: 45%;
+        left: 15%;
+        width: 110px;
+        height: 110px;
+        background: #4583bd;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -14s;
+      }
+
+      .shape-16 {
+        bottom: 25%;
+        right: 20%;
+        width: 150px;
+        height: 150px;
+        background: #4583bd;
+        border-radius: 50%;
+        animation-delay: -15s;
+      }
+
+      .shape-17 {
+        top: 55%;
+        left: 25%;
+        width: 130px;
+        height: 130px;
+        background: #4583bd;
+        border-radius: 50%;
+        animation-delay: -16s;
+      }
+
+      .shape-18 {
+        bottom: 35%;
+        left: 40%;
+        width: 160px;
+        height: 160px;
+        background: #4583bd;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -17s;
+      }
+
+      .shape-19 {
+        top: 65%;
+        right: 35%;
+        width: 120px;
+        height: 120px;
+        background: #4583bd;
+        border-radius: 50%;
+        animation-delay: -18s;
+      }
+
+      .shape-20 {
+        top: 70%;
+        left: 10%;
+        width: 140px;
+        height: 140px;
+        background: #4583bd;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -19s;
+      }
+
+      .shape-21 {
+        bottom: 5%;
+        left: 20%;
+        width: 170px;
+        height: 170px;
+        background: #4583bd;
+        border-radius: 50%;
+        animation-delay: -20s;
+      }
+
+      .shape-22 {
+        top: 5%;
+        right: 15%;
+        width: 110px;
+        height: 110px;
+        background: #4583bd;
+        border-radius: 50%;
+        animation-delay: -21s;
+      }
+
+      .shape-23 {
+        top: 75%;
+        right: 10%;
+        width: 150px;
+        height: 150px;
+        background: #4583bd;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -22s;
+      }
+
+      .shape-24 {
+        bottom: 50%;
+        left: 5%;
+        width: 130px;
+        height: 130px;
+        background: #4583bd;
+        border-radius: 50%;
+        animation-delay: -23s;
+      }
+
+      .shape-25 {
+        top: 60%;
+        left: 35%;
+        width: 160px;
+        height: 160px;
+        background: #ff99bd;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -24s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0);
         }
 
-        :root {
-            --primary: #4F46E5;
-            --primary-light: #818CF8;
-            --secondary: #F97316;
-            --secondary-light: #FDBA74;
-            --bg-color: #EEF2FF;
-            --card-bg: #FFFFFF;
-            --text-dark: #1E1B4B;
-            --text-light: #6366F1;
-            --accent-green: #CEEFDD;
-            --accent-pink: #EC4899;
-            --accent-yellow: #F2E1C4;
-            --accent-cyan: #06B6D4;
-            --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
-            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
-            --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
+        25% {
+          transform: translateY(-20px) rotate(5deg);
         }
 
-        html,
+        75% {
+          transform: translateY(20px) rotate(-5deg);
+        }
+      }
+
+      /* 响应式 */
+      @media (max-width: 1200px) {
+        .comprehensive-container {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .detective-logo {
+          width: 150px;
+          height: 200px;
+          font-size: 24px;
+        }
+
+        .levels-container {
+          grid-template-columns: repeat(5, 1fr);
+        }
+      }
+
+      @media (max-width: 992px) {
+        .levels-container {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      @media (max-width: 768px) {
         body {
-            overflow-x: hidden;
-        }
-
-        body {
-            font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
-            background: #fff4a2;
-            color: var(--text-dark);
-            min-height: 100vh;
-            display: flex;
-            gap: 24px;
-            padding: 24px;
+          flex-direction: column;
+          padding: 16px;
+          gap: 16px;
         }
 
         .sidebar {
-            width: 130px;
-            background: #62B4A5;
-            box-shadow: var(--shadow-soft);
-            padding: 24px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
-            border-radius: 32px;
-            position: relative;
+          width: 100%;
+          flex-direction: row;
+          padding: 16px 20px;
+          border-radius: 24px;
+          overflow-x: auto;
         }
 
         .logo-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
+          flex-direction: row;
+          margin-bottom: 0;
+          margin-right: 8px;
         }
 
-        .logo {
-            width: 100px;
-            height: 100px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 800;
-            font-size: 28px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            cursor: pointer;
-        }
-
-        .logo:hover {
-            transform: translateY(-3px) scale(1.05);
-        }
-
-        .nav-item {
-            width: 85px;
-            height: 85px;
-            margin: 0 12px 12px;
-            border-radius: 24px;
-            background: #FFFFFF;
-            font-size: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border: 3px solid transparent;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), inset 0 2px 0 rgba(255, 255, 255, 0.8);
-        }
-
-        .nav-item:hover {
-            transform: translateY(-4px) scale(1.02);
-        }
-
-        .nav-item.active {
-            background: #ffd387;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-item.active .nav-icon,
-        .nav-item.active .nav-label {
-            color: white;
-        }
-
-        .nav-icon {
-            width: 28px;
-            height: 28px;
-            transition: transform 0.3s ease;
-        }
-
-        .nav-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-top: 4px;
+        .logo-text {
+          display: none;
         }
 
         .user-avatar-sidebar {
-            position: absolute;
-            bottom: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 20px;
-            background: linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid var(--primary-light);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .user-avatar-sidebar:hover {
-            transform: scale(1.1);
+          position: static;
+          margin-left: auto;
         }
 
         .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            max-width: calc(100% - 134px);
-        }
-
-        .title-section {
-            margin-bottom: 40px;
-            margin-top: 35px;
+          max-width: 100%;
         }
 
         .page-title h1 {
-            font-size: 90px;
-            color: #51915f;
-            font-weight: 800;
-            line-height: 1;
+          font-size: 48px;
         }
 
         .page-title .subtitle {
-            font-size: 50px;
-            color: #51915f;
-            font-weight: 600;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            margin-top: 4px;
+          font-size: 28px;
         }
 
-        /* 综合训练主布局：注意力小侦探 */
         .comprehensive-container {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            padding: 0 40px 0 0;
-            background: rgb(190, 241, 200, 0.8);
-            border-radius: 300px 22px 22px 300px;
-            box-shadow: var(--shadow-soft);
-            margin-top: -16px;
-            margin-left: 10px;
-            height: 550px;
-            position: relative;
-            overflow: hidden;
+          padding: 20px;
         }
 
-        /* 注意力小侦探标志 */
-        .detective-logo {
-            width: 300px;
-            height: 600px;
-            background: #40b1d9;
-            border-radius: 300px 32px 32px 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 45px;
-            font-weight: 800;
-            color: #ffffff;
-            text-align: center;
-            line-height: 1.3;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            margin-left: -40px;
-        }
-
-        /* 关卡卡片容器 */
         .levels-container {
-            flex: 1;
-            display: flex;
-            gap: 20px;
-            overflow-x: auto;
-            padding: 40px 0 40px 20px;
-        }
-
-        .levels-container::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .levels-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-
-        .levels-container::-webkit-scrollbar-thumb {
-            background: #4583bd;
-            border-radius: 10px;
-        }
-
-        .levels-container::-webkit-scrollbar-thumb:hover {
-            background: #3a6ea5;
-        }
-
-        /* 为Chrome隐藏滚动条 */
-        .levels-container.no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* 滚动提示箭头 */
-        .scroll-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #4583bd;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .scroll-arrow:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .left-arrow {
-            left: 240px;
-        }
-
-        .right-arrow {
-            right: 40px;
-        }
-
-        .scroll-arrow.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* 关卡卡片 */
-        .level-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 500px;
-            min-width: 200px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            cursor: pointer;
-        }
-
-        .level-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-        }
-
-        .level-number {
-            margin-bottom: 15px;
-            margin-top: 40px;
-        }
-
-        .level-number img {
-            width: 100px;
-            height: 100px;
-            object-fit: contain;
-        }
-
-        .level-card h3 {
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .level-card p {
-            font-size: 20px;
-            color: var(--text-dark);
-            opacity: 0.7;
-            text-align: center;
-            margin-bottom: 15px;
-            flex: 1;
-        }
-
-        .btn-start {
-            border: none;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            font-size: 20px;
-            margin-bottom: 50px;
-            font-weight: bold;
-            font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .level-card:nth-child(1) {
-            background: #fcceb4;
-            color: white;
-        }
-
-        .level-card:nth-child(2) {
-            background: #abd7fb;
-            color: white;
-        }
-
-        .level-card:nth-child(3) {
-            background: #d2e0aa;
-            color: white;
-        }
-
-        .level-card:nth-child(4) {
-            background: #d5d6f2;
-            color: white;
-        }
-
-        .level-card:nth-child(5) {
-            background: #ffd1dc;
-            color: white;
-        }
-
-        .level-card:nth-child(1) h3,
-        .level-card:nth-child(1) p {
-            color: white;
-        }
-
-        .level-card:nth-child(2) h3,
-        .level-card:nth-child(2) p {
-            color: white;
-        }
-
-        .level-card:nth-child(3) h3,
-        .level-card:nth-child(3) p {
-            color: white;
-        }
-
-        .level-card:nth-child(4) h3,
-        .level-card:nth-child(4) p {
-            color: white;
-        }
-
-        .level-card:nth-child(5) h3,
-        .level-card:nth-child(5) p {
-            color: white;
-        }
-
-        .level-card:nth-child(1) .btn-start {
-            background: white;
-            color: #ff9800;
-        }
-
-        .level-card:nth-child(2) .btn-start {
-            background: white;
-            color: #21beda;
-        }
-
-        .level-card:nth-child(3) .btn-start {
-            background: white;
-            color: #7eb11f;
-        }
-
-        .level-card:nth-child(4) .btn-start {
-            background: white;
-            color: #835fc3;
-        }
-
-        .level-card:nth-child(5) .btn-start {
-            background: white;
-            color: #ffabda;
-        }
-
-        .btn-start:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        /* 浮动装饰 */
-        .floating-shapes {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .shape {
-            position: absolute;
-            opacity: 0.15;
-            animation: float 20s ease-in-out infinite;
-        }
-
-        /* 形状大小和位置 */
-        .shape-1 {
-            top: 10%;
-            left: 5%;
-            width: 150px;
-            height: 150px;
-            background: #d1e760;
-            border-radius: 50%;
-            animation-delay: 0s;
-        }
-
-        .shape-2 {
-            top: 60%;
-            right: 5%;
-            width: 180px;
-            height: 180px;
-            background: #4583bd;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -1s;
-        }
-
-        .shape-3 {
-            bottom: 20%;
-            left: 15%;
-            width: 130px;
-            height: 130px;
-            background: #b99ad9;
-            border-radius: 50%;
-            animation-delay: -2s;
-        }
-
-        .shape-4 {
-            top: 30%;
-            right: 20%;
-            width: 160px;
-            height: 160px;
-            background: #eec16d;
-            border-radius: 50%;
-            animation-delay: -3s;
-        }
-
-        .shape-5 {
-            top: 20%;
-            right: 10%;
-            width: 140px;
-            height: 140px;
-            background: #fd9b80;
-            border-radius: 50%;
-            animation-delay: -4s;
-        }
-
-        .shape-6 {
-            bottom: 10%;
-            right: 15%;
-            width: 120px;
-            height: 120px;
-            background: #fbadff;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -5s;
-        }
-
-        .shape-7 {
-            top: 40%;
-            left: 10%;
-            width: 170px;
-            height: 170px;
-            background: #8a9cff;
-            border-radius: 50%;
-            animation-delay: -6s;
-        }
-
-        .shape-8 {
-            bottom: 30%;
-            left: 25%;
-            width: 110px;
-            height: 110px;
-            background: #bfffb6;
-            border-radius: 50%;
-            animation-delay: -7s;
-        }
-
-        .shape-9 {
-            top: 50%;
-            right: 25%;
-            width: 150px;
-            height: 150px;
-            background: #9ff5ff;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -8s;
-        }
-
-        .shape-10 {
-            top: 15%;
-            left: 20%;
-            width: 130px;
-            height: 130px;
-            background: #c4ffa4;
-            border-radius: 50%;
-            animation-delay: -9s;
-        }
-
-        .shape-11 {
-            bottom: 40%;
-            right: 10%;
-            width: 160px;
-            height: 160px;
-            background: #e7d5ff;
-            border-radius: 50%;
-            animation-delay: -10s;
-        }
-
-        .shape-12 {
-            top: 25%;
-            left: 30%;
-            width: 120px;
-            height: 120px;
-            background: #ffe387;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -11s;
-        }
-
-        .shape-13 {
-            bottom: 15%;
-            left: 35%;
-            width: 140px;
-            height: 140px;
-            background: #4583bd;
-            border-radius: 50%;
-            animation-delay: -12s;
-        }
-
-        .shape-14 {
-            top: 35%;
-            right: 30%;
-            width: 170px;
-            height: 170px;
-            background: #4583bd;
-            border-radius: 50%;
-            animation-delay: -13s;
-        }
-
-        .shape-15 {
-            top: 45%;
-            left: 15%;
-            width: 110px;
-            height: 110px;
-            background: #4583bd;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -14s;
-        }
-
-        .shape-16 {
-            bottom: 25%;
-            right: 20%;
-            width: 150px;
-            height: 150px;
-            background: #4583bd;
-            border-radius: 50%;
-            animation-delay: -15s;
-        }
-
-        .shape-17 {
-            top: 55%;
-            left: 25%;
-            width: 130px;
-            height: 130px;
-            background: #4583bd;
-            border-radius: 50%;
-            animation-delay: -16s;
-        }
-
-        .shape-18 {
-            bottom: 35%;
-            left: 40%;
-            width: 160px;
-            height: 160px;
-            background: #4583bd;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -17s;
-        }
-
-        .shape-19 {
-            top: 65%;
-            right: 35%;
-            width: 120px;
-            height: 120px;
-            background: #4583bd;
-            border-radius: 50%;
-            animation-delay: -18s;
-        }
-
-        .shape-20 {
-            top: 70%;
-            left: 10%;
-            width: 140px;
-            height: 140px;
-            background: #4583bd;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -19s;
-        }
-
-        .shape-21 {
-            bottom: 5%;
-            left: 20%;
-            width: 170px;
-            height: 170px;
-            background: #4583bd;
-            border-radius: 50%;
-            animation-delay: -20s;
-        }
-
-        .shape-22 {
-            top: 5%;
-            right: 15%;
-            width: 110px;
-            height: 110px;
-            background: #4583bd;
-            border-radius: 50%;
-            animation-delay: -21s;
-        }
-
-        .shape-23 {
-            top: 75%;
-            right: 10%;
-            width: 150px;
-            height: 150px;
-            background: #4583bd;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -22s;
-        }
-
-        .shape-24 {
-            bottom: 50%;
-            left: 5%;
-            width: 130px;
-            height: 130px;
-            background: #4583bd;
-            border-radius: 50%;
-            animation-delay: -23s;
-        }
-
-        .shape-25 {
-            top: 60%;
-            left: 35%;
-            width: 160px;
-            height: 160px;
-            background: #ff99bd;
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation-delay: -24s;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0) rotate(0);
-            }
-
-            25% {
-                transform: translateY(-20px) rotate(5deg);
-            }
-
-            75% {
-                transform: translateY(20px) rotate(-5deg);
-            }
-        }
-
-        /* 响应式 */
-        @media (max-width:1200px) {
-            .comprehensive-container {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .detective-logo {
-                width: 150px;
-                height: 200px;
-                font-size: 24px;
-            }
-
-            .levels-container {
-                grid-template-columns: repeat(5, 1fr);
-            }
-        }
-
-        @media (max-width:992px) {
-            .levels-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width:768px) {
-            body {
-                flex-direction: column;
-                padding: 16px;
-                gap: 16px;
-            }
-
-            .sidebar {
-                width: 100%;
-                flex-direction: row;
-                padding: 16px 20px;
-                border-radius: 24px;
-                overflow-x: auto;
-            }
-
-            .logo-section {
-                flex-direction: row;
-                margin-bottom: 0;
-                margin-right: 8px;
-            }
-
-            .logo-text {
-                display: none;
-            }
-
-            .user-avatar-sidebar {
-                position: static;
-                margin-left: auto;
-            }
-
-            .main-content {
-                max-width: 100%;
-            }
-
-            .page-title h1 {
-                font-size: 48px;
-            }
-
-            .page-title .subtitle {
-                font-size: 28px;
-            }
-
-            .comprehensive-container {
-                padding: 20px;
-            }
-
-            .levels-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* 家长端登录弹窗 */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        .modal-content {
-            background: #ffd38b;
-            padding: 40px 30px;
-            border-radius: 24px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px) scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .modal-content h3 {
-            font-size: 28px;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 10px;
-            background: #fff;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .modal-content p {
-            font-size: 16px;
-            color: #fff;
-            margin-bottom: 30px;
-            opacity: 1;
-        }
-
-        .modal-content input {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 16px;
-            margin-bottom: 30px;
-            background: white;
-            transition: all 0.3s ease;
-            border: none;
-        }
-
-        .modal-content input:focus {
-            outline: none;
-            border-color: #ffd38b;
-            transform: translateY(-2px);
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-        }
-
-        .modal-buttons button {
-            background: #ca6a16;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .modal-buttons button:hover {
-            transform: translateY(-2px);
-        }
-
-        .modal-buttons button:last-child {
-            background: #ca6a16;
-            color: #fff;
-        }
-
-        .modal-buttons button:last-child:hover {
-            transform: translateY(-2px);
-        }
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      /* 家长端登录弹窗 */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: #ffd38b;
+        padding: 40px 30px;
+        border-radius: 24px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .modal-content h3 {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+        background: #fff;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .modal-content p {
+        font-size: 16px;
+        color: #fff;
+        margin-bottom: 30px;
+        opacity: 1;
+      }
+
+      .modal-content input {
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        font-size: 16px;
+        margin-bottom: 30px;
+        background: white;
+        transition: all 0.3s ease;
+        border: none;
+      }
+
+      .modal-content input:focus {
+        outline: none;
+        border-color: #ffd38b;
+        transform: translateY(-2px);
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+      }
+
+      .modal-buttons button {
+        background: #ca6a16;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .modal-buttons button:hover {
+        transform: translateY(-2px);
+      }
+
+      .modal-buttons button:last-child {
+        background: #ca6a16;
+        color: #fff;
+      }
+
+      .modal-buttons button:last-child:hover {
+        transform: translateY(-2px);
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="floating-shapes">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
-        <div class="shape shape-4"></div>
-        <div class="shape shape-5"></div>
-        <div class="shape shape-6"></div>
-        <div class="shape shape-7"></div>
-        <div class="shape shape-8"></div>
-        <div class="shape shape-9"></div>
-        <div class="shape shape-10"></div>
-        <div class="shape shape-11"></div>
-        <div class="shape shape-12"></div>
-        <div class="shape shape-13"></div>
-        <div class="shape shape-14"></div>
-        <div class="shape shape-15"></div>
-        <div class="shape shape-16"></div>
-        <div class="shape shape-17"></div>
-        <div class="shape shape-18"></div>
-        <div class="shape shape-19"></div>
-        <div class="shape shape-20"></div>
-        <div class="shape shape-21"></div>
-        <div class="shape shape-22"></div>
-        <div class="shape shape-23"></div>
-        <div class="shape shape-24"></div>
-        <div class="shape shape-25"></div>
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div class="shape shape-5"></div>
+      <div class="shape shape-6"></div>
+      <div class="shape shape-7"></div>
+      <div class="shape shape-8"></div>
+      <div class="shape shape-9"></div>
+      <div class="shape shape-10"></div>
+      <div class="shape shape-11"></div>
+      <div class="shape shape-12"></div>
+      <div class="shape shape-13"></div>
+      <div class="shape shape-14"></div>
+      <div class="shape shape-15"></div>
+      <div class="shape shape-16"></div>
+      <div class="shape shape-17"></div>
+      <div class="shape shape-18"></div>
+      <div class="shape shape-19"></div>
+      <div class="shape shape-20"></div>
+      <div class="shape shape-21"></div>
+      <div class="shape shape-22"></div>
+      <div class="shape shape-23"></div>
+      <div class="shape shape-24"></div>
+      <div class="shape shape-25"></div>
     </div>
 
     <nav class="sidebar">
-        <div class="logo-section">
-            <div class="logo">
-                <img src="../images/logo.png" alt="注意力训练平台" style="width: 100%; height: 100%; object-fit: contain;">
-            </div>
+      <div class="logo-section">
+        <div class="logo">
+          <img src="../images/logo.png" alt="注意力训练平台" style="width: 100%; height: 100%; object-fit: contain" />
         </div>
+      </div>
 
-        <!-- ✅ 训练按钮：点击跳转到 child-home.html -->
-        <div class="nav-item" onclick="window.location.href='../child-home.html'">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-            </svg>
-            <span class="nav-label">训练</span>
-        </div>
+      <!-- ✅ 训练按钮：点击跳转到 child-home.html -->
+      <div class="nav-item" onclick="window.location.href = '../child-home.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span class="nav-label">训练</span>
+      </div>
 
-        <!-- 综合训练：当前页面 -->
-        <div class="nav-item active">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 6v6l4 2"></path>
-            </svg>
-            <span class="nav-label">综合训练</span>
-        </div>
+      <!-- 综合训练：当前页面 -->
+      <div class="nav-item active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 6v6l4 2"></path>
+        </svg>
+        <span class="nav-label">综合训练</span>
+      </div>
 
-        <div class="nav-item" onclick="window.location.href='../today-training.html'">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            <span class="nav-label">今日训练</span>
-        </div>
+      <div class="nav-item" onclick="window.location.href = '../today-training.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span class="nav-label">今日训练</span>
+      </div>
 
-        <div class="nav-item" onclick="window.location.href='../child-home.html'">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="8" r="7"></circle>
-                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-            </svg>
-            <span class="nav-label">勋章墙</span>
-        </div>
+      <div class="nav-item" onclick="window.location.href = '../child-home.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="7"></circle>
+          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+        </svg>
+        <span class="nav-label">勋章墙</span>
+      </div>
 
-        <div class="nav-item" onclick="window.location.href='../child-document.html'">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <span class="nav-label">家长端</span>
-        </div>
+      <div class="nav-item" onclick="window.location.href = '../child-document.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span class="nav-label">家长端</span>
+      </div>
     </nav>
 
     <main class="main-content">
-        <div class="title-section">
-            <div class="page-title">
-                <h1>综合训练</h1>
-                <div class="subtitle">GENERAL TRAINING</div>
-            </div>
+      <div class="title-section">
+        <div class="page-title">
+          <h1>综合训练</h1>
+          <div class="subtitle">GENERAL TRAINING</div>
+        </div>
+      </div>
+
+      <div class="comprehensive-container">
+        <!-- 注意力小侦探标志 -->
+        <div class="detective-logo">注意力<br />小侦探</div>
+
+        <!-- 滚动提示箭头 -->
+        <div class="scroll-arrow left-arrow" id="leftArrow">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </div>
+        <div class="scroll-arrow right-arrow" id="rightArrow">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
         </div>
 
-        <div class="comprehensive-container">
-            <!-- 注意力小侦探标志 -->
-            <div class="detective-logo">
-                注意力<br>小侦探
+        <!-- 关卡卡片 -->
+        <div class="levels-container" id="levelsContainer">
+          <div class="level-card">
+            <div class="level-number">
+              <img src="../images/序号1.png" alt="关卡1" />
             </div>
-
-            <!-- 滚动提示箭头 -->
-            <div class="scroll-arrow left-arrow" id="leftArrow">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 18l-6-6 6-6" />
-                </svg>
+            <h3>线索筛选站</h3>
+            <p>测试选择性注意能力</p>
+            <button class="btn-start" onclick="startLevel(1)">开始</button>
+          </div>
+          <div class="level-card">
+            <div class="level-number">
+              <img src="../images/序号2.png" alt="关卡2" />
             </div>
-            <div class="scroll-arrow right-arrow" id="rightArrow">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 18l6-6-6-6" />
-                </svg>
+            <h3>监控摄像头</h3>
+            <p>测试持续性注意能力</p>
+            <button class="btn-start" onclick="startLevel(2)">开始</button>
+          </div>
+          <div class="level-card">
+            <div class="level-number">
+              <img src="../images/序号3.png" alt="关卡3" />
             </div>
-
-            <!-- 关卡卡片 -->
-            <div class="levels-container" id="levelsContainer">
-                <div class="level-card">
-                    <div class="level-number">
-                        <img src="../images/序号1.png" alt="关卡1">
-                    </div>
-                    <h3>线索筛选站</h3>
-                    <p>测试选择性注意能力</p>
-                    <button class="btn-start" onclick="startLevel(1)">开始</button>
-                </div>
-                <div class="level-card">
-                    <div class="level-number">
-                        <img src="../images/序号2.png" alt="关卡2">
-                    </div>
-                    <h3>监控摄像头</h3>
-                    <p>测试持续性注意能力</p>
-                    <button class="btn-start" onclick="startLevel(2)">开始</button>
-                </div>
-                <div class="level-card">
-                    <div class="level-number">
-                        <img src="../images/序号3.png" alt="关卡3">
-                    </div>
-                    <h3>追踪嫌疑人</h3>
-                    <p>测试视觉追踪能力</p>
-                    <button class="btn-start" onclick="startLevel(3)">开始</button>
-                </div>
-                <div class="level-card">
-                    <div class="level-number">
-                        <img src="../images/序号4.png" alt="关卡4">
-                    </div>
-                    <h3>记忆线索库</h3>
-                    <p>测试工作记忆能力</p>
-                    <button class="btn-start" onclick="startLevel(4)">开始</button>
-                </div>
-                <div class="level-card">
-                    <div class="level-number">
-                        <img src="../images/序号5.png" alt="关卡5">
-                    </div>
-                    <h3>红绿灯指令</h3>
-                    <p>测试抑制控制能力</p>
-                    <button class="btn-start" onclick="startLevel(5)">开始</button>
-                </div>
+            <h3>追踪嫌疑人</h3>
+            <p>测试视觉追踪能力</p>
+            <button class="btn-start" onclick="startLevel(3)">开始</button>
+          </div>
+          <div class="level-card">
+            <div class="level-number">
+              <img src="../images/序号4.png" alt="关卡4" />
             </div>
+            <h3>记忆线索库</h3>
+            <p>测试工作记忆能力</p>
+            <button class="btn-start" onclick="startLevel(4)">开始</button>
+          </div>
+          <div class="level-card">
+            <div class="level-number">
+              <img src="../images/序号5.png" alt="关卡5" />
+            </div>
+            <h3>红绿灯指令</h3>
+            <p>测试抑制控制能力</p>
+            <button class="btn-start" onclick="startLevel(5)">开始</button>
+          </div>
         </div>
+      </div>
     </main>
 
     <script src="../utils.js"></script>
     <script>
-        function initPage() {
-            if (!UserStateUtil.isLoggedIn()) {
-                window.location.href = '../login.html';
-                return;
-            }
+      function initPage() {
+        if (!UserStateUtil.isLoggedIn()) {
+          window.location.href = '../login.html';
+          return;
         }
+      }
 
-        // 开始游戏
-        function startLevel(level) {
-            // 记录游戏开始时间
-            const gameStartTime = new Date().getTime();
-            // 存储到localStorage
-            localStorage.setItem('gameStartTime', gameStartTime);
-            localStorage.setItem('currentGame', `level${level}`);
-            window.location.href = `level${level}.html`;
-        }
+      // 开始游戏
+      function startLevel(level) {
+        // 记录游戏开始时间
+        const gameStartTime = new Date().getTime();
+        // 存储到localStorage
+        localStorage.setItem('gameStartTime', gameStartTime);
+        localStorage.setItem('currentGame', `level${level}`);
+        window.location.href = `level${level}.html`;
+      }
 
-        // 鼠标悬停自动滚动功能和箭头显示/隐藏逻辑
-        document.addEventListener('DOMContentLoaded', function () {
-            initPage();
-            const levelsContainer = document.getElementById('levelsContainer');
-            const leftArrow = document.getElementById('leftArrow');
-            const rightArrow = document.getElementById('rightArrow');
-            let scrollInterval;
+      // 鼠标悬停自动滚动功能和箭头显示/隐藏逻辑
+      document.addEventListener('DOMContentLoaded', function () {
+        initPage();
+        const levelsContainer = document.getElementById('levelsContainer');
+        const leftArrow = document.getElementById('leftArrow');
+        const rightArrow = document.getElementById('rightArrow');
+        let scrollInterval;
 
-            // 检查是否需要显示箭头和隐藏滚动条
-            function checkScrollStatus() {
-                const isScrollable = levelsContainer.scrollWidth > levelsContainer.clientWidth;
-                const isAtStart = levelsContainer.scrollLeft === 0;
-                const isAtEnd = levelsContainer.scrollLeft >= (levelsContainer.scrollWidth - levelsContainer.clientWidth - 1);
+        // 检查是否需要显示箭头和隐藏滚动条
+        function checkScrollStatus() {
+          const isScrollable = levelsContainer.scrollWidth > levelsContainer.clientWidth;
+          const isAtStart = levelsContainer.scrollLeft === 0;
+          const isAtEnd = levelsContainer.scrollLeft >= levelsContainer.scrollWidth - levelsContainer.clientWidth - 1;
 
-                // 显示/隐藏箭头
-                if (isScrollable) {
-                    if (!isAtStart) {
-                        leftArrow.classList.add('visible');
-                    } else {
-                        leftArrow.classList.remove('visible');
-                    }
-
-                    if (!isAtEnd) {
-                        rightArrow.classList.add('visible');
-                    } else {
-                        rightArrow.classList.remove('visible');
-                    }
-
-                    // 隐藏滚动条
-                    levelsContainer.style.scrollbarWidth = 'none'; // Firefox
-                    levelsContainer.style.msOverflowStyle = 'none'; // IE
-                    levelsContainer.classList.add('no-scrollbar'); // Chrome
-                } else {
-                    // 隐藏箭头
-                    leftArrow.classList.remove('visible');
-                    rightArrow.classList.remove('visible');
-
-                    // 显示滚动条
-                    levelsContainer.style.scrollbarWidth = 'auto'; // Firefox
-                    levelsContainer.style.msOverflowStyle = 'auto'; // IE
-                    levelsContainer.classList.remove('no-scrollbar'); // Chrome
-                }
+          // 显示/隐藏箭头
+          if (isScrollable) {
+            if (!isAtStart) {
+              leftArrow.classList.add('visible');
+            } else {
+              leftArrow.classList.remove('visible');
             }
 
-            // 左箭头鼠标悬停时向左滚动
-            leftArrow.addEventListener('mouseenter', function () {
-                scrollInterval = setInterval(() => {
-                    levelsContainer.scrollLeft -= 5;
-                    checkScrollStatus(); // 更新箭头状态
-                }, 30);
-            });
+            if (!isAtEnd) {
+              rightArrow.classList.add('visible');
+            } else {
+              rightArrow.classList.remove('visible');
+            }
 
-            // 左箭头鼠标离开时停止滚动
-            leftArrow.addEventListener('mouseleave', function () {
-                clearInterval(scrollInterval);
-            });
+            // 隐藏滚动条
+            levelsContainer.style.scrollbarWidth = 'none'; // Firefox
+            levelsContainer.style.msOverflowStyle = 'none'; // IE
+            levelsContainer.classList.add('no-scrollbar'); // Chrome
+          } else {
+            // 隐藏箭头
+            leftArrow.classList.remove('visible');
+            rightArrow.classList.remove('visible');
 
-            // 右箭头鼠标悬停时向右滚动
-            rightArrow.addEventListener('mouseenter', function () {
-                scrollInterval = setInterval(() => {
-                    levelsContainer.scrollLeft += 5;
-                    checkScrollStatus(); // 更新箭头状态
-                }, 30);
-            });
+            // 显示滚动条
+            levelsContainer.style.scrollbarWidth = 'auto'; // Firefox
+            levelsContainer.style.msOverflowStyle = 'auto'; // IE
+            levelsContainer.classList.remove('no-scrollbar'); // Chrome
+          }
+        }
 
-            // 右箭头鼠标离开时停止滚动
-            rightArrow.addEventListener('mouseleave', function () {
-                clearInterval(scrollInterval);
-            });
-
-            // 滚动时更新箭头状态
-            levelsContainer.addEventListener('scroll', checkScrollStatus);
-
-            // 窗口大小变化时更新箭头状态
-            window.addEventListener('resize', checkScrollStatus);
-
-            // 初始检查
-            checkScrollStatus();
+        // 左箭头鼠标悬停时向左滚动
+        leftArrow.addEventListener('mouseenter', function () {
+          scrollInterval = setInterval(() => {
+            levelsContainer.scrollLeft -= 5;
+            checkScrollStatus(); // 更新箭头状态
+          }, 30);
         });
 
+        // 左箭头鼠标离开时停止滚动
+        leftArrow.addEventListener('mouseleave', function () {
+          clearInterval(scrollInterval);
+        });
 
+        // 右箭头鼠标悬停时向右滚动
+        rightArrow.addEventListener('mouseenter', function () {
+          scrollInterval = setInterval(() => {
+            levelsContainer.scrollLeft += 5;
+            checkScrollStatus(); // 更新箭头状态
+          }, 30);
+        });
+
+        // 右箭头鼠标离开时停止滚动
+        rightArrow.addEventListener('mouseleave', function () {
+          clearInterval(scrollInterval);
+        });
+
+        // 滚动时更新箭头状态
+        levelsContainer.addEventListener('scroll', checkScrollStatus);
+
+        // 窗口大小变化时更新箭头状态
+        window.addEventListener('resize', checkScrollStatus);
+
+        // 初始检查
+        checkScrollStatus();
+      });
     </script>
-</body>
-
+  </body>
 </html>

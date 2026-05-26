@@ -1,417 +1,417 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>关卡3：追踪嫌疑人 - 注意力全能小侦探</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background-image: url('../images/ground4.png');
-            background-size: cover;
-            background-position: center;
-            color: #333;
-            overflow: hidden;
-        }
+      body {
+        font-family: 'Arial', sans-serif;
+        background-image: url('../images/ground4.png');
+        background-size: cover;
+        background-position: center;
+        color: #333;
+        overflow: hidden;
+      }
 
-        .container {
-            max-width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+      .container {
+        max-width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
 
-        .header h1 {
-            color: white;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+      .header h1 {
+        color: white;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
 
-        .header p {
-            font-size: 1.4em;
-            color: white;
-        }
+      .header p {
+        font-size: 1.4em;
+        color: white;
+      }
 
-        .game-area {
-            width: 800px;
-            height: 500px;
-            background-image: url('../images/grass.png');
-            background-size: cover;
-            background-position: center;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
+      .game-area {
+        width: 800px;
+        height: 500px;
+        background-image: url('../images/grass.png');
+        background-size: cover;
+        background-position: center;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
 
-        .suspect {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            transition: transform 0.1s ease;
-        }
+      .suspect {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        transition: transform 0.1s ease;
+      }
 
-        .suspect img {
-            width: 120px;
-            height: auto;
-        }
+      .suspect img {
+        width: 120px;
+        height: auto;
+      }
 
-        .click-effect {
-            position: absolute;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 10;
-        }
+      .click-effect {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 10;
+      }
 
-        .click-effect img {
-            width: 90px;
-            height: auto;
-        }
+      .click-effect img {
+        width: 90px;
+        height: auto;
+      }
 
-        .target {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background-color: rgba(76, 175, 80, 0.5);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
+      .target {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: rgba(76, 175, 80, 0.5);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
 
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
+      .controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
 
-        .btn {
-            background-color: #4CAF50;
+      .btn {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .btn:hover {
+        background-color: #45a049;
+      }
+
+      .btn-secondary {
+        background-color: #999;
+      }
+
+      .btn-secondary:hover {
+        background-color: #777;
+      }
+
+      .stats {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      .timer {
+        position: absolute;
+        top: 10px;
+        left: 20px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .feedback {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        display: none;
+        z-index: 100;
+      }
+
+      .feedback h3 {
+        color: #4caf50;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- 可爱的返回按钮 -->
+      <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
+        <button
+          onclick="window.location.href = 'index.html'"
+          style="
+            background: linear-gradient(135deg, #4caf50, #81c784);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 16px;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
             cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #45a049;
-        }
-
-        .btn-secondary {
-            background-color: #999;
-        }
-
-        .btn-secondary:hover {
-            background-color: #777;
-        }
-
-        .stats {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .timer {
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .feedback {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            display: none;
-            z-index: 100;
-        }
-
-        .feedback h3 {
-            color: #4CAF50;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <!-- 可爱的返回按钮 -->
-        <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
-            <button onclick="window.location.href='index.html'" style="
-                background: linear-gradient(135deg, #4caf50, #81c784);
-                color: white;
-                border: none;
-                border-radius: 50%;
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-                cursor: pointer;
-                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: bounce 2s ease-in-out infinite alternate;
-            " onmouseover="this.style.transform='scale(1.1) rotate(10deg)';"
-                onmouseout="this.style.transform='scale(1) rotate(0deg)';">
-                ←
-            </button>
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounce 2s ease-in-out infinite alternate;
+          "
+          onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
+          onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
+        >
+          ←
+        </button>
+      </div>
+      <div class="header">
+        <h1>关卡3：追踪嫌疑人</h1>
+        <p>请跟随嫌疑人的移动，尽可能准确地点击嫌疑人</p>
+      </div>
+      <div class="game-area" id="game-area">
+        <div class="timer">时间：0s</div>
+        <div class="suspect" id="suspect"><img src="../images/thief.png" alt="嫌疑人" /></div>
+        <div class="stats">
+          <div>精准度：<span id="accuracy">0</span>px</div>
+          <div>脱靶次数：<span id="off-target">0</span></div>
+          <div>滞后时间：<span id="lag-time">0</span>ms</div>
         </div>
-        <div class="header">
-            <h1>关卡3：追踪嫌疑人</h1>
-            <p>请跟随嫌疑人的移动，尽可能准确地点击嫌疑人</p>
+        <div class="feedback" id="feedback">
+          <h3>关卡完成！</h3>
+          <p>追踪精准度：<span id="final-accuracy">0</span>px</p>
+          <p>追踪脱靶次数：<span id="final-off-target">0</span></p>
+          <p>追踪滞后时间：<span id="final-lag-time">0</span>ms</p>
+          <button class="btn" onclick="nextLevel()">下一关</button>
         </div>
-        <div class="game-area" id="game-area">
-            <div class="timer">时间：0s</div>
-            <div class="suspect" id="suspect"><img src="../images/thief.png" alt="嫌疑人"></div>
-            <div class="stats">
-                <div>精准度：<span id="accuracy">0</span>px</div>
-                <div>脱靶次数：<span id="off-target">0</span></div>
-                <div>滞后时间：<span id="lag-time">0</span>ms</div>
-            </div>
-            <div class="feedback" id="feedback">
-                <h3>关卡完成！</h3>
-                <p>追踪精准度：<span id="final-accuracy">0</span>px</p>
-                <p>追踪脱靶次数：<span id="final-off-target">0</span></p>
-                <p>追踪滞后时间：<span id="final-lag-time">0</span>ms</p>
-                <button class="btn" onclick="nextLevel()">下一关</button>
-            </div>
-        </div>
-
+      </div>
     </div>
     <script src="../utils.js"></script>
     <script>
-        let suspect = document.getElementById('suspect');
-        let gameArea = document.getElementById('game-area');
-        let isGameStarted = false;
-        let isPaused = false;
-        let gameTime = 0;
-        let maxTime = 45; // 45秒
-        let startTime = 0;
-        let timeInterval;
-        let positions = [];
-        let currentPositionIndex = 0;
-        let accuracySum = 0;
-        let accuracyCount = 0;
-        let offTargetCount = 0;
-        let lagTimes = [];
-        let lastMoveTime = 0;
-        let gameInterval;
+      let suspect = document.getElementById('suspect');
+      let gameArea = document.getElementById('game-area');
+      let isGameStarted = false;
+      let isPaused = false;
+      let gameTime = 0;
+      let maxTime = 45; // 45秒
+      let startTime = 0;
+      let timeInterval;
+      let positions = [];
+      let currentPositionIndex = 0;
+      let accuracySum = 0;
+      let accuracyCount = 0;
+      let offTargetCount = 0;
+      let lagTimes = [];
+      let lastMoveTime = 0;
+      let gameInterval;
 
-        // 生成移动路径
-        function generatePath() {
-            positions = [];
-            const width = gameArea.offsetWidth;
-            const height = gameArea.offsetHeight;
-            const stepCount = 45; // 45秒，每秒1步
-            const suspectWidth = 120; // thief图片宽度
-            const suspectHeight = 120; // 预估thief图片高度
+      // 生成移动路径
+      function generatePath() {
+        positions = [];
+        const width = gameArea.offsetWidth;
+        const height = gameArea.offsetHeight;
+        const stepCount = 45; // 45秒，每秒1步
+        const suspectWidth = 120; // thief图片宽度
+        const suspectHeight = 120; // 预估thief图片高度
 
-            // 计算边界，确保嫌疑人不会超出背景边缘
-            const minX = suspectWidth / 2;
-            const maxX = width - suspectWidth / 2;
-            const minY = suspectHeight / 2;
-            const maxY = height - suspectHeight / 2;
+        // 计算边界，确保嫌疑人不会超出背景边缘
+        const minX = suspectWidth / 2;
+        const maxX = width - suspectWidth / 2;
+        const minY = suspectHeight / 2;
+        const maxY = height - suspectHeight / 2;
 
-            // 每次都随机出现在背景上的某个地方
-            for (let i = 0; i < stepCount; i++) {
-                const x = Math.random() * (maxX - minX) + minX;
-                const y = Math.random() * (maxY - minY) + minY;
-                positions.push({ x, y });
-            }
+        // 每次都随机出现在背景上的某个地方
+        for (let i = 0; i < stepCount; i++) {
+          const x = Math.random() * (maxX - minX) + minX;
+          const y = Math.random() * (maxY - minY) + minY;
+          positions.push({ x, y });
         }
+      }
 
-        // 移动嫌疑人
-        function moveSuspect() {
-            if (!isGameStarted || isPaused) return;
+      // 移动嫌疑人
+      function moveSuspect() {
+        if (!isGameStarted || isPaused) return;
 
-            if (currentPositionIndex < positions.length) {
-                const pos = positions[currentPositionIndex];
-                // 使用requestAnimationFrame实现更流畅的动画
-                requestAnimationFrame(() => {
-                    suspect.style.left = `${pos.x}px`;
-                    suspect.style.top = `${pos.y}px`;
-                });
-                currentPositionIndex++;
-                lastMoveTime = Date.now();
-            } else {
-                endGame();
-            }
+        if (currentPositionIndex < positions.length) {
+          const pos = positions[currentPositionIndex];
+          // 使用requestAnimationFrame实现更流畅的动画
+          requestAnimationFrame(() => {
+            suspect.style.left = `${pos.x}px`;
+            suspect.style.top = `${pos.y}px`;
+          });
+          currentPositionIndex++;
+          lastMoveTime = Date.now();
+        } else {
+          endGame();
         }
+      }
 
-        // 更新计时器
-        function updateTimer() {
-            if (!isGameStarted || isPaused) return;
+      // 更新计时器
+      function updateTimer() {
+        if (!isGameStarted || isPaused) return;
 
-            const currentTime = Math.floor((Date.now() - startTime) / 1000);
-            document.querySelector('.timer').textContent = `时间：${currentTime}s`;
-            requestAnimationFrame(updateTimer);
-        }
+        const currentTime = Math.floor((Date.now() - startTime) / 1000);
+        document.querySelector('.timer').textContent = `时间：${currentTime}s`;
+        requestAnimationFrame(updateTimer);
+      }
 
-        // 处理点击
-        function handleClick(e) {
-            if (!isGameStarted || isPaused) return;
+      // 处理点击
+      function handleClick(e) {
+        if (!isGameStarted || isPaused) return;
 
-            const rect = gameArea.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
+        const rect = gameArea.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
 
-            // 添加点击效果
-            const clickEffect = document.createElement('div');
-            clickEffect.className = 'click-effect';
-            clickEffect.innerHTML = '<img src="../images/click.png" alt="点击效果">';
-            clickEffect.style.left = `${clickX}px`;
-            clickEffect.style.top = `${clickY}px`;
-            gameArea.appendChild(clickEffect);
+        // 添加点击效果
+        const clickEffect = document.createElement('div');
+        clickEffect.className = 'click-effect';
+        clickEffect.innerHTML = '<img src="../images/click.png" alt="点击效果">';
+        clickEffect.style.left = `${clickX}px`;
+        clickEffect.style.top = `${clickY}px`;
+        gameArea.appendChild(clickEffect);
 
-            // 1秒后移除点击效果
-            setTimeout(() => {
-                if (clickEffect.parentNode) {
-                    clickEffect.parentNode.removeChild(clickEffect);
-                }
-            }, 1000);
+        // 1秒后移除点击效果
+        setTimeout(() => {
+          if (clickEffect.parentNode) {
+            clickEffect.parentNode.removeChild(clickEffect);
+          }
+        }, 1000);
 
-            const suspectRect = suspect.getBoundingClientRect();
-            const suspectX = suspectRect.left - rect.left + suspectRect.width / 2;
-            const suspectY = suspectRect.top - rect.top + suspectRect.height / 2;
+        const suspectRect = suspect.getBoundingClientRect();
+        const suspectX = suspectRect.left - rect.left + suspectRect.width / 2;
+        const suspectY = suspectRect.top - rect.top + suspectRect.height / 2;
 
-            // 计算距离
-            const distance = Math.sqrt(Math.pow(clickX - suspectX, 2) + Math.pow(clickY - suspectY, 2));
-            accuracySum += distance;
-            accuracyCount++;
+        // 计算距离
+        const distance = Math.sqrt(Math.pow(clickX - suspectX, 2) + Math.pow(clickY - suspectY, 2));
+        accuracySum += distance;
+        accuracyCount++;
 
-            // 计算滞后时间
-            const lagTime = Date.now() - lastMoveTime;
-            lagTimes.push(lagTime);
+        // 计算滞后时间
+        const lagTime = Date.now() - lastMoveTime;
+        lagTimes.push(lagTime);
 
-            // 检查是否脱靶
-            if (distance > 60) {
-                offTargetCount++;
-            }
-
-            // 更新统计信息
-            updateStats();
+        // 检查是否脱靶
+        if (distance > 60) {
+          offTargetCount++;
         }
 
         // 更新统计信息
-        function updateStats() {
-            const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
-            const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
+        updateStats();
+      }
 
-            document.getElementById('accuracy').textContent = avgAccuracy;
-            document.getElementById('off-target').textContent = offTargetCount;
-            document.getElementById('lag-time').textContent = avgLagTime;
+      // 更新统计信息
+      function updateStats() {
+        const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
+        const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
+
+        document.getElementById('accuracy').textContent = avgAccuracy;
+        document.getElementById('off-target').textContent = offTargetCount;
+        document.getElementById('lag-time').textContent = avgLagTime;
+      }
+
+      // 开始游戏
+      function startGame() {
+        if (isGameStarted) return;
+
+        // 重置游戏状态
+        generatePath();
+        currentPositionIndex = 0;
+        accuracySum = 0;
+        accuracyCount = 0;
+        offTargetCount = 0;
+        lagTimes = [];
+        gameTime = 0;
+
+        isGameStarted = true;
+        isPaused = false;
+        startTime = Date.now();
+        lastMoveTime = Date.now(); // 初始化lastMoveTime，修复滞后时间显示错误
+
+        // 添加点击事件
+        gameArea.addEventListener('click', handleClick);
+
+        // 开始移动嫌疑人（每1000ms移动一次，每秒1步，共45秒）
+        gameInterval = setInterval(moveSuspect, 1000);
+
+        // 开始更新计时器
+        updateTimer();
+      }
+
+      // 暂停游戏
+      function pauseGame() {
+        if (!isGameStarted) return;
+
+        isPaused = !isPaused;
+      }
+
+      // 计算视觉追踪得分
+      function calculateTrackingScore() {
+        const meanRt = lagTimes.length > 0 ? lagTimes.reduce((sum, rt) => sum + rt, 0) / lagTimes.length : 1000;
+        const acc = accuracyCount > 0 ? (100 - Math.min(100, accuracySum / accuracyCount)) / 100 : 0;
+        const speed = Math.max(0, 1 - 45 / 60);
+        const rtScore = Math.max(0, 1 - meanRt / 1000);
+        const headStable = 0.8;
+        const faceStable = 0.8;
+        const scoreValue = (acc * 0.35 + speed * 0.25 + rtScore * 0.2 + headStable * 0.12 + faceStable * 0.08) * 100;
+        return Math.max(0, Math.min(100, Math.round(scoreValue)));
+      }
+
+      // 结束游戏
+      function endGame() {
+        isGameStarted = false;
+        clearInterval(gameInterval);
+
+        // 统计游戏使用时间
+        try {
+          if (typeof GameTimeUtil !== 'undefined') {
+            GameTimeUtil.endGame('level3');
+          }
+        } catch (error) {
+          console.log('GameTimeUtil not available');
         }
 
-        // 开始游戏
-        function startGame() {
-            if (isGameStarted) return;
+        // 移除点击事件
+        gameArea.removeEventListener('click', handleClick);
 
-            // 重置游戏状态
-            generatePath();
-            currentPositionIndex = 0;
-            accuracySum = 0;
-            accuracyCount = 0;
-            offTargetCount = 0;
-            lagTimes = [];
-            gameTime = 0;
+        // 计算结果
+        const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
+        const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
+        const score = calculateTrackingScore();
 
-            isGameStarted = true;
-            isPaused = false;
-            startTime = Date.now();
-            lastMoveTime = Date.now(); // 初始化lastMoveTime，修复滞后时间显示错误
-
-            // 添加点击事件
-            gameArea.addEventListener('click', handleClick);
-
-            // 开始移动嫌疑人（每1000ms移动一次，每秒1步，共45秒）
-            gameInterval = setInterval(moveSuspect, 1000);
-
-            // 开始更新计时器
-            updateTimer();
-        }
-
-        // 暂停游戏
-        function pauseGame() {
-            if (!isGameStarted) return;
-
-            isPaused = !isPaused;
-        }
-
-        // 计算视觉追踪得分
-        function calculateTrackingScore() {
-            const meanRt = lagTimes.length > 0 ? lagTimes.reduce((sum, rt) => sum + rt, 0) / lagTimes.length : 1000;
-            const acc = accuracyCount > 0 ? (100 - Math.min(100, accuracySum / accuracyCount)) / 100 : 0;
-            const speed = Math.max(0, 1 - 45 / 60);
-            const rtScore = Math.max(0, 1 - meanRt / 1000);
-            const headStable = 0.8;
-            const faceStable = 0.8;
-            const scoreValue = (
-                acc * 0.35 + speed * 0.25 + rtScore * 0.20 + headStable * 0.12 + faceStable * 0.08
-            ) * 100;
-            return Math.max(0, Math.min(100, Math.round(scoreValue)));
-        }
-
-        // 结束游戏
-        function endGame() {
-            isGameStarted = false;
-            clearInterval(gameInterval);
-
-            // 统计游戏使用时间
-            try {
-                if (typeof GameTimeUtil !== 'undefined') {
-                    GameTimeUtil.endGame('level3');
-                }
-            } catch (error) {
-                console.log('GameTimeUtil not available');
-            }
-
-            // 移除点击事件
-            gameArea.removeEventListener('click', handleClick);
-
-            // 计算结果
-            const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
-            const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
-            const score = calculateTrackingScore();
-
-            // 显示反馈
-            const feedbackDiv = document.getElementById('feedback');
-            feedbackDiv.innerHTML = `
+        // 显示反馈
+        const feedbackDiv = document.getElementById('feedback');
+        feedbackDiv.innerHTML = `
                 <h3>关卡完成！</h3>
                 <p>追踪精准度：<span id="final-accuracy">${avgAccuracy}</span>px</p>
                 <p>追踪脱靶次数：<span id="final-off-target">${offTargetCount}</span></p>
@@ -419,136 +419,135 @@
                 <p>综合评分：<span id="score">${score}</span>分</p>
                 <button class="btn" onclick="nextLevel()">下一关</button>
             `;
-            feedbackDiv.style.display = 'block';
+        feedbackDiv.style.display = 'block';
 
-            // 保存数据
-            const data = {
-                visual_tracking: score,
-                off_target_count: offTargetCount,
-                lag_time: avgLagTime
-            };
-            try {
-                if (typeof StorageUtil !== 'undefined') {
-                    StorageUtil.setItem('level3_data', data);
-                }
-            } catch (error) {
-                console.log('StorageUtil not available');
-            }
-
-            // 上传训练数据
-            uploadTrainingData(score, avgAccuracy, avgLagTime);
+        // 保存数据
+        const data = {
+          visual_tracking: score,
+          off_target_count: offTargetCount,
+          lag_time: avgLagTime,
+        };
+        try {
+          if (typeof StorageUtil !== 'undefined') {
+            StorageUtil.setItem('level3_data', data);
+          }
+        } catch (error) {
+          console.log('StorageUtil not available');
         }
 
         // 上传训练数据
-        function uploadTrainingData(score, avgAccuracy, avgLagTime) {
-            try {
-                if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-                    // 检测当前环境，自动切换 API 地址
-                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+        uploadTrainingData(score, avgAccuracy, avgLagTime);
+      }
 
-                    const childId = UserStateUtil.getCurrentChildId();
-                    let sessionId = null;
+      // 上传训练数据
+      function uploadTrainingData(score, avgAccuracy, avgLagTime) {
+        try {
+          if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+            // 检测当前环境，自动切换 API 地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-                    // 开始训练会话
-                    fetch(`${baseUrl}/api/training/session/start`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify({
-                            child_id: childId,
-                            game_type: 'tracking',
-                            device_id: 'web'
-                        })
-                    })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                sessionId = result.data.session_id;
-                                console.log('训练会话创建成功:', sessionId);
+            const childId = UserStateUtil.getCurrentChildId();
+            let sessionId = null;
 
-                                // 上传游戏数据
-                                return fetch(`${baseUrl}/api/training/game-data`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                                    },
-                                    body: JSON.stringify({
-                                        session_id: sessionId,
-                                        request_id: Date.now().toString(),
-                                        timestamp: new Date().toISOString(),
-                                        event_type: 'game_complete',
-                                        score: score,
-                                        accuracy: 100 - avgAccuracy, // 转换为准确率
-                                        level: 3,
-                                        time: 45,
-                                        correct: accuracyCount - offTargetCount,
-                                        error: offTargetCount,
-                                        total_target: accuracyCount,
-                                        total_step: accuracyCount
-                                    })
-                                });
-                            } else {
-                                throw new Error(result.message || '创建会话失败');
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                console.log('游戏数据上传成功');
+            // 开始训练会话
+            fetch(`${baseUrl}/api/training/session/start`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                child_id: childId,
+                game_type: 'tracking',
+                device_id: 'web',
+              }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  sessionId = result.data.session_id;
+                  console.log('训练会话创建成功:', sessionId);
 
-                                // 结束训练会话
-                                return fetch(`${baseUrl}/api/training/session/end`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                                    },
-                                    body: JSON.stringify({
-                                        session_id: sessionId,
-                                        final_score: score,
-                                        total_accuracy: 100 - avgAccuracy // 转换为准确率
-                                    })
-                                });
-                            } else {
-                                throw new Error(result.message || '上传游戏数据失败');
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(result => {
-                            console.log('会话结束响应数据:', result);
-                            if (result.success) {
-                                console.log('训练数据上传完成');
-
-                                // 清除能力评估页面的缓存
-                                const cacheKey = `child_data_${childId}`;
-                                localStorage.removeItem(cacheKey);
-                                console.log('已清除能力评估缓存:', cacheKey);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('上传训练数据失败:', error);
-                        });
+                  // 上传游戏数据
+                  return fetch(`${baseUrl}/api/training/game-data`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: sessionId,
+                      request_id: Date.now().toString(),
+                      timestamp: new Date().toISOString(),
+                      event_type: 'game_complete',
+                      score: score,
+                      accuracy: 100 - avgAccuracy, // 转换为准确率
+                      level: 3,
+                      time: 45,
+                      correct: accuracyCount - offTargetCount,
+                      error: offTargetCount,
+                      total_target: accuracyCount,
+                      total_step: accuracyCount,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '创建会话失败');
                 }
-            } catch (e) {
-                console.error('uploadTrainingData 错误:', e);
-            }
-        }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
 
-        // 下一关
-        function nextLevel() {
-            window.location.href = 'level4.html';
-        }
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: sessionId,
+                      final_score: score,
+                      total_accuracy: 100 - avgAccuracy, // 转换为准确率
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
+                }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
 
-        // 页面加载时自动开始游戏
-        window.onload = function () {
-            startGame();
-        };
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
+                }
+              })
+              .catch((error) => {
+                console.error('上传训练数据失败:', error);
+              });
+          }
+        } catch (e) {
+          console.error('uploadTrainingData 错误:', e);
+        }
+      }
+
+      // 下一关
+      function nextLevel() {
+        window.location.href = 'level4.html';
+      }
+
+      // 页面加载时自动开始游戏
+      window.onload = function () {
+        startGame();
+      };
     </script>
     <script src="../attention-loader.js"></script>
-</body>
-
+  </body>
 </html>

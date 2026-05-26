@@ -71,7 +71,7 @@ class UserStateUtil {
       role: response.role,
       children: response.children || [],
       mode: 'parent',
-      token: response.token
+      token: response.token,
     };
     StorageUtil.setItem('userInfo', userInfo);
     // 同时保存 token 到 auth_token，方便后续 API 调用
@@ -118,7 +118,7 @@ class UserStateUtil {
     const currentChildId = localStorage.getItem('currentChildId');
 
     if (userInfo && userInfo.children && currentChildId) {
-      const child = userInfo.children.find(c => c.id == currentChildId);
+      const child = userInfo.children.find((c) => c.id == currentChildId);
       return child ? child.name : '';
     }
     return '';
@@ -129,21 +129,156 @@ class UserStateUtil {
 class MedalUtil {
   static getDefaultMedals() {
     return [
-      { id: 1, name: '太空小达人', howto: '成功完成太空小火箭所有难度关卡', gameId: 'game1', image: 'medal-image/game1.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 2, name: '垃圾小助手', howto: '成功完成垃圾小卫士所有难度关卡', gameId: 'game2', image: 'medal-image/game2.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 3, name: '魔法冒险家', howto: '成功完成魔法迷宫所有难度关卡', gameId: 'game3', image: 'medal-image/game3.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 4, name: '植物守护者', howto: '成功完成植物浇水所有难度关卡', gameId: 'game4', image: 'medal-image/game4.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 5, name: '太阳追踪者', howto: '成功完成追太阳所有难度关卡', gameId: 'game5', image: 'medal-image/game5.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 6, name: '动物追踪员', howto: '成功完成森林小动物追踪所有难度关卡', gameId: 'game6', image: 'medal-image/game6.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 7, name: '金牌甜品销售员', howto: '成功完成甜品店小帮工所有难度关卡', gameId: 'game7', image: 'medal-image/game7.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 8, name: '海底捉迷藏大师', howto: '成功完成海底捉迷藏所有难度关卡', gameId: 'game8', image: 'medal-image/game8.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 9, name: '分类小能手', howto: '成功完成环保小卫士所有难度关卡', gameId: 'game9', image: 'medal-image/game9.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 10, name: '冰雪信使', howto: '成功完成冰雪王国小邮差所有难度关卡', gameId: 'game10', image: 'medal-image/game10.png', completedLevels: 0, totalLevels: 3, unlocked: false },
-      { id: 11, name: '打卡小新星', howto: '连续打卡3天', type: 'checkin', image: 'medal-image/3day.png', days: 0, required: 3, unlocked: false },
-      { id: 12, name: '坚持小勇士', howto: '连续打卡7天', type: 'checkin', image: 'medal-image/7day.png', days: 0, required: 7, unlocked: false },
-      { id: 13, name: '专注小达人', howto: '连续打卡14天', type: 'checkin', image: 'medal-image/14day.png', days: 0, required: 14, unlocked: false },
-      { id: 14, name: '自律小榜样', howto: '连续打卡30天', type: 'checkin', image: 'medal-image/30day.png', days: 0, required: 30, unlocked: false },
-      { id: 15, name: '毅力小冠军', howto: '连续打卡60天', type: 'checkin', image: 'medal-image/60day.png', days: 0, required: 60, unlocked: false }
+      {
+        id: 1,
+        name: '太空小达人',
+        howto: '成功完成太空小火箭所有难度关卡',
+        gameId: 'game1',
+        image: 'medal-image/game1.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 2,
+        name: '垃圾小助手',
+        howto: '成功完成垃圾小卫士所有难度关卡',
+        gameId: 'game2',
+        image: 'medal-image/game2.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 3,
+        name: '魔法冒险家',
+        howto: '成功完成魔法迷宫所有难度关卡',
+        gameId: 'game3',
+        image: 'medal-image/game3.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 4,
+        name: '植物守护者',
+        howto: '成功完成植物浇水所有难度关卡',
+        gameId: 'game4',
+        image: 'medal-image/game4.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 5,
+        name: '太阳追踪者',
+        howto: '成功完成追太阳所有难度关卡',
+        gameId: 'game5',
+        image: 'medal-image/game5.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 6,
+        name: '动物追踪员',
+        howto: '成功完成森林小动物追踪所有难度关卡',
+        gameId: 'game6',
+        image: 'medal-image/game6.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 7,
+        name: '金牌甜品销售员',
+        howto: '成功完成甜品店小帮工所有难度关卡',
+        gameId: 'game7',
+        image: 'medal-image/game7.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 8,
+        name: '海底捉迷藏大师',
+        howto: '成功完成海底捉迷藏所有难度关卡',
+        gameId: 'game8',
+        image: 'medal-image/game8.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 9,
+        name: '分类小能手',
+        howto: '成功完成环保小卫士所有难度关卡',
+        gameId: 'game9',
+        image: 'medal-image/game9.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 10,
+        name: '冰雪信使',
+        howto: '成功完成冰雪王国小邮差所有难度关卡',
+        gameId: 'game10',
+        image: 'medal-image/game10.png',
+        completedLevels: 0,
+        totalLevels: 3,
+        unlocked: false,
+      },
+      {
+        id: 11,
+        name: '打卡小新星',
+        howto: '连续打卡3天',
+        type: 'checkin',
+        image: 'medal-image/3day.png',
+        days: 0,
+        required: 3,
+        unlocked: false,
+      },
+      {
+        id: 12,
+        name: '坚持小勇士',
+        howto: '连续打卡7天',
+        type: 'checkin',
+        image: 'medal-image/7day.png',
+        days: 0,
+        required: 7,
+        unlocked: false,
+      },
+      {
+        id: 13,
+        name: '专注小达人',
+        howto: '连续打卡14天',
+        type: 'checkin',
+        image: 'medal-image/14day.png',
+        days: 0,
+        required: 14,
+        unlocked: false,
+      },
+      {
+        id: 14,
+        name: '自律小榜样',
+        howto: '连续打卡30天',
+        type: 'checkin',
+        image: 'medal-image/30day.png',
+        days: 0,
+        required: 30,
+        unlocked: false,
+      },
+      {
+        id: 15,
+        name: '毅力小冠军',
+        howto: '连续打卡60天',
+        type: 'checkin',
+        image: 'medal-image/60day.png',
+        days: 0,
+        required: 60,
+        unlocked: false,
+      },
     ];
   }
 
@@ -172,8 +307,8 @@ class MedalUtil {
 
     try {
       const savedMedals = JSON.parse(savedData);
-      medals.forEach(medal => {
-        const savedMedal = savedMedals.find(item => item.id === medal.id);
+      medals.forEach((medal) => {
+        const savedMedal = savedMedals.find((item) => item.id === medal.id);
         if (savedMedal) Object.assign(medal, savedMedal);
       });
     } catch (error) {
@@ -198,7 +333,7 @@ class MedalUtil {
     const levelMap = {
       easy: 1,
       medium: 2,
-      hard: 3
+      hard: 3,
     };
 
     if (typeof level === 'number' && Number.isFinite(level)) {
@@ -219,11 +354,11 @@ class MedalUtil {
   }
 
   static getMedalByGameId(gameId, medals) {
-    return medals.find(medal => medal.gameId === gameId);
+    return medals.find((medal) => medal.gameId === gameId);
   }
 
   static getMedalById(medalId, medals) {
-    return medals.find(medal => medal.id === medalId);
+    return medals.find((medal) => medal.id === medalId);
   }
 
   static unlockMedal(medal, medals, childId, shouldNotify = true) {
@@ -268,7 +403,7 @@ class MedalUtil {
     return {
       medal,
       justUnlocked,
-      medals
+      medals,
     };
   }
 
@@ -279,7 +414,7 @@ class MedalUtil {
     const streak = Number.parseInt(localStorage.getItem(this.getCheckinStreakKey(childId)) || '0', 10) || 0;
     const unlockedMedals = [];
 
-    medals.forEach(medal => {
+    medals.forEach((medal) => {
       if (medal.type !== 'checkin') return;
 
       medal.days = streak;
@@ -292,7 +427,7 @@ class MedalUtil {
     this.saveMedals(medals, childId);
 
     if (shouldNotify) {
-      unlockedMedals.forEach(medal => this.showUnlockNotification(medal));
+      unlockedMedals.forEach((medal) => this.showUnlockNotification(medal));
     }
 
     return unlockedMedals;
@@ -308,7 +443,7 @@ class MedalUtil {
     if (lastCheckin === today) {
       return {
         streak: checkinStreak,
-        unlockedMedals: this.syncCheckinProgress(childId, false)
+        unlockedMedals: this.syncCheckinProgress(childId, false),
       };
     }
 
@@ -321,7 +456,7 @@ class MedalUtil {
 
     return {
       streak: newStreak,
-      unlockedMedals: this.syncCheckinProgress(childId, shouldNotify)
+      unlockedMedals: this.syncCheckinProgress(childId, shouldNotify),
     };
   }
 
@@ -394,12 +529,13 @@ class MedalUtil {
     this.ensureNotificationStyle();
 
     // 确保有正确的图片路径，防止旧缓存数据覆盖了 image
-    const defaultMedal = this.getDefaultMedals().find(m => m.id === medal.id);
+    const defaultMedal = this.getDefaultMedals().find((m) => m.id === medal.id);
     const medalImage = medal.image || (defaultMedal ? defaultMedal.image : 'medal-image/game1.png');
 
     // 动态判断路径：如果页面在 training 或 detect 等子文件夹中，则加上 ../ 回到 frontend 根目录
     const pathname = window.location.pathname;
-    const inSubDir = pathname.includes('/training/') || pathname.includes('/detect/') || pathname.includes('/assessment/');
+    const inSubDir =
+      pathname.includes('/training/') || pathname.includes('/detect/') || pathname.includes('/assessment/');
     const imagePath = inSubDir ? `../${medalImage}` : medalImage;
 
     const overlay = document.createElement('div');

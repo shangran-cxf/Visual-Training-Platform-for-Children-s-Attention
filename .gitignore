@@ -32,6 +32,9 @@ venv/
 .venv/
 env/
 
+# --- Node ---
+node_modules/
+
 # --- 工具特定 ---
 /.trae
 CLAUDE.md
