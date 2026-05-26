@@ -1,3 +1,4 @@
+import logging
 import os
 import sqlite3
 import uuid
@@ -8,6 +9,8 @@ from flask import Blueprint, jsonify, request
 from database import execute_db
 from middleware import require_auth
 from utils import build_update_sql, error_response, is_admin, success_response
+
+logger = logging.getLogger(__name__)
 
 forum_bp = Blueprint("forum", __name__)
 
@@ -253,7 +256,7 @@ def create_post():
 
         return success_response({"post_id": post_id}, "发帖成功")
     except Exception as e:
-        print(f"发帖操作失败: {e}")
+        logger.error("发帖操作失败: %s", e)
         return error_response("服务器内部错误", status=500)
 
 
@@ -292,7 +295,7 @@ def update_post(post_id):
 
         return success_response(None, "更新成功")
     except Exception as e:
-        print(f"更新帖子操作失败: {e}")
+        logger.error("更新帖子操作失败: %s", e)
         return error_response("服务器内部错误", status=500)
 
 
@@ -323,7 +326,7 @@ def delete_post(post_id):
         execute_db("DELETE FROM forum_posts WHERE id = ?", (post_id,))
         return success_response(None, "删除成功")
     except Exception as e:
-        print(f"删除帖子操作失败: {e}")
+        logger.error("删除帖子操作失败: %s", e)
         return error_response("服务器内部错误", status=500)
 
 
@@ -340,7 +343,7 @@ def pin_post(post_id):
         execute_db("UPDATE forum_posts SET is_pinned = ? WHERE id = ?", (is_pinned, post_id))
         return success_response(None, "操作成功")
     except Exception as e:
-        print(f"置顶操作失败: {e}")
+        logger.error("置顶操作失败: %s", e)
         return error_response("服务器内部错误", status=500)
 
 
@@ -357,7 +360,7 @@ def essential_post(post_id):
         execute_db("UPDATE forum_posts SET is_essential = ? WHERE id = ?", (is_essential, post_id))
         return success_response(None, "操作成功")
     except Exception as e:
-        print(f"精华操作失败: {e}")
+        logger.error("精华操作失败: %s", e)
         return error_response("服务器内部错误", status=500)
 
 
@@ -561,7 +564,7 @@ def vote():
 
         return success_response(None, "投票成功")
     except Exception as e:
-        print(f"投票操作失败: {e}")
+        logger.error("投票操作失败: %s", e)
         return error_response("服务器内部错误", status=500)
 
 
@@ -616,7 +619,7 @@ def add_favorite(post_id):
     except sqlite3.IntegrityError:
         return error_response("已收藏或帖子不存在", status=400)
     except Exception as e:
-        print(f"收藏操作失败: {e}")
+        logger.error("收藏操作失败: %s", e)
         return error_response("服务器内部错误", status=500)
 
 

@@ -25,7 +25,7 @@ def register():
     children = data.get("children", [])
 
     if not username or not password:
-        return jsonify({"error": "用户名和密码不能为空"}), 400
+        return error_response("用户名和密码不能为空", status=400)
 
     try:
         uid = get_next_uid()
@@ -46,7 +46,7 @@ def register():
 
         return jsonify({"parent_id": parent_id, "uid": uid}), 201
     except sqlite3.IntegrityError:
-        return jsonify({"error": "用户名已存在"}), 400
+        return error_response("用户名已存在", status=400)
 
 
 @auth_bp.route("/api/login", methods=["POST"])
@@ -56,17 +56,17 @@ def login():
     password = data.get("password")
 
     if not username or not password:
-        return jsonify({"error": "用户名和密码不能为空"}), 400
+        return error_response("用户名和密码不能为空", status=400)
 
     result = execute_db("SELECT id, uid, email, role, is_banned, password FROM parents WHERE username = ?", (username,))
 
     if not result:
-        return jsonify({"error": "用户名或密码错误"}), 401
+        return error_response("用户名或密码错误", status=401)
 
     parent_id, uid, email, role, is_banned, stored_password = result[0]
 
     if is_banned == 1:
-        return jsonify({"error": "账户已封禁"}), 403
+        return error_response("账户已封禁", status=403)
 
     password_valid = False
     need_upgrade = False
@@ -79,7 +79,7 @@ def login():
             need_upgrade = True
 
     if not password_valid:
-        return jsonify({"error": "用户名或密码错误"}), 401
+        return error_response("用户名或密码错误", status=401)
 
     if need_upgrade:
         hashed_password = hash_password(password)
@@ -170,7 +170,7 @@ def verify_password_endpoint():
     password = data.get("password") or data.get("old_password")
 
     if not parent_id or not password:
-        return jsonify({"error": "参数不完整"}), 400
+        return error_response("参数不完整", status=400)
 
     result = execute_db("SELECT id, password FROM parents WHERE id = ?", (parent_id,))
 

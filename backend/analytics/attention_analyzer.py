@@ -25,7 +25,7 @@ class AttentionAnalyzer:
         "inhibitory_control": "抑制控制",
     }
 
-    PERFORMANCE_LEVELS = {(90, 100): "优秀", (75, 89.99): "良好", (60, 74.99): "一般", (0, 59.99): "需改进"}
+    PERFORMANCE_LEVELS = {(90, 100): "优秀", (75, 89.99): "良好", (50, 74.99): "一般", (0, 49.99): "较弱"}
 
     @staticmethod
     def calculate_attention_score(vision_data: dict, game_data: dict) -> float:
@@ -301,10 +301,10 @@ class AttentionAnalyzer:
             return "优秀"
         elif score >= 75:
             return "良好"
-        elif score >= 60:
+        elif score >= 50:
             return "一般"
         else:
-            return "需改进"
+            return "较弱"
 
     @staticmethod
     def get_dimension_strengths_weaknesses(dimension_scores: dict) -> dict:

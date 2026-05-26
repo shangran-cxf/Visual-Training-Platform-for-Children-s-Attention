@@ -1,8 +1,11 @@
 import functools
 
 from config import SECRET_KEY
-from flask import jsonify, request
+from flask import request
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+
+from utils.error_codes import AUTH_ERROR, PERMISSION_DENIED, TOKEN_INVALID
+from utils.response_utils import error_response
 
 serializer = URLSafeTimedSerializer(SECRET_KEY, salt="auth-token")
 
@@ -54,11 +57,11 @@ def require_auth(f):
             token = auth_header[7:]
 
         if not token:
-            return jsonify({"error": "缺少认证令牌"}), 401
+            return error_response("缺少认证令牌", code=AUTH_ERROR, status=401)
 
         payload = verify_token(token)
         if not payload:
-            return jsonify({"error": "无效或过期的令牌"}), 401
+            return error_response("无效或过期的令牌", code=TOKEN_INVALID, status=401)
 
         request.user_id = payload.get("user_id")
         request.user_role = payload.get("role")
@@ -82,14 +85,14 @@ def require_admin(f):
             token = auth_header[7:]
 
         if not token:
-            return jsonify({"error": "缺少认证令牌"}), 401
+            return error_response("缺少认证令牌", code=AUTH_ERROR, status=401)
 
         payload = verify_token(token)
         if not payload:
-            return jsonify({"error": "无效或过期的令牌"}), 401
+            return error_response("无效或过期的令牌", code=TOKEN_INVALID, status=401)
 
         if payload.get("role") != "admin":
-            return jsonify({"error": "权限不足，需要管理员权限"}), 403
+            return error_response("权限不足，需要管理员权限", code=PERMISSION_DENIED, status=403)
 
         request.user_id = payload.get("user_id")
         request.user_role = payload.get("role")

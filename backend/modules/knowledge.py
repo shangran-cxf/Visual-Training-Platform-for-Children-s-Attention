@@ -5,6 +5,8 @@ from datetime import datetime
 from config import FRONTEND_DIR
 from flask import Blueprint, jsonify, request
 
+from utils.response_utils import error_response
+
 knowledge_bp = Blueprint("knowledge", __name__)
 
 KNOWLEDGE_DATA_PATH = os.path.join(FRONTEND_DIR, "knowledge", "knowledge-data.json")
@@ -87,7 +89,7 @@ def create_article():
     reading_time = data.get("reading_time", 5)
 
     if not title or not content or not author:
-        return jsonify({"error": "标题、内容和作者不能为空"}), 400
+        return error_response("标题、内容和作者不能为空", status=400)
 
     articles = load_articles()
 
@@ -128,7 +130,7 @@ def update_article(article_id):
             break
 
     if article_index is None:
-        return jsonify({"error": "文章不存在"}), 404
+        return error_response("文章不存在", status=404)
 
     article = articles[article_index]
 
@@ -168,7 +170,7 @@ def delete_article(article_id):
             break
 
     if article_index is None:
-        return jsonify({"error": "文章不存在"}), 404
+        return error_response("文章不存在", status=404)
 
     deleted_article = articles.pop(article_index)
     save_articles(articles)
