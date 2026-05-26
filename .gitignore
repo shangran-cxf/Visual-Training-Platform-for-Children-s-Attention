@@ -35,6 +35,10 @@ env/
 # --- Node ---
 node_modules/
 
+# --- 缓存 ---
+.pytest_cache/
+.ruff_cache/
+
 # --- 工具特定 ---
 /.trae
 CLAUDE.md
