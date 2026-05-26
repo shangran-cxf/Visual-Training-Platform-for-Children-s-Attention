@@ -1,7 +1,37 @@
-/.trae
-/database/.idea
-/database/attention.db
-*.pyc
-.env
+# --- 敏感配置 ---
+**/.env
+*.env
+
+# --- Python ---
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# --- 数据库 & 运行时 ---
 *.db
-__pycache__/
+*.pid
+*.log
+
+# --- 上传文件 ---
+uploads/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- 虚拟环境 ---
+venv/
+.venv/
+env/
+
+# --- 工具特定 ---
+/.trae
+CLAUDE.md
