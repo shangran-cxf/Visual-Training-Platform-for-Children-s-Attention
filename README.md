@@ -18,23 +18,54 @@
 
 ```bash
 pip install -r backend/requirements.txt
+npm install              # Prettier（代码格式化）
+pre-commit install       # Git 提交前自动检查
 ```
 
 ### 2. 启动服务
 
 ```bash
-python backend/app.py
+# 开发模式（Flask 内置服务器，自动热重载）
+python run.py
+
+# 或指定端口和调试模式
+python run.py --port 8080 --debug
+
+# 生产模式（需先安装 gunicorn）
+python run.py --prod gunicorn
+
+# 生产模式（需先安装 uwsgi）
+python run.py --prod uwsgi
 ```
 
-默认运行在 `http://localhost:5000`。
+启动后访问 `http://localhost:5000`。
 
-### 3. 数据库
+### 3. 环境变量
 
-首次启动自动创建表结构并初始化默认数据。数据库文件位于 `database/attention.db`，可通过环境变量 `DATABASE_PATH` 自定义路径。
+生产环境可通过环境变量覆盖默认配置：
 
-### 4. AI 分析（可选）
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `FLASK_DEBUG` | `true` | 调试模式开关 |
+| `FLASK_HOST` | `0.0.0.0` | 监听地址 |
+| `FLASK_PORT` | `5000` | 监听端口 |
+| `SECRET_KEY` | 内置默认值 | Flask 密钥（生产务必修改） |
+| `DATABASE_PATH` | `database/attention.db` | 数据库路径 |
+| `GUNICORN_BIND` | `0.0.0.0:5000` | Gunicorn 绑定地址 |
 
-如需 AI 训练评估功能，在 `backend/ai/` 下创建 `.env` 文件：
+### 4. 运行测试
+
+```bash
+pytest                    # 135 个测试
+```
+
+### 5. 数据库
+
+首次启动自动创建表结构并初始化默认数据。数据库文件位于 `database/attention.db`。
+
+### 6. AI 分析（可选）
+
+在 `backend/ai/` 下创建 `.env` 文件（模板见 `backend/ai/.env.example`）：
 
 ```
 AI_API_KEY=your_api_key

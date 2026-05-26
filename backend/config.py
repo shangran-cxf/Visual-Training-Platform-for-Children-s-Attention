@@ -12,7 +12,12 @@ DB_PATH = DATABASE_PATH
 
 SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production-2024"
 
-APP_CONFIG = {"debug": True, "host": "0.0.0.0", "port": 5000, "secret_key": SECRET_KEY}
+APP_CONFIG = {
+    "debug": os.environ.get("FLASK_DEBUG", "true").lower() in ("true", "1", "yes"),
+    "host": os.environ.get("FLASK_HOST", "0.0.0.0"),
+    "port": int(os.environ.get("FLASK_PORT", "5000")),
+    "secret_key": SECRET_KEY,
+}
 
 GAME_TYPES = {
     "level1": {"name": "线索筛选站", "attention_type": "selective", "dimensions": ["selective_attention"]},

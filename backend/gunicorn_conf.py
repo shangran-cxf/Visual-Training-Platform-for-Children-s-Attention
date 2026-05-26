@@ -1,37 +1,29 @@
-# 项目目录
-chdir = "/www/wwwroot/TMZX/backend"
+import os
+
+# 项目目录（配置文件所在目录即 backend/）
+chdir = os.path.dirname(os.path.abspath(__file__))
 
 # 指定进程数
-workers = 4
+workers = int(os.environ.get("GUNICORN_WORKERS", "4"))
 
 # 指定每个进程开启的线程数
-threads = 2
+threads = int(os.environ.get("GUNICORN_THREADS", "2"))
 
-# 启动用户
-user = "www"
+# 启动用户（None 表示当前用户，部署时设为实际用户如 www）
+user = os.environ.get("GUNICORN_USER") or None
 
 # 启动模式
-worker_class = "sync"
+worker_class = os.environ.get("GUNICORN_WORKER_CLASS", "sync")
 
 # 绑定的ip与端口
-bind = "0.0.0.0:5000"
+bind = os.environ.get("GUNICORN_BIND", "0.0.0.0:5000")
 
 # 设置进程文件目录（用于停止服务和重启服务，请勿删除）
-pidfile = "/www/wwwroot/TMZX/backend/gunicorn.pid"
+pidfile = os.environ.get("GUNICORN_PIDFILE", os.path.join(chdir, "gunicorn.pid"))
 
 # 设置访问日志和错误信息日志路径
-accesslog = "/www/wwwlogs/python/backend/gunicorn_acess.log"
-errorlog = "/www/wwwlogs/python/backend/gunicorn_error.log"
+accesslog = os.environ.get("GUNICORN_ACCESSLOG", os.path.join(chdir, "gunicorn_access.log"))
+errorlog = os.environ.get("GUNICORN_ERRORLOG", os.path.join(chdir, "gunicorn_error.log"))
 
-# 日志级别，这个日志级别指的是错误日志的级别，而访问日志的级别无法设置
-# debug:调试级别，记录的信息最多；
-# info:普通级别；
-# warning:警告消息；
-# error:错误消息；
-# critical:严重错误消息；
-loglevel = "info"
-
-# 自定义设置项请写到该处
-# 最好以上面相同的格式 <注释 + 换行 + key = value> 进行书写，
-# PS: gunicorn 的配置文件是python扩展形式，即".py"文件，需要注意遵从python语法，
-# 如：loglevel的等级是字符串作为配置的，需要用引号包裹起来
+# 日志级别
+loglevel = os.environ.get("GUNICORN_LOGLEVEL", "info")
