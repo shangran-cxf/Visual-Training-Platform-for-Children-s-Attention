@@ -1,6 +1,6 @@
-import json
+﻿import json
 from openai import OpenAI
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, g
 from database import execute_db
 from utils.response_utils import success_response, error_response
@@ -14,6 +14,14 @@ from .validator import (
 )
 
 ai_bp = Blueprint('ai', __name__)
+
+ATTENTION_TYPE_NAMES = {
+    'selective': '选择性注意',
+    'sustained': '持续性注意',
+    'tracking': '视觉追踪',
+    'memory': '工作记忆',
+    'inhibitory': '抑制控制'
+}
 
 ATTENTION_DIMENSION_NAMES = {
     'selective_attention': '选择性注意',
@@ -44,21 +52,23 @@ def get_child_basic_info(child_id):
     return None
 
 def get_child_training_stats(child_id):
-    training_count = execute_db(
+    training_count_result = execute_db(
         'SELECT COUNT(*) FROM training_sessions WHERE child_id = ?',
         (child_id,)
-    )[0][0]
+    )
+    training_count = training_count_result[0][0] if training_count_result else 0
     
-    total_time = execute_db(
+    total_time_result = execute_db(
         'SELECT COALESCE(SUM(duration), 0) FROM training_sessions WHERE child_id = ?',
         (child_id,)
-    )[0][0]
+    )
+    total_time = total_time_result[0][0] if total_time_result else 0
     
     avg_score_result = execute_db(
         'SELECT AVG(overall_score) FROM session_summaries WHERE child_id = ?',
         (child_id,)
     )
-    avg_score = round(avg_score_result[0][0], 2) if avg_score_result[0][0] else 0
+    avg_score = round(avg_score_result[0][0], 2) if avg_score_result and avg_score_result[0][0] is not None else 0
     
     return {
         'training_count': training_count,
@@ -90,7 +100,7 @@ def get_child_detection_data(child_id):
     return None
 
 def get_child_training_trend(child_id, days=30):
-    end_date = datetime.now()
+    end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=days)
     
     query = '''
@@ -133,14 +143,12 @@ def get_performance_level(score):
 def get_evaluation_data(child_id):
     stats = get_child_training_stats(child_id)
     detection = get_child_detection_data(child_id)
-    trend = get_child_training_trend(child_id)
     
     return {
         'training_count': stats.get('training_count', 0),
         'total_time': stats.get('total_time', 0),
         'avg_score': stats.get('avg_score', 0),
-        'detection': detection,
-        'trend': trend
+        'detection': detection
     }
 
 def get_history_evaluation_data(child_id, days=30):
@@ -221,7 +229,8 @@ def call_ai_service(system_prompt, user_prompt, expect_json=True):
                 }
             ],
             max_tokens=AI_CONFIG['max_tokens'],
-            temperature=AI_CONFIG['temperature']
+            temperature=AI_CONFIG['temperature'],
+            extra_body={"thinking": {"type": "disabled"}}
         )
         
         content = response.choices[0].message.content
@@ -237,59 +246,96 @@ def call_ai_service(system_prompt, user_prompt, expect_json=True):
     except Exception as e:
         return None, f"AI API 调用失败: {str(e)}"
 
-def format_training_data_for_prompt(child_id):
+def format_detection_data_for_prompt(child_id, include_performance_level=True):
     detection = get_child_detection_data(child_id)
-    trend = get_child_training_trend(child_id)
+    if not detection:
+        return "暂无能力评估数据"
     
-    if detection:
-        lines = []
-        lines.append(f"- 选择性注意：{round(detection.get('selective_attention', 0) * 100, 1)}% ({get_performance_level(detection.get('selective_attention', 0) * 100)})")
-        lines.append(f"- 持续性注意：{round(detection.get('sustained_attention', 0) * 100, 1)}% ({get_performance_level(detection.get('sustained_attention', 0) * 100)})")
-        lines.append(f"- 视觉追踪：{round(detection.get('visual_tracking', 0) * 100, 1)}% ({get_performance_level(detection.get('visual_tracking', 0) * 100)})")
-        lines.append(f"- 工作记忆：{round(detection.get('working_memory', 0) * 100, 1)}% ({get_performance_level(detection.get('working_memory', 0) * 100)})")
-        lines.append(f"- 抑制控制：{round(detection.get('inhibitory_control', 0) * 100, 1)}% ({get_performance_level(detection.get('inhibitory_control', 0) * 100)})")
-        lines.append(f"- 综合得分：{round(detection.get('total_score', 0) * 100, 1)}%")
-        return "\n".join(lines)
+    lines = []
     
-    if trend:
-        lines = ["暂无能力评估数据，以下为训练趋势数据："]
-        for attention_type, records in trend.items():
-            if records:
-                scores = [r['score'] for r in records]
-                avg = sum(scores) / len(scores)
-                trend_direction = '上升' if len(scores) >= 2 and scores[-1] > scores[0] else ('下降' if len(scores) >= 2 and scores[-1] < scores[0] else '稳定')
-                type_name = ATTENTION_DIMENSION_NAMES.get(attention_type, attention_type)
-                lines.append(f"- {type_name}：平均 {round(avg, 1)} 分，趋势 {trend_direction}，共 {len(records)} 次记录")
-        return "\n".join(lines)
+    # 构建注意力维度的数据行
+    attention_dimensions = [
+        ('selective_attention', '选择性注意'),
+        ('sustained_attention', '持续性注意'),
+        ('visual_tracking', '视觉追踪'),
+        ('working_memory', '工作记忆'),
+        ('inhibitory_control', '抑制控制')
+    ]
     
-    return "暂无最新训练数据"
+    for dim_key, dim_name in attention_dimensions:
+        score = detection.get(dim_key, 0) * 100
+        if include_performance_level:
+            level = get_performance_level(score)
+            lines.append(f"- {dim_name}：{round(score, 1)}% ({level})")
+        else:
+            lines.append(f"- {dim_name}：{round(score, 1)}%")
+    
+    lines.append(f"- 综合得分：{round(detection.get('total_score', 0) * 100, 1)}%")
+    lines.append(f"- 评估时间：{detection.get('timestamp', '未知')}")
+    
+    return "\n".join(lines)
 
-def format_detection_data_for_prompt(child_id):
+def format_training_data_for_prompt(child_id):
+    stats = get_child_training_stats(child_id)
     detection = get_child_detection_data(child_id)
-    trend = get_child_training_trend(child_id)
     
+    lines = []
+    
+    # 训练统计概览
+    lines.append(f"- 累计训练次数：{stats.get('training_count', 0)}次")
+    lines.append(f"- 累计训练时长：{round(stats.get('total_time', 0) / 60, 1)}分钟")
+    lines.append(f"- 平均得分：{stats.get('avg_score', 0)}分")
+    
+    # 按注意力维度汇总训练得分
+    dimension_stats = execute_db('''
+        SELECT attention_type, COUNT(*) as cnt, AVG(overall_score) as avg_score
+        FROM session_summaries
+        WHERE child_id = ?
+        GROUP BY attention_type
+    ''', (child_id,))
+    
+    if dimension_stats:
+        lines.append("")
+        lines.append("各维度训练表现：")
+        for row in dimension_stats:
+            at_name = ATTENTION_TYPE_NAMES.get(row[0], row[0])
+            lines.append(f"- {at_name}：训练{row[1]}次，平均{round(row[2], 1)}分")
+    
+    # 最近5次训练记录
+    recent_sessions = execute_db('''
+        SELECT ss.attention_type, ss.overall_score, ss.performance_level, s.start_time
+        FROM session_summaries ss
+        JOIN training_sessions s ON ss.session_id = s.id
+        WHERE ss.child_id = ?
+        ORDER BY s.start_time DESC
+        LIMIT 5
+    ''', (child_id,))
+    
+    if recent_sessions:
+        lines.append("")
+        lines.append("最近训练记录：")
+        for row in recent_sessions:
+            at_name = ATTENTION_TYPE_NAMES.get(row[0], row[0])
+            lines.append(f"- {at_name}：{round(row[1], 1)}分（{row[2] or '未评级'}），时间{row[3]}")
+    
+    # 能力评估数据（如有）
     if detection:
-        lines = []
-        lines.append(f"- 选择性注意：{round(detection.get('selective_attention', 0) * 100, 1)}%")
-        lines.append(f"- 持续性注意：{round(detection.get('sustained_attention', 0) * 100, 1)}%")
-        lines.append(f"- 视觉追踪：{round(detection.get('visual_tracking', 0) * 100, 1)}%")
-        lines.append(f"- 工作记忆：{round(detection.get('working_memory', 0) * 100, 1)}%")
-        lines.append(f"- 抑制控制：{round(detection.get('inhibitory_control', 0) * 100, 1)}%")
+        lines.append("")
+        lines.append("能力评估数据：")
+        attention_dimensions = [
+            ('selective_attention', '选择性注意'),
+            ('sustained_attention', '持续性注意'),
+            ('visual_tracking', '视觉追踪'),
+            ('working_memory', '工作记忆'),
+            ('inhibitory_control', '抑制控制')
+        ]
+        for dim_key, dim_name in attention_dimensions:
+            score = detection.get(dim_key, 0) * 100
+            level = get_performance_level(score)
+            lines.append(f"- {dim_name}：{round(score, 1)}% ({level})")
         lines.append(f"- 综合得分：{round(detection.get('total_score', 0) * 100, 1)}%")
-        lines.append(f"- 评估时间：{detection.get('timestamp', '未知')}")
-        return "\n".join(lines)
     
-    if trend:
-        lines = ["暂无能力评估数据，以下为训练趋势数据："]
-        for attention_type, records in trend.items():
-            if records:
-                scores = [r['score'] for r in records]
-                avg = sum(scores) / len(scores)
-                type_name = ATTENTION_DIMENSION_NAMES.get(attention_type, attention_type)
-                lines.append(f"- {type_name}：平均 {round(avg, 1)} 分，共 {len(records)} 次记录")
-        return "\n".join(lines)
-    
-    return "暂无能力评估数据"
+    return "\n".join(lines)
 
 def format_trend_data_for_prompt(child_id, days=30):
     trend = get_child_training_trend(child_id, days)
@@ -299,10 +345,11 @@ def format_trend_data_for_prompt(child_id, days=30):
     lines = []
     for attention_type, records in trend.items():
         if records:
+            at_name = ATTENTION_TYPE_NAMES.get(attention_type, attention_type)
             scores = [r['score'] for r in records]
             avg = sum(scores) / len(scores)
             trend_direction = '上升' if len(scores) >= 2 and scores[-1] > scores[0] else ('下降' if len(scores) >= 2 and scores[-1] < scores[0] else '稳定')
-            lines.append(f"- {attention_type}：平均 {round(avg, 1)} 分，趋势 {trend_direction}，共 {len(records)} 次记录")
+            lines.append(f"- {at_name}：平均 {round(avg, 1)} 分，趋势 {trend_direction}，共 {len(records)} 次记录")
     
     return "\n".join(lines) if lines else "暂无训练趋势数据"
 
@@ -342,7 +389,7 @@ def generate_current_training_evaluation():
             'is_empty': True
         }, '暂无训练数据，返回预设报告')
     
-    cached_report = get_cached_report_if_unchanged(child_id, evaluation_data, CACHE_CONFIG)
+    cached_report = get_cached_report_if_unchanged(child_id, evaluation_data, CACHE_CONFIG, 'current_training')
     if cached_report:
         return success_response({
             'child_id': child_id,
@@ -409,7 +456,7 @@ def generate_history_training_evaluation():
             'is_empty': True
         }, '暂无训练数据，返回预设报告')
     
-    cached_report = get_cached_report_if_unchanged(child_id, evaluation_data, CACHE_CONFIG)
+    cached_report = get_cached_report_if_unchanged(child_id, evaluation_data, CACHE_CONFIG, 'history_training')
     if cached_report:
         return success_response({
             'child_id': child_id,
@@ -553,7 +600,7 @@ def generate_training_analysis():
         "",
         "## 训练统计",
         f"- 累计训练次数：{stats.get('training_count', 0)}次",
-        f"- 累计训练时长：{stats.get('total_time', 0)}分钟",
+        f"- 累计训练时长：{round(stats.get('total_time', 0) / 60, 1)}分钟",
         f"- 平均得分：{stats.get('avg_score', 0)}分",
         ""
     ]
@@ -574,10 +621,11 @@ def generate_training_analysis():
         prompt_parts.append("## 训练趋势分析")
         for attention_type, records in trend.items():
             if records:
+                at_name = ATTENTION_TYPE_NAMES.get(attention_type, attention_type)
                 scores = [r['score'] for r in records]
                 avg = sum(scores) / len(scores)
                 trend_direction = '上升' if len(scores) >= 2 and scores[-1] > scores[0] else ('下降' if len(scores) >= 2 and scores[-1] < scores[0] else '稳定')
-                prompt_parts.append(f"- {attention_type}：平均{round(avg, 1)}分，趋势{trend_direction}")
+                prompt_parts.append(f"- {at_name}：平均{round(avg, 1)}分，趋势{trend_direction}")
         prompt_parts.append("")
     
     prompt_parts.extend([

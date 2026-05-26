@@ -2,5 +2,3 @@ Flask
 Flask-CORS
 bcrypt
 openai>=1.0
-python-dotenv
-itsdangerous

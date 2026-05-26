@@ -3,14 +3,14 @@
  * EAR算法版：使用眼睛纵横比检测眨眼，更准确稳定
  */
 
-(function() {
+(function () {
     // ========== 所有变量声明放在最前面 ==========
     let faceLandmarker = null;
     let videoElement = null;
     let stream = null;
     let animationId = null;
     let isDetecting = false;
-    
+
     // 监测数据
     let detectionData = {
         attentionScore: 0,
@@ -21,59 +21,59 @@
         blinkRate: 0,
         focusDuration: 0
     };
-    
+
     // ========== EAR 眨眼检测变量 ==========
     // 眼睛关键点索引 (MediaPipe 468点模型)
     const LEFT_EYE_INDICES = [33, 160, 158, 133, 153, 144];
     const RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380];
-    
+
     let earValue = 1.0;              // 当前EAR值
     let eyeClosedCounter = 0;        // 闭眼连续帧计数
     let totalBlinks = 0;             // 总眨眼次数
     let blinkTimes = [];             // 眨眼时间戳
     let currentBlinkRate = 0;        // 当前眨眼频率（次/分）
     let smoothBlinkRate = 0;         // 平滑后的眨眼频率
-    
-    // EAR阈值（经验值：0.25）
-    const EAR_THRESHOLD = 0.25;
-    // 最小闭眼帧数（过滤误检）
-    const MIN_CLOSED_FRAMES = 2;
-    // 统计窗口（毫秒）
-    const BLINK_WINDOW = 10000;
-    
+
+    // EAR阈值（调整为更严格的值：0.20）
+    const EAR_THRESHOLD = 0.20;
+    // 最小闭眼帧数（增加到3帧以减少误检）
+    const MIN_CLOSED_FRAMES = 3;
+    // 统计窗口（延长到15秒以获得更稳定的结果）
+    const BLINK_WINDOW = 15000;
+
     // 眨眼基线相关
     let baselineBlinkRate = null;
     let baselineSamples = [];
     let isBaselineCollecting = true;
     let baselineStartTime = null;
     const BASELINE_DURATION = 30000;
-    
+
     // 专注计时变量
     let focusStartTime = null;
     let totalFocusDuration = 0;
-    
+
     // 提醒状态变量
     let wasDistracted = false;
     let wasTooClose = false;
     let wasTooFar = false;
     let lastTipTime = 0;
-    
+
     // 当前提示显示状态
     let isDistractedTipShowing = false;
     let isTooCloseTipShowing = false;
     let isTooFarTipShowing = false;
     let isNoFaceTipShowing = false;
-    
+
     // 当前显示的云朵
     let currentCloud = null;
     let currentTipType = null;
-    
+
     // 面板状态
     let isPanelOpen = false;
     let floatingBall = null;
     let panel = null;
     let panelUpdateInterval = null;
-    
+
     // 会话统计变量
     let sessionStartTime = null;
     let sessionEndTime = null;
@@ -81,21 +81,21 @@
     let sessionDistractionCount = 0;
     let sessionBlinkRates = [];
     let sessionIsActive = false;
-    
+
     // ========== 拖拽联动变量 ==========
     let activeDragElement = null;
     let dragStartX = 0, dragStartY = 0;
     let dragStartLeft = 0, dragStartTop = 0;
     let dragStartPanelLeft = 0, dragStartPanelTop = 0;
     let dragStartCloudLeft = 0, dragStartCloudTop = 0;
-    
+
     // ========== 统一距离判断函数 ==========
     function getDistanceStatus(faceArea) {
         if (faceArea > 0.45) return 'too_close';
         if (faceArea < 0.05) return 'too_far';
         return 'normal';
     }
-    
+
     // ========== EAR 眨眼检测核心函数 ==========
     // 计算眼睛纵横比 (EAR)
     function calculateEAR(landmarks, eyeIndices, frameWidth, frameHeight) {
@@ -103,48 +103,48 @@
             x: landmarks[idx].x * frameWidth,
             y: landmarks[idx].y * frameHeight
         }));
-        
+
         // 垂直距离 A (p1-p5) 和 B (p2-p4)
         const A = Math.hypot(points[1].x - points[5].x, points[1].y - points[5].y);
         const B = Math.hypot(points[2].x - points[4].x, points[2].y - points[4].y);
         // 水平距离 C (p0-p3)
         const C = Math.hypot(points[0].x - points[3].x, points[0].y - points[3].y);
-        
+
         return (A + B) / (2.0 * C);
     }
-    
+
     // 记录眨眼
     function recordBlink() {
         const now = Date.now();
         totalBlinks++;
         blinkTimes.push(now);
-        
+
         // 清理超过10秒的旧记录
         while (blinkTimes.length > 0 && blinkTimes[0] < now - BLINK_WINDOW) {
             blinkTimes.shift();
         }
-        
+
         // 计算当前频率（次/分钟）
         const currentRate = blinkTimes.length / (BLINK_WINDOW / 1000) * 60;
-        // 指数平滑
-        smoothBlinkRate = smoothBlinkRate === 0 ? currentRate : smoothBlinkRate * 0.6 + currentRate * 0.4;
+        // 更平滑的指数平滑（增加权重）
+        smoothBlinkRate = smoothBlinkRate === 0 ? currentRate : smoothBlinkRate * 0.8 + currentRate * 0.2;
         currentBlinkRate = smoothBlinkRate;
-        
+
         // // console.log(`👁️ 眨眼检测！总次数：${totalBlinks}, 频率：${currentBlinkRate.toFixed(0)} 次/分`);
-        
+
         return currentBlinkRate;
     }
-    
+
     // 更新EAR值并检测眨眼
     function updateEARAndDetectBlink(landmarks, frameWidth, frameHeight) {
         if (!landmarks || frameWidth === 0 || frameHeight === 0) return;
-        
+
         try {
             // 计算左右眼EAR
             const leftEAR = calculateEAR(landmarks, LEFT_EYE_INDICES, frameWidth, frameHeight);
             const rightEAR = calculateEAR(landmarks, RIGHT_EYE_INDICES, frameWidth, frameHeight);
             earValue = (leftEAR + rightEAR) / 2;
-            
+
             // 判断是否闭眼
             if (earValue < EAR_THRESHOLD) {
                 eyeClosedCounter++;
@@ -159,7 +159,7 @@
             console.warn('EAR计算失败:', err);
         }
     }
-    
+
     // 更新眨眼频率和状态（每帧调用）
     function updateBlinkRate() {
         const now = Date.now();
@@ -167,9 +167,10 @@
             blinkTimes.shift();
         }
         const currentRate = blinkTimes.length / (BLINK_WINDOW / 1000) * 60;
+        // 与recordBlink函数保持一致的平滑算法
         smoothBlinkRate = smoothBlinkRate === 0 ? currentRate : smoothBlinkRate * 0.8 + currentRate * 0.2;
         currentBlinkRate = smoothBlinkRate;
-        
+
         // 收集基线数据
         if (isBaselineCollecting && baselineStartTime) {
             if (Date.now() - baselineStartTime < BASELINE_DURATION) {
@@ -192,10 +193,10 @@
                 }
             }
         }
-        
+
         return currentBlinkRate;
     }
-    
+
     // 获取眨眼状态描述
     function getBlinkStatus() {
         if (isBaselineCollecting) {
@@ -204,9 +205,9 @@
         if (!baselineBlinkRate || baselineBlinkRate === 0) {
             return { text: '正常', color: '#4CAF50', advice: '状态良好' };
         }
-        
+
         const ratio = currentBlinkRate / baselineBlinkRate;
-        
+
         if (ratio > 1.5) {
             return { text: '偏高', color: '#FF9800', advice: '可能有点疲劳了' };
         } else if (ratio > 1.2) {
@@ -217,7 +218,7 @@
             return { text: '正常', color: '#4CAF50', advice: '状态良好' };
         }
     }
-    
+
     // ========== 会话统计 ==========
     function startSession() {
         sessionStartTime = Date.now();
@@ -227,29 +228,29 @@
         sessionIsActive = true;
         console.log('📊 游戏会话开始');
     }
-    
+
     function endSession() {
         if (!sessionIsActive) return;
-        
+
         sessionEndTime = Date.now();
         sessionIsActive = false;
-        
+
         const duration = (sessionEndTime - sessionStartTime) / 1000;
-        const avgAttention = sessionAttentionScores.length > 0 
-            ? sessionAttentionScores.reduce((a, b) => a + b, 0) / sessionAttentionScores.length 
+        const avgAttention = sessionAttentionScores.length > 0
+            ? sessionAttentionScores.reduce((a, b) => a + b, 0) / sessionAttentionScores.length
             : 0;
         const maxAttention = sessionAttentionScores.length > 0 ? Math.max(...sessionAttentionScores) : 0;
         const minAttention = sessionAttentionScores.length > 0 ? Math.min(...sessionAttentionScores) : 0;
-        const avgBlinkRate = sessionBlinkRates.length > 0 
-            ? sessionBlinkRates.reduce((a, b) => a + b, 0) / sessionBlinkRates.length 
+        const avgBlinkRate = sessionBlinkRates.length > 0
+            ? sessionBlinkRates.reduce((a, b) => a + b, 0) / sessionBlinkRates.length
             : 0;
-        
+
         let attentionLevel = '一般';
         if (avgAttention >= 80) attentionLevel = '优秀';
         else if (avgAttention >= 60) attentionLevel = '良好';
         else if (avgAttention >= 40) attentionLevel = '一般';
         else attentionLevel = '需提升';
-        
+
         const report = {
             timestamp: new Date().toISOString(),
             duration: Math.floor(duration),
@@ -262,7 +263,7 @@
             attentionLevel: attentionLevel,
             totalFrames: sessionAttentionScores.length
         };
-        
+
         console.log('📊 ========== 游戏会话报告 ==========');
         console.log(`游戏时长: ${report.duration} 秒`);
         console.log(`平均专注度: ${report.avgAttention} 分 (${report.attentionLevel})`);
@@ -273,17 +274,17 @@
         console.log(`眨眼基线: ${report.blinkBaseline} 次/分`);
         console.log(`总帧数: ${report.totalFrames} 帧`);
         console.log('====================================');
-        
+
         const history = JSON.parse(localStorage.getItem('game_session_history') || '[]');
         history.push(report);
         if (history.length > 20) history.shift();
         localStorage.setItem('game_session_history', JSON.stringify(history));
-        
+
         showSessionReport(report);
-        
+
         return report;
     }
-    
+
     function showSessionReport(report) {
         const modal = document.createElement('div');
         modal.style.cssText = `
@@ -299,12 +300,12 @@
             z-index: 20000;
             animation: fadeIn 0.3s ease;
         `;
-        
+
         let levelColor = '#FF9800';
         if (report.attentionLevel === '优秀') levelColor = '#4CAF50';
         else if (report.attentionLevel === '良好') levelColor = '#8BC34A';
         else if (report.attentionLevel === '需提升') levelColor = '#F44336';
-        
+
         modal.innerHTML = `
             <div style="
                 background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
@@ -337,7 +338,7 @@
                 </div>
                 <div style="margin-top: 20px;">
                     <button id="close-report-btn" style="
-                        background: linear-gradient(90deg, #4caf50, #81c784);
+                        background: linear-gradient(90deg, #ffffffff, #ffffffff);
                         color: white;
                         border: none;
                         padding: 12px 30px;
@@ -348,36 +349,38 @@
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(modal);
         document.getElementById('close-report-btn').addEventListener('click', () => {
             modal.remove();
         });
     }
-    
+
     // ========== 初始化 ==========
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
-    
+
     async function init() {
         startSession();
         createFloatingBall();
         await startCamera();
         startDetection();
+        // 自动打开面板，直观展示数据
+        setTimeout(openPanel, 1000);
     }
-    
+
     // ========== 云朵提示 ==========
     function showCloudTip(message, type, persistent = false) {
         if (currentTipType === type && currentCloud) return;
-        
+
         if (currentCloud) {
             currentCloud.remove();
             currentCloud = null;
         }
-        
+
         const cloud = document.createElement('div');
         cloud.id = 'cloud-tip';
         cloud.innerHTML = `
@@ -432,7 +435,7 @@
                 "></div>
             </div>
         `;
-        
+
         const style = document.getElementById('cloud-style');
         if (!style) {
             const newStyle = document.createElement('style');
@@ -450,15 +453,15 @@
             `;
             document.head.appendChild(newStyle);
         }
-        
+
         const ballRect = floatingBall.getBoundingClientRect();
         let top = ballRect.top - 65;
         let left = ballRect.left + ballRect.width / 2 - 70;
-        
+
         if (top < 10) top = ballRect.bottom + 10;
         if (left < 10) left = 10;
         if (left + 150 > window.innerWidth) left = window.innerWidth - 160;
-        
+
         Object.assign(cloud.style, {
             position: 'fixed',
             top: top + 'px',
@@ -467,18 +470,18 @@
             cursor: 'move',
             pointerEvents: 'auto'
         });
-        
+
         if (persistent) {
             cloud.style.animation = 'cloudPulse 1.5s ease-in-out infinite';
         }
-        
+
         document.body.appendChild(cloud);
         currentCloud = cloud;
         currentTipType = type;
-        
+
         makeDraggable(cloud, 'cloud');
     }
-    
+
     function hideCloudTip() {
         if (currentCloud) {
             currentCloud.remove();
@@ -486,122 +489,169 @@
             currentTipType = null;
         }
     }
-    
+
     // ========== 拖拽联动核心函数 ==========
     function makeDraggable(element, type = 'ball') {
         element.addEventListener('mousedown', (e) => {
             if (e.target !== element && !element.contains(e.target)) return;
-            
+
             activeDragElement = type;
             dragStartX = e.clientX;
             dragStartY = e.clientY;
-            
+
             dragStartLeft = parseFloat(floatingBall.style.left) || (window.innerWidth - 70);
             dragStartTop = parseFloat(floatingBall.style.top) || 100;
-            
+
             if (panel && isPanelOpen) {
                 dragStartPanelLeft = parseFloat(panel.style.left) || (window.innerWidth - 330);
                 dragStartPanelTop = parseFloat(panel.style.top) || 100;
             }
-            
+
             if (currentCloud) {
                 dragStartCloudLeft = parseFloat(currentCloud.style.left) || (window.innerWidth - 160);
                 dragStartCloudTop = parseFloat(currentCloud.style.top) || 35;
             }
-            
+
             element.style.cursor = 'grabbing';
             e.preventDefault();
         });
     }
-    
+
     document.addEventListener('mousemove', (e) => {
         if (!activeDragElement) return;
-        
+
         const deltaX = e.clientX - dragStartX;
         const deltaY = e.clientY - dragStartY;
-        
+
         let newLeft = dragStartLeft + deltaX;
         let newTop = dragStartTop + deltaY;
-        
+
         newLeft = Math.max(0, Math.min(window.innerWidth - 50, newLeft));
         newTop = Math.max(0, Math.min(window.innerHeight - 50, newTop));
-        
+
         floatingBall.style.left = newLeft + 'px';
         floatingBall.style.top = newTop + 'px';
         floatingBall.style.right = 'auto';
         floatingBall.style.bottom = 'auto';
-        
+
         if (panel && isPanelOpen) {
             let panelNewLeft = dragStartPanelLeft + deltaX;
             let panelNewTop = dragStartPanelTop + deltaY;
-            
+
             panelNewLeft = Math.max(0, Math.min(window.innerWidth - 320, panelNewLeft));
             panelNewTop = Math.max(0, Math.min(window.innerHeight - 400, panelNewTop));
-            
+
             panel.style.left = panelNewLeft + 'px';
             panel.style.top = panelNewTop + 'px';
             panel.style.right = 'auto';
             panel.style.bottom = 'auto';
         }
-        
+
         if (currentCloud) {
             let cloudNewLeft = dragStartCloudLeft + deltaX;
             let cloudNewTop = dragStartCloudTop + deltaY;
-            
+
             cloudNewLeft = Math.max(0, Math.min(window.innerWidth - 150, cloudNewLeft));
             cloudNewTop = Math.max(0, Math.min(window.innerHeight - 100, cloudNewTop));
-            
+
             currentCloud.style.left = cloudNewLeft + 'px';
             currentCloud.style.top = cloudNewTop + 'px';
             currentCloud.style.right = 'auto';
             currentCloud.style.bottom = 'auto';
         }
     });
-    
+
     document.addEventListener('mouseup', () => {
         if (activeDragElement) {
             activeDragElement = null;
             if (floatingBall) floatingBall.style.cursor = 'move';
         }
     });
-    
+
     // ========== 小球创建 ==========
     function createFloatingBall() {
         floatingBall = document.createElement('div');
         floatingBall.id = 'floating-attention-ball';
         floatingBall.innerHTML = `
-            <div style="
-                width: 50px;
-                height: 50px;
-                background: linear-gradient(135deg, #4caf50, #81c784);
-                border-radius: 50%;
+            <div id="ball-container" style="
+                width: 100px;
+                height: 100px;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 cursor: move;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                 transition: all 0.3s ease;
                 position: relative;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #4caf50, #81c784);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             ">
-                <span style="font-size: 24px;">🎯</span>
+                <div class="loader" style="
+                    display: inline-flex;
+                    gap: 10px;
+                    z-index: 1;
+                    margin-bottom: 5px;
+                "></div>
+                <div id="ball-face" style="
+                    position: relative;
+                    width: 40px;
+                    height: 20px;
+                    z-index: 1;
+                ">
+                    <div id="ball-mouth" style="
+                        position: absolute;
+                        bottom: 0;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        width: 20px;
+                        height: 10px;
+                        border-radius: 0 0 10px 10px;
+                        border: 2px solid white;
+                        border-top: none;
+                    "></div>
+                </div>
                 <div id="ball-score" style="
                     position: absolute;
-                    bottom: -5px;
-                    right: -5px;
-                    background: #ff9800;
+                    top: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
                     color: white;
-                    font-size: 10px;
+                    font-size: 16px;
                     font-weight: bold;
-                    border-radius: 50%;
-                    width: 20px;
-                    height: 20px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                    z-index: 2;
                 ">0</div>
             </div>
         `;
-        
+
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            .loader:before,
+            .loader:after {
+                content: "";
+                height: 20px;
+                aspect-ratio: 1;
+                border-radius: 50%;
+                background: radial-gradient(farthest-side,#000 95%,#0000) 35% 35%/6px 6px no-repeat #fff;
+                transform: scaleX(var(--s,1)) rotate(0deg);
+                animation: l6 1s infinite linear;
+            }
+            
+            .loader:after {
+                --s: -1;
+                animation-delay: -0.1s;
+            }
+            
+            @keyframes l6 {
+                100% {
+                    transform: scaleX(var(--s,1)) rotate(360deg);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
         Object.assign(floatingBall.style, {
             position: 'fixed',
             top: '100px',
@@ -610,16 +660,16 @@
             cursor: 'move',
             userSelect: 'none'
         });
-        
+
         floatingBall.addEventListener('click', (e) => {
             e.stopPropagation();
             togglePanel();
         });
-        
+
         makeDraggable(floatingBall, 'ball');
         document.body.appendChild(floatingBall);
     }
-    
+
     // ========== 面板 ==========
     function createPanel() {
         panel = document.createElement('div');
@@ -709,7 +759,7 @@
                 </div>
             </div>
         `;
-        
+
         Object.assign(panel.style, {
             position: 'fixed',
             bottom: '170px',
@@ -718,26 +768,26 @@
             display: 'none',
             cursor: 'move'
         });
-        
+
         panel.querySelector('#close-panel').addEventListener('click', () => closePanel());
         panel.querySelector('#panel-close-btn').addEventListener('click', () => closePanel());
-        
+
         makeDraggable(panel, 'panel');
         document.body.appendChild(panel);
     }
-    
+
     function togglePanel() {
         if (isPanelOpen) closePanel();
         else openPanel();
     }
-    
+
     function openPanel() {
         if (!panel) createPanel();
-        
+
         const ballRect = floatingBall.getBoundingClientRect();
         let panelLeft = ballRect.left - 330;
         let panelTop = ballRect.top;
-        
+
         if (panelLeft < 10) {
             panelLeft = ballRect.right + 10;
         }
@@ -745,19 +795,19 @@
             panelTop = window.innerHeight - 420;
         }
         if (panelTop < 10) panelTop = 10;
-        
+
         panel.style.left = panelLeft + 'px';
         panel.style.top = panelTop + 'px';
         panel.style.right = 'auto';
         panel.style.bottom = 'auto';
         panel.style.display = 'block';
-        
+
         isPanelOpen = true;
         updatePanelData();
         if (panelUpdateInterval) clearInterval(panelUpdateInterval);
         panelUpdateInterval = setInterval(updatePanelData, 500);
     }
-    
+
     function closePanel() {
         if (panel) panel.style.display = 'none';
         isPanelOpen = false;
@@ -766,18 +816,18 @@
             panelUpdateInterval = null;
         }
     }
-    
+
     function updatePanelData() {
         if (!panel) return;
-        
+
         panel.querySelector('#panel-score').textContent = detectionData.attentionScore + '分';
         panel.querySelector('#panel-score-bar').style.width = detectionData.attentionScore + '%';
         panel.querySelector('#panel-face-status').textContent = detectionData.isFaceDetected ? '✅ 已检测' : '❌ 未检测';
-        
-        let angleText = detectionData.headYaw > 0 ? `右转 ${Math.abs(detectionData.headYaw).toFixed(0)}°` : 
-                       detectionData.headYaw < 0 ? `左转 ${Math.abs(detectionData.headYaw).toFixed(0)}°` : '正对';
+
+        let angleText = detectionData.headYaw > 0 ? `右转 ${Math.abs(detectionData.headYaw).toFixed(0)}°` :
+            detectionData.headYaw < 0 ? `左转 ${Math.abs(detectionData.headYaw).toFixed(0)}°` : '正对';
         panel.querySelector('#panel-head-angle').textContent = angleText;
-        
+
         let distanceText = '--';
         if (detectionData.isFaceDetected) {
             const status = getDistanceStatus(detectionData.faceArea);
@@ -786,36 +836,60 @@
             else distanceText = '✅ 适中';
         }
         panel.querySelector('#panel-distance').textContent = distanceText;
-        
+
         // 眨眼频率显示
         const blinkStatus = getBlinkStatus();
         if (isBaselineCollecting) {
             panel.querySelector('#panel-blink-rate').innerHTML = `收集中...`;
         } else {
-            panel.querySelector('#panel-blink-rate').innerHTML = 
+            panel.querySelector('#panel-blink-rate').innerHTML =
                 `<span style="color: ${blinkStatus.color}">${currentBlinkRate.toFixed(0)}次/分</span>
                  <span style="font-size: 10px; color: #888;"> (${blinkStatus.text})</span>`;
         }
-        
+
         const minutes = Math.floor(detectionData.focusDuration / 60);
         const seconds = detectionData.focusDuration % 60;
-        panel.querySelector('#panel-focus-time').textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+        panel.querySelector('#panel-focus-time').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
-    
+
     function updateBallScore() {
         const scoreElement = floatingBall?.querySelector('#ball-score');
         if (scoreElement) {
             scoreElement.textContent = detectionData.attentionScore;
-            const ballDiv = floatingBall.querySelector('div');
-            if (detectionData.attentionScore >= 80) ballDiv.style.background = 'linear-gradient(135deg, #4caf50, #81c784)';
-            else if (detectionData.attentionScore >= 60) ballDiv.style.background = 'linear-gradient(135deg, #ff9800, #ffb74d)';
-            else ballDiv.style.background = 'linear-gradient(135deg, #f44336, #ef5350)';
+            const ballContainer = floatingBall.querySelector('#ball-container');
+            const ballMouth = floatingBall.querySelector('#ball-mouth');
+            if (ballContainer && ballMouth) {
+                // 确保线条粗细一致
+                ballMouth.style.border = '2px solid white';
+
+                if (detectionData.attentionScore >= 80) {
+                    // 绿色小球 - 微笑嘴（弧度更小）
+                    ballContainer.style.background = '#81c570';
+                    ballMouth.style.borderRadius = '0 0 5px 5px';
+                    ballMouth.style.borderTop = 'none';
+                    ballMouth.style.height = '8px';
+                } else if (detectionData.attentionScore >= 60) {
+                    // 黄色小球 - 平嘴
+                    ballContainer.style.background = '#f89418';
+                    ballMouth.style.borderRadius = '0';
+                    ballMouth.style.borderTop = '2px solid white';
+                    ballMouth.style.borderBottom = 'none';
+                    ballMouth.style.height = '2px';
+                } else {
+                    // 红色小球 - 生气嘴
+                    ballContainer.style.background = '#c01e25';
+                    ballMouth.style.borderRadius = '5px 5px 0 0';
+                    ballMouth.style.borderTop = '2px solid white';
+                    ballMouth.style.borderBottom = 'none';
+                    ballMouth.style.height = '8px';
+                }
+            }
         }
     }
-    
+
     async function startCamera() {
         console.log('正在请求摄像头...');
-        
+
         try {
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
             console.log('摄像头权限已获取');
@@ -823,20 +897,20 @@
             console.error('摄像头获取失败:', err);
             return;
         }
-        
+
         videoElement = document.createElement('video');
         videoElement.autoplay = true;
         videoElement.muted = true;
         videoElement.playsInline = true;
         videoElement.style.cssText = 'position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none;';
         document.body.appendChild(videoElement);
-        
+
         videoElement.srcObject = stream;
         await videoElement.play();
         console.log('摄像头已启动');
-        
+
         await waitForFilesetResolver();
-        
+
         const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm");
         faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
             baseOptions: {
@@ -851,7 +925,7 @@
         isDetecting = true;
         console.log('人脸检测模型已加载');
     }
-    
+
     function waitForFilesetResolver() {
         return new Promise((resolve) => {
             if (typeof FilesetResolver !== 'undefined') {
@@ -866,7 +940,7 @@
             }, 100);
         });
     }
-    
+
     function startDetection() {
         // 初始化眨眼基线收集
         baselineStartTime = Date.now();
@@ -878,138 +952,150 @@
         smoothBlinkRate = 0;
         eyeClosedCounter = 0;
         console.log('📊 开始收集眨眼基线数据（30秒）...');
-        
+
         function detect() {
             if (!isDetecting || !faceLandmarker || !videoElement) {
                 animationId = requestAnimationFrame(detect);
                 return;
             }
             if (videoElement.videoWidth && videoElement.videoHeight) {
-                const results = faceLandmarker.detectForVideo(videoElement, performance.now());
-                
-                if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-                    const landmarks = results.faceLandmarks[0];
-                    const videoWidth = videoElement.videoWidth;
-                    const videoHeight = videoElement.videoHeight;
-                    
-                    // ===== EAR 眨眼检测 =====
-                    if (videoWidth > 0 && videoHeight > 0) {
-                        updateEARAndDetectBlink(landmarks, videoWidth, videoHeight);
+                try {
+                    // 检查 faceLandmarker 是否有 detectForVideo 方法
+                    if (!faceLandmarker || typeof faceLandmarker.detectForVideo !== 'function') {
+                        animationId = requestAnimationFrame(detect);
+                        return;
                     }
-                    
-                    // 更新眨眼频率
-                    updateBlinkRate();
-                    
-                    const leftCheek = landmarks[234];
-                    const rightCheek = landmarks[454];
-                    const nose = landmarks[1];
-                    const chin = landmarks[152];
-                    const forehead = landmarks[10];
-                    
-                    const faceWidth = Math.abs(leftCheek.x - rightCheek.x);
-                    const noseOffset = (nose.x - (leftCheek.x + rightCheek.x) / 2) / faceWidth;
-                    const yaw = -noseOffset * 60;
-                    
-                    const faceHeight = Math.abs(chin.y - forehead.y);
-                    const noseYOffset = (nose.y - (forehead.y + chin.y) / 2) / faceHeight;
-                    const pitch = noseYOffset * 45;
-                    
-                    const faceArea = faceWidth * faceHeight;
-                    
-                    let score = 100;
-                    score -= Math.min(40, Math.abs(yaw) * 1.2);
-                    score -= Math.min(30, Math.abs(pitch) * 0.8);
-                    if (faceArea > 0.45) score -= 15;
-                    if (faceArea < 0.15) score -= 10;
-                    score = Math.max(0, Math.min(100, Math.floor(score)));
-                    
-                    let currentFocusDuration = totalFocusDuration;
-                    const now = Date.now();
-                    if (score >= 80) {
-                        if (focusStartTime === null) {
-                            focusStartTime = now;
+
+                    const results = faceLandmarker.detectForVideo(videoElement, performance.now());
+
+                    if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+                        const landmarks = results.faceLandmarks[0];
+                        const videoWidth = videoElement.videoWidth;
+                        const videoHeight = videoElement.videoHeight;
+
+                        // ===== EAR 眨眼检测 =====
+                        if (videoWidth > 0 && videoHeight > 0) {
+                            updateEARAndDetectBlink(landmarks, videoWidth, videoHeight);
                         }
-                        currentFocusDuration = totalFocusDuration + Math.floor((now - focusStartTime) / 1000);
+
+                        // 更新眨眼频率
+                        updateBlinkRate();
+
+                        const leftCheek = landmarks[234];
+                        const rightCheek = landmarks[454];
+                        const nose = landmarks[1];
+                        const chin = landmarks[152];
+                        const forehead = landmarks[10];
+
+                        const faceWidth = Math.abs(leftCheek.x - rightCheek.x);
+                        const noseOffset = (nose.x - (leftCheek.x + rightCheek.x) / 2) / faceWidth;
+                        const yaw = -noseOffset * 60;
+
+                        const faceHeight = Math.abs(chin.y - forehead.y);
+                        const noseYOffset = (nose.y - (forehead.y + chin.y) / 2) / faceHeight;
+                        const pitch = noseYOffset * 45;
+
+                        const faceArea = faceWidth * faceHeight;
+
+                        let score = 100;
+                        score -= Math.min(40, Math.abs(yaw) * 1.2);
+                        score -= Math.min(30, Math.abs(pitch) * 0.8);
+                        if (faceArea > 0.45) score -= 15;
+                        if (faceArea < 0.15) score -= 10;
+                        score = Math.max(0, Math.min(100, Math.floor(score)));
+
+                        let currentFocusDuration = totalFocusDuration;
+                        const now = Date.now();
+                        if (score >= 80) {
+                            if (focusStartTime === null) {
+                                focusStartTime = now;
+                            }
+                            currentFocusDuration = totalFocusDuration + Math.floor((now - focusStartTime) / 1000);
+                        } else {
+                            if (focusStartTime !== null) {
+                                totalFocusDuration += Math.floor((now - focusStartTime) / 1000);
+                                focusStartTime = null;
+                            }
+                            currentFocusDuration = totalFocusDuration;
+                        }
+
+                        detectionData = {
+                            attentionScore: score,
+                            isFaceDetected: true,
+                            headYaw: yaw,
+                            headPitch: pitch,
+                            faceArea: faceArea,
+                            blinkRate: currentBlinkRate,
+                            focusDuration: currentFocusDuration
+                        };
+
+                        if (sessionIsActive) {
+                            sessionAttentionScores.push(detectionData.attentionScore);
+                            sessionBlinkRates.push(detectionData.blinkRate);
+                        }
+
+                        let currentProblem = null;
+                        let currentMessage = '';
+
+                        const distanceStatus = getDistanceStatus(faceArea);
+                        if (distanceStatus === 'too_close') {
+                            currentProblem = 'too_close';
+                            currentMessage = '📏 离远一点~';
+                        }
+                        else if (distanceStatus === 'too_far') {
+                            currentProblem = 'too_far';
+                            currentMessage = '🔍 靠近一点嘛';
+                        }
+                        else if (Math.abs(yaw) > 25 || Math.abs(pitch) > 20) {
+                            currentProblem = 'distracted';
+                            currentMessage = '👀 看这里！';
+                            if (currentTipType !== currentProblem) {
+                                sessionDistractionCount++;
+                            }
+                        }
+                        else {
+                            currentProblem = null;
+                        }
+
+                        if (currentProblem) {
+                            if (currentTipType !== currentProblem) {
+                                showCloudTip(currentMessage, currentProblem, true);
+                            }
+                        } else {
+                            if (currentTipType !== null) {
+                                hideCloudTip();
+                            }
+                        }
+
                     } else {
-                        if (focusStartTime !== null) {
-                            totalFocusDuration += Math.floor((now - focusStartTime) / 1000);
-                            focusStartTime = null;
-                        }
-                        currentFocusDuration = totalFocusDuration;
-                    }
-                    
-                    detectionData = {
-                        attentionScore: score,
-                        isFaceDetected: true,
-                        headYaw: yaw,
-                        headPitch: pitch,
-                        faceArea: faceArea,
-                        blinkRate: currentBlinkRate,
-                        focusDuration: currentFocusDuration
-                    };
-                    
-                    if (sessionIsActive) {
-                        sessionAttentionScores.push(detectionData.attentionScore);
-                        sessionBlinkRates.push(detectionData.blinkRate);
-                    }
-                    
-                    let currentProblem = null;
-                    let currentMessage = '';
-                    
-                    const distanceStatus = getDistanceStatus(faceArea);
-                    if (distanceStatus === 'too_close') {
-                        currentProblem = 'too_close';
-                        currentMessage = '📏 离远一点~';
-                    }
-                    else if (distanceStatus === 'too_far') {
-                        currentProblem = 'too_far';
-                        currentMessage = '🔍 靠近一点嘛';
-                    }
-                    else if (Math.abs(yaw) > 25 || Math.abs(pitch) > 20) {
-                        currentProblem = 'distracted';
-                        currentMessage = '👀 看这里！';
-                        if (currentTipType !== currentProblem) {
-                            sessionDistractionCount++;
+                        detectionData = {
+                            ...detectionData,
+                            isFaceDetected: false,
+                            attentionScore: 0,
+                            faceArea: 0
+                        };
+
+                        if (currentTipType !== 'no_face') {
+                            showCloudTip('😊 请正对摄像头', 'no_face', true);
                         }
                     }
-                    else {
-                        currentProblem = null;
-                    }
-                    
-                    if (currentProblem) {
-                        if (currentTipType !== currentProblem) {
-                            showCloudTip(currentMessage, currentProblem, true);
-                        }
-                    } else {
-                        if (currentTipType !== null) {
-                            hideCloudTip();
-                        }
-                    }
-                    
-                } else {
-                    detectionData = {
-                        ...detectionData,
-                        isFaceDetected: false,
-                        attentionScore: 0,
-                        faceArea: 0
-                    };
-                    
-                    if (currentTipType !== 'no_face') {
-                        showCloudTip('😊 请正对摄像头', 'no_face', true);
-                    }
+
+                    updateBallScore();
+                    if (isPanelOpen) updatePanelData();
+                } catch (error) {
+                    console.warn('检测过程中出错:', error);
+                    // 出错时仍然继续检测，避免整个网站崩溃
                 }
-                
-                updateBallScore();
-                if (isPanelOpen) updatePanelData();
             }
             animationId = requestAnimationFrame(detect);
         }
         detect();
     }
-    
-    window.addEventListener('beforeunload', () => {
-        if (sessionIsActive) {
-            endSession();
-        }
-    });
+
+    // 移除 beforeunload 事件，避免点击下一关时显示会话报告
+    // window.addEventListener('beforeunload', () => {
+    //     if (sessionIsActive) {
+    //         endSession();
+    //     }
+    // });
 })();

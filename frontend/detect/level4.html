@@ -91,8 +91,13 @@
             transform: scale(1.1);
         }
 
-        .clue.selected {
+        .clue.correct {
             background-color: #4CAF50;
+            color: white;
+        }
+
+        .clue.incorrect {
+            background-color: #f44336;
             color: white;
         }
 
@@ -310,9 +315,20 @@
             reactionTimes.push(currentTime - lastClickTime);
             lastClickTime = currentTime;
 
+            // 检查当前点击是否正确
+            const expectedIndex = userSequence.length;
+            const expectedClue = targetSequence[expectedIndex];
+            const isCorrect = selectedClue.image === expectedClue.image;
+
             // 添加到用户序列
             userSequence.push(selectedClue);
-            clueElement.classList.add('selected');
+
+            // 根据是否正确显示不同颜色
+            if (isCorrect) {
+                clueElement.classList.add('correct');
+            } else {
+                clueElement.classList.add('incorrect');
+            }
 
             // 检查是否完成当前阶段
             if (userSequence.length === targetSequence.length) {
@@ -341,7 +357,7 @@
                 // 显示错误特效
                 showErrorEffect();
             }
-            
+
             // 更新UI显示
             document.getElementById('correct-rounds').textContent = accuracy;
             document.getElementById('error-rounds').textContent = errorRounds;
@@ -353,7 +369,7 @@
                     document.getElementById('stage').textContent = currentStage;
                     userSequence = [];
                     document.querySelectorAll('.clue').forEach(clue => {
-                        clue.classList.remove('selected');
+                        clue.classList.remove('correct', 'incorrect');
                     });
                     generateClues();
                     playClues();
@@ -376,7 +392,7 @@
             effect.style.animation = 'correctEffect 1s ease-out';
             effect.textContent = '✅ 正确！';
             document.body.appendChild(effect);
-            
+
             setTimeout(() => {
                 effect.remove();
             }, 1000);
@@ -395,7 +411,7 @@
             effect.style.animation = 'errorEffect 1s ease-out';
             effect.textContent = '❌ 错误！';
             document.body.appendChild(effect);
-            
+
             setTimeout(() => {
                 effect.remove();
             }, 1000);
@@ -421,7 +437,7 @@
             document.getElementById('stage').textContent = currentStage;
             document.getElementById('correct-rounds').textContent = accuracy;
             document.getElementById('error-rounds').textContent = errorRounds;
-            
+
             generateClues();
             playClues();
         }
@@ -468,7 +484,7 @@
             document.getElementById('accuracy').textContent = `${accuracyRate}%`;
             document.getElementById('sequence-errors').textContent = sequenceErrors;
             document.getElementById('reaction-time').textContent = avgReactionTime;
-            
+
             // 添加错误次数和正确轮数显示
             const feedbackDiv = document.getElementById('feedback');
             feedbackDiv.innerHTML = `
@@ -507,31 +523,96 @@
         function uploadTrainingData(score, accuracyRate, avgReactionTime) {
             try {
                 if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-                    const user_id = UserStateUtil.getUserId();
-                    const payload = {
-                        user_id: user_id,
-                        game_type: 'memory',
-                        score: score,
-                        total_time: 60,
-                        total_click: reactionTimes.length,
-                        error_count: sequenceErrors + clickErrors,
-                        memory_load: maxStages,
-                        mean_rt: avgReactionTime,
-                        date: new Date().toISOString().split('T')[0]
-                    };
+                    const childId = UserStateUtil.getCurrentChildId();
+                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+                    let sessionId = null;
 
-                    fetch('http://localhost:3001/api/training', {
+                    // 开始训练会话
+                    fetch(`${baseUrl}/api/training/session/start`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                         },
-                        body: JSON.stringify(payload)
-                    }).then(response => response.json())
-                      .then(data => console.log('Training data uploaded:', data))
-                      .catch(error => console.error('Error uploading training data:', error));
+                        body: JSON.stringify({
+                            child_id: childId,
+                            game_type: 'memory',
+                            device_id: 'web'
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                sessionId = result.data.session_id;
+                                console.log('训练会话创建成功:', sessionId);
+
+                                // 上传游戏数据
+                                return fetch(`${baseUrl}/api/training/game-data`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                    },
+                                    body: JSON.stringify({
+                                        session_id: sessionId,
+                                        request_id: Date.now().toString(),
+                                        timestamp: new Date().toISOString(),
+                                        event_type: 'game_complete',
+                                        score: score,
+                                        accuracy: accuracyRate,
+                                        level: 4,
+                                        time: 60,
+                                        correct: accuracy,
+                                        error: sequenceErrors + clickErrors,
+                                        total_target: maxStages,
+                                        total_step: maxStages
+                                    })
+                                });
+                            } else {
+                                throw new Error(result.message || '创建会话失败');
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                console.log('游戏数据上传成功');
+
+                                // 结束训练会话
+                                return fetch(`${baseUrl}/api/training/session/end`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                    },
+                                    body: JSON.stringify({
+                                        session_id: sessionId,
+                                        final_score: score,
+                                        total_accuracy: accuracyRate
+                                    })
+                                });
+                            } else {
+                                throw new Error(result.message || '上传游戏数据失败');
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            console.log('会话结束响应数据:', result);
+                            if (result.success) {
+                                console.log('训练数据上传完成');
+
+                                // 清除能力评估页面的缓存
+                                const cacheKey = `child_data_${childId}`;
+                                localStorage.removeItem(cacheKey);
+                                console.log('已清除能力评估缓存:', cacheKey);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('上传训练数据失败:', error);
+                        });
                 }
-            } catch (error) {
-                console.log('Error uploading training data:', error);
+            } catch (e) {
+                console.error('uploadTrainingData 错误:', e);
             }
         }
 
@@ -546,6 +627,7 @@
             startGame();
         };
     </script>
+    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

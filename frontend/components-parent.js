@@ -936,7 +936,7 @@ const ParentComponents = {
         }
         if (userInfo.mode === 'child') {
             userInfo.mode = 'parent';
-            UserStateUtil.setUserInfo(userInfo);
+            StorageUtil.setItem('userInfo', userInfo);
         }
         return userInfo;
     },

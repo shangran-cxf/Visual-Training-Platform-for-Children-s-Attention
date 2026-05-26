@@ -1,17 +1,8 @@
-const getBaseURL = () => {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:5000';
-    }
-    const protocol = window.location.protocol;
-    const host = window.location.host;
-    if (host.includes(':')) {
-        return `${protocol}//${host.split(':')[0]}:5000`;
-    }
-    return `${protocol}//${host}`;
-};
+// 检测当前环境，自动切换 API 地址
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 const API_CONFIG = {
-    BASE_URL: getBaseURL(),
+    BASE_URL: isLocal ? 'http://localhost:5000' : window.location.origin,
     TIMEOUT: 30000,
     CONTENT_TYPE: 'application/json',
     TOKEN_KEY: 'auth_token'

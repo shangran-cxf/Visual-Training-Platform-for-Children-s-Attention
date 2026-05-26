@@ -1,4 +1,4 @@
-import sqlite3
+﻿import sqlite3
 import os
 from .config import DATABASE_PATH
 
@@ -8,7 +8,6 @@ def get_db_path():
 def get_db_connection():
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
     return conn
 
 def execute_db(query, params=(), fetch_last_id=False):

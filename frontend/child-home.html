@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -1076,24 +1076,6 @@
 
   </nav>
 
-  <!-- 家长端登录弹窗 -->
-  <div id="parent-login-modal" class="modal">
-    <div class="modal-content">
-      <h3>家长端登录</h3>
-      <p>请输入密码</p>
-      <form onsubmit="checkPassword(); return false;" autocomplete="on">
-        <input type="text" id="parent-username" autocomplete="username"
-          style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;"
-          tabindex="-1" aria-hidden="true">
-        <input type="password" id="parent-password" placeholder="输入密码" autocomplete="current-password">
-      </form>
-      <div class="modal-buttons">
-        <button onclick="checkPassword()">确定</button>
-        <button onclick="closeLoginModal()">取消</button>
-      </div>
-    </div>
-  </div>
-
   <!-- 主内容区 -->
   <main class="main-content">
     <!-- 顶部欢迎区 -->
@@ -1365,63 +1347,8 @@
       } else if (sectionId === 'today') {
         window.location.href = 'today-training.html';
       } else if (sectionId === 'parent') {
-        // 显示家长端登录弹窗
-        document.getElementById('parent-login-modal').style.display = 'flex';
-      }
-    }
-
-    // 显示家长端登录弹窗
-    function showParentLogin() {
-      document.getElementById('parent-login-modal').style.display = 'flex';
-    }
-
-    // 关闭家长端登录弹窗
-    function closeLoginModal() {
-      document.getElementById('parent-login-modal').style.display = 'none';
-      document.getElementById('parent-password').value = '';
-    }
-
-    // 检查密码
-    async function checkPassword() {
-      const password = document.getElementById('parent-password').value;
-      const userInfo = UserStateUtil.getUserInfo();
-      const parentId = userInfo ? userInfo.parent_id : null;
-
-      if (!parentId) {
-        alert('用户信息丢失，请重新登录');
-        window.location.href = 'login.html';
-        return;
-      }
-
-      if (!password) {
-        alert('请输入密码');
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/verify-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            parent_id: parentId,
-            password: password
-          })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.valid) {
-          UserStateUtil.switchToParentMode();
-          window.location.href = 'child-document.html';
-        } else {
-          alert(data.error || '密码错误，请重试！');
-          document.getElementById('parent-password').value = '';
-        }
-      } catch (error) {
-        console.error('密码验证失败:', error);
-        alert('网络错误，请稍后重试');
+        UserStateUtil.switchToParentMode();
+        window.location.href = 'child-document.html';
       }
     }
 
@@ -1486,18 +1413,6 @@
       // 默认显示选择性注意分类
       showCategory('selective');
     };
-
-    // 点击弹窗外部关闭
-    document.addEventListener('DOMContentLoaded', function () {
-      const modal = document.getElementById('parent-login-modal');
-      if (modal) {
-        modal.addEventListener('click', (e) => {
-          if (e.target === e.currentTarget) {
-            closeLoginModal();
-          }
-        });
-      }
-    });
 
     // 键盘导航支持
     document.querySelectorAll('.nav-item, .category-tab, .btn').forEach(el => {

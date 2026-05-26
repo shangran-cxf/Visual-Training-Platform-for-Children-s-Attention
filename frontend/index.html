@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -248,11 +248,11 @@
         }
 
         .child-end {
-            transform: translateX(-300%) translateY(-100%);
+            transform: translateX(-150%) translateY(-100%);
         }
 
         .parent-end {
-            transform: translateX(20%);
+            transform: translateX(50%);
         }
 
         .end-btn {
@@ -427,7 +427,8 @@
         }
 
         .lighthouse {
-            width: 1400px;
+            width: 90vw;
+            max-width: 1400px;
             height: auto;
         }
 
@@ -456,14 +457,15 @@
 
         .boat-container {
             position: absolute;
-            right: -200px;
+            right: -15vw;
             bottom: 20%;
             z-index: 3;
             animation: boatSail 20s linear infinite, boatRock 4s ease-in-out infinite;
         }
 
         .boat {
-            width: 200px;
+            width: 15vw;
+            max-width: 200px;
             height: auto;
         }
 
@@ -544,7 +546,7 @@
 
         .light-beam {
             position: absolute;
-            top: 120px;
+            top: 20%;
             left: 50%;
             bottom: -100%;
             opacity: 0;
@@ -561,7 +563,8 @@
         }
 
         .light {
-            width: 250px;
+            width: 15vw;
+            max-width: 250px;
             height: auto;
             filter: drop-shadow(0 0 20px rgb(242, 206, 106, 0.8));
         }
@@ -590,12 +593,13 @@
 
         @keyframes wordRise {
             to {
-                bottom: -260px;
+                bottom: -27vh;
             }
         }
 
         .word-image {
-            width: 1400px;
+            width: 90vw;
+            max-width: 1400px;
             height: auto;
         }
 
@@ -998,12 +1002,51 @@
                 font-size: 0.9em;
             }
 
-            .lighthouse {
-                width: 1000px;
+            .end-buttons {
+                padding: 0 10%;
             }
 
-            .hero-text {
-                font-size: 2em;
+            .child-end {
+                transform: translateX(-120%) translateY(-100%);
+            }
+
+            .parent-end {
+                transform: translateX(30%);
+            }
+
+            @keyframes wordRise {
+                to {
+                    bottom: -15vh;
+                }
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-buttons {
+                gap: 20px;
+            }
+
+            .nav-btn {
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+
+            .end-buttons {
+                padding: 0 5%;
+            }
+
+            .child-end {
+                transform: translateX(-100%) translateY(-100%);
+            }
+
+            .parent-end {
+                transform: translateX(10%);
+            }
+
+            @keyframes wordRise {
+                to {
+                    bottom: -10vh;
+                }
             }
         }
     </style>
@@ -1240,11 +1283,11 @@
                 <div id="error-message" class="error-message"></div>
                 <div class="form-group">
                     <label for="username">用户名</label>
-                    <input type="text" id="username" placeholder="请输入用户名">
+                    <input type="text" id="username" placeholder="请输入用户名" value="admin">
                 </div>
                 <div class="form-group">
                     <label for="password">密码</label>
-                    <input type="password" id="password" placeholder="请输入密码">
+                    <input type="password" id="password" placeholder="请输入密码" value="123456">
                 </div>
                 <button class="btn" onclick="login()">登录</button>
                 <p class="register-link">还没有账号？<a href="#" onclick="openRegisterModal()">立即注册</a></p>
@@ -1335,40 +1378,9 @@
         </div>
     </div>
 
-    <!-- 模式选择弹窗 -->
-    <div id="modeSelectModal" class="modal">
-        <div class="modal-content">
-            <h2 class="mode-title">选择模式</h2>
-            <div class="cloud-container">
-                <img src="index_images/cloud.png" alt="cartoon cloud" class="cloud-img">
-                <div class="eye eye-left" id="mode-eye-left">
-                    <div class="pupil" id="mode-pupil-left"></div>
-                </div>
-                <div class="eye eye-right" id="mode-eye-right">
-                    <div class="pupil" id="mode-pupil-right"></div>
-                </div>
-            </div>
-            <div class="mode-buttons">
-                <button class="mode-btn mode-btn-parent" onclick="selectMode('parent')">家长端</button>
-                <button class="mode-btn mode-btn-child" onclick="selectMode('child')">儿童端</button>
-            </div>
-        </div>
-    </div>
+
 
     <script src="utils.js"></script>
-    <script>
-            window.API_BASE_URL = (function() {
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                return 'http://localhost:5000';
-            }
-            var protocol = window.location.protocol;
-            var host = window.location.host;
-            if (host.includes(':')) {
-                return protocol + '//' + host.split(':')[0] + ':5000';
-            }
-            return protocol + '//' + host;
-        })();
-    </script>
     <script>
         // 登录弹窗功能
         const loginModal = document.getElementById('loginModal');
@@ -1440,14 +1452,7 @@
                 childPupilRight.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
             }
 
-            // 模式选择弹窗眼睛
-            const modePupilLeft = document.getElementById('mode-pupil-left');
-            const modePupilRight = document.getElementById('mode-pupil-right');
 
-            if (modePupilLeft && modePupilRight) {
-                modePupilLeft.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-                modePupilRight.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-            }
         }
 
         function startBlinking() {
@@ -1551,6 +1556,8 @@
         }
 
         async function login() {
+            const baseUrl = getBaseUrl();
+
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('error-message');
@@ -1561,7 +1568,7 @@
             }
 
             try {
-                const response = await fetch(window.API_BASE_URL + '/api/login', {
+                const response = await fetch(`${baseUrl}/api/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1576,11 +1583,11 @@
 
                 if (response.ok) {
                     const userInfo = UserStateUtil.initFromLoginResponse(result);
-                    // 登录后默认设置为家长模式
+                    // 登录后默认设置为家长模式并直接进入家长端
                     UserStateUtil.switchToParentMode();
-                    // 打开模式选择弹窗
                     loginModal.classList.remove('show');
-                    openModeSelectModal();
+                    // 直接跳转到家长端首页
+                    window.location.href = 'child-document.html';
                 } else {
                     errorMessage.textContent = result.error || '用户名或密码错误';
                 }
@@ -1635,31 +1642,8 @@
             addChildModal.classList.remove('show');
         });
 
-        // 模式选择弹窗功能
-        const modeSelectModal = document.getElementById('modeSelectModal');
 
-        function openModeSelectModal() {
-            modeSelectModal.classList.add('show');
-        }
 
-        function closeModeSelectModal() {
-            modeSelectModal.classList.remove('show');
-        }
-
-        function selectMode(mode) {
-            const userInfo = StorageUtil.getItem('userInfo');
-            if (userInfo) {
-                userInfo.mode = mode;
-                StorageUtil.setItem('userInfo', userInfo);
-
-                if (mode === 'parent') {
-                    window.location.href = 'child-document.html';
-                } else {
-                    window.location.href = 'child-home.html';
-                }
-            }
-            closeModeSelectModal();
-        }
 
         // 点击弹窗外部关闭
         window.addEventListener('click', function (e) {
@@ -1749,6 +1733,8 @@
         }
 
         async function register() {
+            const baseUrl = getBaseUrl();
+
             const username = document.getElementById('register-username').value.trim();
             const email = document.getElementById('register-email').value.trim();
             const password = document.getElementById('register-password').value;
@@ -1775,7 +1761,7 @@
             }
 
             try {
-                const response = await fetch(window.API_BASE_URL + '/api/register', {
+                const response = await fetch(`${baseUrl}/api/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1816,6 +1802,8 @@
         }
 
         async function addChildren() {
+            const baseUrl = getBaseUrl();
+
             const children = getChildrenData();
             const errorMessage = document.getElementById('child-error-message');
             const successMessage = document.getElementById('child-success-message');
@@ -1844,7 +1832,7 @@
 
                 // 为每个儿童添加到数据库
                 for (let child of children) {
-                    await fetch(window.API_BASE_URL + '/api/children', {
+                    await fetch(`${baseUrl}/api/children`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

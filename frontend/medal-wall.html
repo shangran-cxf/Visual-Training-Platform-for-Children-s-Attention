@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -968,7 +968,7 @@
     </div>
 
     <!-- 家长端按钮 -->
-    <div class="nav-item" onclick="showParentLogin()" role="button" tabindex="0">
+    <div class="nav-item" onclick="window.location.href='child-document.html'" role="button" tabindex="0">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
         <circle cx="12" cy="7" r="4" />
@@ -976,19 +976,6 @@
       <span class="nav-label">家长端</span>
     </div>
   </nav>
-
-  <!-- 家长端登录弹窗 -->
-  <div id="parent-login-modal" class="modal">
-    <div class="modal-content">
-      <h3>家长端登录</h3>
-      <p>请输入密码</p>
-      <input type="password" id="parent-password" placeholder="输入密码">
-      <div class="modal-buttons">
-        <button onclick="checkPassword()">确定</button>
-        <button onclick="closeLoginModal()">取消</button>
-      </div>
-    </div>
-  </div>
 
   <!-- 主内容区 -->
   <main class="main-content">
@@ -1112,25 +1099,8 @@
   <script src="utils.js"></script>
   <script>
     let currentChildId = null;
-
-    // 勋章数据结构
-    const medals = [
-      { id: 1, name: "太空小达人", howto: "成功完成太空小火箭所有难度关卡", gameId: "game1", completedLevels: 0, totalLevels: 3 },
-      { id: 2, name: "垃圾小助手", howto: "成功完成垃圾小卫士所有难度关卡", gameId: "game2", completedLevels: 0, totalLevels: 3 },
-      { id: 3, name: "魔法冒险家", howto: "成功完成魔法迷宫所有难度关卡", gameId: "game3", completedLevels: 0, totalLevels: 3 },
-      { id: 4, name: "植物守护者", howto: "成功完成植物浇水所有难度关卡", gameId: "game4", completedLevels: 0, totalLevels: 3 },
-      { id: 5, name: "太阳追踪者", howto: "成功完成追太阳所有难度关卡", gameId: "game5", completedLevels: 0, totalLevels: 3 },
-      { id: 6, name: "动物追踪员", howto: "成功完成森林小动物追踪所有难度关卡", gameId: "game6", completedLevels: 0, totalLevels: 3 },
-      { id: 7, name: "金牌甜品销售员", howto: "成功完成甜品店小帮工所有难度关卡", gameId: "game7", completedLevels: 0, totalLevels: 3 },
-      { id: 8, name: "海底捉迷藏大师", howto: "成功完成海底捉迷藏所有难度关卡", gameId: "game8", completedLevels: 0, totalLevels: 3 },
-      { id: 9, name: "分类小能手", howto: "成功完成环保小卫士所有难度关卡", gameId: "game9", completedLevels: 0, totalLevels: 3 },
-      { id: 10, name: "冰雪信使", howto: "成功完成冰雪王国小邮差所有难度关卡", gameId: "game10", completedLevels: 0, totalLevels: 3 },
-      { id: 11, name: "打卡小新星", howto: "连续打卡3天", type: "checkin", days: 0, required: 3 },
-      { id: 12, name: "坚持小勇士", howto: "连续打卡7天", type: "checkin", days: 0, required: 7 },
-      { id: 13, name: "专注小达人", howto: "连续打卡14天", type: "checkin", days: 0, required: 14 },
-      { id: 14, name: "自律小榜样", howto: "连续打卡30天", type: "checkin", days: 0, required: 30 },
-      { id: 15, name: "毅力小冠军", howto: "连续打卡60天", type: "checkin", days: 0, required: 60 }
-    ];
+    let medals = [];
+    let selectedMedalId = null;
 
     function initPage() {
       if (!UserStateUtil.isLoggedIn()) {
@@ -1139,88 +1109,47 @@
       }
       currentChildId = UserStateUtil.getCurrentChildId();
       loadMedalData();
+      const unlockedCheckinMedals = MedalUtil.syncCheckinProgress(currentChildId, false);
+      if (unlockedCheckinMedals.length > 0) {
+        loadMedalData();
+        unlockedCheckinMedals.forEach(medal => MedalUtil.showUnlockNotification(medal));
+      }
       updateMedalWall();
     }
 
     // 加载勋章数据
     function loadMedalData() {
-      const savedData = localStorage.getItem(`medals_${currentChildId}`);
-      if (savedData) {
-        const savedMedals = JSON.parse(savedData);
-        medals.forEach(medal => {
-          const savedMedal = savedMedals.find(m => m.id === medal.id);
-          if (savedMedal) {
-            Object.assign(medal, savedMedal);
-          }
-        });
-      }
+      medals = MedalUtil.loadMedals(currentChildId);
     }
 
     // 保存勋章数据
     function saveMedalData() {
-      localStorage.setItem(`medals_${currentChildId}`, JSON.stringify(medals));
+      MedalUtil.saveMedals(medals, currentChildId);
     }
 
     // 检查并解锁勋章
     function checkMedalUnlock() {
-      let unlockedMedals = [];
+      const unlockedMedals = MedalUtil.syncCheckinProgress(currentChildId, false);
+      loadMedalData();
+      updateMedalWall();
 
-      medals.forEach(medal => {
-        if (!medal.unlocked) {
-          let shouldUnlock = false;
-
-          if (medal.type === 'checkin') {
-            // 检查打卡类勋章
-            shouldUnlock = medal.days >= medal.required;
-          } else if (medal.gameId) {
-            // 检查游戏类勋章
-            shouldUnlock = medal.completedLevels >= medal.totalLevels;
-          }
-
-          if (shouldUnlock) {
-            medal.unlocked = true;
-            unlockedMedals.push(medal);
-          }
-        }
+      unlockedMedals.forEach(medal => {
+        MedalUtil.showUnlockNotification(medal);
+        selectMedalItem(medal.id);
       });
 
-      if (unlockedMedals.length > 0) {
-        saveMedalData();
-        updateMedalWall();
-        unlockedMedals.forEach(medal => {
-          showMedalNotification(medal);
-        });
-      }
+      return unlockedMedals;
     }
 
     // 显示获得勋章的通知
     function showMedalNotification(medal) {
-      const notification = document.createElement('div');
-      notification.className = 'medal-notification';
-
-      const medalImage = document.createElement('img');
-      medalImage.src = `medal-image/${medal.gameId || medal.id === 11 ? '3day' : medal.id === 12 ? '7day' : medal.id === 13 ? '14day' : medal.id === 14 ? '30day' : '60day'}.png`;
-      medalImage.alt = medal.name;
-      medalImage.className = 'medal-unlock-animation';
-
-      const message = document.createElement('p');
-      message.textContent = `恭喜你，获得${medal.name}勋章！`;
-
-      notification.appendChild(medalImage);
-      notification.appendChild(message);
-
-      document.body.appendChild(notification);
-
-      // 3秒后移除通知
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
+      MedalUtil.showUnlockNotification(medal);
     }
 
     // 更新勋章墙
     function updateMedalWall() {
       document.querySelectorAll('.medal-item').forEach(item => {
-        const medalId = parseInt(item.dataset.medal);
+        const medalId = parseInt(item.dataset.medal, 10);
         const medal = medals.find(m => m.id === medalId);
 
         if (medal && medal.unlocked) {
@@ -1229,46 +1158,47 @@
           item.classList.remove('unlocked');
         }
       });
+
+      if (selectedMedalId !== null) {
+        selectMedalItem(selectedMedalId);
+      }
     }
 
     // 记录游戏关卡完成
-    function recordGameLevelCompleted(gameId, level) {
-      const medal = medals.find(m => m.gameId === gameId);
-      if (medal) {
-        medal.completedLevels = Math.max(medal.completedLevels, level);
-        saveMedalData();
-        checkMedalUnlock();
+    function recordGameLevelCompleted(gameId, level, options = {}) {
+      const result = MedalUtil.recordGameProgress(gameId, level, {
+        childId: currentChildId || UserStateUtil.getCurrentChildId(),
+        notify: false,
+        increment: Boolean(options.increment)
+      });
+
+      if (result) {
+        loadMedalData();
+        updateMedalWall();
+
+        if (result.justUnlocked) {
+          showMedalNotification(result.medal);
+          selectMedalItem(result.medal.id);
+        }
       }
+
+      return result;
     }
 
     // 记录打卡
     function recordCheckin() {
-      const today = new Date().toDateString();
-      const lastCheckin = localStorage.getItem(`lastCheckin_${currentChildId}`);
-      const checkinStreak = parseInt(localStorage.getItem(`checkinStreak_${currentChildId}`) || '0');
+      const result = MedalUtil.recordCheckin(currentChildId, false);
+      loadMedalData();
+      updateMedalWall();
 
-      if (lastCheckin !== today) {
-        let newStreak = 1;
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        if (lastCheckin === yesterday.toDateString()) {
-          newStreak = checkinStreak + 1;
-        }
-
-        localStorage.setItem(`lastCheckin_${currentChildId}`, today);
-        localStorage.setItem(`checkinStreak_${currentChildId}`, newStreak.toString());
-
-        // 更新打卡类勋章的天数
-        medals.forEach(medal => {
-          if (medal.type === 'checkin') {
-            medal.days = newStreak;
-          }
+      if (result && result.unlockedMedals.length > 0) {
+        result.unlockedMedals.forEach(medal => {
+          showMedalNotification(medal);
+          selectMedalItem(medal.id);
         });
-
-        saveMedalData();
-        checkMedalUnlock();
       }
+
+      return result;
     }
 
     // 导出函数供其他页面调用
@@ -1276,33 +1206,28 @@
     window.recordCheckin = recordCheckin;
     window.checkMedalUnlock = checkMedalUnlock;
 
+    function selectMedalItem(medalId) {
+      const item = document.querySelector(`.medal-item[data-medal="${medalId}"]`);
+      const medal = medals.find(m => m.id === medalId);
+      if (!item || !medal) return;
+
+      const currentMedal = document.getElementById('current-medal');
+      const medalDesc = document.getElementById('medal-desc');
+      const isUnlocked = Boolean(medal.unlocked);
+
+      currentMedal.innerHTML = item.innerHTML;
+      currentMedal.classList.toggle('locked', !isUnlocked);
+      medalDesc.textContent = isUnlocked ? medal.name : medal.howto;
+
+      document.querySelectorAll('.medal-item').forEach(i => i.style.borderColor = 'transparent');
+      item.style.borderColor = '#f9b39c';
+      selectedMedalId = medalId;
+    }
+
     // 勋章点击交互
     document.querySelectorAll('.medal-item').forEach(item => {
       item.addEventListener('click', () => {
-        // 更新当前展示的勋章
-        const currentMedal = document.getElementById('current-medal');
-        const medalDesc = document.getElementById('medal-desc');
-
-        // 复制勋章图标
-        currentMedal.innerHTML = item.innerHTML;
-
-        // 检查是否已解锁
-        const isUnlocked = item.classList.contains('unlocked');
-
-        // 根据解锁状态设置current-medal的样式类
-        if (isUnlocked) {
-          currentMedal.classList.remove('locked');
-          // 已解锁：显示勋章名称
-          medalDesc.textContent = item.dataset.desc;
-        } else {
-          currentMedal.classList.add('locked');
-          // 未解锁：显示获得方法
-          medalDesc.textContent = item.dataset.howto;
-        }
-
-        // 高亮当前选中的勋章（移除放大效果）
-        document.querySelectorAll('.medal-item').forEach(i => i.style.borderColor = 'transparent');
-        item.style.borderColor = '#f9b39c';
+        selectMedalItem(parseInt(item.dataset.medal, 10));
       });
     });
 
@@ -1386,43 +1311,10 @@
       });
     });
 
-    // 显示家长端登录弹窗
-    function showParentLogin() {
-      document.getElementById('parent-login-modal').style.display = 'flex';
-    }
-
-    // 关闭家长端登录弹窗
-    function closeLoginModal() {
-      document.getElementById('parent-login-modal').style.display = 'none';
-      document.getElementById('parent-password').value = '';
-    }
-
-    // 检查密码
-    function checkPassword() {
-      const password = document.getElementById('parent-password').value;
-      // 这里可以设置正确的密码，例如 '123456'
-      if (password === '123456') {
-        // 密码正确，跳转到家长端界面
-        window.location.href = 'child-document.html';
-      } else {
-        // 密码错误，显示提示
-        alert('密码错误，请重试！');
-        document.getElementById('parent-password').value = '';
-      }
-    }
-
     // 点击弹窗外部关闭
     document.addEventListener('DOMContentLoaded', function () {
       initPage();
-      checkMedalUnlock(); // 页面加载时检查勋章解锁状态
-      const modal = document.getElementById('parent-login-modal');
-      if (modal) {
-        modal.addEventListener('click', (e) => {
-          if (e.target === e.currentTarget) {
-            closeLoginModal();
-          }
-        });
-      }
+      checkMedalUnlock();
     });
   </script>
 </body>

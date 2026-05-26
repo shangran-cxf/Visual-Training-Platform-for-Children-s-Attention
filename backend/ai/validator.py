@@ -1,4 +1,4 @@
-import hashlib
+﻿import hashlib
 import json
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
@@ -9,27 +9,22 @@ def is_empty_data(data: Dict[str, Any]) -> bool:
     if not data:
         return True
     
+    # 有训练记录即视为有数据，不再要求 detection 必须非零
     if data.get('training_count', 0) > 0:
         return False
     
-    if data.get('detection'):
-        detection = data.get('detection')
-        scores = [
-            detection.get('selective_attention', 0),
-            detection.get('sustained_attention', 0),
-            detection.get('visual_tracking', 0),
-            detection.get('working_memory', 0),
-            detection.get('inhibitory_control', 0),
-        ]
-        if not all(score == 0 for score in scores):
-            return False
+    detection = data.get('detection')
+    if not detection:
+        return True
     
-    if data.get('trend'):
-        trend = data.get('trend')
-        if any(records for records in trend.values()):
-            return False
-    
-    return True
+    scores = [
+        detection.get('selective_attention', 0),
+        detection.get('sustained_attention', 0),
+        detection.get('visual_tracking', 0),
+        detection.get('working_memory', 0),
+        detection.get('inhibitory_control', 0),
+    ]
+    return all(score == 0 for score in scores)
 
 def generate_data_fingerprint(data: Dict[str, Any]) -> str:
     fingerprint_data = {
@@ -67,12 +62,13 @@ def generate_data_fingerprint(data: Dict[str, Any]) -> str:
 def get_cached_report_if_unchanged(
     child_id: int,
     data: Dict[str, Any],
-    cache_config: Dict[str, Any]
+    cache_config: Dict[str, Any],
+    report_type: str = 'evaluation'
 ) -> Optional[Dict[str, Any]]:
     if not cache_config.get('enabled', True):
         return None
     
-    cache_key = f"report_{child_id}"
+    cache_key = f"report_{child_id}_{report_type}"
     cached = _report_cache.get(cache_key)
     
     if not cached:

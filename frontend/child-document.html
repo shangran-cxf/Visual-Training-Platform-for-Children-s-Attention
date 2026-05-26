@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -8,20 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="utils.js"></script>
   <script src="components-parent.js"></script>
-  <script>
-    window.API_BASE_URL = (function() {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:5000';
-      }
-      var protocol = window.location.protocol;
-      var host = window.location.host;
-      if (host.includes(':')) {
-        return protocol + '//' + host.split(':')[0] + ':5000';
-      }
-      return protocol + '//' + host;
-    })();
-  </script>
-  
+
   <style>
     /* ===== 页面特定样式 ===== */
 
@@ -284,6 +271,8 @@
 
   <script>
     // ===== API 工具函数 =====
+    const baseUrl = getBaseUrl();
+
     const ApiUtil = {
       async apiGet(url, params = {}) {
         const queryString = new URLSearchParams(
@@ -293,7 +282,7 @@
         const fullUrl = queryString ? `${url}?${queryString}` : url;
 
         try {
-          const response = await fetch(window.API_BASE_URL + fullUrl, {
+          const response = await fetch(`${baseUrl}${fullUrl}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -311,7 +300,7 @@
 
       async apiPost(url, data = {}) {
         try {
-          const response = await fetch(window.API_BASE_URL + url, {
+          const response = await fetch(`${baseUrl}${url}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -355,8 +344,13 @@
         const userInfo = StorageUtil.getItem('userInfo');
         if (!userInfo || !userInfo.parent_id) {
           console.error('用户信息不存在');
+          // 显示错误状态
+          document.getElementById('selected-child-name').textContent = '登录失效';
           return;
         }
+
+        // 显示加载状态
+        document.getElementById('selected-child-name').textContent = '加载中...';
 
         const result = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
         childrenList = result.data || result || [];
@@ -370,6 +364,7 @@
 
         if (!childrenList || childrenList.length === 0) {
           optionsContainer.innerHTML = '<div class="child-option">暂无儿童信息</div>';
+          document.getElementById('selected-child-name').textContent = '暂无儿童';
           return;
         }
 
@@ -393,6 +388,9 @@
         await drawGrowthChart(firstChild.id);
       } catch (error) {
         console.error('加载儿童列表失败:', error);
+        document.getElementById('selected-child-name').textContent = '加载失败';
+        // 显示错误提示
+        alert('加载儿童信息失败，请刷新页面重试');
       }
     }
 
@@ -432,18 +430,25 @@
         const cacheKey = `child_data_${childId}`;
         const cachedData = localStorage.getItem(cacheKey);
         if (cachedData) {
-          return JSON.parse(cachedData);
+          try {
+            return JSON.parse(cachedData);
+          } catch (parseError) {
+            console.error('解析缓存数据失败:', parseError);
+            localStorage.removeItem(cacheKey);
+          }
         }
 
+        // 并行请求数据
         const [statsResult, detectionResult, trendResult] = await Promise.all([
           ApiUtil.apiGet(`/api/children/${childId}/stats`),
           ApiUtil.apiGet(`/api/get/detection`, { child_id: childId }),
           ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 30 })
         ]);
 
-        const stats = statsResult.data || statsResult;
-        const detection = detectionResult.data || detectionResult;
-        const trend = trendResult.data || trendResult;
+        // 数据验证和处理
+        const stats = statsResult.data || statsResult || {};
+        const detection = detectionResult.data || detectionResult || [];
+        const trend = trendResult.data || trendResult || {};
 
         const child = (childrenList && Array.isArray(childrenList))
           ? childrenList.find(c => c.id === childId) || {}
@@ -490,15 +495,30 @@
         };
 
         // 缓存数据（5分钟）
-        localStorage.setItem(cacheKey, JSON.stringify(result));
-        setTimeout(() => {
-          localStorage.removeItem(cacheKey);
-        }, 5 * 60 * 1000);
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(result));
+          setTimeout(() => {
+            localStorage.removeItem(cacheKey);
+          }, 5 * 60 * 1000);
+        } catch (cacheError) {
+          console.error('缓存数据失败:', cacheError);
+        }
 
         return result;
       } catch (error) {
         console.error('获取儿童数据失败:', error);
-        return null;
+        // 返回默认数据，避免页面卡住
+        return {
+          info: {
+            name: '-',
+            age: '-',
+            gender: '-',
+            time: '0分钟',
+            courses: '0次',
+            level: '-'
+          },
+          radarData: [0.5, 0.5, 0.5, 0.5, 0.5]
+        };
       }
     }
 
@@ -676,12 +696,31 @@
           loadingEl.style.display = 'none';
           contentEl.style.display = 'block';
         } else {
-          throw new Error(result.message || '获取评价失败，请稍后再重试吧！');
+          // 即使 API 失败，也要显示默认内容，避免页面卡住
+          const defaultEvaluation = {
+            summary: '暂无训练数据，快去做训练吧！',
+            strengths: ['暂无数据'],
+            weaknesses: ['暂无数据'],
+            suggestions: ['暂无数据'],
+            home_guidance: '暂无指导，完成训练后将生成专业建议'
+          };
+          displayEvaluation(defaultEvaluation);
+          loadingEl.style.display = 'none';
+          contentEl.style.display = 'block';
         }
       } catch (error) {
         console.error('获取评价失败:', error);
+        // 显示默认内容，避免页面卡住
+        const defaultEvaluation = {
+          summary: 'AI 评价暂时不可用，快去做训练吧！',
+          strengths: ['暂无数据'],
+          weaknesses: ['暂无数据'],
+          suggestions: ['暂无数据'],
+          home_guidance: '完成训练后将生成专业建议'
+        };
+        displayEvaluation(defaultEvaluation);
         loadingEl.style.display = 'none';
-        errorEl.style.display = 'block';
+        contentEl.style.display = 'block';
       }
     }
 
@@ -755,60 +794,65 @@
 
     // 绘制雷达图
     function drawRadarChart(data) {
-      const canvas = document.getElementById('radarChart');
-      if (!canvas) return;
+      try {
+        const canvas = document.getElementById('radarChart');
+        if (!canvas) return;
 
-      // 销毁旧的图表实例
-      if (radarChart) {
-        radarChart.destroy();
-        radarChart = null;
-      }
-
-      const ctx = canvas.getContext('2d');
-      const values = data || [0.5, 0.5, 0.5, 0.5, 0.5]; // 默认值
-      const { dimensions, standardValues, styles } = radarChartConfig;
-
-      // 创建新的图表实例
-      radarChart = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: dimensions,
-          datasets: [
-            {
-              label: styles.dataset.label,
-              data: values.map(value => value * 100), // 转换为百分比
-              backgroundColor: styles.dataset.backgroundColor,
-              borderColor: styles.dataset.borderColor,
-              pointBackgroundColor: styles.dataset.pointBackgroundColor,
-              pointHoverBackgroundColor: styles.dataset.pointHoverBackgroundColor,
-              pointHoverBorderColor: styles.dataset.pointHoverBorderColor
-            },
-            {
-              label: styles.standardDataset.label,
-              data: standardValues.map(value => value * 100), // 转换为百分比
-              backgroundColor: styles.standardDataset.backgroundColor,
-              borderColor: styles.standardDataset.borderColor,
-              pointBackgroundColor: styles.standardDataset.pointBackgroundColor,
-              pointBorderColor: styles.standardDataset.pointBorderColor,
-              pointHoverBackgroundColor: styles.standardDataset.pointHoverBackgroundColor,
-              pointHoverBorderColor: styles.standardDataset.pointHoverBorderColor
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            r: {
-              angleLines: styles.scales.angleLines,
-              grid: styles.scales.grid,
-              pointLabels: styles.scales.pointLabels,
-              ticks: styles.scales.ticks
-            }
-          },
-          plugins: styles.plugins
+        // 销毁旧的图表实例
+        if (radarChart) {
+          radarChart.destroy();
+          radarChart = null;
         }
-      });
+
+        const ctx = canvas.getContext('2d');
+        const values = data || [0.5, 0.5, 0.5, 0.5, 0.5]; // 默认值
+        const { dimensions, standardValues, styles } = radarChartConfig;
+
+        // 创建新的图表实例
+        radarChart = new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: dimensions,
+            datasets: [
+              {
+                label: styles.dataset.label,
+                data: values.map(value => value * 100), // 转换为百分比
+                backgroundColor: styles.dataset.backgroundColor,
+                borderColor: styles.dataset.borderColor,
+                pointBackgroundColor: styles.dataset.pointBackgroundColor,
+                pointHoverBackgroundColor: styles.dataset.pointHoverBackgroundColor,
+                pointHoverBorderColor: styles.dataset.pointHoverBorderColor
+              },
+              {
+                label: styles.standardDataset.label,
+                data: standardValues.map(value => value * 100), // 转换为百分比
+                backgroundColor: styles.standardDataset.backgroundColor,
+                borderColor: styles.standardDataset.borderColor,
+                pointBackgroundColor: styles.standardDataset.pointBackgroundColor,
+                pointBorderColor: styles.standardDataset.pointBorderColor,
+                pointHoverBackgroundColor: styles.standardDataset.pointHoverBackgroundColor,
+                pointHoverBorderColor: styles.standardDataset.pointHoverBorderColor
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                angleLines: styles.scales.angleLines,
+                grid: styles.scales.grid,
+                pointLabels: styles.scales.pointLabels,
+                ticks: styles.scales.ticks
+              }
+            },
+            plugins: styles.plugins
+          }
+        });
+      } catch (error) {
+        console.error('绘制雷达图失败:', error);
+        // 即使图表绘制失败，也不影响页面其他部分
+      }
     }
 
     // 成长轨迹图实例
@@ -816,175 +860,180 @@
 
     // 绘制成长轨迹图
     async function drawGrowthChart(childId) {
-      const canvas = document.getElementById('growthChart');
-      if (!canvas) return;
-
-      // 销毁旧的图表实例
-      if (growthChart) {
-        growthChart.destroy();
-        growthChart = null;
-      }
-
-      const ctx = canvas.getContext('2d');
-
-      // 页面加载完成后初始化
       try {
-        // 检查缓存
-        const cacheKey = `growth_data_${childId}`;
-        const cachedData = localStorage.getItem(cacheKey);
-        let trendData;
+        const canvas = document.getElementById('growthChart');
+        if (!canvas) return;
 
-        if (cachedData) {
-          trendData = JSON.parse(cachedData);
-        } else {
-          const result = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
-          trendData = result.data || result;
-
-          // 缓存数据（10分钟）
-          localStorage.setItem(cacheKey, JSON.stringify(trendData));
-          setTimeout(() => {
-            localStorage.removeItem(cacheKey);
-          }, 10 * 60 * 1000);
+        // 销毁旧的图表实例
+        if (growthChart) {
+          growthChart.destroy();
+          growthChart = null;
         }
 
-        let labels = [];
-        let data = [];
+        const ctx = canvas.getContext('2d');
 
-        if (trendData && trendData.trend) {
-          const allRecords = [];
-          Object.values(trendData.trend).forEach(attentionType => {
-            if (attentionType.records && attentionType.records.length > 0) {
-              attentionType.records.forEach(record => {
-                allRecords.push(record);
-              });
+        // 页面加载完成后初始化
+        try {
+          // 检查缓存
+          const cacheKey = `growth_data_${childId}`;
+          const cachedData = localStorage.getItem(cacheKey);
+          let trendData;
+
+          if (cachedData) {
+            try {
+              trendData = JSON.parse(cachedData);
+            } catch (parseError) {
+              console.error('解析缓存数据失败:', parseError);
+              localStorage.removeItem(cacheKey);
+              trendData = null;
             }
-          });
-
-          allRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-          const groupedByDate = {};
-          allRecords.forEach(record => {
-            if (!groupedByDate[record.date]) {
-              groupedByDate[record.date] = [];
-            }
-            groupedByDate[record.date].push(record.score);
-          });
-
-          Object.keys(groupedByDate).slice(-8).forEach((date, index) => {
-            const avgScore = groupedByDate[date].reduce((a, b) => a + b, 0) / groupedByDate[date].length;
-            labels.push(`第${index + 1}周`);
-            data.push(Math.round(avgScore));
-          });
-        }
-
-        if (labels.length === 0) {
-          const detectionResult = await ApiUtil.apiGet(`/api/get/detection`, { child_id: childId });
-          const detectionData = detectionResult.data || detectionResult;
-          
-          if (detectionData && detectionData.length > 0) {
-            const sortedDetections = detectionData
-              .slice(0, 8)
-              .reverse();
-            
-            sortedDetections.forEach((detection, index) => {
-              const avgScore = Math.round(
-                ((detection.selective_attention || 0) +
-                 (detection.sustained_attention || 0) +
-                 (detection.visual_tracking || 0) +
-                 (detection.working_memory || 0) +
-                 (detection.inhibitory_control || 0)) / 5 * 100
-              );
-              labels.push(`评估${index + 1}`);
-              data.push(avgScore);
-            });
           } else {
+            const result = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
+            trendData = result.data || result;
+
+            // 缓存数据（10分钟）
+            try {
+              localStorage.setItem(cacheKey, JSON.stringify(trendData));
+              setTimeout(() => {
+                localStorage.removeItem(cacheKey);
+              }, 10 * 60 * 1000);
+            } catch (cacheError) {
+              console.error('缓存数据失败:', cacheError);
+            }
+          }
+
+          let labels = [];
+          let data = [];
+
+          if (trendData && trendData.trend) {
+            const allRecords = [];
+            Object.values(trendData.trend).forEach(attentionType => {
+              if (attentionType.records && attentionType.records.length > 0) {
+                attentionType.records.forEach(record => {
+                  allRecords.push(record);
+                });
+              }
+            });
+
+            allRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            const groupedByDate = {};
+            allRecords.forEach(record => {
+              if (!groupedByDate[record.date]) {
+                groupedByDate[record.date] = [];
+              }
+              groupedByDate[record.date].push(record.score);
+            });
+
+            Object.keys(groupedByDate).slice(-8).forEach((date, index) => {
+              const avgScore = groupedByDate[date].reduce((a, b) => a + b, 0) / groupedByDate[date].length;
+              labels.push(`第${index + 1}周`);
+              data.push(Math.round(avgScore));
+            });
+          }
+
+          if (labels.length === 0) {
             labels = ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'];
             data = [0, 0, 0, 0, 0, 0, 0, 0];
           }
-        }
 
-        growthChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: '专注能力评分',
-              data: data,
-              backgroundColor: 'rgba(102, 126, 234, 0.2)',
-              borderColor: '#667eea',
-              borderWidth: 4,
-              pointBackgroundColor: '#667eea',
-              pointBorderColor: '#fff',
-              pointHoverBackgroundColor: '#fff',
-              pointHoverBorderColor: '#667eea',
-              tension: 0.1
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: false,
-                min: 0,
-                max: 100,
-                ticks: {
-                  stepSize: 10,
-                  font: {
-                    size: 12
+          growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: '专注能力评分',
+                data: data,
+                backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                borderColor: '#667eea',
+                borderWidth: 4,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#667eea',
+                tension: 0.1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: false,
+                  min: 0,
+                  max: 100,
+                  ticks: {
+                    stepSize: 10,
+                    font: {
+                      size: 12
+                    }
+                  }
+                },
+                x: {
+                  ticks: {
+                    font: {
+                      size: 12
+                    }
                   }
                 }
               },
-              x: {
-                ticks: {
-                  font: {
-                    size: 12
-                  }
-                }
-              }
-            },
-            plugins: {
-              legend: {
-                display: true,
-                position: 'bottom',
-                labels: {
-                  font: {
-                    size: 16
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'bottom',
+                  labels: {
+                    font: {
+                      size: 16
+                    }
                   }
                 }
               }
             }
+          });
+        } catch (error) {
+          console.error('加载成长轨迹失败:', error);
+          // 绘制默认图表前，先销毁可能存在的旧图表
+          if (growthChart) {
+            growthChart.destroy();
+            growthChart = null;
           }
-        });
+          growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'],
+              datasets: [{
+                label: '专注能力评分',
+                data: [0, 0, 0, 0, 0, 0, 0, 0],
+                backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                borderColor: '#667eea',
+                borderWidth: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false
+            }
+          });
+        }
       } catch (error) {
-        console.error('加载成长轨迹失败:', error);
-        growthChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'],
-            datasets: [{
-              label: '专注能力评分',
-              data: [0, 0, 0, 0, 0, 0, 0, 0],
-              backgroundColor: 'rgba(102, 126, 234, 0.2)',
-              borderColor: '#667eea',
-              borderWidth: 4
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false
-          }
-        });
+        console.error('绘制成长轨迹图失败:', error);
+        // 即使图表绘制失败，也不影响页面其他部分
       }
     }
 
     document.addEventListener('DOMContentLoaded', async function () {
-      // 检查登录状态
-      const userInfo = ParentComponents.checkAuth();
+      try {
+        // 检查登录状态
+        const userInfo = ParentComponents.checkAuth();
 
-      // 初始化页面
-      ParentComponents.initPage('profile');
-      await loadChildrenList();
+        // 初始化页面
+        ParentComponents.initPage('profile');
+        await loadChildrenList();
+      } catch (error) {
+        console.error('页面初始化失败:', error);
+        // 显示错误提示
+        alert('页面加载失败，请刷新重试');
+      }
     });
 
     // 防抖函数

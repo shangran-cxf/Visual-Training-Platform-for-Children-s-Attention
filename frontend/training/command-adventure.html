@@ -20,6 +20,10 @@
             background-position: center;
             background-size: cover;
             background-attachment: fixed;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
         }
 
         .container {
@@ -125,8 +129,8 @@
         }
 
         .obstacle {
-            width: 30px;
-            height: 30px;
+            width: 70px;
+            height: 70px;
             background-image: url('../images/obstacle.png');
             background-size: contain;
             background-position: center;
@@ -305,6 +309,117 @@
                 transform: translateY(-10px);
             }
         }
+
+        /* 游戏结束弹窗 */
+        .game-over-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-over-modal.show {
+            display: flex;
+        }
+
+        .game-over-content {
+            background: linear-gradient(135deg, #a5d9ff 0%, #4ea4fa 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            animation: modalSlideIn 0.5s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .game-over-content h2 {
+            color: white;
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            color: #333;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-btn.restart {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .modal-btn.restart:hover {
+            background-color: #f57c00;
+            transform: scale(1.05);
+        }
+
+        .modal-btn.back {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .modal-btn.back:hover {
+            background-color: #1976D2;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 
@@ -338,7 +453,7 @@
 
         <div class="instructions">
             <p>冰雪王国的雪花信件要送给雪精灵！</p>
-            <p>你是可爱的冰雪小邮差，要按照指令穿过雪地，把信件送到黄色雪屋。路上有红色冰刺，千万不能碰到！</p>
+            <p>你是可爱的冰雪小邮差，要按照指令穿过雪地，把信件送到雪屋。路上有蓝色冰刺，千万不能碰到！</p>
             <p>每关指令不同，要仔细阅读再行动。</p>
         </div>
 
@@ -358,23 +473,23 @@
                 </div>
             </div>
 
+            <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn difficulty-btn" onclick="setDifficulty('easy')" id="easy-btn">简单</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty('medium')" id="medium-btn">中等</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty('hard')" id="hard-btn">困难</button>
+                </div>
+            </div>
+
             <div class="command-area">
-                <div class="command" id="command">使用方向键或按钮控制角色移动到黄色目标点</div>
+                <div class="command" id="command">使用方向键或按钮控制角色移动到送信点</div>
             </div>
 
             <div class="game-area" id="gameArea">
                 <div class="player" id="player"></div>
-                <!-- 障碍物和目标将通过JavaScript动态生成 -->
             </div>
 
             <div class="controls">
-                <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 15px;">
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn difficulty-btn" onclick="setDifficulty('easy')" id="easy-btn">简单</button>
-                        <button class="btn difficulty-btn" onclick="setDifficulty('medium')" id="medium-btn">中等</button>
-                        <button class="btn difficulty-btn" onclick="setDifficulty('hard')" id="hard-btn">困难</button>
-                    </div>
-                </div>
                 <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 5px;">
                     <button class="control-btn" onclick="movePlayer('up')">↑</button>
                 </div>
@@ -394,6 +509,35 @@
         </div>
     </div>
 
+    <!-- 游戏结束弹窗 -->
+    <div class="game-over-modal" id="gameOverModal">
+        <div class="game-over-content">
+            <h2>🎉 游戏完成！🎉</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">🏆 得分</div>
+                    <div class="stat-value" id="modal-score" style="color: #ff9800; font-size: 36px;">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">⏱️ 用时</div>
+                    <div class="stat-value" id="modal-time">0s</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">✅ 关卡</div>
+                    <div class="stat-value" id="modal-level">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">⚠️ 碰撞</div>
+                    <div class="stat-value" id="modal-collision">0</div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn restart" onclick="restartGame()">🔄 再来一局</button>
+                <button class="modal-btn back" onclick="backToStart()">🏠 返回开始</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../utils.js"></script>
     <script>
         // 游戏变量
@@ -402,7 +546,7 @@
         let goal;
         let level = 1;
         let score = 0;
-        let time = 60;
+        let time = 0;
         let gameState = 'ready'; // ready, playing, gameOver
         let timeInterval;
         let commandMapping = {
@@ -412,6 +556,7 @@
             'right': 'right'
         };
         let difficulty = 'easy'; // easy, medium, hard
+        let collisionCount = 0; // 碰撞障碍物的次数
 
         // 游戏配置
         const config = {
@@ -432,15 +577,15 @@
             gameArea.style.margin = '0 auto';
 
             player = document.getElementById('player');
-            
+
             // 默认选中简单难度
             document.getElementById('easy-btn').classList.add('active');
         }
 
-        // 重置玩家位置到原点
+        // 重置玩家位置到左上角
         function resetPlayerPosition() {
-            player.style.top = '155px';
-            player.style.left = '355px';
+            player.style.top = '20px';
+            player.style.left = '20px';
         }
 
         // 开始游戏
@@ -449,71 +594,47 @@
                 // 重置游戏
                 level = 1;
                 score = 0;
-                time = 60;
+                time = 0;
+                collisionCount = 0;
                 gameState = 'playing';
+
+                // 禁止网页滚动
+                document.body.style.overflow = 'hidden';
 
                 // 生成第一关
                 generateLevel();
+
+                // 重置玩家位置到左上角
+                resetPlayerPosition();
 
                 // 更新UI
                 updateUI();
 
                 // 开始计时
                 timeInterval = setInterval(() => {
-                    time--;
+                    time++;
                     updateUI();
-                    if (time <= 0) {
-                        endGame();
-                    }
                 }, 1000);
             }
         }
 
         // 生成关卡
         function generateLevel() {
-            // 清除之前的障碍物、目标和格子旗
+            // 清除之前的障碍物、目标
             obstacles.forEach(obstacle => obstacle.remove());
             obstacles = [];
             if (goal) goal.remove();
-            const oldFlag = document.getElementById('goalFlag');
-            if (oldFlag) oldFlag.remove();
 
-            // 生成目标，确保不会与玩家初始位置重合
-            let validGoalPosition = false;
-            let goalTop, goalLeft;
-            
-            while (!validGoalPosition) {
-                goalTop = Math.random() * (config.gameAreaHeight - 120);
-                goalLeft = Math.random() * (config.gameAreaWidth - 120);
-                
-                // 检查是否与玩家初始位置重合
-                const playerInitialTop = 155;
-                const playerInitialLeft = 355;
-                const distanceToPlayer = Math.sqrt(
-                    Math.pow(goalTop + 60 - (playerInitialTop + 45), 2) + 
-                    Math.pow(goalLeft + 60 - (playerInitialLeft + 45), 2)
-                );
-                
-                // 离玩家初始位置至少150px，确保不会重合
-                if (distanceToPlayer > 150) {
-                    validGoalPosition = true;
-                }
-            }
-            
+            // 固定终点在右下角
+            const goalTop = config.gameAreaHeight - 140;
+            const goalLeft = config.gameAreaWidth - 140;
+
+            // 创建目标（房屋）
             goal = document.createElement('div');
             goal.className = 'goal';
             goal.style.top = `${goalTop}px`;
             goal.style.left = `${goalLeft}px`;
             document.getElementById('gameArea').appendChild(goal);
-            
-            // 生成格子旗遮挡
-            const flag = document.createElement('div');
-            flag.className = 'goal-flag';
-            flag.textContent = '🏁';
-            flag.style.top = goal.style.top;
-            flag.style.left = goal.style.left;
-            flag.id = 'goalFlag';
-            document.getElementById('gameArea').appendChild(flag);
 
             // 重置玩家位置到原点
             resetPlayerPosition();
@@ -522,40 +643,59 @@
             let obstacleCount;
             switch (difficulty) {
                 case 'easy':
-                    obstacleCount = 3;
+                    obstacleCount = 5;
                     break;
                 case 'medium':
-                    obstacleCount = 6;
+                    obstacleCount = 8;
                     break;
                 case 'hard':
-                    obstacleCount = 9;
+                    obstacleCount = 11;
                     break;
                 default:
-                    obstacleCount = 3;
+                    obstacleCount = 5;
             }
-            
-            // 生成障碍物，确保不会在房子周围生成过多障碍物
+
+            // 生成障碍物
             for (let i = 0; i < obstacleCount; i++) {
                 let validPosition = false;
                 let top, left;
-                
-                while (!validPosition) {
-                    top = Math.random() * (config.gameAreaHeight - 30);
-                    left = Math.random() * (config.gameAreaWidth - 30);
-                    
-                    // 检查是否离房子太近
-                    const goalTop = parseInt(goal.style.top);
-                    const goalLeft = parseInt(goal.style.left);
-                    const distanceToGoal = Math.sqrt(
-                        Math.pow(top - (goalTop + 60), 2) + Math.pow(left - (goalLeft + 60), 2)
+                let attempts = 0;
+                const maxAttempts = 100;
+
+                while (!validPosition && attempts < maxAttempts) {
+                    attempts++;
+                    top = Math.random() * (config.gameAreaHeight - 70);
+                    left = Math.random() * (config.gameAreaWidth - 70);
+
+                    // 检查是否离起点太近
+                    const distanceToStart = Math.sqrt(
+                        Math.pow(top + 35 - 65, 2) + Math.pow(left + 35 - 65, 2)
                     );
-                    
-                    // 离房子至少100px，确保有通往房子的路
-                    if (distanceToGoal > 100) {
+
+                    // 检查是否离终点太近
+                    const distanceToGoal = Math.sqrt(
+                        Math.pow(top + 35 - (goalTop + 60), 2) + Math.pow(left + 35 - (goalLeft + 60), 2)
+                    );
+
+                    // 检查是否与其他障碍物太近
+                    let tooCloseToOtherObstacles = false;
+                    for (const existingObstacle of obstacles) {
+                        const existingTop = parseInt(existingObstacle.style.top);
+                        const existingLeft = parseInt(existingObstacle.style.left);
+                        const distanceToOther = Math.sqrt(
+                            Math.pow(top + 35 - (existingTop + 35), 2) + Math.pow(left + 35 - (existingLeft + 35), 2)
+                        );
+                        if (distanceToOther < 80) {
+                            tooCloseToOtherObstacles = true;
+                            break;
+                        }
+                    }
+
+                    if (distanceToStart > 100 && distanceToGoal > 100 && !tooCloseToOtherObstacles) {
                         validPosition = true;
                     }
                 }
-                
+
                 const obstacle = document.createElement('div');
                 obstacle.className = 'obstacle';
                 obstacle.style.top = `${top}px`;
@@ -571,24 +711,11 @@
         // 生成指令
         function generateCommand() {
             const commandElement = document.getElementById('command');
-
-            // 随机生成指令类型
-            const commandType = Math.floor(Math.random() * 3);
+            const commandType = Math.floor(Math.random() * 3) + 1;
 
             switch (commandType) {
-                case 0:
-                    // 正常指令
-                    commandElement.textContent = '使用方向键或按钮控制角色移动到黄色目标点';
-                    commandMapping = {
-                        'up': 'up',
-                        'down': 'down',
-                        'left': 'left',
-                        'right': 'right'
-                    };
-                    break;
                 case 1:
-                    // 反向指令
-                    commandElement.textContent = '注意：方向相反！使用方向键或按钮控制角色移动到黄色目标点';
+                    commandElement.innerHTML = '注意：方向相反！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应↓, ↓对应↑, ←对应→, →对应←';
                     commandMapping = {
                         'up': 'down',
                         'down': 'up',
@@ -597,13 +724,21 @@
                     };
                     break;
                 case 2:
-                    // 旋转指令
-                    commandElement.textContent = '注意：方向旋转！使用方向键或按钮控制角色移动到黄色目标点';
+                    commandElement.innerHTML = '注意：方向顺时针旋转！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应→, →对应↓, ↓对应←, ←对应↑';
                     commandMapping = {
                         'up': 'right',
                         'right': 'down',
                         'down': 'left',
                         'left': 'up'
+                    };
+                    break;
+                case 3:
+                    commandElement.innerHTML = '注意：方向逆时针旋转！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应←, ←对应↓, ↓对应→, →对应↑';
+                    commandMapping = {
+                        'up': 'left',
+                        'left': 'down',
+                        'down': 'right',
+                        'right': 'up'
                     };
                     break;
             }
@@ -612,295 +747,224 @@
         // 设置难度
         function setDifficulty(level) {
             difficulty = level;
-            
-            // 更新按钮状态
             document.querySelectorAll('.difficulty-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.getElementById(`${level}-btn`).classList.add('active');
-            
-            // 重置游戏状态
-            if (gameState === 'playing') {
-                generateLevel();
-            }
+            if (gameState === 'playing') generateLevel();
         }
 
         // 移动玩家
         function movePlayer(direction) {
             if (gameState !== 'playing') return;
-
-            // 直接使用点击的方向
             const mappedDirection = commandMapping[direction];
+            let currentTop = parseInt(player.style.top) || 20;
+            let currentLeft = parseInt(player.style.left) || 20;
 
-            // 确保获取正确的当前位置
-            let currentTop = parseInt(player.style.top) || 155;
-            let currentLeft = parseInt(player.style.left) || 355;
-
-            // 严格按照点击的方向移动
             switch (mappedDirection) {
-                case 'up':
-                    currentTop = Math.max(0, currentTop - config.playerSpeed);
-                    break;
-                case 'down':
-                    currentTop = Math.min(config.gameAreaHeight - 90, currentTop + config.playerSpeed);
-                    break;
-                case 'left':
-                    currentLeft = Math.max(0, currentLeft - config.playerSpeed);
-                    break;
-                case 'right':
-                    currentLeft = Math.min(config.gameAreaWidth - 90, currentLeft + config.playerSpeed);
-                    break;
+                case 'up': currentTop = Math.max(0, currentTop - config.playerSpeed); break;
+                case 'down': currentTop = Math.min(config.gameAreaHeight - 90, currentTop + config.playerSpeed); break;
+                case 'left': currentLeft = Math.max(0, currentLeft - config.playerSpeed); break;
+                case 'right': currentLeft = Math.min(config.gameAreaWidth - 90, currentLeft + config.playerSpeed); break;
             }
 
-            // 确保位置值正确
             player.style.top = `${currentTop}px`;
             player.style.left = `${currentLeft}px`;
-
-            // 检查碰撞
             checkCollision();
         }
 
         // 处理按键
         function handleKeyPress(e) {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
             switch (e.key) {
-                case 'ArrowUp':
-                    movePlayer('up');
-                    break;
-                case 'ArrowDown':
-                    movePlayer('down');
-                    break;
-                case 'ArrowLeft':
-                    movePlayer('left');
-                    break;
-                case 'ArrowRight':
-                    movePlayer('right');
-                    break;
+                case 'ArrowUp': movePlayer('up'); break;
+                case 'ArrowDown': movePlayer('down'); break;
+                case 'ArrowLeft': movePlayer('left'); break;
+                case 'ArrowRight': movePlayer('right'); break;
             }
         }
 
         // 检查碰撞
         function checkCollision() {
-            // 检查与障碍物碰撞
+            if (gameState !== 'playing') return;
             const playerRect = player.getBoundingClientRect();
+            const goalRect = goal.getBoundingClientRect();
 
+            // 宽松碰撞检测
+            const hitGoal = !(
+                playerRect.right < goalRect.left ||
+                playerRect.left > goalRect.right ||
+                playerRect.bottom < goalRect.top ||
+                playerRect.top > goalRect.bottom
+            );
+
+            if (hitGoal) {
+                goal.style.transform = 'scale(1.0)';
+                endGame();
+                return;
+            }
+
+            // 障碍物碰撞
             for (const obstacle of obstacles) {
-                const obstacleRect = obstacle.getBoundingClientRect();
-                if (isColliding(playerRect, obstacleRect)) {
-                    // 碰撞障碍物，回到起点
+                const obsRect = obstacle.getBoundingClientRect();
+                const hitObs = !(
+                    playerRect.right < obsRect.left ||
+                    playerRect.left > obsRect.right ||
+                    playerRect.bottom < obsRect.top ||
+                    playerRect.top > obsRect.bottom
+                );
+                if (hitObs) {
+                    collisionCount++;
                     resetPlayerPosition();
                     return;
                 }
             }
-
-            // 检查与目标碰撞
-            const goalRect = goal.getBoundingClientRect();
-            if (isColliding(playerRect, goalRect)) {
-                // 移除格子旗
-                const flag = document.getElementById('goalFlag');
-                if (flag) {
-                    flag.remove();
-                }
-                
-                // 小屋变大
-                goal.style.width = '150px';
-                goal.style.height = '150px';
-                
-                // 生成星星特效
-                const goalX = goalRect.left + goalRect.width / 2;
-                const goalY = goalRect.top + goalRect.height / 2;
-                // 转换为游戏区域内的相对坐标
-                const gameAreaRect = document.getElementById('gameArea').getBoundingClientRect();
-                createStarEffect(goalX - gameAreaRect.left, goalY - gameAreaRect.top);
-
-                // 到达目标，游戏结束
-                setTimeout(() => {
-                    endGame();
-                }, 500);
-            }
         }
 
-        // 检查两个矩形是否碰撞（缩小触发范围，只检测中心区域）
-        function isColliding(rect1, rect2) {
-            // 计算两个矩形的中心坐标
-            const rect1CenterX = rect1.left + rect1.width / 2;
-            const rect1CenterY = rect1.top + rect1.height / 2;
-            const rect2CenterX = rect2.left + rect2.width / 2;
-            const rect2CenterY = rect2.top + rect2.height / 2;
-            
-            // 计算两个中心之间的距离
-            const distanceX = Math.abs(rect1CenterX - rect2CenterX);
-            const distanceY = Math.abs(rect1CenterY - rect2CenterY);
-            
-            // 计算最小碰撞距离（使用缩小后的范围，只取宽度和高度的40%）
-            const minDistanceX = (rect1.width + rect2.width) * 0.4 / 2;
-            const minDistanceY = (rect1.height + rect2.height) * 0.4 / 2;
-            
-            // 只有当中心距离小于最小碰撞距离时才触发碰撞
-            return distanceX < minDistanceX && distanceY < minDistanceY;
-        }
-
-        // 结束游戏
+        // 计算得分
         function calculateInhibitionScore() {
-            // 计算各项指标
             const totalTrial = level - 1;
             const acc = totalTrial > 0 ? totalTrial / 10 : 0;
-            const impulse = totalTrial > 0 ? 1 - errors / totalTrial : 0;
-            
-            // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
-            const headStable = 0.8; // 头部稳定性
-            const faceStable = 0.8; // 面部稳定性
-            const blinkStable = 0.8; // 眨眼稳定性
-            
-            // 计算最终得分
-            const scoreValue = (
-                impulse * 0.40 +
-                acc * 0.30 +
-                headStable * 0.15 +
-                faceStable * 0.08 +
-                blinkStable * 0.07
-            ) * 100;
-            
+            const impulse = totalTrial > 0 ? 1 - collisionCount / totalTrial : 0;
+            const scoreValue = (impulse * 0.4 + acc * 0.3 + 0.8 * 0.3) * 100;
             return Math.max(0, Math.min(100, Math.round(scoreValue)));
         }
 
+        // 结束游戏
         function endGame() {
             gameState = 'gameOver';
             clearInterval(timeInterval);
-
-            // 统计游戏使用时间
-            try {
-                if (typeof GameTimeUtil !== 'undefined') {
-                    GameTimeUtil.endGame('command-adventure');
-                }
-            } catch (e) {
-                console.log('GameTimeUtil 未定义，跳过');
-            }
-
-            // 计算抑制控制得分
             const finalScore = calculateInhibitionScore();
 
-            // 保存游戏数据
-            const gameData = {
-                gameName: 'command-adventure',
-                score: finalScore,
-                level: level,
-                timestamp: new Date().toISOString()
-            };
+            // 填充弹窗
+            document.getElementById('modal-score').textContent = finalScore;
+            document.getElementById('modal-time').textContent = time + 's';
+            document.getElementById('modal-level').textContent = level - 1;
+            document.getElementById('modal-collision').textContent = collisionCount;
 
-            // 保存到本地存储
-            try {
-                if (typeof StorageUtil !== 'undefined') {
-                    const trainingHistory = StorageUtil.getItem('training_history') || [];
-                    trainingHistory.push(gameData);
-                    StorageUtil.setItem('training_history', trainingHistory);
-                }
-            } catch (e) {
-                console.log('StorageUtil 未定义，跳过');
+            // 显示弹窗
+            const modal = document.getElementById('gameOverModal');
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+
+            if (typeof MedalUtil !== 'undefined') {
+                MedalUtil.recordGameProgress('game10', difficulty);
             }
 
-            // 上传数据到后端
-            uploadTrainingData();
-
-            // 显示游戏结束信息
-            if (level > 5) {
-                alert(`🏆 恭喜你成为冰雪王国金牌小邮差！ 🏆\n\n你成功送达了所有雪花信件！\n得分：${finalScore}\n闯过关卡：${level - 1}\n\n雪精灵为你的勇敢和智慧感到骄傲！`);
-            } else {
-                alert(`❄️ 游戏结束！ ❄️\n\n得分：${finalScore}\n闯过关卡：${level - 1}\n\n别灰心，冰雪小邮差！\n再试一次，你一定能成功送达所有信件的！`);
-            }
+            try { uploadTrainingData(); } catch (e) { }
         }
 
+        // 上传数据
         function uploadTrainingData() {
             try {
+                // 检测当前环境，自动切换 API 地址
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
                 const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
                 const childId = typeof UserStateUtil !== 'undefined' ? (UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1) : 1;
                 let sessionId = null;
-                
+
                 // 计算抑制控制得分
                 const finalScore = calculateInhibitionScore();
                 const accuracy = level > 1 ? ((level - 1) / 10) * 100 : 0;
-            
-            // 开始训练会话
-            fetch('http://localhost:5000/api/training/session/start', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                },
-                body: JSON.stringify({
-                    child_id: childId,
-                    game_type: 'command-adventure',
-                    device_id: 'web'
+
+                // 开始训练会话
+                fetch(`${baseUrl}/api/training/session/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        child_id: childId,
+                        game_type: 'command-adventure',
+                        device_id: 'web'
+                    })
                 })
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    sessionId = result.data.session_id;
-                    console.log('训练会话创建成功:', sessionId);
-                    
-                    // 上传游戏数据
-                    return fetch('http://localhost:5000/api/training/game-data', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify({
-                            session_id: sessionId,
-                            request_id: Date.now().toString(),
-                            timestamp: new Date().toISOString(),
-                            event_type: 'game_complete',
-                            score: finalScore,
-                            accuracy: accuracy,
-                            level: level - 1,
-                            time: time,
-                            correct: score,
-                            error: errors || 0,
-                            total_target: 10,
-                            total_step: level - 1
-                        })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            sessionId = result.data.session_id;
+                            console.log('训练会话创建成功:', sessionId);
+
+                            // 上传游戏数据
+                            return fetch(`${baseUrl}/api/training/game-data`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                },
+                                body: JSON.stringify({
+                                    session_id: sessionId,
+                                    game_type: 'command-adventure',
+                                    score: finalScore,
+                                    time_used: time,
+                                    level: level,
+                                    accuracy: accuracy,
+                                    game_data: {
+                                        collision_count: collisionCount,
+                                        game_type: 'command-adventure'
+                                    }
+                                })
+                            });
+                        } else {
+                            throw new Error(result.message || '创建训练会话失败');
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            console.log('游戏数据上传成功');
+
+                            // 清除能力评估页面的缓存
+                            const cacheKey = `child_data_${childId}`;
+                            localStorage.removeItem(cacheKey);
+                            console.log('已清除能力评估缓存:', cacheKey);
+
+                            // 结束训练会话
+                            return fetch(`${baseUrl}/api/training/session/end`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                },
+                                body: JSON.stringify({
+                                    session_id: sessionId,
+                                    final_score: finalScore,
+                                    total_accuracy: accuracy,
+                                    duration: time
+                                })
+                            });
+                        } else {
+                            throw new Error(result.message || '上传游戏数据失败');
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log('会话结束响应数据:', result);
+                        if (result.success) {
+                            console.log('训练数据上传完成');
+
+                            // 保存训练时间到 localStorage，用于今日训练页面显示
+                            const today = new Date().toISOString().split('T')[0];
+                            const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                            if (!trainingData[today]) {
+                                trainingData[today] = { totalTime: 0 };
+                            }
+
+                            // 累加游戏时间（秒）
+                            trainingData[today].totalTime += time;
+                            localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                            console.log('训练时间已保存到 localStorage');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('上传训练数据失败:', error);
                     });
-                } else {
-                    throw new Error(result.message || '创建会话失败');
-                }
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    console.log('游戏数据上传成功');
-                    
-                    // 清除能力评估页面的缓存
-                    const cacheKey = `child_data_${childId}`;
-                    localStorage.removeItem(cacheKey);
-                    console.log('已清除能力评估缓存:', cacheKey);
-                    
-                    // 结束训练会话
-                    return fetch('http://localhost:5000/api/training/session/end', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify({
-                            session_id: sessionId,
-                            final_score: finalScore,
-                            total_accuracy: accuracy
-                        })
-                    });
-                } else {
-                    throw new Error(result.message || '上传游戏数据失败');
-                }
-            })
-            .then(response => response.json())
-            .then(result => {
-                console.log('会话结束响应数据:', result);
-                if (result.success) {
-                    console.log('训练数据上传完成');
-                }
-            })
-            .catch(error => {
-                console.error('上传训练数据失败:', error);
-            });
             } catch (e) {
                 console.error('uploadTrainingData 错误:', e);
             }
@@ -913,10 +977,47 @@
             document.getElementById('time').textContent = time;
         }
 
-        // 页面加载时初始化游戏
-        window.onload = function () {
-            initGame();
-        };
+        // 重新开始
+        function restartGame() {
+            const modal = document.getElementById('gameOverModal');
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            startGame();
+        }
+
+        // ✅ 返回开始（修复版）
+        function backToStart() {
+            // 1. 关闭弹窗
+            const modal = document.getElementById('gameOverModal');
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+
+            // 2. 清空所有障碍物、目标
+            obstacles.forEach(obs => obs.remove());
+            obstacles = [];
+            if (goal) goal.remove();
+            goal = null;
+
+            // 3. 重置玩家到起点
+            resetPlayerPosition();
+
+            // 4. 重置所有状态
+            level = 1;
+            score = 0;
+            time = 0;
+            collisionCount = 0;
+            gameState = 'ready';
+            commandMapping = { up: 'up', down: 'down', left: 'left', right: 'right' };
+
+            // 5. 重置指令文字
+            document.getElementById('command').textContent = '使用方向键或按钮控制角色移动到黄色目标点';
+
+            // 6. 更新UI、恢复滚动
+            updateUI();
+            document.body.style.overflow = 'auto';
+        }
+
+        window.onload = initGame;
     </script>
 </body>
 

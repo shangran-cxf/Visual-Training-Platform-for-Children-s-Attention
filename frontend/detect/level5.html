@@ -77,7 +77,7 @@
         }
 
         .difficulty-btn {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             padding: 8px 24px;
             border: none;
@@ -154,20 +154,22 @@
             background: white;
             border-radius: 50px;
             padding: 10px 25px;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 12px;
             box-shadow: 0 5px 0 #cca86e;
+            white-space: nowrap;
         }
 
         .prompt-text {
+            margin-left: 10px;
             background: #fef2cf;
-            padding: 8px 25px;
+            padding: 8px 20px;
             border-radius: 45px;
             font-size: 2rem;
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             font-weight: bold;
             color: #ce7e2e;
         }
@@ -200,22 +202,23 @@
             display: flex;
             justify-content: space-between;
             padding: 12px 25px;
-            margin: 20px 0 10px;
+            margin: 20px 0 5px;
             font-weight: bold;
             font-size: 1.5rem;
             color: #4a2a0a;
             border: 2px solid #ffbc6e;
+            white-space: nowrap;
         }
 
         .score,
         .message-area {
             background: #fff2d2;
-            padding: 6px 20px;
+            padding: 6px 10px;
             border-radius: 30px;
         }
 
         .message-area {
-            font-size: 1.2rem;
+            font-size: 1rem;
             background: #ffecb3;
             color: #b95f1a;
         }
@@ -226,15 +229,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            font-size: 1.2rem;
+            gap: 0px;
+            font-size: 1rem;
             margin-top: 5px;
         }
 
         .reset-icon {
             background: #f4b942;
             border: none;
-            font-size: 1.2rem;
+            font-size: 1rem;
             padding: 6px 18px;
             border-radius: 40px;
             cursor: pointer;
@@ -278,6 +281,7 @@
             0% {
                 transform: translateY(0);
             }
+
             100% {
                 transform: translateY(-10px);
             }
@@ -337,7 +341,8 @@
             <div class="score-board">
                     <span>🏆 当前得分</span>
                     <span id="scoreValue" class="score">0</span>
-                    <span>🎯 上限100分</span>
+                    <span>⏰ 时间</span>
+                    <span id="timeLeft" class="score">60</span>
                 </div>
             <div class="feedback" id="feedbackMsg">
                     🧸 点击按钮，匹配颜色得1分！
@@ -373,6 +378,11 @@
         const maxClicks = 100;
         let clickCount = 0;
         let streak = 0;
+
+        // 倒计时相关变量
+        const gameDuration = 60; // 游戏时长（秒）
+        let timeLeft = gameDuration;
+        let countdownTimer = null;
 
         // 自适应难度参数
         const baseSpeed = 1000; // 基础切换间隔
@@ -433,10 +443,17 @@
         }
 
         function resetGame() {
+            // 清除所有定时器
             if (switchTimer) {
                 clearInterval(switchTimer);
                 switchTimer = null;
             }
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+
+            // 重置游戏状态
             score = 0;
             clickCount = 0;
             streak = 0;
@@ -449,7 +466,10 @@
             updateLightUI(currentLightColorObj);
             updatePromptUI(currentPromptColorObj);
             feedbackDiv.innerHTML = "🧸 新的一局！记得颜色一致才能点击加分哟~";
+
+            // 开始切换和倒计时
             startSwitching();
+            startCountdown();
         }
 
         function startSwitching() {
@@ -465,6 +485,79 @@
 
         function updateScoreUI() {
             scoreSpan.innerText = score;
+        }
+
+        function updateTimeUI() {
+            const timeLeftElement = document.getElementById('timeLeft');
+            if (timeLeftElement) {
+                timeLeftElement.innerText = timeLeft;
+            }
+        }
+
+        function startCountdown() {
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+
+            timeLeft = gameDuration;
+            updateTimeUI();
+
+            countdownTimer = setInterval(() => {
+                if (!gameActive) return;
+
+                timeLeft--;
+                updateTimeUI();
+
+                // 检查时间是否到了
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameActive = false;
+
+            // 清除所有定时器
+            if (switchTimer) {
+                clearInterval(switchTimer);
+                switchTimer = null;
+            }
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+
+            // 统计游戏使用时间
+            try {
+                if (typeof GameTimeUtil !== 'undefined') {
+                    GameTimeUtil.endGame('level5');
+                }
+            } catch (error) {
+                console.log('GameTimeUtil not available');
+            }
+
+            const evaluation = getFocusEvaluation(score);
+            const inhibitionScore = calculateInhibitionScore();
+            feedbackDiv.innerHTML = `🎉 游戏结束！最终得分：${score}分 🎉<br>综合评分：${inhibitionScore}分<br>评价：${evaluation}<br>点击重置开始新一局！`;
+
+            // 保存数据
+            const data = {
+                inhibition_control: inhibitionScore,
+                score: score,
+                total_clicks: clickCount
+            };
+            try {
+                if (typeof StorageUtil !== 'undefined') {
+                    StorageUtil.setItem('level5_data', data);
+                }
+            } catch (error) {
+                console.log('StorageUtil not available');
+            }
+
+            // 上传训练数据
+            uploadTrainingData(inhibitionScore, score, clickCount);
         }
 
         function getFocusEvaluation(score) {
@@ -537,73 +630,106 @@
                 setTimeout(() => { if (lightBulb) lightBulb.style.filter = ""; }, 200);
             }
 
-            // 检查是否达到点击次数上限
-            if (clickCount >= maxClicks) {
-                gameActive = false;
-                if (switchTimer) {
-                    clearInterval(switchTimer);
-                    switchTimer = null;
-                }
-
-                // 统计游戏使用时间
-                try {
-                    if (typeof GameTimeUtil !== 'undefined') {
-                        GameTimeUtil.endGame('level5');
-                    }
-                } catch (error) {
-                    console.log('GameTimeUtil not available');
-                }
-
-                const evaluation = getFocusEvaluation(score);
-                const inhibitionScore = calculateInhibitionScore();
-                feedbackDiv.innerHTML = `🎉 游戏结束！最终得分：${score}分 🎉<br>综合评分：${inhibitionScore}分<br>评价：${evaluation}<br>点击重置开始新一局！`;
-
-                // 保存数据
-                const data = {
-                    inhibition_control: inhibitionScore,
-                    score: score,
-                    total_clicks: clickCount
-                };
-                try {
-                    if (typeof StorageUtil !== 'undefined') {
-                        StorageUtil.setItem('level5_data', data);
-                    }
-                } catch (error) {
-                    console.log('StorageUtil not available');
-                }
-
-                // 上传训练数据
-                uploadTrainingData(inhibitionScore, score, clickCount);
-            }
+            // 游戏会在时间到了之后自动结束
+            // 这里不再检查点击次数上限
         }
 
         // 上传训练数据
         function uploadTrainingData(score, rawScore, clickCount) {
             try {
                 if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-                    const user_id = UserStateUtil.getUserId();
-                    const payload = {
-                        user_id: user_id,
-                        game_type: 'inhibitory',
-                        score: score,
-                        total_time: 60,
-                        total_click: clickCount,
-                        error_count: clickCount - rawScore,
-                        date: new Date().toISOString().split('T')[0]
-                    };
+                    // 检测当前环境，自动切换 API 地址
+                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-                    fetch('http://localhost:3001/api/training', {
+                    const childId = UserStateUtil.getCurrentChildId();
+                    let sessionId = null;
+
+                    // 开始训练会话
+                    fetch(`${baseUrl}/api/training/session/start`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                         },
-                        body: JSON.stringify(payload)
-                    }).then(response => response.json())
-                      .then(data => console.log('Training data uploaded:', data))
-                      .catch(error => console.error('Error uploading training data:', error));
+                        body: JSON.stringify({
+                            child_id: childId,
+                            game_type: 'inhibitory',
+                            device_id: 'web'
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                sessionId = result.data.session_id;
+                                console.log('训练会话创建成功:', sessionId);
+
+                                // 上传游戏数据
+                                return fetch(`${baseUrl}/api/training/game-data`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                    },
+                                    body: JSON.stringify({
+                                        session_id: sessionId,
+                                        request_id: Date.now().toString(),
+                                        timestamp: new Date().toISOString(),
+                                        event_type: 'game_complete',
+                                        score: score,
+                                        accuracy: rawScore / clickCount * 100 || 0,
+                                        level: 5,
+                                        time: 60,
+                                        correct: rawScore,
+                                        error: clickCount - rawScore,
+                                        total_target: clickCount,
+                                        total_step: clickCount
+                                    })
+                                });
+                            } else {
+                                throw new Error(result.message || '创建会话失败');
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                console.log('游戏数据上传成功');
+
+                                // 结束训练会话
+                                return fetch(`${baseUrl}/api/training/session/end`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                    },
+                                    body: JSON.stringify({
+                                        session_id: sessionId,
+                                        final_score: score,
+                                        total_accuracy: rawScore / clickCount * 100 || 0
+                                    })
+                                });
+                            } else {
+                                throw new Error(result.message || '上传游戏数据失败');
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            console.log('会话结束响应数据:', result);
+                            if (result.success) {
+                                console.log('训练数据上传完成');
+
+                                // 清除能力评估页面的缓存
+                                const cacheKey = `child_data_${childId}`;
+                                localStorage.removeItem(cacheKey);
+                                console.log('已清除能力评估缓存:', cacheKey);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('上传训练数据失败:', error);
+                        });
                 }
-            } catch (error) {
-                console.log('Error uploading training data:', error);
+            } catch (e) {
+                console.error('uploadTrainingData 错误:', e);
             }
         }
 
@@ -625,7 +751,8 @@
             updateLightUI(currentLightColorObj);
             updatePromptUI(currentPromptColorObj);
             startSwitching();
-            feedbackDiv.innerHTML = "� 游戏开始！记得颜色一致才能点击加分哟~";
+            startCountdown();
+            feedbackDiv.innerHTML = "🧸 游戏开始！记得颜色一致才能点击加分哟~";
         }
 
         initGame();
@@ -634,6 +761,7 @@
             if (switchTimer) clearInterval(switchTimer);
         });
     </script>
+    <script src="../attention-loader.js"></script>
 </body>
 
 </html>

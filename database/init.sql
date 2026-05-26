@@ -1,4 +1,4 @@
--- 儿童注意力训练平台数据库初始化脚本
+﻿-- 儿童注意力训练平台数据库初始化脚本
 -- 创建时间: 2026-04-07
 
 -- 用户表（家长账号）
@@ -240,6 +240,10 @@ CREATE TABLE IF NOT EXISTS processed_requests (
     processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 插入默认管理员账号
+-- 插入默认管理员账号（密码: 123456，应用启动时由 init_db() 使用 bcrypt 加密）
 INSERT OR IGNORE INTO parents (uid, username, password, email, role)
-VALUES (100000, 'admin', '123456', 'admin@system.com', 'admin');
+VALUES (100000, 'admin', '$2b$12$PLACEHOLDER_USE_INIT_DB', 'admin@system.com', 'admin');
+
+-- 插入管理员的孩子
+INSERT OR IGNORE INTO children (parent_id, name, age)
+SELECT id, '小A', 7 FROM parents WHERE username = 'admin';

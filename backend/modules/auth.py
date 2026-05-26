@@ -173,10 +173,11 @@ def change_password():
 
 
 @auth_bp.route('/api/verify-password', methods=['POST'])
+@auth_bp.route('/api/user/verify-password', methods=['POST'])
 def verify_password_endpoint():
     data = request.json
     parent_id = data.get('parent_id')
-    password = data.get('password')
+    password = data.get('password') or data.get('old_password')
     
     if not parent_id or not password:
         return jsonify({'error': '参数不完整'}), 400
@@ -200,12 +201,15 @@ def verify_password_endpoint():
     return jsonify({'valid': password_valid}), 200
 
 @auth_bp.route('/api/user/update', methods=['POST'])
+@auth_bp.route('/api/user/update-profile', methods=['POST'])
 def update_user_info():
     data = request.json
     parent_id = data.get('parent_id')
     username = data.get('username')
     email = data.get('email')
     avatar = data.get('avatar')
+    old_password = data.get('old_password')
+    new_password = data.get('password')
     
     if not parent_id:
         return error_response('缺少parent_id参数', status=400)
@@ -226,6 +230,22 @@ def update_user_info():
     
     if avatar is not None:
         update_data['avatar'] = avatar
+
+    if new_password:
+        user = execute_db('SELECT password FROM parents WHERE id = ?', (parent_id,))
+        stored_password = user[0][0] if user else None
+        password_valid = False
+
+        if stored_password:
+            if is_bcrypt_hash(stored_password):
+                password_valid = verify_password(old_password or '', stored_password)
+            else:
+                password_valid = (stored_password == (old_password or ''))
+
+        if not password_valid:
+            return error_response('旧密码错误', status=400)
+
+        update_data['password'] = hash_password(new_password)
     
     if not update_data:
         return error_response('没有需要更新的字段', status=400)
@@ -275,7 +295,5 @@ def upload_avatar():
     execute_db('UPDATE parents SET avatar = ? WHERE id = ?', (avatar_url, parent_id))
     
     return success_response({'avatar_url': avatar_url}, '头像上传成功')
-
-
 
 

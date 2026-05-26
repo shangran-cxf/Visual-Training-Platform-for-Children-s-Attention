@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+﻿from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 import json
 from database import execute_db
@@ -110,7 +110,7 @@ class ReportGenerator:
         else:
             days = 30
         
-        end_date = datetime.now()
+        end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=days)
         
         sessions = execute_db('''

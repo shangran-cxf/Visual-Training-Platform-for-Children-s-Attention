@@ -12,7 +12,8 @@
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             overflow: hidden;
             width: 100vw;
             height: 100vh;
@@ -78,7 +79,7 @@
             min-height: 600px;
             max-height: 85vh;
             position: relative;
-            overflow: hidden;
+            overflow: auto;
         }
 
         .difficulty-selector {
@@ -114,7 +115,8 @@
 
         .matrix-container {
             margin-bottom: 30px;
-            overflow-x: auto;
+            overflow: auto;
+            max-width: 100%;
         }
 
         .matrix {
@@ -122,13 +124,12 @@
             gap: 5px;
             margin: 0 auto;
             max-width: 100%;
-            max-height: 70vh;
             overflow: auto;
         }
 
         .matrix-cell {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             background-color: transparent;
             border-radius: 5px;
             display: flex;
@@ -139,6 +140,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            box-sizing: border-box;
         }
 
         .matrix-cell:hover {
@@ -276,6 +278,7 @@
                 transform: translateY(-50px);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -419,10 +422,12 @@
                 transform: translate(-50%, -50%) scale(0);
                 opacity: 0;
             }
+
             50% {
                 transform: translate(-50%, -50%) scale(1.5);
                 opacity: 1;
             }
+
             100% {
                 transform: translate(-50%, -50%) scale(1);
                 opacity: 0;
@@ -434,6 +439,7 @@
                 transform: translateY(0) rotate(0deg);
                 opacity: 1;
             }
+
             100% {
                 transform: translateY(300px) rotate(720deg);
                 opacity: 0;
@@ -445,7 +451,7 @@
 <body>
     <div class="container">
         <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
-            <button onclick="window.location.href='../child-home.html'" style="
+            <button onclick="exitGame()" style="
                 background: white;
                 color: #1a7505;
                 border: none;
@@ -544,11 +550,42 @@
         let timeInterval;
         let refreshInterval;
 
-        const correctSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
-        const errorSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
+        // 创建音频上下文和音效生成器
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        correctSound.volume = 0.5;
-        errorSound.volume = 0.5;
+        function playCorrectSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function playErrorSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 200;
+            oscillator.type = 'sawtooth';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
 
         function createStarEffect(element) {
             for (let i = 0; i < 5; i++) {
@@ -580,7 +617,7 @@
                 document.getElementById('correct').textContent = correctCount;
                 document.getElementById('feedback').textContent = '太棒啦!找到了垃圾!';
                 setTimeout(() => document.getElementById('feedback').textContent = '', 1000);
-                try { correctSound.cloneNode().play(); } catch (e) { }
+                try { playCorrectSound(); } catch (e) { }
                 createStarEffect(cellElement);
                 if (correctCount === totalTargets) endGame();
             } else {
@@ -588,7 +625,7 @@
                 errorCount++;
                 document.getElementById('errors').textContent = errorCount;
                 document.getElementById('feedback').textContent = '这不是垃圾哦';
-                try { errorSound.cloneNode().play(); } catch (e) { }
+                try { playErrorSound(); } catch (e) { }
                 setTimeout(() => document.getElementById('feedback').textContent = '', 1000);
             }
         }
@@ -600,6 +637,10 @@
             let size = currentDifficulty === 3 ? 10 : 8;
             matrixElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             totalTargets = 0;
+
+            // 确保图片路径正确，只使用存在的图片
+            const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+            const nonTargetImages = ['flower1.png', 'flower2.png', 'flower3.png', 'stone1.png', 'stone2.png', 'grass1.png', 'grass2.png'];
 
             for (let i = 0; i < size; i++) {
                 matrix[i] = [];
@@ -616,7 +657,7 @@
                     cell.className = 'matrix-cell';
                     if (isTarget) {
                         cell.classList.add('target');
-                        // 目标数字：使用当前垃圾图片
+                        // 目标数字：使用垃圾图片
                         let garbageImage;
                         if (currentDifficulty === 1 && currentGarbageImages.length > 0) {
                             // 简单模式：使用第一个垃圾图片
@@ -626,19 +667,17 @@
                             garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
                         } else {
                             // 困难模式或未初始化：随机使用垃圾图片
-                            const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
                             garbageImage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
                         }
                         cell.style.backgroundImage = `url('../images/${garbageImage}')`;
-                        cell.style.backgroundSize = 'contain';
+                        cell.style.backgroundSize = 'cover';
                         cell.style.backgroundRepeat = 'no-repeat';
                         cell.style.backgroundPosition = 'center';
                     } else {
                         // 非目标数字：随机使用flower、stone或grass图片
-                        const nonTargetImages = ['flower1.png', 'flower2.png', 'flower3.png', 'stone1.png', 'stone2.png', 'grass1.png', 'grass2.png'];
                         const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
                         cell.style.backgroundImage = `url('../images/${randomImage}')`;
-                        cell.style.backgroundSize = 'contain';
+                        cell.style.backgroundSize = 'cover';
                         cell.style.backgroundRepeat = 'no-repeat';
                         cell.style.backgroundPosition = 'center';
                     }
@@ -752,19 +791,23 @@
                 if (typeof GameTimeUtil !== 'undefined') {
                     GameTimeUtil.endGame('find-numbers');
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log('GameTimeUtil 未定义，跳过');
             }
-            
+
+            if (typeof MedalUtil !== 'undefined') {
+                MedalUtil.recordGameProgress('game2', currentDifficulty);
+            }
+
             const totalTime = Math.floor((Date.now() - startTime) / 1000);
             missedCount = totalTargets - correctCount;
-            
+
             console.log('游戏结束！总时间:', totalTime, '正确:', correctCount, '总目标:', totalTargets);
-            
+
             // 上传数据到后端（异步，不阻塞）
             try {
                 uploadTrainingData(totalTime);
-            } catch(e) {
+            } catch (e) {
                 console.error('上传数据失败:', e);
             }
 
@@ -772,22 +815,42 @@
             console.log('播放庆祝动画...');
             try {
                 showCelebrationEffect();
-            } catch(e) {
+            } catch (e) {
                 console.error('庆祝动画失败:', e);
             }
-            
+
             // 0.8 秒后显示弹窗（强制显示）
             console.log('准备显示弹窗...');
             setTimeout(() => {
                 console.log('显示弹窗！');
                 try {
-                    showGameOverModal(totalTime);
-                } catch(e) {
+                    // 直接显示弹窗，不依赖其他函数
+                    const modal = document.getElementById('gameOverModal');
+                    if (modal) {
+                        // 计算得分
+                        const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
+                        const score = calculateSelectiveAttentionScore(totalTime);
+
+                        // 填充数据
+                        document.getElementById('modal-score').textContent = score;
+                        document.getElementById('modal-time').textContent = totalTime + 's';
+                        document.getElementById('modal-correct').textContent = correctCount;
+                        document.getElementById('modal-missed').textContent = missedCount;
+                        document.getElementById('modal-errors').textContent = errorCount;
+
+                        // 显示弹窗
+                        modal.classList.add('show');
+                        console.log('弹窗已成功显示');
+                    } else {
+                        console.error('找不到弹窗元素');
+                    }
+                } catch (e) {
                     console.error('显示弹窗失败:', e);
                     // 如果还是失败，直接强制显示
                     const modal = document.getElementById('gameOverModal');
                     if (modal) {
                         modal.classList.add('show');
+                        console.log('弹窗已强制显示');
                     }
                 }
             }, 800);
@@ -809,7 +872,7 @@
             `;
             celebration.textContent = '🎉';
             gameArea.appendChild(celebration);
-            
+
             // 创建多个彩带
             for (let i = 0; i < 10; i++) {
                 setTimeout(() => {
@@ -829,7 +892,7 @@
                     setTimeout(() => confetti.remove(), 1000);
                 }, i * 50);
             }
-            
+
             // 清理庆祝元素
             setTimeout(() => celebration.remove(), 1000);
         }
@@ -838,14 +901,16 @@
             // 计算各项指标
             const totalTrial = totalTargets;
             const acc = totalTrial > 0 ? correctCount / totalTrial : 0;
-            const speed = Math.max(0, 1 - totalTime / 60);
+            // 放宽时间评分：使用更平滑的曲线，超时120秒才扣到0分
+            const timeOvertime = totalTime - 60;
+            const speed = Math.max(0, 1 / (1 + timeOvertime / 90)); // 使用指数衰减，90秒后降到约50%
             const errorRate = Math.max(0, 1 - errorCount / totalTrial);
-            
+
             // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
             const headStable = 0.8; // 头部稳定性
             const faceStable = 0.8; // 面部稳定性
             const blinkStable = 0.8; // 眨眼稳定性
-            
+
             // 计算最终得分
             const scoreValue = (
                 acc * 0.40 +
@@ -855,7 +920,7 @@
                 faceStable * 0.03 +
                 blinkStable * 0.02
             ) * 100;
-            
+
             return Math.max(0, Math.min(100, Math.round(scoreValue)));
         }
 
@@ -863,7 +928,7 @@
             // 计算得分
             const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
             const score = calculateSelectiveAttentionScore(totalTime);
-            
+
             console.log('得分计算:', {
                 '准确率': accuracy.toFixed(1) + '%',
                 '正确数': correctCount,
@@ -872,21 +937,30 @@
                 '用时': totalTime + 's',
                 '最终得分': score
             });
-            
+
             // 填充数据
             document.getElementById('modal-score').textContent = score;
             document.getElementById('modal-time').textContent = totalTime + 's';
             document.getElementById('modal-correct').textContent = correctCount;
             document.getElementById('modal-missed').textContent = missedCount;
             document.getElementById('modal-errors').textContent = errorCount;
-            
+
             // 显示弹窗
-            document.getElementById('gameOverModal').classList.add('show');
+            const modal = document.getElementById('gameOverModal');
+            if (modal) {
+                modal.classList.add('show');
+                console.log('弹窗已显示');
+            } else {
+                console.error('找不到弹窗元素');
+            }
         }
 
         function restartGame() {
             // 隐藏弹窗
-            document.getElementById('gameOverModal').classList.remove('show');
+            const modal = document.getElementById('gameOverModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
             // 重新开始游戏
             resetGame();
             setTimeout(() => {
@@ -896,34 +970,12 @@
 
         function backToStart() {
             // 隐藏弹窗
-            document.getElementById('gameOverModal').classList.remove('show');
+            const modal = document.getElementById('gameOverModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
             // 返回到开始状态
             resetGame();
-        }
-
-        function calculateSelectiveAttentionScore(totalTime) {
-            // 计算各项指标
-            const totalTrial = totalTargets;
-            const acc = totalTrial > 0 ? correctCount / totalTrial : 0;
-            const speed = Math.max(0, 1 - totalTime / 60);
-            const errorRate = Math.max(0, 1 - errorCount / totalTrial);
-            
-            // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
-            const headStable = 0.8; // 头部稳定性
-            const faceStable = 0.8; // 面部稳定性
-            const blinkStable = 0.8; // 眨眼稳定性
-            
-            // 计算最终得分
-            const scoreValue = (
-                acc * 0.40 +
-                speed * 0.25 +
-                errorRate * 0.20 +
-                headStable * 0.10 +
-                faceStable * 0.03 +
-                blinkStable * 0.02
-            ) * 100;
-            
-            return Math.max(0, Math.min(100, Math.round(scoreValue)));
         }
 
         function uploadTrainingData(totalTime) {
@@ -932,96 +984,132 @@
                 const parentId = userInfo?.parent_id || userInfo?.userId || userInfo?.id || 1;
                 const childId = typeof UserStateUtil !== 'undefined' ? (UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1) : 1;
                 let sessionId = null;
-                
+
                 // 计算准确率和得分
                 const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
                 const score = calculateSelectiveAttentionScore(totalTime);
-            
-            // 开始训练会话
-            fetch(window.API_BASE_URL + '/api/training/session/start', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                },
-                body: JSON.stringify({
-                    child_id: childId,
-                    game_type: 'find-numbers',
-                    device_id: 'web'
+
+                // 检测环境，设置API地址
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+                // 开始训练会话
+                fetch(`${baseUrl}/api/training/session/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        child_id: childId,
+                        game_type: 'find-numbers',
+                        device_id: 'web'
+                    })
                 })
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    sessionId = result.data.session_id;
-                    console.log('训练会话创建成功:', sessionId);
-                    
-                    // 上传游戏数据
-                    return fetch(window.API_BASE_URL + '/api/training/game-data', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify({
-                            session_id: sessionId,
-                            request_id: Date.now().toString(),
-                            timestamp: new Date().toISOString(),
-                            event_type: 'game_complete',
-                            score: score,
-                            accuracy: accuracy,
-                            level: currentDifficulty,
-                            time: totalTime,
-                            correct: correctCount,
-                            error: errorCount,
-                            total_target: totalTargets,
-                            total_step: totalTargets
-                        })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            sessionId = result.data.session_id;
+                            console.log('训练会话创建成功:', sessionId);
+
+                            // 上传游戏数据
+                            return fetch(`${baseUrl}/api/training/game-data`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                },
+                                body: JSON.stringify({
+                                    session_id: sessionId,
+                                    request_id: Date.now().toString(),
+                                    timestamp: new Date().toISOString(),
+                                    event_type: 'game_complete',
+                                    score: score,
+                                    accuracy: accuracy,
+                                    level: currentDifficulty,
+                                    time: totalTime,
+                                    correct: correctCount,
+                                    error: errorCount,
+                                    total_target: totalTargets,
+                                    total_step: totalTargets
+                                })
+                            });
+                        } else {
+                            throw new Error(result.message || '创建会话失败');
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            console.log('游戏数据上传成功');
+
+                            // 清除能力评估页面的缓存
+                            const cacheKey = `child_data_${childId}`;
+                            localStorage.removeItem(cacheKey);
+                            console.log('已清除能力评估缓存:', cacheKey);
+
+                            // 结束训练会话
+                            return fetch(`${baseUrl}/api/training/session/end`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                                },
+                                body: JSON.stringify({
+                                    session_id: sessionId,
+                                    final_score: score,
+                                    total_accuracy: accuracy,
+                                    duration: totalTime
+                                })
+                            });
+                        } else {
+                            throw new Error(result.message || '上传游戏数据失败');
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log('会话结束响应数据:', result);
+                        if (result.success) {
+                            console.log('训练数据上传完成');
+
+                            // 保存训练时间到 localStorage，用于今日训练页面显示
+                            const today = new Date().toISOString().split('T')[0];
+                            const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                            if (!trainingData[today]) {
+                                trainingData[today] = { totalTime: 0 };
+                            }
+
+                            // 累加游戏时间（秒）
+                            trainingData[today].totalTime += totalTime;
+                            localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                            console.log('训练时间已保存到 localStorage');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('上传训练数据失败:', error);
                     });
-                } else {
-                    throw new Error(result.message || '创建会话失败');
-                }
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    console.log('游戏数据上传成功');
-                    
-                    // 清除能力评估页面的缓存
-                    const cacheKey = `child_data_${childId}`;
-                    localStorage.removeItem(cacheKey);
-                    console.log('已清除能力评估缓存:', cacheKey);
-                    
-                    // 结束训练会话
-                    return fetch(window.API_BASE_URL + '/api/training/session/end', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                        },
-                        body: JSON.stringify({
-                            session_id: sessionId,
-                            final_score: score,
-                            total_accuracy: accuracy
-                        })
-                    });
-                } else {
-                    throw new Error(result.message || '上传游戏数据失败');
-                }
-            })
-            .then(response => response.json())
-            .then(result => {
-                console.log('会话结束响应数据:', result);
-                if (result.success) {
-                    console.log('训练数据上传完成');
-                }
-            })
-            .catch(error => {
-                console.error('上传训练数据失败:', error);
-            });
             } catch (e) {
                 console.error('uploadTrainingData 错误:', e);
             }
+        }
+
+        function exitGame() {
+            // 清除游戏状态
+            isGameStarted = false;
+            clearInterval(timeInterval);
+            clearInterval(refreshInterval);
+
+            // 隐藏所有弹窗
+            const modal = document.getElementById('gameOverModal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+
+            // 延迟跳转，确保状态清理完成
+            setTimeout(() => {
+                window.location.href = '../child-home.html';
+            }, 100);
         }
     </script>
     <script src="../utils.js"></script>

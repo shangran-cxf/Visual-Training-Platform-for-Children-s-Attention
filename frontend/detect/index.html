@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -970,7 +970,7 @@
             <span class="nav-label">勋章墙</span>
         </div>
 
-        <div class="nav-item" onclick="showParentLogin()">
+        <div class="nav-item" onclick="window.location.href='../child-document.html'">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
@@ -978,19 +978,6 @@
             <span class="nav-label">家长端</span>
         </div>
     </nav>
-
-    <!-- 家长端登录弹窗 -->
-    <div id="parent-login-modal" class="modal">
-        <div class="modal-content">
-            <h3>家长端登录</h3>
-            <p>请输入密码</p>
-            <input type="password" id="parent-password" placeholder="输入密码">
-            <div class="modal-buttons">
-                <button onclick="checkPassword()">确定</button>
-                <button onclick="closeLoginModal()">取消</button>
-            </div>
-        </div>
-    </div>
 
     <main class="main-content">
         <div class="title-section">
@@ -1161,43 +1148,6 @@
 
             // 初始检查
             checkScrollStatus();
-        });
-
-        // 显示家长端登录弹窗
-        function showParentLogin() {
-            document.getElementById('parent-login-modal').style.display = 'flex';
-        }
-
-        // 关闭家长端登录弹窗
-        function closeLoginModal() {
-            document.getElementById('parent-login-modal').style.display = 'none';
-            document.getElementById('parent-password').value = '';
-        }
-
-        // 检查密码
-        function checkPassword() {
-            const password = document.getElementById('parent-password').value;
-            // 这里可以设置正确的密码，例如 '123456'
-            if (password === '123456') {
-                // 密码正确，跳转到家长端界面
-                window.location.href = '../child-document.html';
-            } else {
-                // 密码错误，显示提示
-                alert('密码错误，请重试！');
-                document.getElementById('parent-password').value = '';
-            }
-        }
-
-        // 点击弹窗外部关闭
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('parent-login-modal');
-            if (modal) {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === e.currentTarget) {
-                        closeLoginModal();
-                    }
-                });
-            }
         });
 
 

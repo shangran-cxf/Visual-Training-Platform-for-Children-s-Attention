@@ -1,6 +1,6 @@
 import uuid
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, jsonify
 from database import execute_db
 from config import GAME_TYPES, SCORING_WEIGHTS, DEFAULT_GAME_DATA, BADGES
@@ -61,7 +61,7 @@ def get_session_info(session_id):
         }
     return None
 
-def calculate_session_summary(session_id, child_id, game_type, final_score, total_accuracy):
+def calculate_session_summary(session_id, child_id, game_type, final_score, total_accuracy, duration=None):
     game_config = GAME_TYPES.get(game_type, {})
     attention_type = game_config.get('attention_type', 'selective')
     
@@ -202,9 +202,20 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         (session_id,)
     )
     total_time = 0
-    if session_info:
-        start_time = datetime.fromisoformat(session_info[0][0])
-        total_time = int((datetime.now() - start_time).total_seconds())
+    if duration is not None:
+        total_time = int(duration)
+    elif session_info:
+        start_time_str = session_info[0][0]
+        # SQLite's CURRENT_TIMESTAMP usually returns 'YYYY-MM-DD HH:MM:SS'
+        if ' ' in start_time_str:
+            start_time_str = start_time_str.replace(' ', 'T')
+        try:
+            start_time = datetime.fromisoformat(start_time_str)
+            if start_time.tzinfo is None:
+                start_time = start_time.replace(tzinfo=timezone.utc)
+            total_time = int((datetime.now(timezone.utc) - start_time).total_seconds())
+        except Exception:
+            total_time = 0
     
     
     return {
@@ -485,12 +496,7 @@ def end_session():
         session_id = data.get('session_id')
         final_score = data.get('final_score', 0)
         total_accuracy = data.get('total_accuracy', 0)
-        
-        print(f'=== end_session 调试信息 ===')
-        print(f'session_id: {session_id}')
-        print(f'final_score: {final_score}')
-        print(f'total_accuracy: {total_accuracy}')
-        print(f'request.user_id: {request.user_id}')
+        duration = data.get('duration')
         
         if not session_id:
             return error_response('session_id 不能为空', VALIDATION_ERROR, 400)
@@ -498,8 +504,6 @@ def end_session():
         session_info = get_session_info(session_id)
         if not session_info:
             return error_response('训练会话不存在', SESSION_NOT_FOUND, 404)
-        
-        print(f'session_info: {session_info}')
         
         child = execute_db('SELECT parent_id FROM children WHERE id = ?', (session_info['child_id'],))
         if not child or child[0][0] != request.user_id:
@@ -513,11 +517,9 @@ def end_session():
             session_info['child_id'], 
             session_info['game_type'],
             final_score,
-            total_accuracy
+            total_accuracy,
+            duration=duration
         )
-        
-        print(f'summary 计算完成')
-        print(f'score_details: {summary.get("score_details")}')
         
         execute_db('''
             INSERT INTO session_summaries 
@@ -551,16 +553,12 @@ def end_session():
             json.dumps(summary.get('game_data', {}))
         ))
         
-        print(f'session_summaries 插入成功')
-        
         execute_db('''
             UPDATE training_sessions 
             SET end_time = CURRENT_TIMESTAMP, status = 'completed', 
                 duration = ?, last_activity = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (summary['total_time'], session_id))
-        
-        print(f'training_sessions 更新成功')
         
         earned_badges = check_and_award_badges(session_info['child_id'], summary)
         recommendations = generate_recommendations(summary, session_info['game_type'])
@@ -572,11 +570,6 @@ def end_session():
             'recommendations': recommendations
         }, '训练会话已结束')
     except Exception as e:
-        print(f'=== end_session 错误 ===')
-        print(f'错误类型：{type(e).__name__}')
-        print(f'错误信息：{str(e)}')
-        import traceback
-        print(f'堆栈跟踪：{traceback.format_exc()}')
         return {
             'success': False,
             'error': {
@@ -871,11 +864,8 @@ def get_training_trend(child_id):
         attention_type = request.args.get('attention_type')
         days = request.args.get('days', 30, type=int)
         
-        from datetime import datetime, timedelta
-        end_date = datetime.now()
+        end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=days)
-        
-        print(f"时间范围: {start_date.strftime('%Y-%m-%d')} 到 {end_date.strftime('%Y-%m-%d')}")
         
         query = '''
         SELECT ss.attention_type, DATE(s.start_time) as date, 
@@ -893,11 +883,7 @@ def get_training_trend(child_id):
         
         query += ' GROUP BY ss.attention_type, DATE(s.start_time) ORDER BY date'
         
-        print(f"执行查询: {query}")
-        print(f"参数: {params}")
-        
         records = execute_db(query, tuple(params))
-        print(f"查询结果数量: {len(records)}")
         
         from collections import defaultdict
         trend_data = defaultdict(lambda: {'avg_score': 0, 'trend': 'stable', 'records': []})
@@ -915,7 +901,6 @@ def get_training_trend(child_id):
                         'score': round(avg_score, 2)
                     })
             except Exception as e:
-                print(f"处理记录时出错: {e}")
                 continue
         
         for at in attention_types:
@@ -947,17 +932,10 @@ def get_training_trend(child_id):
             overall_query += ' AND s.attention_type = ?'
             overall_params.append(attention_type)
         
-        print(f"执行总体查询: {overall_query}")
-        print(f"总体查询参数: {overall_params}")
-        
         overall_result = execute_db(overall_query, tuple(overall_params))
-        print(f"总体查询结果: {overall_result}")
         
         overall_avg = overall_result[0][0] if overall_result and overall_result[0][0] else 0
         total_sessions = overall_result[0][1] if overall_result else 0
-        
-        print(f"总体平均分数: {overall_avg}")
-        print(f"总会话数: {total_sessions}")
         
         result = {
             'child_id': child_id,
@@ -979,12 +957,8 @@ def get_training_trend(child_id):
             }
         }
         
-        print(f"返回结果: {result}")
         return success_response(result, '查询成功')
     except Exception as e:
-        print(f"处理训练趋势查询时出错: {e}")
-        import traceback
-        traceback.print_exc()
         return error_response('服务器内部错误', 'INTERNAL_ERROR', 500)
 
 
@@ -1035,4 +1009,66 @@ def get_detection():
     } for row in result]
     
     return success_response(data, '获取检测数据成功')
+
+
+@data_collector_bp.route('/api/training/daily-summary/<int:child_id>', methods=['GET'])
+@require_auth
+def get_daily_training_summary(child_id):
+    child = execute_db('SELECT parent_id FROM children WHERE id = ?', (child_id,))
+    if not child:
+        return error_response('孩子不存在', NOT_FOUND, 404)
+    if child[0][0] != request.user_id:
+        return error_response('孩子不属于当前家长', CHILD_NOT_BELONG, 403)
+    
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    
+    if year and month:
+        start_date = f'{year}-{month:02d}-01'
+        if month == 12:
+            end_date = f'{year + 1}-01-01'
+        else:
+            end_date = f'{year}-{month + 1:02d}-01'
+        query = '''
+            SELECT DATE(s.start_time) as date,
+                   COUNT(*) as session_count,
+                   COALESCE(SUM(s.duration), 0) as total_duration,
+                   COALESCE(AVG(ss.overall_score), 0) as avg_score
+            FROM training_sessions s
+            LEFT JOIN session_summaries ss ON s.id = ss.session_id
+            WHERE s.child_id = ? AND s.status = 'completed'
+              AND DATE(s.start_time) >= ? AND DATE(s.start_time) < ?
+            GROUP BY DATE(s.start_time)
+            ORDER BY date
+        '''
+        records = execute_db(query, (child_id, start_date, end_date))
+    else:
+        query = '''
+            SELECT DATE(s.start_time) as date,
+                   COUNT(*) as session_count,
+                   COALESCE(SUM(s.duration), 0) as total_duration,
+                   COALESCE(AVG(ss.overall_score), 0) as avg_score
+            FROM training_sessions s
+            LEFT JOIN session_summaries ss ON s.id = ss.session_id
+            WHERE s.child_id = ? AND s.status = 'completed'
+            GROUP BY DATE(s.start_time)
+            ORDER BY date
+        '''
+        records = execute_db(query, (child_id,))
+    
+    daily_data = {}
+    for row in records:
+        daily_data[row[0]] = {
+            'session_count': row[1],
+            'total_duration': row[2],
+            'avg_score': round(row[3], 2) if row[3] else 0
+        }
+    
+    today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    today_info = daily_data.get(today_str, {'session_count': 0, 'total_duration': 0, 'avg_score': 0})
+    
+    return success_response({
+        'daily_data': daily_data,
+        'today': today_info
+    }, '查询成功')
 

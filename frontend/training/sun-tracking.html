@@ -528,6 +528,10 @@
             if (typeof StorageUtil !== 'undefined') {
                 StorageUtil.setItem('training_sun_tracking', trainingData);
             }
+
+            if (typeof MedalUtil !== 'undefined') {
+                MedalUtil.recordGameProgress('game5', currentDifficulty);
+            }
             
             // 上传数据到后端
             uploadTrainingData();
@@ -542,7 +546,9 @@
             
             // 计算各项指标
             const acc = totalClick > 0 ? score / totalClick : 0;
-            const speed = Math.max(0, 1 - timeElapsed / 60);
+            // 放宽时间评分：使用更平滑的曲线，超时120秒才扣到0分
+            const timeOvertime = timeElapsed - 60;
+            const speed = Math.max(0, 1 / (1 + timeOvertime / 90)); // 使用指数衰减，90秒后降到约50%
             const rtScore = Math.max(0, 1 - meanRt / 1000);
             
             // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
@@ -621,8 +627,12 @@
                 // 计算平均反应时间
                 const meanRt = reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((sum, rt) => sum + rt, 0) / reactionTimes.length) : 0;
             
+            // 检测环境，设置API地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            
             // 开始训练会话
-            fetch(window.API_BASE_URL + '/api/training/session/start', {
+            fetch(`${baseUrl}/api/training/session/start`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -641,7 +651,7 @@
                     console.log('训练会话创建成功:', sessionId);
                     
                     // 上传游戏数据
-                    return fetch(window.API_BASE_URL + '/api/training/game-data', {
+                    return fetch(`${baseUrl}/api/training/game-data`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -680,7 +690,7 @@
                     
                     // 结束训练会话
                     const accuracy = totalClick > 0 ? score / totalClick * 100 : 0;
-                    return fetch(window.API_BASE_URL + '/api/training/session/end', {
+                    return fetch(`${baseUrl}/api/training/session/end`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -689,7 +699,8 @@
                         body: JSON.stringify({
                             session_id: sessionId,
                             final_score: finalScore,
-                            total_accuracy: accuracy
+                            total_accuracy: accuracy,
+                            duration: timeElapsed
                         })
                     });
                 } else {
@@ -701,6 +712,19 @@
                 console.log('会话结束响应数据:', result);
                 if (result.success) {
                     console.log('训练数据上传完成');
+                    
+                    // 保存训练时间到 localStorage，用于今日训练页面显示
+                    const today = new Date().toISOString().split('T')[0];
+                    const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+                    
+                    if (!trainingData[today]) {
+                        trainingData[today] = { totalTime: 0 };
+                    }
+                    
+                    // 累加游戏时间（秒）
+                    trainingData[today].totalTime += timeElapsed;
+                    localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                    console.log('训练时间已保存到 localStorage');
                 }
             })
             .catch(error => {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -568,7 +568,7 @@
     }
 
     .recommend-subtitle {
-      font-size: 16px;
+      font-size: 20px;
       color: var(--text-dark);
       opacity: 0.7;
       text-align: right;
@@ -590,22 +590,18 @@
     }
 
     .recommend-item {
-      width: 100%;
-      height: 120px;
-      border: 2px solid #ccc;
-      border-radius: 50%;
-      background: #f8f9fa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background-color: rgb(255, 242, 144);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: transform 0.3s ease;
       cursor: pointer;
-      transition: all 0.3s ease;
     }
 
     .recommend-item:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      background: #fff6a7;
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
     /* 游戏卡片样式（沿用原代码） */
@@ -1234,7 +1230,7 @@
       <span class="nav-label">勋章墙</span>
     </div>
 
-    <div class="nav-item" onclick="showParentLogin()" role="button" tabindex="0">
+    <div class="nav-item" onclick="window.location.href='child-document.html'" role="button" tabindex="0">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
         <circle cx="12" cy="7" r="4" />
@@ -1242,19 +1238,6 @@
       <span class="nav-label">家长端</span>
     </div>
   </nav>
-
-  <!-- 家长端登录弹窗 -->
-  <div id="parent-login-modal" class="modal">
-    <div class="modal-content">
-      <h3>家长端登录</h3>
-      <p>请输入密码</p>
-      <input type="password" id="parent-password" placeholder="输入密码">
-      <div class="modal-buttons">
-        <button onclick="checkPassword()">确定</button>
-        <button onclick="closeLoginModal()">取消</button>
-      </div>
-    </div>
-  </div>
 
   <!-- 主内容区 -->
   <main class="main-content">
@@ -1355,6 +1338,33 @@
   <script src="utils.js"></script>
   <script>
     let currentChildId = null;
+    let dailyTrainingData = {};
+    let todayTrainingInfo = { session_count: 0, total_duration: 0, avg_score: 0 };
+
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+    const ApiUtil = {
+      async apiGet(url, params = {}) {
+        const queryString = new URLSearchParams(
+          Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
+        ).toString();
+        const fullUrl = queryString ? `${url}?${queryString}` : url;
+        try {
+          const response = await fetch(`${baseUrl}${fullUrl}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            }
+          });
+          return await response.json();
+        } catch (error) {
+          console.error('API GET 请求失败:', error);
+          return { success: false, error: { message: '网络错误' } };
+        }
+      }
+    };
 
     function initPage() {
       // 身份认证只验证登录状态，不验证 mode
@@ -1363,57 +1373,85 @@
         return;
       }
       currentChildId = UserStateUtil.getCurrentChildId();
-    }
-
-    // 从localStorage读取训练数据
-    function getTrainingData() {
-      const data = JSON.parse(localStorage.getItem('trainingData') || '{}');
-      return data;
-    }
-
-    // 获取今日训练时间
-    function getTodayTrainingTime() {
-      const today = new Date().toISOString().split('T')[0];
-      const trainingData = getTrainingData();
-      if (trainingData[today] && trainingData[today].totalTime) {
-        const seconds = trainingData[today].totalTime;
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        if (hours > 0) {
-          return `${hours}.${Math.round(minutes / 6)}h`;
-        } else {
-          return `${minutes}分钟`;
+      // currentChildId 可能为空（旧登录流程未设置），从 userInfo 中取第一个孩子
+      if (!currentChildId) {
+        const userInfo = UserStateUtil.getUserInfo();
+        if (userInfo && userInfo.children && userInfo.children.length > 0) {
+          currentChildId = userInfo.children[0].id;
+          UserStateUtil.setCurrentChildId(currentChildId);
         }
       }
-      return '0分钟';
     }
 
-    // 获取指定日期的训练时间
-    function getTrainingTimeByDate(dateStr) {
-      const trainingData = getTrainingData();
-      if (trainingData[dateStr] && trainingData[dateStr].totalTime) {
-        const seconds = trainingData[dateStr].totalTime;
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        if (hours > 0) {
-          return `${hours}小时${minutes}分钟`;
-        } else {
-          return `${minutes}分钟`;
-        }
+    // 从后端API获取每日训练汇总数据
+    async function fetchDailySummary(year, month) {
+      if (!currentChildId) return;
+      const params = {};
+      if (year && month) {
+        params.year = year;
+        params.month = month;
       }
-      return '无训练记录';
+      const result = await ApiUtil.apiGet(`/api/training/daily-summary/${currentChildId}`, params);
+      if (result.success && result.data) {
+        dailyTrainingData = result.data.daily_data || {};
+        // 使用本地日期查找今日数据，避免 UTC 时区偏差
+        const localToday = new Date().toISOString().split('T')[0];
+        todayTrainingInfo = dailyTrainingData[localToday] || { session_count: 0, total_duration: 0, avg_score: 0 };
+      }
+    }
+
+    // 将秒数格式化为可读时长
+    function formatDuration(seconds) {
+      if (!seconds || seconds <= 0) return '0秒';
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+      
+      if (hours > 0) {
+        return minutes > 0 ? `${hours}小时${minutes}分钟` : `${hours}小时`;
+      }
+      if (minutes > 0) {
+        return `${minutes}分钟${remainingSeconds > 0 ? remainingSeconds + '秒' : ''}`;
+      }
+      return `${seconds}秒`;
+    }
+
+    // 根据训练表现获取评语
+    function getTrainingBadge(sessionCount, avgScore) {
+      if (sessionCount === 0) return { emoji: '💪', text: '快来训练吧！' };
+      if (avgScore >= 80) return { emoji: '🌟', text: '表现优秀！' };
+      if (avgScore >= 60) return { emoji: '👍', text: '继续加油！' };
+      if (avgScore >= 40) return { emoji: '🎯', text: '还需努力！' };
+      return { emoji: '💪', text: '坚持训练！' };
+    }
+
+    // 更新今日训练统计显示
+    function updateTodayDisplay() {
+      const totalTimeEl = document.getElementById('total-time');
+      const badgeEl = document.querySelector('.result-badge');
+      if (totalTimeEl) {
+        totalTimeEl.textContent = formatDuration(todayTrainingInfo.total_duration);
+      }
+      if (badgeEl) {
+        const badge = getTrainingBadge(todayTrainingInfo.session_count, todayTrainingInfo.avg_score);
+        badgeEl.innerHTML = `<span class="emoji">${badge.emoji}</span><span>${badge.text}</span>`;
+      }
+    }
+
+    // 获取指定日期的训练信息
+    function getTrainingInfoByDate(dateStr) {
+      return dailyTrainingData[dateStr] || null;
     }
 
     // 中文月份名称
     const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 
-    // 当前日期和月份
-    let currentDate = new Date(); // 当前日期
+    let currentDate = new Date();
     let pickerYear = currentDate.getFullYear();
     let isPickerOpen = false;
 
-    // 初始化日历
-    function initCalendar() {
+    // 初始化日历（异步，需要先获取数据）
+    async function initCalendar() {
       const calendarGrid = document.getElementById('calendar-grid');
       const currentMonthEl = document.getElementById('current-month');
 
@@ -1422,7 +1460,9 @@
       const month = currentDate.getMonth();
       currentMonthEl.textContent = `${year}年${monthNames[month]}`;
 
-      // 清空日历网格
+      // 获取该月训练数据
+      await fetchDailySummary(year, month + 1);
+
       calendarGrid.innerHTML = '';
 
       // 获取当月第一天是星期几
@@ -1432,10 +1472,6 @@
       // 获取上个月的天数
       const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-      // 获取训练数据
-      const trainingData = getTrainingData();
-
-      // 添加上个月的日期
       for (let i = firstDay; i > 0; i--) {
         const dayEl = document.createElement('div');
         dayEl.className = 'calendar-day past';
@@ -1446,8 +1482,8 @@
       // 添加当月的日期
       for (let i = 1; i <= daysInMonth; i++) {
         const dayEl = document.createElement('div');
-        const monthStr = month + 1 < 10 ? '0' + (month + 1) : month + 1;
-        const dayStr = i < 10 ? '0' + i : i;
+        const monthStr = String(month + 1).padStart(2, '0');
+        const dayStr = String(i).padStart(2, '0');
         const dateStr = `${year}-${monthStr}-${dayStr}`;
 
         dayEl.className = 'calendar-day';
@@ -1458,19 +1494,14 @@
           dayEl.classList.add('today');
         }
 
-        // 检查是否有训练数据
-        if (trainingData[dateStr] && trainingData[dateStr].totalTime > 0) {
+        const info = getTrainingInfoByDate(dateStr);
+        if (info && info.session_count > 0) {
           dayEl.classList.add('has-training');
         }
 
         dayEl.textContent = i;
         dayEl.dataset.date = dateStr;
-
-        // 添加点击事件
-        dayEl.addEventListener('click', () => {
-          showTrainingModal(dateStr);
-        });
-
+        dayEl.addEventListener('click', () => showTrainingModal(dateStr));
         calendarGrid.appendChild(dayEl);
       }
     }
@@ -1522,28 +1553,31 @@
       initDatePicker();
     }
 
-    // 显示训练时长弹窗
+    // 显示训练详情弹窗
     function showTrainingModal(dateStr) {
       const modal = document.getElementById('training-modal');
       const modalDate = document.getElementById('modal-date');
       const modalDuration = document.getElementById('modal-duration');
 
-      // 格式化日期显示
-      const date = new Date(dateStr);
+      const date = new Date(dateStr + 'T00:00:00');
       const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
       const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
 
       modalDate.textContent = formattedDate;
-      modalDuration.textContent = `训练时长：${getTrainingTimeByDate(dateStr)}`;
 
-      // 显示弹窗
+      const info = getTrainingInfoByDate(dateStr);
+      if (info && info.session_count > 0) {
+        modalDuration.textContent = `训练${info.session_count}次，时长${formatDuration(info.total_duration)}，平均${info.avg_score}分`;
+      } else {
+        modalDuration.textContent = '无训练记录';
+      }
+
       modal.style.display = 'flex';
     }
 
     // 关闭弹窗
     function closeModal() {
-      const modal = document.getElementById('training-modal');
-      modal.style.display = 'none';
+      document.getElementById('training-modal').style.display = 'none';
     }
 
     // 切换到上个月
@@ -1558,37 +1592,94 @@
       initCalendar();
     }
 
-    // 页面加载初始化
-    window.addEventListener('DOMContentLoaded', () => {
-      initPage();
-      // 显示今日训练时间
-      const totalTimeEl = document.getElementById('total-time');
-      if (totalTimeEl) {
-        totalTimeEl.textContent = getTodayTrainingTime();
+    // 游戏类型到页面路径的映射（与后端 config.py GAME_TYPES 对齐）
+    const gameTypeMapping = {
+      'selective': [
+        { name: '太空小火箭', path: 'schulte.html' },
+        { name: '垃圾小卫士', path: 'find-numbers.html' }
+      ],
+      'sustained': [
+        { name: '魔法迷宫', path: 'magic-maze.html' },
+        { name: '浇花游戏', path: 'water-plants.html' }
+      ],
+      'tracking': [
+        { name: '追踪太阳', path: 'sun-tracking.html' },
+        { name: '寻找动物', path: 'animal-searching.html' }
+      ],
+      'memory': [
+        { name: '记忆翻牌', path: 'card-matching.html' },
+        { name: '倒序记忆', path: 'reverse-memory.html' }
+      ],
+      'inhibitory': [
+        { name: '红绿灯', path: 'traffic-light.html' },
+        { name: '指令冒险', path: 'command-adventure.html' }
+      ]
+    };
+
+    // 从后端获取能力评估数据并推荐薄弱项训练
+    async function recommendGames() {
+      const recommendItems = document.querySelector('.recommend-items');
+      if (!recommendItems || !currentChildId) return;
+
+      // 先尝试获取检测数据
+      const detectionResult = await ApiUtil.apiGet('/api/get/detection', { child_id: currentChildId });
+      let abilities = [];
+
+      if (detectionResult.success && detectionResult.data && detectionResult.data.length > 0) {
+        // 使用最新的检测数据
+        const latest = detectionResult.data[0];
+        abilities = [
+          { type: 'selective', score: (latest.selective_attention || 0) * 100, name: '选择性注意' },
+          { type: 'sustained', score: (latest.sustained_attention || 0) * 100, name: '持续性注意' },
+          { type: 'tracking', score: (latest.visual_tracking || 0) * 100, name: '视觉追踪' },
+          { type: 'memory', score: (latest.working_memory || 0) * 100, name: '工作记忆' },
+          { type: 'inhibitory', score: (latest.inhibitory_control || 0) * 100, name: '抑制控制' }
+        ];
+      } else {
+        // 无检测数据时，使用训练趋势数据推断
+        const trendResult = await ApiUtil.apiGet(`/api/training/trend/${currentChildId}`, { days: 30 });
+        if (trendResult.success && trendResult.data && trendResult.data.trend) {
+          const trend = trendResult.data.trend;
+          abilities = [
+            { type: 'selective', score: trend.selective?.avg_score || 0, name: '选择性注意' },
+            { type: 'sustained', score: trend.sustained?.avg_score || 0, name: '持续性注意' },
+            { type: 'tracking', score: trend.tracking?.avg_score || 0, name: '视觉追踪' },
+            { type: 'memory', score: trend.memory?.avg_score || 0, name: '工作记忆' },
+            { type: 'inhibitory', score: trend.inhibitory?.avg_score || 0, name: '抑制控制' }
+          ];
+        }
       }
 
-      initCalendar();
+      if (abilities.length === 0) {
+        recommendItems.innerHTML = '<div class="recommend-item"><span>暂无推荐数据</span></div>';
+        return;
+      }
 
-      // 添加事件监听器
-      document.getElementById('prev-month').addEventListener('click', prevMonth);
-      document.getElementById('next-month').addEventListener('click', nextMonth);
-      document.getElementById('close-modal').addEventListener('click', closeModal);
-      document.getElementById('current-month').addEventListener('click', toggleDatePicker);
-      document.getElementById('prev-year').addEventListener('click', prevYear);
-      document.getElementById('next-year').addEventListener('click', nextYear);
+      // 按分数排序，推荐最薄弱的两项
+      abilities.sort((a, b) => a.score - b.score);
+      const weakest = abilities.slice(0, 2);
 
-      // 点击弹窗外部关闭
-      document.getElementById('training-modal').addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) {
-          closeModal();
+      recommendItems.innerHTML = '';
+      weakest.forEach(ability => {
+        const games = gameTypeMapping[ability.type] || [];
+        const game = games[0];
+        if (game) {
+          const recommendItem = document.createElement('div');
+          recommendItem.className = 'recommend-item';
+          recommendItem.onclick = () => startGame(game.path, game.name);
+          recommendItem.innerHTML = `
+            <span>${game.name}</span>
+            <br>
+            <small style="font-size: 12px; opacity: 0.7;">针对：${ability.name}</small>
+          `;
+          recommendItems.appendChild(recommendItem);
         }
       });
-    });
+    }
 
     // 开始游戏
-    function startGame(gameName) {
-      alert('开始游戏：' + gameName);
-      // window.location.href = `training/${gameName}.html`;
+    function startGame(gamePath, gameName) {
+      window.location.href = `training/${gamePath}`;
     }
 
     // 键盘导航支持
@@ -1601,41 +1692,26 @@
       });
     });
 
-    // 显示家长端登录弹窗
-    function showParentLogin() {
-      document.getElementById('parent-login-modal').style.display = 'flex';
-    }
-
-    // 关闭家长端登录弹窗
-    function closeLoginModal() {
-      document.getElementById('parent-login-modal').style.display = 'none';
-      document.getElementById('parent-password').value = '';
-    }
-
-    // 检查密码
-    function checkPassword() {
-      const password = document.getElementById('parent-password').value;
-      // 这里可以设置正确的密码，例如 '123456'
-      if (password === '123456') {
-        // 密码正确，跳转到家长端界面
-        window.location.href = 'child-document.html';
-      } else {
-        // 密码错误，显示提示
-        alert('密码错误，请重试！');
-        document.getElementById('parent-password').value = '';
+    // 页面加载初始化
+    window.addEventListener('DOMContentLoaded', async () => {
+      initPage();
+      if (typeof MedalUtil !== 'undefined') {
+        MedalUtil.recordCheckin(currentChildId, true);
       }
-    }
+      await initCalendar();
+      updateTodayDisplay();
+      await recommendGames();
 
-    // 点击弹窗外部关闭
-    document.addEventListener('DOMContentLoaded', function () {
-      const modal = document.getElementById('parent-login-modal');
-      if (modal) {
-        modal.addEventListener('click', (e) => {
-          if (e.target === e.currentTarget) {
-            closeLoginModal();
-          }
-        });
-      }
+      document.getElementById('prev-month').addEventListener('click', prevMonth);
+      document.getElementById('next-month').addEventListener('click', nextMonth);
+      document.getElementById('close-modal').addEventListener('click', closeModal);
+      document.getElementById('current-month').addEventListener('click', toggleDatePicker);
+      document.getElementById('prev-year').addEventListener('click', prevYear);
+      document.getElementById('next-year').addEventListener('click', nextYear);
+
+      document.getElementById('training-modal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeModal();
+      });
     });
   </script>
 </body>

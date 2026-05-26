@@ -8,18 +8,9 @@
     <script src="utils.js"></script>
     <script src="components-parent.js"></script>
     <script>
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         window.API_CONFIG = {
-            BASE_URL: (function() {
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    return 'http://localhost:5000';
-                }
-                var protocol = window.location.protocol;
-                var host = window.location.host;
-                if (host.includes(':')) {
-                    return protocol + '//' + host.split(':')[0] + ':5000';
-                }
-                return protocol + '//' + host;
-            })(),
+            BASE_URL: isLocal ? 'http://localhost:5000' : window.location.origin,
             TIMEOUT: 30000,
             CONTENT_TYPE: 'application/json',
             TOKEN_KEY: 'auth_token'
