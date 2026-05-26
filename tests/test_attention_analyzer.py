@@ -177,7 +177,7 @@ class TestGetPerformanceLevel:
         assert AttentionAnalyzer.get_performance_level(65) == "一般"
 
     def test_needs_improvement(self):
-        assert AttentionAnalyzer.get_performance_level(40) == "需改进"
+        assert AttentionAnalyzer.get_performance_level(40) == "较弱"
 
     def test_boundary_good(self):
         assert AttentionAnalyzer.get_performance_level(90) == "优秀"
