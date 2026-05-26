@@ -42,3 +42,4 @@ node_modules/
 # --- 工具特定 ---
 /.trae
 CLAUDE.md
+database/attention.db
