@@ -1,0 +1,21 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: Ruff — 代码格式化
+        entry: ruff format
+        language: system
+        types: [python]
+
+      - id: ruff-check
+        name: Ruff — 代码检查
+        entry: ruff check --fix
+        language: system
+        types: [python]
+
+      - id: prettier
+        name: Prettier — 前端格式化
+        entry: npx prettier --write
+        language: system
+        files: ^frontend/
+        types_or: [html, javascript, css, json]
