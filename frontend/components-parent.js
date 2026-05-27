@@ -47,7 +47,7 @@ const ParentComponents = {
                 display: flex;
                 gap: 24px;
                 padding: 24px;
-                padding-left: 178px;
+                padding-left: 194px;
             }
 
             /* ===== 侧边栏样式 ===== */
@@ -64,7 +64,7 @@ const ParentComponents = {
                 border-radius: 32px;
                 position: fixed;
                 top: 24px;
-                left: 24px;
+                left: 40px;
                 z-index: 100;
             }
 
@@ -208,7 +208,8 @@ const ParentComponents = {
                 flex: 1;
                 padding: 24px;
                 overflow-y: auto;
-                max-width: calc(100% - 154px);
+                max-width: 1400px;
+                margin: 0 auto;
             }
 
             /* ===== 卡片基础样式 ===== */
@@ -265,8 +266,8 @@ const ParentComponents = {
                 position: fixed;
                 top: 0;
                 left: 0;
-                right: 0;
-                bottom: 0;
+                width: 100vw;
+                height: 100vh;
                 background: rgba(0, 0, 0, 0.5);
                 display: none;
                 align-items: center;
@@ -608,6 +609,15 @@ const ParentComponents = {
     // 插入侧边栏
     const sidebarHtml = this.getSidebar(activePage);
     document.body.insertAdjacentHTML('afterbegin', sidebarHtml);
+
+    // 鼠标悬停导航项时预加载目标页面，减少切换白屏
+    document.querySelector('.sidebar').addEventListener('mouseover', function (e) {
+      const link = e.target.closest('.nav-item');
+      if (link && link.href && !link.href.endsWith('#') && !link._prefetched) {
+        link._prefetched = true;
+        fetch(link.href);
+      }
+    });
 
     // 插入个人中心弹窗
     const modalHtml = this.getProfileModal();
