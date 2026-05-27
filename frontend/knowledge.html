@@ -130,6 +130,31 @@
         color: white;
       }
 
+      .admin-entry {
+        display: none;
+        margin-left: auto;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #ff9800, #f44336);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+      }
+
+      .admin-entry:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(244, 67, 54, 0.4);
+      }
+
+      .admin-entry.show {
+        display: inline-block;
+      }
+
       .knowledge-section {
         padding: 0;
       }
@@ -407,8 +432,8 @@
     <div class="main-content">
       <div class="knowledge-header">
         <!-- 搜索框（一定显示） -->
-        <div class="search-container">
-          <div class="search-box" id="searchBox">
+        <div class="search-container" style="display: flex; align-items: center; gap: 16px">
+          <div class="search-box" id="searchBox" style="flex: 1">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
@@ -416,6 +441,9 @@
             <input type="text" class="search-input" id="searchInput" placeholder="搜索知识文章..." />
             <button class="search-btn" onclick="doSearch()">搜索</button>
           </div>
+          <button class="admin-entry" id="admin-entry-btn" onclick="window.location.href = 'knowledge/admin.html'">
+            管理文章
+          </button>
         </div>
 
         <div class="filter-section">
@@ -460,6 +488,9 @@
         ParentComponents.initPage('knowledge');
         const userInfo = ParentComponents.checkAuth();
         if (userInfo) {
+          if (userInfo.role === 'admin') {
+            document.getElementById('admin-entry-btn').classList.add('show');
+          }
           initFilterListeners();
           loadKnowledgeArticles();
         }

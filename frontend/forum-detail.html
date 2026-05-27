@@ -436,6 +436,112 @@
         padding: 0 4px;
       }
 
+      .content-wrapper {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .content-main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .post-actions-sidebar {
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+        position: sticky;
+        top: 100px;
+        flex-shrink: 0;
+        background: white;
+        border-radius: 16px;
+        padding: 10px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      }
+
+      .post-actions-sidebar.show {
+        display: flex;
+      }
+
+      .post-actions-sidebar button {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 17px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        background: #f8f9fa;
+        position: relative;
+      }
+
+      .post-actions-sidebar button:hover {
+        background: #eef0f4;
+        transform: scale(1.05);
+      }
+
+      .post-actions-sidebar button .tooltip {
+        display: none;
+        position: absolute;
+        right: 52px;
+        background: #333;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      .post-actions-sidebar button:hover .tooltip {
+        display: block;
+      }
+
+      .post-actions-sidebar .btn-edit {
+        color: #667eea;
+      }
+
+      .post-actions-sidebar .btn-delete {
+        color: #f44336;
+      }
+
+      .post-actions-sidebar .btn-pin {
+        color: #ff9800;
+      }
+
+      .post-actions-sidebar .btn-essential {
+        color: #e91e63;
+      }
+
+      @media (max-width: 768px) {
+        .content-wrapper {
+          flex-direction: column;
+        }
+
+        .post-actions-sidebar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          top: auto;
+          flex-direction: row;
+          justify-content: center;
+          gap: 12px;
+          padding: 10px;
+          border-radius: 16px 16px 0 0;
+          box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
+          z-index: 100;
+        }
+
+        .post-actions-sidebar button .tooltip {
+          display: none !important;
+        }
+      }
+
       .footer {
         background: #f5f7fa;
         color: #999;
@@ -483,52 +589,67 @@
         <div class="container">
           <button class="back-btn" id="back-btn" onclick="goBack()">← 返回论坛</button>
 
-          <div class="post-detail" id="post-detail">
-            <div class="post-header">
-              <div class="post-meta">
-                <div class="author-avatar" id="author-avatar">U</div>
-                <div class="author-info">
-                  <div class="author-name">
-                    <span id="author-name">用户</span>
-                    <span class="author-level" id="author-level">Lv.1</span>
+          <div class="content-wrapper">
+            <div class="content-main">
+              <div class="post-detail" id="post-detail">
+                <div class="post-header">
+                  <div class="post-meta">
+                    <div class="author-avatar" id="author-avatar">U</div>
+                    <div class="author-info">
+                      <div class="author-name">
+                        <span id="author-name">用户</span>
+                        <span class="author-level" id="author-level">Lv.1</span>
+                      </div>
+                      <div class="post-time" id="post-time">2024-01-01 00:00:00</div>
+                    </div>
+                    <div class="post-badges" id="post-badges"></div>
                   </div>
-                  <div class="post-time" id="post-time">2024-01-01 00:00:00</div>
+                  <h1 class="post-title" id="post-title">加载中...</h1>
                 </div>
-                <div class="post-badges" id="post-badges"></div>
+                <div class="post-content" id="post-content">加载中...</div>
+                <div class="post-footer" id="post-footer">
+                  <div class="post-stat" id="view-count"><span>👁</span> <span>0</span></div>
+                  <div class="post-stat" id="like-btn" onclick="likePost()">
+                    <span>👍</span> <span id="like-count">0</span>
+                  </div>
+                  <div class="post-stat" id="dislike-btn" onclick="dislikePost()">
+                    <span>👎</span> <span id="dislike-count">0</span>
+                  </div>
+                </div>
               </div>
-              <h1 class="post-title" id="post-title">加载中...</h1>
-            </div>
-            <div class="post-content" id="post-content">加载中...</div>
-            <div class="post-footer" id="post-footer">
-              <div class="post-stat" id="view-count"><span>👁</span> <span>0</span></div>
-              <div class="post-stat" id="like-btn" onclick="likePost()">
-                <span>👍</span> <span id="like-count">0</span>
-              </div>
-              <div class="post-stat" id="dislike-btn" onclick="dislikePost()">
-                <span>👎</span> <span id="dislike-count">0</span>
-              </div>
-            </div>
-          </div>
 
-          <div class="comments-section">
-            <div class="comments-header">💬 评论 (<span id="comment-count">0</span>)</div>
-            <div class="comment-form-section">
-              <div class="comment-form">
-                <textarea id="comment-input" placeholder="写下你的评论..."></textarea>
-                <button onclick="addComment()">发表</button>
+              <div class="comments-section">
+                <div class="comments-header">💬 评论 (<span id="comment-count">0</span>)</div>
+                <div class="comment-form-section">
+                  <div class="comment-form">
+                    <textarea id="comment-input" placeholder="写下你的评论..."></textarea>
+                    <button onclick="addComment()">发表</button>
+                  </div>
+                </div>
+                <div class="comments-list" id="comments-list">
+                  <div class="empty-comments">
+                    <div class="empty-comments-icon">💭</div>
+                    <div>暂无评论，快来发表第一条评论吧！</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="comments-list" id="comments-list">
-              <div class="empty-comments">
-                <div class="empty-comments-icon">💭</div>
-                <div>暂无评论，快来发表第一条评论吧！</div>
-              </div>
+
+            <div class="post-actions-sidebar" id="post-actions-sidebar">
+              <button class="btn-edit" onclick="editPost()">✏️<span class="tooltip">编辑</span></button>
+              <button class="btn-delete" onclick="deletePost()">🗑️<span class="tooltip">删除</span></button>
+              <button class="btn-pin" id="btn-pin" onclick="pinPost()">
+                📌<span class="tooltip" id="tooltip-pin">置顶</span>
+              </button>
+              <button class="btn-essential" id="btn-essential" onclick="essentialPost()">
+                💎<span class="tooltip" id="tooltip-essential">精华</span>
+              </button>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="content-sidebar"></div>
+        <div class="content-sidebar"></div>
+      </div>
     </div>
 
     <script>
@@ -624,19 +745,21 @@
                 </div>
             `;
 
-        if (userInfo && (userInfo.parent_id === data.parent_id || userInfo.role === 'admin')) {
-          footer.innerHTML += `
-                    <div class="post-stat" onclick="editPost()"><span>✏️</span> <span>编辑</span></div>
-                    <div class="post-stat" onclick="deletePost()"><span>🗑️</span> <span>删除</span></div>
-                `;
-        }
+        // 右侧操作卡片：仅作者和管理员可见
+        const sidebar = document.getElementById('post-actions-sidebar');
+        const isAuthorOrAdmin = userInfo && (userInfo.parent_id === data.parent_id || userInfo.role === 'admin');
+        const isAdmin = userInfo && userInfo.role === 'admin';
 
-        if (userInfo && userInfo.role === 'admin') {
-          footer.innerHTML += `
-                    <div class="post-stat" onclick="pinPost()"><span>📌</span> <span>${data.is_pinned ? '取消置顶' : '置顶'}</span></div>
-                    <div class="post-stat" onclick="essentialPost()"><span>💎</span> <span>${data.is_essential ? '取消精华' : '精华'}</span></div>
-                `;
-        }
+        sidebar.querySelector('.btn-edit').style.display = isAuthorOrAdmin ? 'flex' : 'none';
+        sidebar.querySelector('.btn-delete').style.display = isAuthorOrAdmin ? 'flex' : 'none';
+        sidebar.querySelector('.btn-pin').style.display = isAdmin ? 'flex' : 'none';
+        sidebar.querySelector('.btn-essential').style.display = isAdmin ? 'flex' : 'none';
+
+        sidebar.classList.toggle('show', isAuthorOrAdmin || isAdmin);
+
+        // 更新置顶/精华提示文字
+        document.getElementById('tooltip-pin').textContent = data.is_pinned ? '取消置顶' : '置顶';
+        document.getElementById('tooltip-essential').textContent = data.is_essential ? '取消精华' : '精华';
 
         const likeBtn = document.getElementById('like-btn');
         const dislikeBtn = document.getElementById('dislike-btn');
