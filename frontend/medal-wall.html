@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -55,10 +55,6 @@
         transition: opacity 0.5s ease-in;
       }
 
-      .sidebar,
-      .floating-shapes {
-        opacity: 1;
-      }
 
       /* 勋章墙内容初始隐藏，加载完成后显示 */
       .medal-showcase,
@@ -259,6 +255,10 @@
 
       .nav-item:hover {
         transform: translateY(-4px) scale(1.02);
+      }
+
+      .nav-item:hover .nav-icon {
+        transform: scale(1.1);
       }
 
       .nav-item.active {
@@ -718,9 +718,7 @@
           width: 100%;
           flex-direction: row;
           padding: 16px 20px;
-          gap: 12px;
           border-radius: 24px;
-          position: relative;
           overflow-x: auto;
         }
 

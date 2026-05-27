@@ -116,6 +116,10 @@
         transform: translateY(-4px) scale(1.02);
       }
 
+      .nav-item:hover .nav-icon {
+        transform: scale(1.1);
+      }
+
       .nav-item.active {
         background: #ffd387;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -1162,9 +1166,7 @@
           width: 100%;
           flex-direction: row;
           padding: 16px 20px;
-          gap: 12px;
           border-radius: 24px;
-          position: relative;
           overflow-x: auto;
         }
 
