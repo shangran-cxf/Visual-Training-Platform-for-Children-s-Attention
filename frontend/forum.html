@@ -444,6 +444,11 @@
 
       .post-comments.show {
         display: block;
+        background: linear-gradient(135deg, #f8f6fc 0%, #f0ebf8 100%);
+        margin: 15px -12px -12px -12px;
+        padding: 16px 16px 8px 16px;
+        border-radius: 0 0 16px 16px;
+        border-top: 2px solid #d5c8f0;
       }
 
       .comment {
@@ -1431,56 +1436,42 @@
           const total = Array.isArray(data) ? data.length : data.total || 0;
           const commentsList = document.getElementById(`comments-list-${postId}`);
 
-          // 获取帖子信息，包括收藏状态
-          const postResponse = await fetch(`/api/forum/posts/${postId}`);
-          const postResult = await postResponse.json();
-          const postData = postResult.data || {};
-          const isFavorited = postData.is_favorited || false;
-
           if (comments.length > 0) {
+            // 按点赞数排序，取最高赞评论展示
+            const sorted = [...comments].sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
+            const topComment = sorted[0];
+            const safeCommentAuthor = escapeHtml(topComment.author_name || '用户');
+            const initial = safeCommentAuthor.charAt(0).toUpperCase();
+
             let html = `
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 14px; color: #666;">
-                            <span class="post-stat post-stat-action favorite-action ${isFavorited ? 'active' : ''}"
-                                 onclick="toggleFavorite(${postId}, this); event.stopPropagation();">
-                                <span>⭐</span> ${isFavorited ? '已收藏' : '收藏'}
-                            </span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 12px; color: #886ec5; font-weight: 600;">💬 热门评论</span>
+                            <a href="forum-detail.html?id=${postId}&from_page=${currentPage}"
+                               style="font-size: 12px; color: #667eea; text-decoration: none;"
+                               onclick="event.stopPropagation();">
+                                查看全部 ${total} 条评论 →
+                            </a>
                         </div>
-                    `;
-            html += comments
-              .map((comment) => {
-                const safeCommentAuthor = escapeHtml(comment.author_name || '用户');
-                const initial = safeCommentAuthor.charAt(0).toUpperCase();
-                return `
                         <div class="comment">
                             <div class="comment-header">
                                 <div class="comment-avatar">${escapeHtml(initial)}</div>
                                 <span class="comment-author">${safeCommentAuthor}</span>
-                                <span class="comment-time">${escapeHtml(comment.created_at)}</span>
+                                <span class="comment-time">${escapeHtml(topComment.created_at)}</span>
                             </div>
-                            <div class="comment-content">${escapeHtml(comment.content)}</div>
-                            <div class="comment-actions">
-                                <span class="comment-action ${comment.user_vote === 1 ? 'liked' : ''}" onclick="likeComment(${comment.id})"><span>👍</span> ${Math.max(0, comment.like_count || 0)}</span>
-                                <span class="comment-action ${comment.user_vote === -1 ? 'disliked' : ''}" onclick="dislikeComment(${comment.id})"><span>👎</span> ${Math.max(0, comment.dislike_count || 0)}</span>
-                            </div>
+                            <div class="comment-content">${escapeHtml(topComment.content)}</div>
                         </div>
                     `;
-              })
-              .join('');
-            if (total > 20) {
-              html += `<div style="text-align: center; padding: 10px 0; color: #667eea; font-size: 13px;">
-                        <a href="forum-detail.html?id=${postId}" style="color: #667eea;">查看全部 ${total} 条评论 →</a>
-                      </div>`;
-            }
             commentsList.innerHTML = html;
           } else {
             commentsList.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 14px; color: #666;">
-                            <span class="post-stat post-stat-action favorite-action ${isFavorited ? 'active' : ''}"
-                                 onclick="toggleFavorite(${postId}, this); event.stopPropagation();">
-                                <span>⭐</span> ${isFavorited ? '已收藏' : '收藏'}
-                            </span>
+                        <div style="color: #999; font-size: 13px; padding: 10px 0; text-align: center;">
+                            暂无评论，
+                            <a href="forum-detail.html?id=${postId}&from_page=${currentPage}"
+                               style="color: #667eea;"
+                               onclick="event.stopPropagation();">
+                                抢沙发 →
+                            </a>
                         </div>
-                        <div style="color: #999; font-size: 13px; padding: 10px 0;">暂无评论</div>
                     `;
           }
         } catch (error) {
