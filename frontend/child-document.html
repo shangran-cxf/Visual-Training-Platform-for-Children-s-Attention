@@ -935,40 +935,8 @@
 
           // 页面加载完成后初始化
           try {
-            // 检查缓存（10分钟过期）
-            const cacheKey = `growth_data_${childId}`;
-            const cachedRaw = localStorage.getItem(cacheKey);
-            let trendData;
-
-            if (cachedRaw) {
-              try {
-                const cached = JSON.parse(cachedRaw);
-                if (cached._ts) {
-                  if (Date.now() - cached._ts < 10 * 60 * 1000) {
-                    trendData = cached.data;
-                  }
-                } else {
-                  // 旧格式缓存，补上时间戳继续用，10分钟后自然过期
-                  localStorage.setItem(cacheKey, JSON.stringify({ data: cached, _ts: Date.now() }));
-                  trendData = cached;
-                }
-              } catch (parseError) {
-                console.error('解析缓存数据失败:', parseError);
-                localStorage.removeItem(cacheKey);
-                trendData = null;
-              }
-            }
-
-            if (!trendData) {
-              const result = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
-              trendData = result.data || result;
-
-              try {
-                localStorage.setItem(cacheKey, JSON.stringify({ data: trendData, _ts: Date.now() }));
-              } catch (cacheError) {
-                console.error('缓存数据失败:', cacheError);
-              }
-            }
+            const result = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
+            const trendData = result.data || result;
 
             let labels = [];
             let data = [];
@@ -993,13 +961,14 @@
                 groupedByDate[record.date].push(record.score);
               });
 
-              Object.keys(groupedByDate)
-                .slice(-8)
-                .forEach((date, index) => {
-                  const avgScore = groupedByDate[date].reduce((a, b) => a + b, 0) / groupedByDate[date].length;
-                  labels.push(`第${index + 1}周`);
-                  data.push(Math.round(avgScore));
-                });
+              const dates = Object.keys(groupedByDate).slice(-8);
+              dates.forEach((date) => {
+                const avgScore = groupedByDate[date].reduce((a, b) => a + b, 0) / groupedByDate[date].length;
+                // 显示月-日格式
+                const parts = date.split('-');
+                labels.push(parts[1] + '/' + parts[2]);
+                data.push(Math.round(avgScore));
+              });
             }
 
             if (labels.length === 0) {
