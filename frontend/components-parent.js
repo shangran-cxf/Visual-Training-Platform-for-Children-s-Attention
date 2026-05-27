@@ -47,11 +47,13 @@ const ParentComponents = {
                 display: flex;
                 gap: 24px;
                 padding: 24px;
+                padding-left: 178px;
             }
 
             /* ===== 侧边栏样式 ===== */
             .sidebar {
                 width: 130px;
+                height: calc(100vh - 48px);
                 background: #886ab4;
                 box-shadow: 0 8px 32px rgba(46, 19, 68, 0.15), 0 4px 16px rgba(15, 14, 14, 0.1);
                 padding: 24px 0;
@@ -60,7 +62,10 @@ const ParentComponents = {
                 align-items: center;
                 gap: 20px;
                 border-radius: 32px;
-                position: relative;
+                position: fixed;
+                top: 24px;
+                left: 24px;
+                z-index: 100;
             }
 
             /* 用户头像 */
