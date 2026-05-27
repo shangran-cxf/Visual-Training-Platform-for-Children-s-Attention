@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="view-transition" content="same-origin" />
     <title>儿童注意力训练平台 - 勋章墙</title>
     <!-- 预加载关键资源 -->
     <link rel="preload" href="images/logo.png" as="image" />
@@ -54,7 +55,8 @@
         transition: opacity 0.5s ease-in;
       }
 
-      .sidebar, .floating-shapes {
+      .sidebar,
+      .floating-shapes {
         opacity: 1;
       }
 
@@ -88,7 +90,9 @@
         justify-content: center;
         padding: 40px;
         border-radius: 20px;
-        transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        transition:
+          opacity 0.5s ease-out,
+          visibility 0.5s ease-out;
       }
 
       .loading-overlay.hidden {
@@ -150,13 +154,22 @@
       }
 
       @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
 
       @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.08); }
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.08);
+        }
       }
 
       .loading-text {
@@ -953,7 +966,11 @@
       <!-- 勋章网格和狐狸勋章 -->
       <div style="display: flex; align-items: flex-end; gap: 10px; position: relative">
         <!-- 局部加载动画 -->
-        <div id="loading-overlay" class="loading-overlay" style="position: relative; transform: none; top: auto; left: auto;">
+        <div
+          id="loading-overlay"
+          class="loading-overlay"
+          style="position: relative; transform: none; top: auto; left: auto"
+        >
           <div class="loading-medal">
             <div class="loading-medal-ring"></div>
             <div class="loading-medal-ring"></div>
@@ -1101,14 +1118,11 @@
           this.progressBar = document.getElementById('loading-progress-bar');
           // 统计需要加载的资源
           const images = document.querySelectorAll('img');
-          const criticalImages = [
-            'images/logo.png',
-            'images/fox-medal.png'
-          ];
-          
+          const criticalImages = ['images/logo.png', 'images/fox-medal.png'];
+
           // 统计关键图片
           this.total = criticalImages.length;
-          
+
           // 预加载关键图片
           criticalImages.forEach((src, index) => {
             const img = new Image();
@@ -1122,7 +1136,7 @@
             };
             img.src = src;
           });
-          
+
           // 如果没有图片需要加载，直接完成
           if (this.total === 0) {
             this.complete();
@@ -1139,7 +1153,7 @@
           if (this.progressBar) {
             this.progressBar.style.width = '100%';
           }
-          
+
           // 延迟一点时间让用户看到100%
           setTimeout(() => {
             this.hideLoading();
@@ -1147,64 +1161,69 @@
         },
         hideLoading() {
           const overlay = document.getElementById('loading-overlay');
-          
+
           // 显示勋章墙内容
-          document.querySelectorAll('.medal-showcase, .medal-grid-container, .title-section, .scroll-button').forEach(el => {
-            el.classList.add('loaded');
-          });
-          
+          document
+            .querySelectorAll('.medal-showcase, .medal-grid-container, .title-section, .scroll-button')
+            .forEach((el) => {
+              el.classList.add('loaded');
+            });
+
           if (overlay) {
             overlay.classList.add('hidden');
           }
-          
+
           isPageLoaded = true;
-          
+
           // 移除加载动画元素
           setTimeout(() => {
             if (overlay && overlay.parentNode) {
               overlay.parentNode.removeChild(overlay);
             }
           }, 500);
-        }
+        },
       };
 
       // 图片懒加载初始化（优化版本）
       function initLazyLoad() {
         if (!('IntersectionObserver' in window)) {
-          document.querySelectorAll('img.medal-lazy').forEach(img => {
+          document.querySelectorAll('img.medal-lazy').forEach((img) => {
             img.src = img.dataset.src;
             img.classList.remove('medal-lazy');
           });
           return;
         }
 
-        imageObserver = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              const img = entry.target;
-              const src = img.dataset.src;
-              if (src) {
-                const tempImg = new Image();
-                tempImg.onload = () => {
-                  img.src = src;
-                  img.classList.remove('medal-lazy');
-                  imageObserver.unobserve(img);
-                };
-                tempImg.onerror = () => {
-                  img.src = src;
-                  img.classList.remove('medal-lazy');
-                  imageObserver.unobserve(img);
-                };
-                tempImg.src = src;
+        imageObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.dataset.src;
+                if (src) {
+                  const tempImg = new Image();
+                  tempImg.onload = () => {
+                    img.src = src;
+                    img.classList.remove('medal-lazy');
+                    imageObserver.unobserve(img);
+                  };
+                  tempImg.onerror = () => {
+                    img.src = src;
+                    img.classList.remove('medal-lazy');
+                    imageObserver.unobserve(img);
+                  };
+                  tempImg.src = src;
+                }
               }
-            }
-          });
-        }, { 
-          rootMargin: '200px', 
-          threshold: 0.01
-        });
+            });
+          },
+          {
+            rootMargin: '200px',
+            threshold: 0.01,
+          },
+        );
 
-        document.querySelectorAll('img.medal-lazy').forEach(img => {
+        document.querySelectorAll('img.medal-lazy').forEach((img) => {
           imageObserver.observe(img);
         });
       }
@@ -1212,10 +1231,13 @@
       // 延迟初始化非关键功能
       function lazyInitNonCritical() {
         if (typeof requestIdleCallback === 'function') {
-          requestIdleCallback(() => {
-            bindScrollEvents();
-            bindKeyboardEvents();
-          }, { timeout: 2000 });
+          requestIdleCallback(
+            () => {
+              bindScrollEvents();
+              bindKeyboardEvents();
+            },
+            { timeout: 2000 },
+          );
         } else {
           setTimeout(() => {
             bindScrollEvents();
@@ -1232,19 +1254,19 @@
         }
 
         currentChildId = UserStateUtil.getCurrentChildId();
-        
+
         // 缓存DOM引用
         medalItems = document.querySelectorAll('.medal-item');
-        
+
         // 加载勋章数据
         loadMedalData();
-        
+
         // 检查打卡进度
         const unlockedCheckinMedals = MedalUtil.syncCheckinProgress(currentChildId, false);
-        
+
         // 更新UI
         updateMedalWall();
-        
+
         // 显示通知
         if (unlockedCheckinMedals.length > 0) {
           unlockedCheckinMedals.forEach((medal) => {
@@ -1254,7 +1276,7 @@
 
         // 绑定勋章点击事件
         bindMedalClickEvents();
-        
+
         // 延迟初始化非关键功能
         lazyInitNonCritical();
       }
@@ -1272,7 +1294,7 @@
       // 检查并解锁勋章
       function checkMedalUnlock() {
         const unlockedMedals = MedalUtil.syncCheckinProgress(currentChildId, false);
-        
+
         loadMedalData();
         updateMedalWall();
 
@@ -1292,7 +1314,7 @@
       // 更新勋章墙
       function updateMedalWall() {
         if (!medalItems) return;
-        
+
         requestAnimationFrame(() => {
           medalItems.forEach((item) => {
             const medalId = parseInt(item.dataset.medal, 10);
@@ -1394,7 +1416,7 @@
       function scrollMedals(direction) {
         const scrollContainer = document.getElementById('medal-scroll-container');
         if (!scrollContainer) return;
-        
+
         const container = scrollContainer.parentElement;
         const scrollWidth = scrollContainer.offsetWidth;
         const containerWidth = container.offsetWidth;
@@ -1451,13 +1473,13 @@
       document.addEventListener('DOMContentLoaded', function () {
         // 1. 初始化加载管理器
         LoadingManager.init();
-        
+
         // 2. 初始化懒加载
         initLazyLoad();
-        
+
         // 3. 初始化页面
         initPage();
-        
+
         // 4. 完成加载
         LoadingManager.complete();
       });
