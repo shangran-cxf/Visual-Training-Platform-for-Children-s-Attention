@@ -924,11 +924,13 @@
                   },
                   body: JSON.stringify({
                     session_id: sessionId,
-                    game_type: 'command-adventure',
+                    request_id: Date.now().toString(),
+                    timestamp: new Date().toISOString(),
+                    event_type: 'game_complete',
                     score: finalScore,
-                    time_used: time,
-                    level: level,
                     accuracy: accuracy,
+                    level: level,
+                    time: time,
                     game_data: {
                       collision_count: collisionCount,
                       game_type: 'command-adventure',
@@ -939,7 +941,12 @@
                 throw new Error(result.message || '创建训练会话失败');
               }
             })
-            .then((response) => response.json())
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
             .then((result) => {
               if (result.success) {
                 console.log('游戏数据上传成功');
@@ -967,7 +974,12 @@
                 throw new Error(result.message || '上传游戏数据失败');
               }
             })
-            .then((response) => response.json())
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
             .then((result) => {
               console.log('会话结束响应数据:', result);
               if (result.success) {

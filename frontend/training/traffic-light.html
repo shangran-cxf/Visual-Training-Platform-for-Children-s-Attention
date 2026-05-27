@@ -964,7 +964,7 @@
                     score: finalScore,
                     accuracy: parseFloat(accuracy),
                     level: gameState.level || 1,
-                    time: Math.floor((Date.now() - gameStartTime) / 1000),
+                    time: Math.floor((Date.now() - startTime) / 1000),
                     correct: gameState.correctCount,
                     error: gameState.totalCount - gameState.correctCount,
                     total_target: gameState.totalCount,
@@ -975,7 +975,12 @@
                 throw new Error(result.message || '创建会话失败');
               }
             })
-            .then((response) => response.json())
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
             .then((result) => {
               if (result.success) {
                 console.log('游戏数据上传成功');
@@ -996,7 +1001,7 @@
                     session_id: sessionId,
                     final_score: finalScore,
                     total_accuracy: parseFloat(accuracy),
-                    duration: Math.floor((Date.now() - gameStartTime) / 1000),
+                    duration: Math.floor((Date.now() - startTime) / 1000),
                   }),
                 });
               } else {
@@ -1018,7 +1023,7 @@
                 }
 
                 // 累加游戏时间（秒）
-                const gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
+                const gameTime = Math.floor((Date.now() - startTime) / 1000);
                 trainingData[today].totalTime += gameTime;
                 localStorage.setItem('trainingData', JSON.stringify(trainingData));
                 console.log('训练时间已保存到 localStorage');
