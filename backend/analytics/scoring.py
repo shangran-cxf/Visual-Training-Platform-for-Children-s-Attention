@@ -233,7 +233,8 @@ def calculate_inhibitory_score(game_data, vision_scores):
     correct = game_data.get("correct", 0)
     error = game_data.get("error", 0)
     obstacle = game_data.get("obstacle", 0)
-    total_trial = game_data.get("total_trial", 1)
+    # 优先使用 total_trial，如果缺失则使用 total_target 作为回退
+    total_trial = game_data.get("total_trial") or game_data.get("total_target") or 1
 
     if total_trial == 0:
         total_trial = 1
