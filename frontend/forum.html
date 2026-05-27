@@ -804,16 +804,17 @@
       }
 
       .modal-overlay {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
       }
 
       .modal-content {
-        position: absolute;
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -1022,7 +1023,7 @@
               <div class="user-stat-value" id="my-likes">0</div>
               <div class="user-stat-label">获赞</div>
             </div>
-            <div class="user-stat-item" onclick="loadFavorites()">
+            <div class="user-stat-item">
               <div class="user-stat-value" id="my-favorites">0</div>
               <div class="user-stat-label">收藏</div>
             </div>
@@ -1103,7 +1104,9 @@
 
           const tabsContainer = document.getElementById('category-tabs');
           const selectContainer = document.getElementById('post-category');
-          tabsContainer.innerHTML = '<button class="category-tab active" data-category="">全部</button>';
+          tabsContainer.innerHTML =
+            '<button class="category-tab active" data-category="">全部</button>' +
+            '<button class="category-tab" data-favorites="true">⭐ 我的收藏</button>';
           selectContainer.innerHTML = '<option value="">请选择分类</option>';
 
           categories.forEach((cat) => {
@@ -1113,10 +1116,15 @@
 
           document.querySelectorAll('.category-tab').forEach((tab) => {
             tab.addEventListener('click', function () {
-              showFavoritesOnly = false;
               document.querySelectorAll('.category-tab').forEach((t) => t.classList.remove('active'));
               this.classList.add('active');
-              currentCategory = this.dataset.category;
+              if (this.dataset.favorites === 'true') {
+                showFavoritesOnly = true;
+                currentCategory = '';
+              } else {
+                showFavoritesOnly = false;
+                currentCategory = this.dataset.category;
+              }
               currentPage = 1;
               loadPosts();
             });
@@ -1185,10 +1193,8 @@
                 throw new Error('收藏API调用失败');
               }
               const favoritesResult = await favoritesResponse.json();
-              const favoritesData = favoritesResult.data || [];
-              document.getElementById('my-favorites').textContent = Array.isArray(favoritesData)
-                ? favoritesData.length
-                : 0;
+              const favoritesData = favoritesResult.data || {};
+              document.getElementById('my-favorites').textContent = favoritesData.total || 0;
             } catch (favError) {
               console.error('加载收藏数目失败:', favError);
               document.getElementById('my-favorites').textContent = 0;
@@ -1208,6 +1214,9 @@
 
       function searchPosts() {
         showFavoritesOnly = false;
+        document.querySelectorAll('.category-tab').forEach((t) => t.classList.remove('active'));
+        const allTab = document.querySelector('.category-tab[data-category=""]');
+        if (allTab) allTab.classList.add('active');
         currentKeyword = document.getElementById('search-input').value.trim();
         currentPage = 1;
         loadPosts();
@@ -1245,6 +1254,13 @@
             url = `/api/forum/posts/search?page=${page}&per_page=${perPage}&sort_by=${currentSort}`;
             if (currentKeyword) url += `&keyword=${encodeURIComponent(currentKeyword)}`;
             if (currentCategory) url += `&category_id=${currentCategory}`;
+            // 发送认证信息以获取 user_vote / is_favorited
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+              fetchOptions = {
+                headers: { Authorization: `Bearer ${token}` },
+              };
+            }
           }
 
           const response = await fetch(url, fetchOptions);
@@ -1534,16 +1550,24 @@
         const categoryId = document.getElementById('form-post-category').value;
 
         if (!title || !content) {
-          alert('请填写标题和内容');
+          await showMessageModal('提示', '请填写标题和内容');
           return;
         }
 
         const userInfo = StorageUtil.getItem('userInfo');
         const token = localStorage.getItem('auth_token');
         if (!userInfo || !token) {
-          alert('请先登录');
+          await showMessageModal('提示', '请先登录');
           return;
         }
+
+        const isEditing = !!currentEditPostId;
+        const confirmed = await showConfirmModal(
+          isEditing ? '修改帖子' : '发布新帖',
+          isEditing ? '确定要修改这篇帖子吗？' : '确定要发布这篇新帖吗？',
+          isEditing ? '保存' : '发布',
+        );
+        if (!confirmed) return;
 
         try {
           let response;
@@ -1580,13 +1604,16 @@
             closePostForm();
             loadPosts(1);
             loadUserStats();
-            alert(currentEditPostId ? '修改成功' : '发布成功');
+            await showMessageModal('成功', currentEditPostId ? '帖子修改成功！' : '帖子发布成功！');
           } else {
-            alert(result.error?.message || result.error || (currentEditPostId ? '修改失败' : '发布失败'));
+            await showMessageModal(
+              '失败',
+              result.error?.message || result.error || (currentEditPostId ? '修改失败' : '发布失败'),
+            );
           }
         } catch (error) {
           console.error('操作失败:', error);
-          alert('操作失败，请稍后再试');
+          await showMessageModal('错误', '操作失败，请稍后再试');
         }
       }
 
@@ -1632,10 +1659,12 @@
       async function confirmDeletePost() {
         // 创建自定义确认弹窗
         const modal = document.createElement('div');
-        modal.className = 'modal-overlay show';
+        modal.style.cssText =
+          'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:10000;';
 
         const content = document.createElement('div');
-        content.className = 'modal-content';
+        content.style.cssText =
+          'background:white;border-radius:20px;padding:30px;width:90%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.3);';
 
         const header = document.createElement('div');
         header.className = 'modal-header';
@@ -2082,10 +2111,12 @@
       function confirmCancelFavorite() {
         // 创建自定义确认弹窗
         const modal = document.createElement('div');
-        modal.className = 'modal-overlay show';
+        modal.style.cssText =
+          'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:10000;';
 
         const content = document.createElement('div');
-        content.className = 'modal-content';
+        content.style.cssText =
+          'background:white;border-radius:20px;padding:30px;width:90%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.3);';
 
         const header = document.createElement('div');
         header.className = 'modal-header';
@@ -2182,6 +2213,46 @@
         });
       }
 
+      function showMessageModal(title, message) {
+        return new Promise((resolve) => {
+          const modal = document.createElement('div');
+          modal.style.cssText =
+            'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;z-index:10000;';
+
+          const content = document.createElement('div');
+          content.style.cssText =
+            'background:white;border-radius:20px;padding:30px;width:90%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.3);text-align:center;';
+
+          const titleEl = document.createElement('h3');
+          titleEl.textContent = title;
+          titleEl.style.cssText = 'margin: 0 0 20px 0; font-size: 16px; font-weight: 600; color: #333;';
+
+          const messageEl = document.createElement('p');
+          messageEl.textContent = message;
+          messageEl.style.cssText = 'margin: 0 0 30px 0; font-size: 16px; color: #666; line-height: 1.5;';
+
+          const okBtn = document.createElement('button');
+          okBtn.textContent = '确定';
+          okBtn.style.cssText =
+            'padding: 10px 40px; background: #8849a7; color: white; border: none; border-radius: 25px; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 12px rgba(136, 73, 167, 0.3);';
+
+          content.appendChild(titleEl);
+          content.appendChild(messageEl);
+          content.appendChild(okBtn);
+          modal.appendChild(content);
+          document.body.appendChild(modal);
+
+          modal.onclick = function (e) {
+            if (e.target === modal) e.stopPropagation();
+          };
+
+          okBtn.onclick = function () {
+            document.body.removeChild(modal);
+            resolve();
+          };
+        });
+      }
+
       function loadFavorites() {
         showFavoritesOnly = true;
         currentPage = 1;
@@ -2190,6 +2261,9 @@
 
       function exitFavorites() {
         showFavoritesOnly = false;
+        document.querySelectorAll('.category-tab').forEach((t) => t.classList.remove('active'));
+        const allTab = document.querySelector('.category-tab[data-category=""]');
+        if (allTab) allTab.classList.add('active');
         currentPage = 1;
         loadPosts();
       }
