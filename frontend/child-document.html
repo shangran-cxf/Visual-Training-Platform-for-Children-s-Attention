@@ -446,13 +446,12 @@
           }
           currentChildId = firstChild.id;
 
-          await updateChildInfo(firstChild.id);
-          await updateCharts(firstChild.id);
-          await drawGrowthChart(firstChild.id);
+          loadChildInfo(firstChild.id);
+          loadCharts(firstChild.id);
+          loadGrowthChart(firstChild.id);
         } catch (error) {
           console.error('加载儿童列表失败:', error);
           document.getElementById('selected-child-name').textContent = '加载失败';
-          // 显示错误提示
           showToast('加载儿童信息失败，请刷新页面重试', 'error');
         }
       }
@@ -479,11 +478,28 @@
         arrow.classList.remove('active');
 
         currentChildId = childId;
-        await updateChildInfo(childId);
+        loadChildInfo(childId);
+        loadCharts(childId);
+        loadGrowthChart(childId);
+      }
 
-        // 更新图表
-        await updateCharts(childId);
-        await drawGrowthChart(childId);
+      // 三个独立加载函数，各自容错，互不阻塞
+      function loadChildInfo(childId) {
+        updateChildInfo(childId).catch(function (e) {
+          console.error('加载儿童信息/评价失败:', e);
+        });
+      }
+
+      function loadCharts(childId) {
+        updateCharts(childId).catch(function (e) {
+          console.error('加载雷达图失败:', e);
+        });
+      }
+
+      function loadGrowthChart(childId) {
+        drawGrowthChart(childId).catch(function (e) {
+          console.error('加载成长轨迹失败:', e);
+        });
       }
 
       // 从后端获取儿童数据
