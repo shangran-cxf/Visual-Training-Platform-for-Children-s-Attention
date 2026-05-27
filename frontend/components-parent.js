@@ -601,14 +601,7 @@ const ParentComponents = {
    * @param {string} activePage - 当前活动页面ID
    */
   initPage: function (activePage = '') {
-    // 插入样式
-    const styleElement = document.createElement('style');
-    styleElement.textContent = this.getStyles();
-    document.head.appendChild(styleElement);
-
-    // 插入侧边栏
-    const sidebarHtml = this.getSidebar(activePage);
-    document.body.insertAdjacentHTML('afterbegin', sidebarHtml);
+    // CSS 已在脚本加载时同步注入，侧边栏已硬编码到各页面
 
     // 鼠标悬停导航项时预加载目标页面，减少切换白屏
     document.querySelector('.sidebar').addEventListener('mouseover', function (e) {
@@ -1252,3 +1245,11 @@ ParentComponents._originalGetStyles = ParentComponents.getStyles;
 ParentComponents.getStyles = function () {
   return this._originalGetStyles() + profileModalStyles + toastStyles;
 };
+
+// 关键CSS同步注入 — 在脚本加载时立即生效，不等onload
+// 消除页面首屏白屏闪烁
+(function () {
+  var style = document.createElement('style');
+  style.textContent = ParentComponents.getStyles();
+  document.head.appendChild(style);
+})();
