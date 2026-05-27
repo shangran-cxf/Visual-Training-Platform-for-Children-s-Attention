@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>知识内容管理系统</title>
     <style>
+      :root {
+        --primary: #73408a;
+        --primary-light: #8849a7;
+        --primary-soft: #f3e8ff;
+        --gradient: linear-gradient(135deg, #9f5cc0, #8849a7);
+        --danger: #e0484e;
+        --danger-hover: #c0392b;
+        --success: #4caf50;
+        --bg: #f6f3f9;
+        --card: #ffffff;
+        --text: #1f2937;
+        --text-secondary: #6b7280;
+        --text-muted: #9ca3af;
+        --border: #e8e5ec;
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --radius-sm: 10px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1);
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -12,240 +34,665 @@
       }
 
       body {
-        font-family: 'Arial', sans-serif;
-        background-color: #f5f5f5;
-        padding: 20px;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+          sans-serif;
+        background: var(--bg);
+        min-height: 100vh;
+        color: var(--text);
+        line-height: 1.6;
       }
 
-      .container {
-        max-width: 1200px;
+      /* ========== Top Bar ========== */
+      .topbar {
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        padding: 0 32px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .back-link {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+
+      .back-link:hover {
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .topbar-divider {
+        width: 1px;
+        height: 24px;
+        background: var(--border);
+      }
+
+      .topbar-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.01em;
+      }
+
+      .topbar-badge {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      /* ========== Main Content ========== */
+      .main-content {
+        max-width: 1100px;
         margin: 0 auto;
-        background: white;
-        border-radius: 10px;
-        padding: 30px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        padding: 32px 24px 64px;
       }
 
-      h1 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 30px;
+      /* ========== Notification ========== */
+      .notification {
+        padding: 14px 20px;
+        border-radius: var(--radius-md);
+        margin-bottom: 24px;
+        font-size: 14px;
+        font-weight: 500;
+        display: none;
+        animation: slideDown 0.3s ease;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .notification.success {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+      }
+
+      .notification.error {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+      }
+
+      .notification::before {
+        font-size: 16px;
+      }
+
+      .notification.success::before {
+        content: '✓';
+        font-weight: 700;
+      }
+
+      .notification.error::before {
+        content: '✕';
+        font-weight: 700;
+      }
+
+      /* ========== Panel ========== */
+      .panel {
+        background: var(--card);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        margin-bottom: 28px;
+        overflow: hidden;
+      }
+
+      .panel-header {
+        padding: 22px 28px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .panel-header h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .panel-header h2 .icon {
+        width: 34px;
+        height: 34px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+
+      .icon-form {
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .icon-list {
+        background: #eef2ff;
+        color: #4f46e5;
+      }
+
+      .panel-body {
+        padding: 28px;
+      }
+
+      .panel-body.no-padding {
+        padding: 0;
+      }
+
+      /* ========== Form ========== */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px 24px;
+      }
+
+      .form-grid .full-width {
+        grid-column: 1 / -1;
       }
 
       .form-group {
-        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
       }
 
       .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-        color: #555;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        letter-spacing: 0.01em;
+      }
+
+      .form-group label .required {
+        color: var(--danger);
+        margin-left: 2px;
       }
 
       .form-group input,
       .form-group textarea,
       .form-group select {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+        padding: 11px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
         font-size: 14px;
+        font-family: inherit;
+        color: var(--text);
+        background: #faf9fb;
+        transition: all 0.2s ease;
+        outline: none;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        border-color: var(--primary-light);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(115, 64, 138, 0.08);
       }
 
       .form-group textarea {
-        height: 120px;
+        height: 140px;
         resize: vertical;
+        line-height: 1.7;
       }
 
-      .tags-input {
+      .form-group input::placeholder,
+      .form-group textarea::placeholder {
+        color: var(--text-muted);
+      }
+
+      /* Tags */
+      .tags-display {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 10px;
+        gap: 8px;
+        min-height: 32px;
+        align-items: center;
       }
 
-      .tag {
-        background: #4caf50;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 15px;
-        display: flex;
+      .tag-pill {
+        display: inline-flex;
         align-items: center;
         gap: 5px;
+        padding: 5px 12px;
+        background: var(--primary-soft);
+        color: var(--primary);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
       }
 
-      .tag button {
+      .tag-pill button {
         background: none;
         border: none;
-        color: white;
+        color: var(--primary);
         cursor: pointer;
-        font-weight: bold;
+        font-size: 15px;
+        line-height: 1;
+        padding: 0 2px;
+        opacity: 0.6;
+        transition: opacity 0.15s;
+      }
+
+      .tag-pill button:hover {
+        opacity: 1;
+      }
+
+      .tags-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      /* Buttons */
+      .form-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        gap: 12px;
+        padding-top: 8px;
       }
 
       .btn {
-        background: #4caf50;
-        color: white;
+        padding: 11px 24px;
         border: none;
-        padding: 12px 20px;
-        border-radius: 5px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
         cursor: pointer;
-        font-size: 16px;
-        margin-right: 10px;
+        transition: all 0.2s ease;
+        font-family: inherit;
       }
 
-      .btn:hover {
-        background: #45a049;
+      .btn-primary {
+        background: var(--gradient);
+        color: white;
+        box-shadow: 0 4px 14px rgba(115, 64, 138, 0.3);
       }
 
-      .btn-secondary {
-        background: #2196f3;
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(115, 64, 138, 0.4);
       }
 
-      .btn-secondary:hover {
-        background: #1976d2;
+      .btn-outline {
+        background: var(--card);
+        color: var(--text-secondary);
+        border: 1.5px solid var(--border);
       }
 
-      .btn-danger {
-        background: #f44336;
+      .btn-outline:hover {
+        background: #f9f7fb;
+        border-color: #d0c8da;
       }
 
-      .btn-danger:hover {
-        background: #d32f2f;
+      .btn-danger-outline {
+        background: var(--card);
+        color: var(--danger);
+        border: 1.5px solid #f5cdce;
       }
 
-      .actions {
+      .btn-danger-outline:hover {
+        background: #fff5f5;
+        border-color: var(--danger);
+      }
+
+      /* ========== Article Cards ========== */
+      .articles-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        padding: 24px;
+      }
+
+      .article-card {
+        background: #faf9fb;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .article-card:hover {
+        border-color: #d0c5dc;
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+      }
+
+      .article-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .article-card-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.45;
+        flex: 1;
+      }
+
+      .diff-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 14px;
+        flex-shrink: 0;
+        letter-spacing: 0.02em;
+      }
+
+      .diff-badge.easy {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      .diff-badge.medium {
+        background: #fff3e0;
+        color: #e65100;
+      }
+
+      .diff-badge.hard {
+        background: #ffebee;
+        color: #c62828;
+      }
+
+      .article-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .article-card-meta span {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        white-space: nowrap;
+      }
+
+      .article-card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .article-tag-pill {
+        font-size: 11px;
+        padding: 3px 10px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        color: var(--text-secondary);
+      }
+
+      .article-card-summary {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .article-card-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 4px;
+      }
+
+      .btn-delete {
+        padding: 6px 16px;
+        border: 1px solid #f5cdce;
+        background: var(--card);
+        color: var(--danger);
+        border-radius: 18px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-family: inherit;
+      }
+
+      .btn-delete:hover {
+        background: #fff5f5;
+        border-color: var(--danger);
+      }
+
+      /* ========== Empty State ========== */
+      .empty-state {
+        grid-column: 1 / -1;
         text-align: center;
-        margin-top: 20px;
+        padding: 56px 24px;
       }
 
-      .articles-list {
-        margin-top: 30px;
+      .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 14px;
+        opacity: 0.6;
       }
 
-      .article-item {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 10px;
-        background: #fafafa;
+      .empty-state p {
+        font-size: 15px;
+        color: var(--text-secondary);
+        font-weight: 500;
       }
 
-      .article-actions {
-        margin-top: 10px;
-        text-align: right;
+      .empty-state-hint {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 6px;
+        font-weight: 400;
       }
 
-      .notification {
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-        text-align: center;
-        display: none;
+      /* ========== Refresh button in panel header ========== */
+      .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 16px;
+        border: 1.5px solid var(--border);
+        background: var(--card);
+        color: var(--text-secondary);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-family: inherit;
       }
 
-      .notification.success {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-        display: block;
+      .btn-refresh:hover {
+        background: #f9f7fb;
+        border-color: #d0c8da;
       }
 
-      .notification.error {
-        background: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-        display: block;
+      /* ========== Responsive ========== */
+      @media (max-width: 768px) {
+        .topbar {
+          padding: 0 16px;
+        }
+
+        .main-content {
+          padding: 20px 12px 48px;
+        }
+
+        .panel-body {
+          padding: 20px;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .articles-grid {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
       }
     </style>
   </head>
 
   <body>
-    <div class="container">
-      <h1>知识内容管理系统</h1>
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="../knowledge.html" class="back-link">← 返回知识库</a>
+        <div class="topbar-divider"></div>
+        <h1 class="topbar-title">内容管理</h1>
+        <span class="topbar-badge">Admin</span>
+      </div>
+    </header>
 
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Notification -->
       <div id="notification" class="notification"></div>
 
-      <form id="articleForm">
-        <div class="form-group">
-          <label for="title">标题 *</label>
-          <input type="text" id="title" required />
+      <!-- Form Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2><span class="icon icon-form">+</span>添加新文章</h2>
         </div>
+        <div class="panel-body">
+          <form id="articleForm" class="form-grid">
+            <div class="form-group full-width">
+              <label for="title">文章标题 <span class="required">*</span></label>
+              <input type="text" id="title" placeholder="输入知识文章标题" required />
+            </div>
 
-        <div class="form-group">
-          <label for="content">内容 *</label>
-          <textarea id="content" required></textarea>
+            <div class="form-group full-width">
+              <label for="content">文章内容 <span class="required">*</span></label>
+              <textarea id="content" placeholder="在此编写文章正文内容..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="author">作者</label>
+              <input type="text" id="author" value="专业团队" />
+            </div>
+
+            <div class="form-group">
+              <label for="date">发布日期</label>
+              <input type="date" id="date" />
+            </div>
+
+            <div class="form-group">
+              <label for="category">分类</label>
+              <select id="category">
+                <option value="发展心理学">发展心理学</option>
+                <option value="训练方法">训练方法</option>
+                <option value="家庭教育">家庭教育</option>
+                <option value="注意力类型">注意力类型</option>
+                <option value="感知训练">感知训练</option>
+                <option value="认知能力">认知能力</option>
+                <option value="自控能力">自控能力</option>
+                <option value="学习关联">学习关联</option>
+                <option value="现代挑战">现代挑战</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="difficulty">难度级别</label>
+              <select id="difficulty">
+                <option value="初级">初级</option>
+                <option value="中级" selected>中级</option>
+                <option value="高级">高级</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="reading_time">预计阅读（分钟）</label>
+              <input type="number" id="reading_time" value="3" min="1" />
+            </div>
+
+            <div class="form-group">
+              <label for="tags">标签</label>
+              <input type="text" id="tags" placeholder="输入后按回车添加" />
+              <div id="tagsDisplay" class="tags-display"></div>
+              <span class="tags-hint">输入标签后按 Enter 或逗号添加</span>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="summary">文章摘要</label>
+              <input type="text" id="summary" placeholder="简要概述文章主要内容" />
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">发布文章</button>
+              <button type="button" class="btn btn-outline" onclick="loadArticles()">刷新列表</button>
+              <button type="button" class="btn btn-danger-outline" onclick="resetForm()">清空表单</button>
+            </div>
+          </form>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label for="author">作者</label>
-          <input type="text" id="author" value="专业团队" />
+      <!-- Articles Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2><span class="icon icon-list">☰</span>已有文章</h2>
+          <button class="btn-refresh" onclick="loadArticles()">⟳ 刷新</button>
         </div>
-
-        <div class="form-group">
-          <label for="date">日期 (YYYY-MM-DD)</label>
-          <input type="date" id="date" />
-        </div>
-
-        <div class="form-group">
-          <label for="category">分类</label>
-          <select id="category">
-            <option value="发展心理学">发展心理学</option>
-            <option value="训练方法">训练方法</option>
-            <option value="家庭教育">家庭教育</option>
-            <option value="注意力类型">注意力类型</option>
-            <option value="感知训练">感知训练</option>
-            <option value="认知能力">认知能力</option>
-            <option value="自控能力">自控能力</option>
-            <option value="学习关联">学习关联</option>
-            <option value="现代挑战">现代挑战</option>
-            <option value="其他">其他</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="tags">标签 (用逗号分隔)</label>
-          <input type="text" id="tags" placeholder="例如: 注意力, 儿童发展, 关键期" />
-          <div id="tagsDisplay" class="tags-input"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="summary">摘要</label>
-          <input type="text" id="summary" placeholder="文章摘要，简要概述文章主要内容" />
-        </div>
-
-        <div class="form-group">
-          <label for="difficulty">难度级别</label>
-          <select id="difficulty">
-            <option value="初级">初级</option>
-            <option value="中级" selected>中级</option>
-            <option value="高级">高级</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="reading_time">预计阅读时间 (分钟)</label>
-          <input type="number" id="reading_time" value="3" min="1" />
-        </div>
-
-        <div class="actions">
-          <button type="submit" class="btn">添加文章</button>
-          <button type="button" class="btn btn-secondary" onclick="loadArticles()">刷新列表</button>
-          <button type="button" class="btn btn-danger" onclick="resetForm()">清空表单</button>
-        </div>
-      </form>
-
-      <div class="articles-list">
-        <h2>已有的知识文章</h2>
-        <div id="articlesContainer"></div>
+        <div class="articles-grid" id="articlesContainer"></div>
       </div>
     </div>
 
     <script>
-      // 设置默认日期为今天
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+
       document.getElementById('date').valueAsDate = new Date();
 
-      // 标签处理
       let currentTags = [];
 
       document.getElementById('tags').addEventListener('keypress', function (e) {
@@ -277,20 +724,18 @@
 
         currentTags.forEach((tag) => {
           const tagElement = document.createElement('div');
-          tagElement.className = 'tag';
+          tagElement.className = 'tag-pill';
           tagElement.innerHTML = `
-                    ${tag}
-                    <button type="button" onclick="removeTag('${tag}')">×</button>
-                `;
+            ${escapeHtml(tag)}
+            <button type="button" onclick="removeTag('${tag.replace(/'/g, "\\'")}')">×</button>
+          `;
           container.appendChild(tagElement);
         });
       }
 
-      // 表单提交
       document.getElementById('articleForm').addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        // 获取表单数据
         const title = document.getElementById('title').value;
         const content = document.getElementById('content').value;
         const author = document.getElementById('author').value || '专业团队';
@@ -300,26 +745,23 @@
         const difficulty = document.getElementById('difficulty').value;
         const readingTime = parseInt(document.getElementById('reading_time').value) || 3;
 
-        // 验证必填字段
         if (!title || !content) {
           showNotification('标题和内容为必填项', 'error');
           return;
         }
 
-        // 准备新文章对象
         const newArticle = {
           title: title,
           content: content,
           author: author,
           date: date,
           category: category,
-          tags: [...currentTags], // 复制标签数组
+          tags: [...currentTags],
           summary: summary,
           difficulty: difficulty,
           reading_time: readingTime,
         };
 
-        // 使用API保存到服务器
         try {
           const token = localStorage.getItem('auth_token');
           const response = await fetch('/api/knowledge/articles', {
@@ -334,9 +776,9 @@
           const result = await response.json();
 
           if (response.ok) {
-            showNotification('文章添加成功！', 'success');
+            showNotification('文章发布成功！', 'success');
             resetForm();
-            loadArticles(); // 刷新列表
+            loadArticles();
           } else {
             showNotification(result.error || '添加文章失败', 'error');
           }
@@ -346,7 +788,6 @@
         }
       });
 
-      // 加载文章列表
       async function loadArticles() {
         try {
           const articles = await loadArticlesFromJson();
@@ -357,47 +798,61 @@
         }
       }
 
-      // 从API加载文章
       async function loadArticlesFromJson() {
         const response = await fetch('/api/knowledge/articles');
         const data = await response.json();
         return data || [];
       }
 
-      // 显示文章列表
       function displayArticles(articles) {
         const container = document.getElementById('articlesContainer');
 
         if (!articles || articles.length === 0) {
-          container.innerHTML = '<p>暂无文章</p>';
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <p>还没有文章</p>
+              <p class="empty-state-hint">在上方表单中添加第一篇知识文章</p>
+            </div>`;
           return;
         }
 
-        // 按日期排序（最新的在前）
         articles.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         let html = '';
         articles.forEach((article) => {
+          const tagsHtml = (article.tags || [])
+            .map((t) => `<span class="article-tag-pill">${escapeHtml(t)}</span>`)
+            .join('');
+
+          let diffClass = '';
+          if (article.difficulty === '初级') diffClass = 'easy';
+          else if (article.difficulty === '中级') diffClass = 'medium';
+          else if (article.difficulty === '高级') diffClass = 'hard';
+
           html += `
-                    <div class="article-item">
-                        <h3>${article.title}</h3>
-                        <p><strong>作者:</strong> ${article.author || '未知'}</p>
-                        <p><strong>日期:</strong> ${article.date || '未知'}</p>
-                        <p><strong>分类:</strong> ${article.category || '未分类'}</p>
-                        <p><strong>难度:</strong> ${article.difficulty || '未指定'}</p>
-                        <p><strong>标签:</strong> ${(article.tags || []).join(', ')}</p>
-                        <p><strong>摘要:</strong> ${article.summary || '无摘要'}</p>
-                        <div class="article-actions">
-                            <button class="btn btn-danger" onclick="deleteArticle(${article.id})">删除</button>
-                        </div>
-                    </div>
-                `;
+            <div class="article-card">
+              <div class="article-card-top">
+                <h3 class="article-card-title">${escapeHtml(article.title)}</h3>
+                ${article.difficulty ? `<span class="diff-badge ${diffClass}">${escapeHtml(article.difficulty)}</span>` : ''}
+              </div>
+              <div class="article-card-meta">
+                <span>📁 ${escapeHtml(article.category || '未分类')}</span>
+                <span>👤 ${escapeHtml(article.author || '未知')}</span>
+                <span>📅 ${escapeHtml(article.date || '-')}</span>
+                <span>⏱ ${escapeHtml(String(article.reading_time || 0))}分钟</span>
+              </div>
+              ${tagsHtml ? `<div class="article-card-tags">${tagsHtml}</div>` : ''}
+              ${article.summary ? `<p class="article-card-summary">${escapeHtml(article.summary)}</p>` : ''}
+              <div class="article-card-actions">
+                <button class="btn-delete" onclick="deleteArticle('${escapeHtml(String(article.id)).replace(/'/g, "\\'")}')">删除</button>
+              </div>
+            </div>`;
         });
 
         container.innerHTML = html;
       }
 
-      // 删除文章
       async function deleteArticle(id) {
         const confirmed = await showConfirmModal('删除文章', '确定要删除这篇文章吗？此操作不可撤销。', '删除');
         if (!confirmed) return;
@@ -413,7 +868,7 @@
 
           if (response.ok) {
             showNotification('文章删除成功！', 'success');
-            loadArticles(); // 刷新列表
+            loadArticles();
           } else {
             showNotification(result.error || '删除文章失败', 'error');
           }
@@ -479,6 +934,7 @@
 
       // 重置表单
       function resetForm() {
+        if (!confirm('确定要清空表单吗？已输入的内容将丢失。')) return;
         document.getElementById('title').value = '';
         document.getElementById('content').value = '';
         document.getElementById('author').value = '专业团队';
@@ -492,18 +948,20 @@
         document.getElementById('tags').value = '';
       }
 
-      // 显示通知
+      let notificationTimer = null;
+
       function showNotification(message, type) {
         const notification = document.getElementById('notification');
+        if (notificationTimer) clearTimeout(notificationTimer);
+        notification.style.display = '';
         notification.textContent = message;
         notification.className = `notification ${type}`;
-
-        setTimeout(() => {
+        notificationTimer = setTimeout(() => {
           notification.style.display = 'none';
+          notificationTimer = null;
         }, 5000);
       }
 
-      // 页面加载时初始化
       window.onload = function () {
         loadArticles();
       };
