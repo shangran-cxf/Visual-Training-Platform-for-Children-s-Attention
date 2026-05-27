@@ -1,343 +1,409 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>太空小火箭：按顺序发射任务 - 注意力训练</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>太空小火箭：按顺序发射任务 - 注意力训练</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-image: url('../images/ground6.png');
+      background-size: cover;
+      background-position: center;
+      color: #333;
+      overflow: hidden;
+      position: relative;
+      animation: float 10s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% {
+        background-position: center 0%;
       }
 
-      body {
-        font-family: 'Arial', sans-serif;
-        background-image: url('../images/ground6.png');
-        background-size: cover;
-        background-position: center;
-        color: #333;
-        overflow: hidden;
-        position: relative;
-        animation: float 10s ease-in-out infinite;
+      50% {
+        background-position: center 5%;
       }
 
-      @keyframes float {
-        0% {
-          background-position: center 0%;
-        }
-
-        50% {
-          background-position: center 5%;
-        }
-
-        100% {
-          background-position: center 0%;
-        }
+      100% {
+        background-position: center 0%;
       }
+    }
 
-      .container {
-        max-width: 100vw;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        position: relative;
-      }
+    .container {
+      max-width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
 
-      .header {
-        text-align: center;
-        margin-bottom: 30px;
-      }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
 
-      .header h1 {
-        color: #ffffff;
-        font-size: 2.5em;
-        margin-bottom: 10px;
-        text-shadow: 0 0 20px rgba(75, 121, 173, 0.5);
-      }
+    .header h1 {
+      color: #ffffff;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(75, 121, 173, 0.5);
+    }
 
-      .header p {
-        font-size: 1.1em;
-        color: #d4d4ff;
-        text-shadow: 0 0 10px rgba(160, 160, 255, 0.5);
-      }
+    .header p {
+      font-size: 1.1em;
+      color: #d4d4ff;
+      text-shadow: 0 0 10px rgba(160, 160, 255, 0.5);
+    }
 
-      .game-area {
-        background-image: url('../images/ground5.png');
-        background-size: cover;
-        background-position: center;
-        border-radius: 15px;
-        padding: 30px;
-        box-shadow: 0 0 30px rgba(64, 166, 255, 0.3);
-        margin-bottom: 30px;
-        border: 1px solid rgba(85, 176, 255, 0.3);
-      }
+    .game-area {
+      background-image: url('../images/ground5.png');
+      background-size: cover;
+      background-position: center;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 0 30px rgba(64, 166, 255, 0.3);
+      margin-bottom: 30px;
+      border: 1px solid rgba(85, 176, 255, 0.3);
+    }
 
-      .difficulty-selector {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 30px;
-        justify-content: center;
-      }
+    .difficulty-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
 
-      .difficulty-btn {
-        padding: 10px 20px;
-        border: 2px solid #6ebeff;
-        border-radius: 25px;
-        background-color: white;
-        color: #6ebeff;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
+    .difficulty-btn {
+      padding: 10px 20px;
+      border: 2px solid #6ebeff;
+      border-radius: 25px;
+      background-color: white;
+      color: #6ebeff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
 
-      .difficulty-btn.active {
-        background-color: #6ebeff;
-        color: white;
-      }
+    .difficulty-btn.active {
+      background-color: #6ebeff;
+      color: white;
+    }
 
-      .schulte-grid {
-        display: grid;
-        gap: 15px;
-        margin-bottom: 20px;
-      }
+    .schulte-grid {
+      display: grid;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
 
-      .grid-3x3 {
-        grid-template-columns: repeat(3, 1fr);
-        width: 300px;
-        height: 300px;
-      }
+    .grid-3x3 {
+      grid-template-columns: repeat(3, 1fr);
+      width: 300px;
+      height: 300px;
+    }
 
-      .grid-4x4 {
-        grid-template-columns: repeat(4, 1fr);
-        width: 400px;
-        height: 400px;
-      }
+    .grid-4x4 {
+      grid-template-columns: repeat(4, 1fr);
+      width: 400px;
+      height: 400px;
+    }
 
-      .grid-5x5 {
-        grid-template-columns: repeat(5, 1fr);
-        width: 500px;
-        height: 500px;
-      }
+    .grid-5x5 {
+      grid-template-columns: repeat(5, 1fr);
+      width: 500px;
+      height: 500px;
+    }
 
-      .grid-7x7 {
-        grid-template-columns: repeat(7, 1fr);
-        width: 600px;
-        height: 600px;
-      }
+    .grid-7x7 {
+      grid-template-columns: repeat(7, 1fr);
+      width: 600px;
+      height: 600px;
+    }
 
-      .launch-pad {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-      }
+    .launch-pad {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
 
-      .launch-pad:hover {
-        transform: scale(1.05);
-      }
+    .launch-pad:hover {
+      transform: scale(1.05);
+    }
 
-      .rocket {
-        width: 80px;
-        height: 80px;
-        background-image: url('../images/rocket.png');
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        transition: all 0.5s ease;
-        position: relative;
-        z-index: 1;
-        cursor: pointer;
-      }
+    .rocket {
+      width: 80px;
+      height: 80px;
+      background-image: url('../images/rocket.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      transition: all 0.5s ease;
+      position: relative;
+      z-index: 1;
+      cursor: pointer;
+    }
 
-      .launch-pad.correct .rocket {
-        animation: rocketLaunch 1.5s ease-in-out forwards;
-      }
+    .launch-pad.correct .rocket {
+      animation: rocketLaunch 1.5s ease-in-out forwards;
+    }
 
-      @keyframes rocketLaunch {
-        0% {
-          transform: translateY(0) scale(1) rotate(0deg);
-          opacity: 1;
-        }
-
-        25% {
-          transform: translateY(-30px) scale(0.9) rotate(2deg);
-          opacity: 1;
-        }
-
-        50% {
-          transform: translateY(-80px) scale(0.8) rotate(-1deg);
-          opacity: 1;
-        }
-
-        75% {
-          transform: translateY(-150px) scale(0.6) rotate(1deg);
-          opacity: 0.8;
-        }
-
-        100% {
-          transform: translateY(-300px) scale(0.3) rotate(0deg);
-          opacity: 0;
-        }
-      }
-
-      .launch-pad.error .rocket {
-        animation: rocketError 0.5s ease-in-out;
-      }
-
-      @keyframes rocketError {
-        0%,
-        100% {
-          transform: translateX(0);
-        }
-
-        25% {
-          transform: translateX(-5px);
-        }
-
-        75% {
-          transform: translateX(5px);
-        }
-      }
-
-      /* 火箭烟雾 */
-      .rocket::after {
-        content: '';
-        position: absolute;
-        bottom: -20px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 30px;
-        height: 30px;
-        background: rgba(200, 200, 200, 0.8);
-        border-radius: 50%;
-        opacity: 0;
-        transition: all 0.3s ease;
-        box-shadow: 0 0 15px rgba(200, 200, 200, 0.8);
-      }
-
-      .launch-pad.correct .rocket::after {
+    @keyframes rocketLaunch {
+      0% {
+        transform: translateY(0) scale(1) rotate(0deg);
         opacity: 1;
-        animation: smoke 1.5s ease-in-out;
       }
 
-      @keyframes smoke {
-        0% {
-          transform: translateX(-50%) scale(0.5);
-          opacity: 0;
-        }
-
-        20% {
-          transform: translateX(-50%) scale(1.2);
-          opacity: 1;
-        }
-
-        50% {
-          transform: translateX(-50%) scale(1.5);
-          opacity: 0.8;
-        }
-
-        80% {
-          transform: translateX(-50%) scale(2);
-          opacity: 0.5;
-        }
-
-        100% {
-          transform: translateX(-50%) scale(3);
-          opacity: 0;
-        }
+      25% {
+        transform: translateY(-30px) scale(0.9) rotate(2deg);
+        opacity: 1;
       }
 
-      .stats {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-        font-size: 16px;
-        color: white;
-        font-weight: bold;
+      50% {
+        transform: translateY(-80px) scale(0.8) rotate(-1deg);
+        opacity: 1;
       }
 
-      .feedback {
-        text-align: center;
-        margin-bottom: 20px;
-        padding: 15px;
-        background-color: rgba(255, 255, 255, 0.8);
-        border-radius: 10px;
-        color: #333;
-        font-weight: bold;
+      75% {
+        transform: translateY(-150px) scale(0.6) rotate(1deg);
+        opacity: 0.8;
       }
 
-      .controls {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        align-items: center;
-        margin-top: 40px;
-        position: absolute;
-        top: 55%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 100;
+      100% {
+        transform: translateY(-300px) scale(0.3) rotate(0deg);
+        opacity: 0;
+      }
+    }
+
+    .launch-pad.error .rocket {
+      animation: rocketError 0.5s ease-in-out;
+    }
+
+    @keyframes rocketError {
+
+      0%,
+      100% {
+        transform: translateX(0);
       }
 
-      .btn {
-        background: linear-gradient(135deg, #add8e6, #87ceeb);
-        color: white;
-        border: none;
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        font-size: 20px;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 0 20px rgba(173, 216, 230, 0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      25% {
+        transform: translateX(-5px);
       }
 
-      .btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 0 30px rgba(173, 216, 230, 0.8);
+      75% {
+        transform: translateX(5px);
+      }
+    }
+
+    /* 火箭烟雾 */
+    .rocket::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 30px;
+      background: rgba(200, 200, 200, 0.8);
+      border-radius: 50%;
+      opacity: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(200, 200, 200, 0.8);
+    }
+
+    .launch-pad.correct .rocket::after {
+      opacity: 1;
+      animation: smoke 1.5s ease-in-out;
+    }
+
+    @keyframes smoke {
+      0% {
+        transform: translateX(-50%) scale(0.5);
+        opacity: 0;
       }
 
-      .btn-secondary {
-        background: linear-gradient(135deg, #999, #666);
+      20% {
+        transform: translateX(-50%) scale(1.2);
+        opacity: 1;
       }
 
-      .btn-secondary:hover {
-        box-shadow: 0 0 30px rgba(153, 153, 153, 0.8);
+      50% {
+        transform: translateX(-50%) scale(1.5);
+        opacity: 0.8;
       }
 
-      .literature {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        font-size: 12px;
-        color: #a0a0ff;
-        background-color: rgba(26, 26, 74, 0.8);
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid rgba(160, 160, 255, 0.3);
+      80% {
+        transform: translateX(-50%) scale(2);
+        opacity: 0.5;
       }
-    </style>
-  </head>
 
-  <body>
-    <div class="container">
-      <!-- 可爱的返回按钮 -->
-      <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
-        <button
-          onclick="window.location.href = '../child-home.html'"
-          style="
+      100% {
+        transform: translateX(-50%) scale(3);
+        opacity: 0;
+      }
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: white;
+      font-weight: bold;
+    }
+
+    .feedback {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 40px;
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #add8e6, #87ceeb);
+      color: white;
+      border: none;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(173, 216, 230, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(173, 216, 230, 0.8);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #999, #666);
+    }
+
+    .btn-secondary:hover {
+      box-shadow: 0 0 30px rgba(153, 153, 153, 0.8);
+    }
+
+    .literature {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 12px;
+      color: #a0a0ff;
+      background-color: rgba(26, 26, 74, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid rgba(160, 160, 255, 0.3);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes cosmosBloom {
+      0% {
+        transform: scale(0.8) translateY(40px);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes starPulse {
+
+      0%,
+      100% {
+        text-shadow: 0 0 12px rgba(100, 200, 255, 0.6), 0 0 24px rgba(100, 180, 255, 0.3);
+      }
+
+      50% {
+        text-shadow: 0 0 20px rgba(150, 220, 255, 0.9), 0 0 40px rgba(100, 200, 255, 0.5);
+      }
+    }
+
+    @keyframes revealUp {
+      0% {
+        transform: translateY(12px);
+        opacity: 0;
+      }
+
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes orbitFloat {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+      }
+
+      100% {
+        transform: translateY(-14px) rotate(15deg) scale(1.2);
+      }
+    }
+
+    @keyframes loadingBar {
+      0% {
+        width: 0%;
+      }
+
+      100% {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- 可爱的返回按钮 -->
+    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
+      <button onclick="window.location.href = '../child-home.html'" style="
             background: white;
             color: #005ca8;
             border: none;
@@ -354,321 +420,373 @@
             align-items: center;
             justify-content: center;
             animation: bounce 2s ease-in-out infinite alternate;
-          "
-          onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
-          onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
-        >
-          ←
-        </button>
+          " onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
+        onmouseout="this.style.transform = 'scale(1) rotate(0deg)'">
+        ←
+      </button>
+    </div>
+    <div class="header">
+      <h1>太空小火箭</h1>
+      <p>小朋友是太空发射指挥官，要按照数字从小到大的顺序，依次点击火箭发射按钮，让火箭按顺序升空！</p>
+    </div>
+    <div class="game-area">
+      <div class="difficulty-selector">
+        <button class="difficulty-btn active" onclick="setDifficulty(3)">简单 (3x3)</button>
+        <button class="difficulty-btn" onclick="setDifficulty(5)">中等 (5x5)</button>
+        <button class="difficulty-btn" onclick="setDifficulty(7)">困难 (7x7)</button>
       </div>
-      <div class="header">
-        <h1>太空小火箭：按顺序发射任务</h1>
-        <p>小朋友是太空发射指挥官，要按照数字从小到大的顺序，依次点击火箭发射按钮，让火箭按顺序升空！</p>
+      <div class="stats">
+        <div>当前数字：<span id="current-number">1</span></div>
+        <div>时间：<span id="time">0</span>s</div>
+        <div>错误：<span id="errors">0</span></div>
       </div>
-      <div class="game-area">
-        <div class="difficulty-selector">
-          <button class="difficulty-btn active" onclick="setDifficulty(3)">简单 (3x3)</button>
-          <button class="difficulty-btn" onclick="setDifficulty(5)">中等 (5x5)</button>
-          <button class="difficulty-btn" onclick="setDifficulty(7)">困难 (7x7)</button>
-        </div>
-        <div class="stats">
-          <div>当前数字：<span id="current-number">1</span></div>
-          <div>时间：<span id="time">0</span>s</div>
-          <div>错误：<span id="errors">0</span></div>
-        </div>
-        <div class="feedback" id="feedback">准备就绪，点击开始按钮</div>
-        <div class="schulte-grid grid-3x3" id="schulte-grid">
-          <!-- 网格将通过JavaScript生成 -->
-        </div>
-        <div class="controls">
-          <button class="btn" id="start-button" onclick="startGame()">开始发射</button>
-        </div>
+      <div class="feedback" id="feedback">准备就绪，点击开始按钮</div>
+      <div class="schulte-grid grid-3x3" id="schulte-grid">
+        <!-- 网格将通过JavaScript生成 -->
       </div>
-      <div class="literature">
-        <p>文献依据：《中华养生保健》2023 舒尔特方格研究</p>
+      <div class="controls">
+        <button class="btn" id="start-button" onclick="startGame()">开始发射</button>
       </div>
     </div>
-    <script src="../utils.js"></script>
-    <script>
-      let currentDifficulty = 3;
-      let grid = [];
-      let currentNumber = 1;
-      let startTime = 0;
-      let endTime = 0;
-      let isGameStarted = false;
-      let errorCount = 0;
-      let timeInterval;
-      let focusLevel = 70; // 模拟专注度，实际应从前端采集
-      let 采集间隔 = 10000; // 每10秒采集一次数据
-      let 采集次数 = 0;
-      let 连续不达标次数 = 0;
+    <div class="literature">
+      <p>文献依据：《中华养生保健》2023 舒尔特方格研究</p>
+    </div>
+  </div>
+  <script src="../utils.js"></script>
+  <script>
+    let currentDifficulty = 3;
+    let grid = [];
+    let currentNumber = 1;
+    let startTime = 0;
+    let endTime = 0;
+    let isGameStarted = false;
+    let errorCount = 0;
+    let timeInterval;
+    let focusLevel = 70; // 模拟专注度，实际应从前端采集
+    let 采集间隔 = 10000; // 每10秒采集一次数据
+    let 采集次数 = 0;
+    let 连续不达标次数 = 0;
 
-      // Q-Learning参数
-      const learningRate = 0.1;
-      const discountFactor = 0.9;
-      const explorationRate = 0.1;
+    // Q-Learning参数
+    const learningRate = 0.1;
+    const discountFactor = 0.9;
+    const explorationRate = 0.1;
 
-      // 状态空间：游戏类型、难度、专注度、错误次数
-      // 动作空间：继续当前训练、切换同维度其他游戏、降低当前游戏难度
-      let qTable = {};
+    // 状态空间：游戏类型、难度、专注度、错误次数
+    // 动作空间：继续当前训练、切换同维度其他游戏、降低当前游戏难度
+    let qTable = {};
 
-      // 初始化Q表
-      function initializeQTable() {
-        qTable = {
-          schulte_4_low_0: [0, 0, 0],
-          schulte_4_low_1: [0, 0, 0],
-          schulte_4_low_2: [0, 0, 0],
-          schulte_4_high_0: [0, 0, 0],
-          schulte_4_high_1: [0, 0, 0],
-          schulte_4_high_2: [0, 0, 0],
-          schulte_5_low_0: [0, 0, 0],
-          schulte_5_low_1: [0, 0, 0],
-          schulte_5_low_2: [0, 0, 0],
-          schulte_5_high_1: [0, 0, 0],
-          schulte_5_high_2: [0, 0, 0],
-        };
+    // 初始化Q表
+    function initializeQTable() {
+      qTable = {
+        schulte_4_low_0: [0, 0, 0],
+        schulte_4_low_1: [0, 0, 0],
+        schulte_4_low_2: [0, 0, 0],
+        schulte_4_high_0: [0, 0, 0],
+        schulte_4_high_1: [0, 0, 0],
+        schulte_4_high_2: [0, 0, 0],
+        schulte_5_low_0: [0, 0, 0],
+        schulte_5_low_1: [0, 0, 0],
+        schulte_5_low_2: [0, 0, 0],
+        schulte_5_high_1: [0, 0, 0],
+        schulte_5_high_2: [0, 0, 0],
+      };
+    }
+
+    // 获取当前状态
+    function getCurrentState() {
+      const focusLevelCategory = focusLevel >= 60 ? 'high' : 'low';
+      const errorCategory = errorCount >= 3 ? '2' : errorCount >= 1 ? '1' : '0';
+      return `schulte_${currentDifficulty}_${focusLevelCategory}_${errorCategory}`;
+    }
+
+    // 选择动作
+    function selectAction(state) {
+      if (Math.random() < explorationRate) {
+        // 探索：随机选择动作
+        return Math.floor(Math.random() * 3);
+      } else {
+        // 利用：选择Q值最大的动作
+        const qValues = qTable[state] || [0, 0, 0];
+        return qValues.indexOf(Math.max(...qValues));
       }
+    }
 
-      // 获取当前状态
-      function getCurrentState() {
-        const focusLevelCategory = focusLevel >= 60 ? 'high' : 'low';
-        const errorCategory = errorCount >= 3 ? '2' : errorCount >= 1 ? '1' : '0';
-        return `schulte_${currentDifficulty}_${focusLevelCategory}_${errorCategory}`;
-      }
+    // 计算奖励
+    function calculateReward() {
+      let reward = 0;
+      if (focusLevel >= 70) reward += 10;
+      if (errorCount <= 2) reward += 5;
+      if (isGameStarted && !isGameActive()) reward -= 8;
+      if (currentNumber > currentDifficulty * currentDifficulty) reward += 20;
+      return reward;
+    }
 
-      // 选择动作
-      function selectAction(state) {
-        if (Math.random() < explorationRate) {
-          // 探索：随机选择动作
-          return Math.floor(Math.random() * 3);
-        } else {
-          // 利用：选择Q值最大的动作
-          const qValues = qTable[state] || [0, 0, 0];
-          return qValues.indexOf(Math.max(...qValues));
+    // 更新Q表
+    function updateQTable(state, action, reward, nextState) {
+      const currentQ = qTable[state] || [0, 0, 0];
+      const nextQ = qTable[nextState] || [0, 0, 0];
+      const maxNextQ = Math.max(...nextQ);
+      currentQ[action] = currentQ[action] + learningRate * (reward + discountFactor * maxNextQ - currentQ[action]);
+      qTable[state] = currentQ;
+    }
+
+    // 检查游戏是否活跃
+    function isGameActive() {
+      return isGameStarted && currentNumber <= currentDifficulty * currentDifficulty;
+    }
+
+    // 动态调整逻辑
+    function dynamicAdjustment() {
+      if (!isGameStarted) return;
+
+      const state = getCurrentState();
+      const reward = calculateReward();
+      const action = selectAction(state);
+
+      采集次数++;
+
+      // 检查是否需要调整
+      if (focusLevel < 55 && errorCount >= 3) {
+        连续不达标次数++;
+        if (连续不达标次数 >= 2) {
+          // 执行动作2：切换同维度其他游戏
+          showAdjustmentModal('换个游戏试试吧～', '即将切换到视觉找不同游戏');
+          setTimeout(() => {
+            window.location.href = 'find-diff.html';
+          }, 2000);
         }
-      }
-
-      // 计算奖励
-      function calculateReward() {
-        let reward = 0;
-        if (focusLevel >= 70) reward += 10;
-        if (errorCount <= 2) reward += 5;
-        if (isGameStarted && !isGameActive()) reward -= 8;
-        if (currentNumber > currentDifficulty * currentDifficulty) reward += 20;
-        return reward;
+      } else if (focusLevel >= 70 && errorCount >= 3) {
+        // 执行动作3：降低难度
+        if (currentDifficulty > 4) {
+          showAdjustmentModal(
+            '难度降低啦，加油！',
+            `即将切换到${currentDifficulty - 1}x${currentDifficulty - 1}难度`,
+          );
+          setTimeout(() => {
+            setDifficulty(currentDifficulty - 1);
+            startGame();
+          }, 2000);
+        }
+      } else {
+        // 执行动作1：继续当前训练
+        连续不达标次数 = 0;
+        if (currentNumber % 5 === 0) {
+          showPositiveFeedback('真棒！专注度保持得很好');
+        }
       }
 
       // 更新Q表
-      function updateQTable(state, action, reward, nextState) {
-        const currentQ = qTable[state] || [0, 0, 0];
-        const nextQ = qTable[nextState] || [0, 0, 0];
-        const maxNextQ = Math.max(...nextQ);
-        currentQ[action] = currentQ[action] + learningRate * (reward + discountFactor * maxNextQ - currentQ[action]);
-        qTable[state] = currentQ;
+      const nextState = getCurrentState();
+      updateQTable(state, action, reward, nextState);
+    }
+
+    // 显示调整弹窗
+    function showAdjustmentModal(title, message) {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(5, 12, 30, 0.65);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease both;
+      `;
+
+      const modalContent = document.createElement('div');
+      modalContent.style.cssText = `
+        background: linear-gradient(160deg, #0b1838 0%, #0f1d42 25%, #132050 55%, #0a1430 100%);
+        border-radius: 20px;
+        padding: 32px 36px;
+        width: 90%;
+        max-width: 380px;
+        box-shadow:
+          0 0 40px rgba(30, 120, 220, 0.15),
+          0 12px 36px rgba(5, 10, 30, 0.5),
+          0 0 0 2px rgba(80, 170, 240, 0.2),
+          inset 0 1px 0 rgba(140, 200, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+        animation: cosmosBloom 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        text-align: center;
+      `;
+
+      const topGlow = document.createElement('div');
+      topGlow.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 160px;
+        height: 160px;
+        background: radial-gradient(ellipse, rgba(60, 150, 240, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      `;
+      modalContent.appendChild(topGlow);
+
+      const iconEl = document.createElement('div');
+      iconEl.textContent = '\u{1F6F0}\uFE0F';
+      iconEl.style.cssText = `
+        font-size: 36px;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.05s ease both;
+      `;
+      modalContent.appendChild(iconEl);
+
+      const modalTitle = document.createElement('h3');
+      modalTitle.textContent = title;
+      modalTitle.style.cssText = `
+        color: #b3e0ff;
+        margin-bottom: 8px;
+        font-size: 22px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.12s ease both;
+      `;
+
+      const modalMessage = document.createElement('p');
+      modalMessage.textContent = message;
+      modalMessage.style.cssText = `
+        color: #7eaed4;
+        margin-bottom: 16px;
+        font-size: 14px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.18s ease both;
+      `;
+
+      const loadingBar = document.createElement('div');
+      loadingBar.style.cssText = `
+        width: 100%;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+      `;
+      const loadingFill = document.createElement('div');
+      loadingFill.style.cssText = `
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #1e88e5, #42a5f5);
+        border-radius: 2px;
+        animation: loadingBar 1.8s ease-in-out forwards;
+      `;
+      loadingBar.appendChild(loadingFill);
+
+      modalContent.appendChild(modalTitle);
+      modalContent.appendChild(modalMessage);
+      modalContent.appendChild(loadingBar);
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+
+      setTimeout(() => {
+        document.body.removeChild(modal);
+      }, 2000);
+    }
+
+    // 显示正反馈
+    function showPositiveFeedback(message) {
+      const feedbackElement = document.getElementById('feedback');
+      feedbackElement.textContent = message;
+      feedbackElement.style.backgroundColor = 'rgba(30, 136, 229, 0.25)';
+      feedbackElement.style.color = '#e3f2fd';
+
+      setTimeout(() => {
+        feedbackElement.textContent = '';
+        feedbackElement.style.backgroundColor = 'rgba(10, 20, 40, 0.3)';
+        feedbackElement.style.color = '#b3e0ff';
+      }, 2000);
+    }
+
+    // 模拟专注度数据（实际应从前端采集）
+    function simulateFocusLevel() {
+      if (!isGameStarted) return;
+
+      // 模拟专注度波动
+      focusLevel = Math.max(30, Math.min(100, focusLevel + (Math.random() - 0.5) * 20));
+
+      // 每10秒采集一次数据
+      setTimeout(simulateFocusLevel, 10000);
+    }
+
+    // 设置难度
+    function setDifficulty(difficulty) {
+      currentDifficulty = difficulty;
+      document.querySelectorAll('.difficulty-btn').forEach((btn) => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const gridElement = document.getElementById('schulte-grid');
+      gridElement.className = `schulte-grid grid-${difficulty}x${difficulty}`;
+
+      // 清空网格，不生成游戏内容，等待用户点击开始按钮
+      gridElement.innerHTML = '';
+      document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
+
+      // 重置游戏状态
+      isGameStarted = false;
+      clearInterval(timeInterval);
+      currentNumber = 1;
+      errorCount = 0;
+      document.getElementById('current-number').textContent = currentNumber;
+      document.getElementById('time').textContent = '0';
+      document.getElementById('errors').textContent = errorCount;
+
+      // 显示开始按钮
+      const startButton = document.getElementById('start-button');
+      if (startButton) {
+        startButton.style.display = 'flex';
+        startButton.style.visibility = 'visible';
+        startButton.style.zIndex = '1000';
       }
 
-      // 检查游戏是否活跃
-      function isGameActive() {
-        return isGameStarted && currentNumber <= currentDifficulty * currentDifficulty;
+      // 确保controls容器也可见
+      const controls = document.querySelector('.controls');
+      if (controls) {
+        controls.style.display = 'flex';
+        controls.style.visibility = 'visible';
+        controls.style.zIndex = '1000';
+      }
+    }
+
+    // 生成发射台网格
+    function generateGrid() {
+      const gridElement = document.getElementById('schulte-grid');
+      gridElement.innerHTML = '';
+
+      const size = currentDifficulty;
+      const totalCells = size * size;
+      const numbers = Array.from({ length: totalCells }, (_, i) => i + 1);
+
+      // 打乱数字
+      for (let i = numbers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
       }
 
-      // 动态调整逻辑
-      function dynamicAdjustment() {
-        if (!isGameStarted) return;
+      grid = numbers;
 
-        const state = getCurrentState();
-        const reward = calculateReward();
-        const action = selectAction(state);
+      // 创建发射台
+      numbers.forEach((num) => {
+        const launchPad = document.createElement('div');
+        launchPad.className = 'launch-pad';
 
-        采集次数++;
+        const rocket = document.createElement('div');
+        rocket.className = 'rocket';
 
-        // 检查是否需要调整
-        if (focusLevel < 55 && errorCount >= 3) {
-          连续不达标次数++;
-          if (连续不达标次数 >= 2) {
-            // 执行动作2：切换同维度其他游戏
-            showAdjustmentModal('换个游戏试试吧～', '即将切换到视觉找不同游戏');
-            setTimeout(() => {
-              window.location.href = 'find-diff.html';
-            }, 2000);
-          }
-        } else if (focusLevel >= 70 && errorCount >= 3) {
-          // 执行动作3：降低难度
-          if (currentDifficulty > 4) {
-            showAdjustmentModal(
-              '难度降低啦，加油！',
-              `即将切换到${currentDifficulty - 1}x${currentDifficulty - 1}难度`,
-            );
-            setTimeout(() => {
-              setDifficulty(currentDifficulty - 1);
-              startGame();
-            }, 2000);
-          }
-        } else {
-          // 执行动作1：继续当前训练
-          连续不达标次数 = 0;
-          if (currentNumber % 5 === 0) {
-            showPositiveFeedback('真棒！专注度保持得很好');
-          }
-        }
-
-        // 更新Q表
-        const nextState = getCurrentState();
-        updateQTable(state, action, reward, nextState);
-      }
-
-      // 显示调整弹窗
-      function showAdjustmentModal(title, message) {
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                animation: fadeIn 0.3s ease-in-out;
-            `;
-
-        const modalContent = document.createElement('div');
-        modalContent.style.cssText = `
-                background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
-                border-radius: 20px;
-                padding: 40px;
-                width: 90%;
-                max-width: 400px;
-                box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
-                position: relative;
-                animation: bounceIn 0.5s ease-in-out;
-                border: 4px solid #4caf50;
-                text-align: center;
-            `;
-
-        const modalTitle = document.createElement('h3');
-        modalTitle.textContent = title;
-        modalTitle.style.cssText = `
-                color: #4CAF50;
-                margin-bottom: 20px;
-                font-size: 1.8em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-                animation: pulse 1.5s ease-in-out infinite alternate;
-            `;
-
-        const modalMessage = document.createElement('p');
-        modalMessage.textContent = message;
-        modalMessage.style.cssText = `
-                color: #a0a0ff;
-                margin-bottom: 30px;
-                font-size: 1.1em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            `;
-
-        modalContent.appendChild(modalTitle);
-        modalContent.appendChild(modalMessage);
-        modal.appendChild(modalContent);
-        document.body.appendChild(modal);
-
-        setTimeout(() => {
-          document.body.removeChild(modal);
-        }, 2000);
-      }
-
-      // 显示正反馈
-      function showPositiveFeedback(message) {
-        const feedbackElement = document.getElementById('feedback');
-        feedbackElement.textContent = message;
-        feedbackElement.style.backgroundColor = 'rgba(76, 175, 80, 0.3)';
-        feedbackElement.style.color = '#ffff';
-
-        setTimeout(() => {
-          feedbackElement.textContent = '';
-          feedbackElement.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
-          feedbackElement.style.color = '#ffff';
-        }, 2000);
-      }
-
-      // 模拟专注度数据（实际应从前端采集）
-      function simulateFocusLevel() {
-        if (!isGameStarted) return;
-
-        // 模拟专注度波动
-        focusLevel = Math.max(30, Math.min(100, focusLevel + (Math.random() - 0.5) * 20));
-
-        // 每10秒采集一次数据
-        setTimeout(simulateFocusLevel, 10000);
-      }
-
-      // 设置难度
-      function setDifficulty(difficulty) {
-        currentDifficulty = difficulty;
-        document.querySelectorAll('.difficulty-btn').forEach((btn) => btn.classList.remove('active'));
-        event.target.classList.add('active');
-
-        const gridElement = document.getElementById('schulte-grid');
-        gridElement.className = `schulte-grid grid-${difficulty}x${difficulty}`;
-
-        // 清空网格，不生成游戏内容，等待用户点击开始按钮
-        gridElement.innerHTML = '';
-        document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
-
-        // 重置游戏状态
-        isGameStarted = false;
-        clearInterval(timeInterval);
-        currentNumber = 1;
-        errorCount = 0;
-        document.getElementById('current-number').textContent = currentNumber;
-        document.getElementById('time').textContent = '0';
-        document.getElementById('errors').textContent = errorCount;
-
-        // 显示开始按钮
-        const startButton = document.getElementById('start-button');
-        if (startButton) {
-          startButton.style.display = 'flex';
-          startButton.style.visibility = 'visible';
-          startButton.style.zIndex = '1000';
-        }
-
-        // 确保controls容器也可见
-        const controls = document.querySelector('.controls');
-        if (controls) {
-          controls.style.display = 'flex';
-          controls.style.visibility = 'visible';
-          controls.style.zIndex = '1000';
-        }
-      }
-
-      // 生成发射台网格
-      function generateGrid() {
-        const gridElement = document.getElementById('schulte-grid');
-        gridElement.innerHTML = '';
-
-        const size = currentDifficulty;
-        const totalCells = size * size;
-        const numbers = Array.from({ length: totalCells }, (_, i) => i + 1);
-
-        // 打乱数字
-        for (let i = numbers.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
-        }
-
-        grid = numbers;
-
-        // 创建发射台
-        numbers.forEach((num) => {
-          const launchPad = document.createElement('div');
-          launchPad.className = 'launch-pad';
-
-          const rocket = document.createElement('div');
-          rocket.className = 'rocket';
-
-          const number = document.createElement('div');
-          number.style.cssText = `
+        const number = document.createElement('div');
+        number.style.cssText = `
                     position: absolute;
                     top: 50%;
                     left: 50%;
@@ -681,562 +799,655 @@
                     font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
                     transition: all 1.5s ease-in-out;
                 `;
-          number.textContent = num;
+        number.textContent = num;
 
-          rocket.appendChild(number);
-          launchPad.appendChild(rocket);
-          launchPad.addEventListener('click', () => handleLaunchPadClick(num));
-          gridElement.appendChild(launchPad);
+        rocket.appendChild(number);
+        launchPad.appendChild(rocket);
+        launchPad.addEventListener('click', () => handleLaunchPadClick(num));
+        gridElement.appendChild(launchPad);
+      });
+    }
+
+    // 创建音频上下文和音效生成器
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playCorrectSound() {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    }
+
+    function playErrorSound() {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 200;
+      oscillator.type = 'sawtooth';
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    }
+
+    // 处理发射台点击
+    function handleLaunchPadClick(num) {
+      if (!isGameStarted) return;
+
+      if (num === currentNumber) {
+        // 正确点击
+        const launchPads = document.querySelectorAll('.launch-pad');
+        launchPads.forEach((pad) => {
+          const numberElement = pad.querySelector('div:not(.rocket)');
+          if (parseInt(numberElement.textContent) === num) {
+            pad.classList.add('correct');
+          }
         });
-      }
 
-      // 创建音频上下文和音效生成器
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-      function playCorrectSound() {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
-      }
-
-      function playErrorSound() {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = 200;
-        oscillator.type = 'sawtooth';
-
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-      }
-
-      // 处理发射台点击
-      function handleLaunchPadClick(num) {
-        if (!isGameStarted) return;
-
-        if (num === currentNumber) {
-          // 正确点击
-          const launchPads = document.querySelectorAll('.launch-pad');
-          launchPads.forEach((pad) => {
-            const numberElement = pad.querySelector('div:not(.rocket)');
-            if (parseInt(numberElement.textContent) === num) {
-              pad.classList.add('correct');
-            }
-          });
-
-          // 播放正确音效
-          try {
-            playCorrectSound();
-          } catch (e) {
-            console.log('Audio play failed:', e);
-          }
-
-          currentNumber++;
-          document.getElementById('current-number').textContent = currentNumber;
-
-          // 检查是否完成
-          if (currentNumber > currentDifficulty * currentDifficulty) {
-            endGame();
-          }
-        } else {
-          // 错误点击
-          const launchPads = document.querySelectorAll('.launch-pad');
-          launchPads.forEach((pad) => {
-            const numberElement = pad.querySelector('div:not(.rocket)');
-            if (parseInt(numberElement.textContent) === num) {
-              pad.classList.add('error');
-              setTimeout(() => {
-                pad.classList.remove('error');
-              }, 500);
-            }
-          });
-
-          // 播放错误音效
-          try {
-            playErrorSound();
-          } catch (e) {
-            console.log('Audio play failed:', e);
-          }
-
-          errorCount++;
-          document.getElementById('errors').textContent = errorCount;
-          document.getElementById('feedback').textContent = '按顺序哦～';
-          setTimeout(() => {
-            document.getElementById('feedback').textContent = '';
-          }, 1000);
+        // 播放正确音效
+        try {
+          playCorrectSound();
+        } catch (e) {
+          console.log('Audio play failed:', e);
         }
-      }
 
-      // 开始游戏
-      function startGame() {
-        if (isGameStarted) return;
-
-        // 隐藏开始按钮
-        document.getElementById('start-button').style.display = 'none';
-
-        // 初始化Q表
-        initializeQTable();
-
-        generateGrid();
-        currentNumber = 1;
-        errorCount = 0;
+        currentNumber++;
         document.getElementById('current-number').textContent = currentNumber;
-        document.getElementById('errors').textContent = errorCount;
-        document.getElementById('feedback').textContent = '任务开始！按顺序点击火箭发射';
 
-        isGameStarted = true;
-        startTime = Date.now();
-        updateTimer();
+        // 检查是否完成
+        if (currentNumber > currentDifficulty * currentDifficulty) {
+          endGame();
+        }
+      } else {
+        // 错误点击
+        const launchPads = document.querySelectorAll('.launch-pad');
+        launchPads.forEach((pad) => {
+          const numberElement = pad.querySelector('div:not(.rocket)');
+          if (parseInt(numberElement.textContent) === num) {
+            pad.classList.add('error');
+            setTimeout(() => {
+              pad.classList.remove('error');
+            }, 500);
+          }
+        });
 
-        // 启动专注度模拟
-        simulateFocusLevel();
-
-        // 启动动态调整
-        setInterval(dynamicAdjustment, 采集间隔);
-      }
-
-      // 重置游戏
-      function resetGame() {
-        isGameStarted = false;
-        clearInterval(timeInterval);
-        currentNumber = 1;
-        errorCount = 0;
-        document.getElementById('current-number').textContent = currentNumber;
-        document.getElementById('time').textContent = '0';
-        document.getElementById('errors').textContent = errorCount;
-        document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
-        generateGrid();
-      }
-
-      // 更新计时器
-      function updateTimer() {
-        if (!isGameStarted) return;
-
-        const currentTime = Math.floor((Date.now() - startTime) / 1000);
-        document.getElementById('time').textContent = currentTime;
-        timeInterval = setTimeout(updateTimer, 1000);
-      }
-
-      // 结束游戏
-      function endGame() {
-        isGameStarted = false;
-        clearInterval(timeInterval);
-        endTime = Date.now();
-        const totalTime = Math.floor((endTime - startTime) / 1000);
-
-        // 统计游戏使用时间
-        if (typeof GameTimeUtil !== 'undefined' && GameTimeUtil.endGame) {
-          GameTimeUtil.endGame('schulte');
+        // 播放错误音效
+        try {
+          playErrorSound();
+        } catch (e) {
+          console.log('Audio play failed:', e);
         }
 
-        if (typeof MedalUtil !== 'undefined') {
-          const medalLevel = currentDifficulty === 3 ? 1 : currentDifficulty === 5 ? 2 : 3;
-          MedalUtil.recordGameProgress('game1', medalLevel);
-        }
-
-        // 计算正确率
-        const totalCells = currentDifficulty * currentDifficulty;
-        const correctCount = totalCells - errorCount;
-        const accuracy = Math.round((correctCount / totalCells) * 100);
-
-        // 计算完成率
-        const completionRate = 100; // 游戏完成，完成率为100%
-
-        document.getElementById('feedback').textContent =
-          `任务完成！用时 ${totalTime} 秒，错误 ${errorCount} 次，正确率 ${accuracy}%`;
-
-        // 保存训练数据
-        const trainingData = {
-          training_type: 'schulte',
-          difficulty: currentDifficulty,
-          accuracy: accuracy,
-          completion_rate: completionRate,
-          focus_level: focusLevel,
-          completion_time: totalTime,
-          error_count: errorCount,
-          training_date: new Date().toISOString().split('T')[0],
-        };
-        StorageUtil.setItem('training_schulte', trainingData);
-
-        // 上传数据到后端
-        const userInfo = UserStateUtil.getUserInfo();
-        const parentId = userInfo?.parent_id || userInfo?.userId || userInfo?.id || 1;
-        const childId = UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1;
-        let sessionId = null;
-
-        // 检测环境，设置API地址
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-
-        // 开始训练会话
-        fetch(`${baseUrl}/api/training/session/start`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-          body: JSON.stringify({
-            child_id: childId,
-            game_type: 'schulte',
-            device_id: 'web',
-          }),
-        })
-          .then((response) => {
-            console.log('会话创建响应状态:', response.status);
-            return response.json();
-          })
-          .then((result) => {
-            console.log('会话创建响应数据:', result);
-            if (result.success) {
-              sessionId = result.data.session_id;
-              console.log('训练会话创建成功:', sessionId);
-
-              // 上传游戏数据
-              return fetch(`${baseUrl}/api/training/game-data`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-                body: JSON.stringify({
-                  session_id: sessionId,
-                  request_id: Date.now().toString(),
-                  timestamp: new Date().toISOString(),
-                  event_type: 'game_complete',
-                  score: Math.round(accuracy * 0.6 + (100 - errorCount * 10) * 0.2 + Math.max(0, 60 - totalTime) * 0.2),
-                  accuracy: accuracy,
-                  level: currentDifficulty,
-                  time: totalTime,
-                  correct: currentDifficulty * currentDifficulty - errorCount,
-                  error: errorCount,
-                  total_target: currentDifficulty * currentDifficulty,
-                  total_step: currentDifficulty * currentDifficulty,
-                  total_click: currentDifficulty * currentDifficulty,
-                }),
-              });
-            } else {
-              throw new Error(result.message || '创建会话失败');
-            }
-          })
-          .then((response) => {
-            console.log('游戏数据上传响应状态:', response.status);
-            return response.json();
-          })
-          .then((result) => {
-            console.log('游戏数据上传响应数据:', result);
-            if (result.success) {
-              console.log('游戏数据上传成功');
-
-              // 清除能力评估页面的缓存，确保下次打开时显示最新数据
-              const cacheKey = `child_data_${childId}`;
-              localStorage.removeItem(cacheKey);
-              console.log('已清除能力评估缓存:', cacheKey);
-
-              // 结束训练会话
-              return fetch(`${baseUrl}/api/training/session/end`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-                body: JSON.stringify({
-                  session_id: sessionId,
-                  final_score: Math.round(
-                    accuracy * 0.6 + (100 - errorCount * 10) * 0.2 + Math.max(0, 60 - totalTime) * 0.2,
-                  ),
-                  total_accuracy: accuracy,
-                  duration: totalTime,
-                }),
-              });
-            } else {
-              throw new Error(result.message || '上传游戏数据失败');
-            }
-          })
-          .then((response) => {
-            console.log('会话结束响应状态:', response.status);
-            return response.json();
-          })
-          .then((result) => {
-            console.log('会话结束响应数据:', result);
-            if (result.success) {
-              console.log('训练会话结束成功:', result.data);
-
-              // 保存训练时间到 localStorage，用于今日训练页面显示
-              const today = new Date().toISOString().split('T')[0];
-              const trainingTimeData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-              if (!trainingTimeData[today]) {
-                trainingTimeData[today] = { totalTime: 0 };
-              }
-
-              // 累加游戏时间（秒）
-              trainingTimeData[today].totalTime += totalTime;
-              localStorage.setItem('trainingData', JSON.stringify(trainingTimeData));
-              console.log('训练时间已保存到 localStorage');
-
-              // 训练后迭代优化
-              postTrainingOptimization(trainingData);
-            } else {
-              throw new Error(result.message || '结束会话失败');
-            }
-          })
-          .catch((error) => {
-            console.error('训练数据上传失败:', error);
-            // 即使上传失败，也显示训练完成
-            postTrainingOptimization(trainingData);
-          });
-
-        // 显示开始按钮
+        errorCount++;
+        document.getElementById('errors').textContent = errorCount;
+        document.getElementById('feedback').textContent = '按顺序哦～';
         setTimeout(() => {
-          document.getElementById('start-button').style.display = 'flex';
-        }, 3000);
+          document.getElementById('feedback').textContent = '';
+        }, 1000);
+      }
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (isGameStarted) return;
+
+      // 隐藏开始按钮
+      document.getElementById('start-button').style.display = 'none';
+
+      // 初始化Q表
+      initializeQTable();
+
+      generateGrid();
+      currentNumber = 1;
+      errorCount = 0;
+      document.getElementById('current-number').textContent = currentNumber;
+      document.getElementById('errors').textContent = errorCount;
+      document.getElementById('feedback').textContent = '任务开始！按顺序点击火箭发射';
+
+      isGameStarted = true;
+      startTime = Date.now();
+      updateTimer();
+
+      // 启动专注度模拟
+      simulateFocusLevel();
+
+      // 启动动态调整
+      setInterval(dynamicAdjustment, 采集间隔);
+    }
+
+    // 重置游戏
+    function resetGame() {
+      isGameStarted = false;
+      clearInterval(timeInterval);
+      currentNumber = 1;
+      errorCount = 0;
+      document.getElementById('current-number').textContent = currentNumber;
+      document.getElementById('time').textContent = '0';
+      document.getElementById('errors').textContent = errorCount;
+      document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
+      generateGrid();
+    }
+
+    // 更新计时器
+    function updateTimer() {
+      if (!isGameStarted) return;
+
+      const currentTime = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('time').textContent = currentTime;
+      timeInterval = setTimeout(updateTimer, 1000);
+    }
+
+    // 结束游戏
+    function endGame() {
+      isGameStarted = false;
+      clearInterval(timeInterval);
+      endTime = Date.now();
+      const totalTime = Math.floor((endTime - startTime) / 1000);
+
+      // 统计游戏使用时间
+      if (typeof GameTimeUtil !== 'undefined' && GameTimeUtil.endGame) {
+        GameTimeUtil.endGame('schulte');
       }
 
-      // 训练后迭代优化
-      function postTrainingOptimization(trainingData) {
-        const { completion_rate, accuracy, focus_level, completion_time, error_count } = trainingData;
-
-        // 计算各项得分
-        const accuracyScore = Math.round(accuracy * 0.6);
-        const errorScore = Math.round(Math.max(0, 100 - error_count * 10) * 0.2);
-
-        // 优化时间效率计算，根据难度调整时间阈值
-        const timeThreshold = currentDifficulty === 3 ? 15 : currentDifficulty === 5 ? 30 : 60;
-        // 放宽时间评分：使用更平滑的曲线，超时2倍时间阈值才扣到0分
-        const timeOvertime = completion_time - timeThreshold;
-        const timeFactor = 1 / (1 + timeOvertime / (timeThreshold * 1.5));
-        const timeScore = Math.round(Math.max(0, Math.min(1, timeFactor)) * 20);
-
-        const finalScore = Math.max(0, Math.min(100, accuracyScore + errorScore + timeScore));
-
-        // 调试信息
-        console.log('=== 小火箭游戏评分调试信息 ===');
-        console.log('原始数据:', {
-          accuracy: accuracy,
-          error_count: error_count,
-          completion_time: completion_time,
-          difficulty: currentDifficulty,
-        });
-        console.log('计算过程:', {
-          accuracyScore: accuracyScore,
-          errorScore: errorScore,
-          timeThreshold: timeThreshold,
-          timeScore: timeScore,
-          finalScore: finalScore,
-        });
-
-        // 准备得分明细数据
-        const scoreDetails = {
-          accuracy: {
-            name: '准确率',
-            score: accuracyScore,
-            max: 60,
-            color: '#4CAF50',
-          },
-          error: {
-            name: '错误率',
-            score: errorScore,
-            max: 20,
-            color: '#FF9800',
-          },
-          time: {
-            name: '时间效率',
-            score: timeScore,
-            max: 20,
-            color: '#2196F3',
-          },
-        };
-
-        // 只显示评分，不显示其他提示
-        showPostTrainingModal('训练完成', `你的评分为：${finalScore}分`, false, scoreDetails);
-
-        // 保存历史表现数据
-        const historicalData = StorageUtil.getItem('historical_performance') || [];
-        historicalData.push(trainingData);
-        // 只保留最近5次训练数据
-        if (historicalData.length > 5) {
-          historicalData.shift();
-        }
-        StorageUtil.setItem('historical_performance', historicalData);
+      if (typeof MedalUtil !== 'undefined') {
+        const medalLevel = currentDifficulty === 3 ? 1 : currentDifficulty === 5 ? 2 : 3;
+        MedalUtil.recordGameProgress('game1', medalLevel);
       }
 
-      // 显示训练后弹窗
-      function showPostTrainingModal(title, message, showRecommendation = false, scoreDetails = null) {
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                animation: fadeIn 0.3s ease-in-out;
-            `;
+      // 计算正确率
+      const totalCells = currentDifficulty * currentDifficulty;
+      const correctCount = totalCells - errorCount;
+      const accuracy = Math.round((correctCount / totalCells) * 100);
 
-        const modalContent = document.createElement('div');
-        modalContent.style.cssText = `
-                background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
-                border-radius: 20px;
-                padding: 40px;
-                width: 90%;
-                max-width: 500px;
-                box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
-                position: relative;
-                animation: bounceIn 0.5s ease-in-out;
-                border: 4px solid #4caf50;
-                text-align: center;
-            `;
+      // 计算完成率
+      const completionRate = 100; // 游戏完成，完成率为100%
 
-        const modalTitle = document.createElement('h3');
-        modalTitle.textContent = title;
-        modalTitle.style.cssText = `
-                color: #4CAF50;
-                margin-bottom: 20px;
-                font-size: 1.8em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-                animation: pulse 1.5s ease-in-out infinite alternate;
-            `;
+      document.getElementById('feedback').textContent =
+        `任务完成！用时 ${totalTime} 秒，错误 ${errorCount} 次，正确率 ${accuracy}%`;
 
-        const modalMessage = document.createElement('p');
-        modalMessage.textContent = message;
-        modalMessage.style.cssText = `
-                color: #a0a0ff;
-                margin-bottom: 30px;
-                font-size: 1.1em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            `;
-
-        // 添加得分明细柱状图
-        if (scoreDetails) {
-          const detailsContainer = document.createElement('div');
-          detailsContainer.style.cssText = `
-                    margin-bottom: 30px;
-                    text-align: left;
-                `;
-
-          const detailsTitle = document.createElement('h4');
-          detailsTitle.textContent = '得分明细';
-          detailsTitle.style.cssText = `
-                    color: #4CAF50;
-                    margin-bottom: 15px;
-                    font-size: 1.2em;
-                    font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                `;
-          detailsContainer.appendChild(detailsTitle);
-
-          // 为每个得分项创建柱状图
-          Object.values(scoreDetails).forEach((detail) => {
-            const itemContainer = document.createElement('div');
-            itemContainer.style.cssText = `
-                        margin-bottom: 10px;
-                        display: flex;
-                        align-items: center;
-                    `;
-
-            const label = document.createElement('span');
-            label.textContent = detail.name;
-            label.style.cssText = `
-                        color: #a0a0ff;
-                        font-size: 14px;
-                        width: 80px;
-                        font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                    `;
-            itemContainer.appendChild(label);
-
-            const barContainer = document.createElement('div');
-            barContainer.style.cssText = `
-                        flex: 1;
-                        height: 20px;
-                        background-color: rgba(255, 255, 255, 0.1);
-                        border-radius: 10px;
-                        overflow: hidden;
-                        margin: 0 10px;
-                    `;
-
-            const bar = document.createElement('div');
-            const percentage = (detail.score / detail.max) * 100;
-            bar.style.cssText = `
-                        height: 100%;
-                        width: ${percentage}%;
-                        background-color: ${detail.color};
-                        border-radius: 10px;
-                        transition: width 1s ease-in-out;
-                    `;
-            barContainer.appendChild(bar);
-            itemContainer.appendChild(barContainer);
-
-            const scoreValue = document.createElement('span');
-            scoreValue.textContent = detail.score;
-            scoreValue.style.cssText = `
-                        color: #a0a0ff;
-                        font-size: 14px;
-                        width: 30px;
-                        text-align: right;
-                        font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                    `;
-            itemContainer.appendChild(scoreValue);
-
-            detailsContainer.appendChild(itemContainer);
-          });
-
-          modalContent.appendChild(detailsContainer);
-        }
-
-        const confirmButton = document.createElement('button');
-        confirmButton.textContent = '关闭';
-        confirmButton.style.cssText = `
-                background: linear-gradient(90deg, #4caf50, #81c784);
-                color: white;
-                border: none;
-                padding: 12px 30px;
-                border-radius: 30px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                animation: pulse 2s ease-in-out infinite alternate;
-            `;
-
-        confirmButton.onclick = function () {
-          document.body.removeChild(modal);
-          // 不自动跳转到其他页面，由用户决定下一步操作
-        };
-
-        modalContent.appendChild(modalTitle);
-        modalContent.appendChild(modalMessage);
-        modalContent.appendChild(confirmButton);
-        modal.appendChild(modalContent);
-        document.body.appendChild(modal);
-      }
-
-      // 页面加载时生成网格
-      window.onload = function () {
-        // 页面加载时不生成游戏内容，等待用户点击开始按钮
+      // 保存训练数据
+      const trainingData = {
+        training_type: 'schulte',
+        difficulty: currentDifficulty,
+        accuracy: accuracy,
+        completion_rate: completionRate,
+        focus_level: focusLevel,
+        completion_time: totalTime,
+        error_count: errorCount,
+        training_date: new Date().toISOString().split('T')[0],
       };
-    </script>
-    <script src="../attention-loader.js"></script>
-  </body>
+      StorageUtil.setItem('training_schulte', trainingData);
+
+      // 上传数据到后端
+      const userInfo = UserStateUtil.getUserInfo();
+      const parentId = userInfo?.parent_id || userInfo?.userId || userInfo?.id || 1;
+      const childId = UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1;
+      let sessionId = null;
+
+      // 检测环境，设置API地址
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+      // 开始训练会话
+      fetch(`${baseUrl}/api/training/session/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+        body: JSON.stringify({
+          child_id: childId,
+          game_type: 'schulte',
+          device_id: 'web',
+        }),
+      })
+        .then((response) => {
+          console.log('会话创建响应状态:', response.status);
+          return response.json();
+        })
+        .then((result) => {
+          console.log('会话创建响应数据:', result);
+          if (result.success) {
+            sessionId = result.data.session_id;
+            console.log('训练会话创建成功:', sessionId);
+
+            // 上传游戏数据
+            return fetch(`${baseUrl}/api/training/game-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                session_id: sessionId,
+                request_id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                event_type: 'game_complete',
+                score: Math.round(accuracy * 0.6 + (100 - errorCount * 10) * 0.2 + Math.max(0, 60 - totalTime) * 0.2),
+                accuracy: accuracy,
+                level: currentDifficulty,
+                time: totalTime,
+                correct: currentDifficulty * currentDifficulty - errorCount,
+                error: errorCount,
+                total_target: currentDifficulty * currentDifficulty,
+                total_step: currentDifficulty * currentDifficulty,
+                total_click: currentDifficulty * currentDifficulty,
+              }),
+            });
+          } else {
+            throw new Error(result.message || '创建会话失败');
+          }
+        })
+        .then((response) => {
+          console.log('游戏数据上传响应状态:', response.status);
+          return response.json();
+        })
+        .then((result) => {
+          console.log('游戏数据上传响应数据:', result);
+          if (result.success) {
+            console.log('游戏数据上传成功');
+
+            // 清除能力评估页面的缓存，确保下次打开时显示最新数据
+            const cacheKey = `child_data_${childId}`;
+            localStorage.removeItem(cacheKey);
+            console.log('已清除能力评估缓存:', cacheKey);
+
+            // 结束训练会话
+            return fetch(`${baseUrl}/api/training/session/end`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                session_id: sessionId,
+                final_score: Math.round(
+                  accuracy * 0.6 + (100 - errorCount * 10) * 0.2 + Math.max(0, 60 - totalTime) * 0.2,
+                ),
+                total_accuracy: accuracy,
+                duration: totalTime,
+              }),
+            });
+          } else {
+            throw new Error(result.message || '上传游戏数据失败');
+          }
+        })
+        .then((response) => {
+          console.log('会话结束响应状态:', response.status);
+          return response.json();
+        })
+        .then((result) => {
+          console.log('会话结束响应数据:', result);
+          if (result.success) {
+            console.log('训练会话结束成功:', result.data);
+
+            // 保存训练时间到 localStorage，用于今日训练页面显示
+            const today = new Date().toISOString().split('T')[0];
+            const trainingTimeData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+            if (!trainingTimeData[today]) {
+              trainingTimeData[today] = { totalTime: 0 };
+            }
+
+            // 累加游戏时间（秒）
+            trainingTimeData[today].totalTime += totalTime;
+            localStorage.setItem('trainingData', JSON.stringify(trainingTimeData));
+            console.log('训练时间已保存到 localStorage');
+
+            // 训练后迭代优化
+            postTrainingOptimization(trainingData);
+          } else {
+            throw new Error(result.message || '结束会话失败');
+          }
+        })
+        .catch((error) => {
+          console.error('训练数据上传失败:', error);
+          // 即使上传失败，也显示训练完成
+          postTrainingOptimization(trainingData);
+        });
+    }
+
+    // 训练后迭代优化
+    function postTrainingOptimization(trainingData) {
+      const { completion_rate, accuracy, focus_level, completion_time, error_count } = trainingData;
+
+      // 计算各项得分
+      const accuracyScore = Math.round(accuracy * 0.6);
+      const errorScore = Math.round(Math.max(0, 100 - error_count * 10) * 0.2);
+
+      // 优化时间效率计算，根据难度调整时间阈值
+      const timeThreshold = currentDifficulty === 3 ? 15 : currentDifficulty === 5 ? 30 : 60;
+      // 放宽时间评分：使用更平滑的曲线，超时2倍时间阈值才扣到0分
+      const timeOvertime = completion_time - timeThreshold;
+      const timeFactor = 1 / (1 + timeOvertime / (timeThreshold * 1.5));
+      const timeScore = Math.round(Math.max(0, Math.min(1, timeFactor)) * 20);
+
+      const finalScore = Math.max(0, Math.min(100, accuracyScore + errorScore + timeScore));
+
+      // 调试信息
+      console.log('=== 小火箭游戏评分调试信息 ===');
+      console.log('原始数据:', {
+        accuracy: accuracy,
+        error_count: error_count,
+        completion_time: completion_time,
+        difficulty: currentDifficulty,
+      });
+      console.log('计算过程:', {
+        accuracyScore: accuracyScore,
+        errorScore: errorScore,
+        timeThreshold: timeThreshold,
+        timeScore: timeScore,
+        finalScore: finalScore,
+      });
+
+      // 准备得分明细数据
+      const scoreDetails = {
+        accuracy: {
+          name: '准确率',
+          score: accuracyScore,
+          max: 60,
+          color: '#4fc3f7',
+        },
+        error: {
+          name: '错误率',
+          score: errorScore,
+          max: 20,
+          color: '#ffb74d',
+        },
+        time: {
+          name: '时间效率',
+          score: timeScore,
+          max: 20,
+          color: '#ab47bc',
+        },
+      };
+
+      // 只显示评分，不显示其他提示
+      showPostTrainingModal('训练完成', `你的评分为：${finalScore}分`, false, scoreDetails);
+
+      // 保存历史表现数据
+      const historicalData = StorageUtil.getItem('historical_performance') || [];
+      historicalData.push(trainingData);
+      // 只保留最近5次训练数据
+      if (historicalData.length > 5) {
+        historicalData.shift();
+      }
+      StorageUtil.setItem('historical_performance', historicalData);
+    }
+
+    // 显示训练后弹窗
+    function showPostTrainingModal(title, message, showRecommendation = false, scoreDetails = null) {
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(5, 12, 30, 0.65);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease both;
+      `;
+
+      const modalContent = document.createElement('div');
+      modalContent.style.cssText = `
+        background: linear-gradient(180deg, #0d1d3d 0%, #10224a 40%, #0b1a36 100%);
+        padding: 32px 36px 28px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow:
+          0 10px 40px rgba(5, 15, 35, 0.5),
+          0 0 0 2px rgba(80, 170, 240, 0.2);
+        max-width: 420px;
+        width: 90%;
+        animation: cosmosBloom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        position: relative;
+        overflow: hidden;
+      `;
+
+      const topGlow = document.createElement('div');
+      topGlow.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(ellipse, rgba(60, 150, 240, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      `;
+      modalContent.appendChild(topGlow);
+
+      const starField = document.createElement('div');
+      starField.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+      `;
+
+      for (let i = 0; i < 10; i++) {
+        const s = 1 + Math.random() * 1.5;
+        const star = document.createElement('div');
+        star.style.cssText = `
+          position: absolute;
+          width: ${s}px;
+          height: ${s}px;
+          background: white;
+          border-radius: 50%;
+          top: ${Math.random() * 100}%;
+          left: ${Math.random() * 100}%;
+          opacity: ${0.25 + Math.random() * 0.4};
+          box-shadow: 0 0 ${s * 2}px rgba(180, 220, 255, 0.5);
+        `;
+        starField.appendChild(star);
+      }
+
+      const floatDecor = ['\u{1F680}', '\u{2604}\uFE0F', '\u{2B50}', '\u{1F31F}', '\u{1F320}'];
+      for (let i = 0; i < 4; i++) {
+        const deco = document.createElement('div');
+        deco.textContent = floatDecor[i];
+        deco.style.cssText = `
+          position: absolute;
+          font-size: ${16 + i * 4}px;
+          top: ${10 + i * 18}%;
+          ${i % 2 === 0 ? 'left' : 'right'}: ${-5 + i * 2}px;
+          opacity: 0.35;
+          pointer-events: none;
+          animation: orbitFloat ${3 + i * 0.8}s ease-in-out ${i * 0.5}s infinite alternate;
+        `;
+        starField.appendChild(deco);
+      }
+
+      modalContent.appendChild(starField);
+
+      const iconEl = document.createElement('div');
+      iconEl.textContent = '\u{1F680}';
+      iconEl.style.cssText = `
+        font-size: 36px;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.02s ease both;
+      `;
+      modalContent.appendChild(iconEl);
+
+      const modalTitle = document.createElement('h2');
+      modalTitle.innerHTML = '\u2728 ' + title + ' \u2728';
+      modalTitle.style.cssText = `
+        color: #b3e0ff;
+        font-size: 24px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.05s ease both;
+      `;
+      modalContent.appendChild(modalTitle);
+
+      if (scoreDetails) {
+        const scoreItems = Object.values(scoreDetails);
+        const statsGrid = document.createElement('div');
+        statsGrid.style.cssText = `
+          display: grid;
+          grid-template-columns: repeat(${scoreItems.length === 3 ? 3 : 2}, 1fr);
+          gap: 12px;
+          margin-bottom: 24px;
+          position: relative;
+          z-index: 1;
+        `;
+
+        scoreItems.forEach((detail, idx) => {
+          const statItem = document.createElement('div');
+          statItem.style.cssText = `
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(80, 170, 240, 0.2);
+            border-radius: 12px;
+            padding: 14px 8px;
+            animation: revealUp 0.4s ${0.12 + idx * 0.08}s ease both;
+          `;
+
+          const statLabel = document.createElement('div');
+          statLabel.textContent = detail.name;
+          statLabel.style.cssText = `
+            color: ${detail.color};
+            font-size: 11px;
+            margin-bottom: 6px;
+            font-weight: bold;
+          `;
+          statItem.appendChild(statLabel);
+
+          const statValue = document.createElement('div');
+          statValue.textContent = detail.score;
+          statValue.style.cssText = `
+            color: #e3f2fd;
+            font-size: 24px;
+            font-weight: bold;
+          `;
+          statItem.appendChild(statValue);
+
+          statsGrid.appendChild(statItem);
+        });
+
+        modalContent.appendChild(statsGrid);
+      }
+
+      const modalMessage = document.createElement('p');
+      modalMessage.textContent = message;
+      modalMessage.style.cssText = `
+        color: #7eaed4;
+        font-size: 13px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.3s ease both;
+      `;
+      modalContent.appendChild(modalMessage);
+
+      const modalButtons = document.createElement('div');
+      modalButtons.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.36s ease both;
+      `;
+
+      const restartBtn = document.createElement('button');
+      restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
+      restartBtn.style.cssText = `
+        background: linear-gradient(135deg, #1e88e5, #1565c0);
+        color: white;
+        border: none;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(30, 136, 229, 0.35);
+      `;
+      restartBtn.onmouseover = () => {
+        restartBtn.style.transform = 'scale(1.05)';
+        restartBtn.style.boxShadow = '0 6px 18px rgba(30, 136, 229, 0.5)';
+      };
+      restartBtn.onmouseout = () => {
+        restartBtn.style.transform = 'scale(1)';
+        restartBtn.style.boxShadow = '0 4px 12px rgba(30, 136, 229, 0.35)';
+      };
+      restartBtn.onclick = function () {
+        document.body.removeChild(modal);
+        document.getElementById('start-button').style.display = 'flex';
+        document.getElementById('schulte-grid').innerHTML = '';
+        document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
+      };
+
+      const backBtn = document.createElement('button');
+      backBtn.textContent = '\u8FD4\u56DE';
+      backBtn.style.cssText = `
+        background: transparent;
+        color: #7eaed4;
+        border: 2px solid rgba(80, 170, 240, 0.3);
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+      backBtn.onmouseover = () => {
+        backBtn.style.background = 'rgba(80, 170, 240, 0.1)';
+        backBtn.style.borderColor = 'rgba(80, 170, 240, 0.5)';
+      };
+      backBtn.onmouseout = () => {
+        backBtn.style.background = 'transparent';
+        backBtn.style.borderColor = 'rgba(80, 170, 240, 0.3)';
+      };
+      backBtn.onclick = function () {
+        document.body.removeChild(modal);
+        document.getElementById('start-button').style.display = 'flex';
+        document.getElementById('schulte-grid').innerHTML = '';
+        document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
+      };
+
+      modalButtons.appendChild(restartBtn);
+      modalButtons.appendChild(backBtn);
+
+      modalContent.appendChild(modalButtons);
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+    }
+
+    // 页面加载时生成网格
+    window.onload = function () {
+      // 页面加载时不生成游戏内容，等待用户点击开始按钮
+    };
+  </script>
+  <script src="../attention-loader.js"></script>
+</body>
+
 </html>
