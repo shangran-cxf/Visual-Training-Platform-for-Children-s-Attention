@@ -1105,8 +1105,8 @@
           selectContainer.innerHTML = '<option value="">请选择分类</option>';
 
           categories.forEach((cat) => {
-            tabsContainer.innerHTML += `<button class="category-tab" data-category="${cat.id}">${cat.icon} ${cat.name}</button>`;
-            selectContainer.innerHTML += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+            tabsContainer.innerHTML += `<button class="category-tab" data-category="${cat.id}">${escapeHtml(cat.icon)} ${escapeHtml(cat.name)}</button>`;
+            selectContainer.innerHTML += `<option value="${cat.id}">${escapeHtml(cat.icon)} ${escapeHtml(cat.name)}</option>`;
           });
 
           document.querySelectorAll('.category-tab').forEach((tab) => {
@@ -1138,7 +1138,7 @@
                         <div class="hot-post-item" onclick="goToPost(${post.id})">
                             <div class="hot-post-content">
                                 <span class="hot-post-rank ${index < 3 ? 'top' + (index + 1) : ''}">${index + 1}</span>
-                                <span class="hot-post-title">${post.title}</span>
+                                <span class="hot-post-title">${escapeHtml(post.title)}</span>
                             </div>
                             <div class="hot-post-stats">
                                 <span>👁 ${post.view_count}</span>
@@ -1275,7 +1275,8 @@
                 .map((post) => {
                   const realPost = showFavoritesOnly ? post : post;
                   const categoryObj = categories.find((c) => String(c.id) === String(realPost.category_id));
-                  const initial = (realPost.author_name || '用户').charAt(0).toUpperCase();
+                  const safeAuthorName = escapeHtml(realPost.author_name || '用户');
+                  const initial = safeAuthorName.charAt(0).toUpperCase();
                   const isPinned = realPost.is_pinned === 1;
                   const isEssential = realPost.is_essential === 1;
                   const isAdmin = userInfo && userInfo.role === 'admin';
@@ -1285,23 +1286,25 @@
                   const dislikeCount = Math.max(0, realPost.dislike_count || 0);
                   const commentCount = realPost.comment_count || 0;
                   const favoriteCount = Math.max(0, realPost.favorite_count || 0);
+                  const safeCategoryName = categoryObj ? escapeHtml(categoryObj.name) : '';
+                  const safeCategoryIcon = categoryObj ? escapeHtml(categoryObj.icon) : '';
 
                   return `
                         <div class="forum-post ${isPinned ? 'pinned' : ''}" onclick="goToPost(${realPost.id})">
                             <div class="post-header">
-                                <div class="author-avatar">${initial}</div>
+                                <div class="author-avatar">${escapeHtml(initial)}</div>
                                 <div class="author-info">
-                                    <div class="author-name">${realPost.author_name}<span class="author-level">Lv.${realPost.author_level || 1}</span></div>
-                                    <div class="post-time">${realPost.created_at}</div>
+                                    <div class="author-name">${safeAuthorName}<span class="author-level">Lv.${realPost.author_level || 1}</span></div>
+                                    <div class="post-time">${escapeHtml(realPost.created_at)}</div>
                                 </div>
                                 <div class="post-badges">
                                     ${isPinned ? '<span class="badge badge-pinned">置顶</span>' : ''}
                                     ${isEssential ? '<span class="badge badge-essential">精华</span>' : ''}
-                                    ${categoryObj ? `<span class="badge category-badge">${categoryObj.icon} ${categoryObj.name}</span>` : ''}
+                                    ${categoryObj ? `<span class="badge category-badge">${safeCategoryIcon} ${safeCategoryName}</span>` : ''}
                                 </div>
                             </div>
-                            <div class="post-title">${realPost.title}</div>
-                            <div class="post-content">${realPost.content}</div>
+                            <div class="post-title">${escapeHtml(realPost.title)}</div>
+                            <div class="post-content">${escapeHtml(realPost.content)}</div>
                             <div class="post-footer">
                                 <div class="post-footer-left">
                                     <div class="post-stat-readonly"><span>👁</span> ${realPost.view_count || 0}</div>
@@ -1418,15 +1421,16 @@
                     ` +
               data
                 .map((comment) => {
-                  const initial = (comment.author_name || '用户').charAt(0).toUpperCase();
+                  const safeCommentAuthor = escapeHtml(comment.author_name || '用户');
+                  const initial = safeCommentAuthor.charAt(0).toUpperCase();
                   return `
                         <div class="comment">
                             <div class="comment-header">
-                                <div class="comment-avatar">${initial}</div>
-                                <span class="comment-author">${comment.author_name}</span>
-                                <span class="comment-time">${comment.created_at}</span>
+                                <div class="comment-avatar">${escapeHtml(initial)}</div>
+                                <span class="comment-author">${safeCommentAuthor}</span>
+                                <span class="comment-time">${escapeHtml(comment.created_at)}</span>
                             </div>
-                            <div class="comment-content">${comment.content}</div>
+                            <div class="comment-content">${escapeHtml(comment.content)}</div>
                             <div class="comment-actions">
                                 <span class="comment-action ${comment.user_vote === 1 ? 'liked' : ''}" onclick="likeComment(${comment.id})"><span>👍</span> ${Math.max(0, comment.like_count || 0)}</span>
                                 <span class="comment-action ${comment.user_vote === -1 ? 'disliked' : ''}" onclick="dislikeComment(${comment.id})"><span>👎</span> ${Math.max(0, comment.dislike_count || 0)}</span>
@@ -1502,7 +1506,7 @@
         select.innerHTML = '<option value="">请选择分类</option>';
 
         categories.forEach((cat) => {
-          select.innerHTML += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+          select.innerHTML += `<option value="${cat.id}">${escapeHtml(cat.icon)} ${escapeHtml(cat.name)}</option>`;
         });
       }
 
@@ -1518,7 +1522,8 @@
         }
 
         const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo || !userInfo.parent_id) {
+        const token = localStorage.getItem('auth_token');
+        if (!userInfo || !token) {
           alert('请先登录');
           return;
         }
@@ -1526,24 +1531,26 @@
         try {
           let response;
           if (currentEditPostId) {
-            // 编辑帖子
             response = await fetch(`/api/forum/posts/${currentEditPostId}`, {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
               body: JSON.stringify({
-                parent_id: userInfo.parent_id,
                 title,
                 content,
                 category_id: categoryId || null,
               }),
             });
           } else {
-            // 发布新帖
             response = await fetch('/api/forum/posts', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
               body: JSON.stringify({
-                parent_id: userInfo.parent_id,
                 title,
                 content,
                 category_id: categoryId || null,
@@ -1576,15 +1583,19 @@
           return;
         }
         const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo || !userInfo.parent_id) {
+        const token = localStorage.getItem('auth_token');
+        if (!userInfo || !token) {
           alert('请先登录');
           return;
         }
         try {
           const response = await fetch('/api/forum/posts', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parent_id: userInfo.parent_id, title, content, category_id: categoryId || null }),
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ title, content, category_id: categoryId || null }),
           });
           const result = await response.json();
           if (result.success) {
@@ -1708,11 +1719,18 @@
         const confirmed = await confirmDeletePost();
         if (!confirmed) return;
         const userInfo = StorageUtil.getItem('userInfo');
+        const token = localStorage.getItem('auth_token');
+        if (!userInfo || !token) {
+          alert('请先登录');
+          return;
+        }
         try {
           const response = await fetch(`/api/forum/posts/${postId}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parent_id: userInfo.parent_id }),
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
           });
           const result = await response.json();
           if (result.success) {
@@ -1752,11 +1770,15 @@
 
       async function pinPost(postId, isPinned) {
         const userInfo = StorageUtil.getItem('userInfo');
+        const token = localStorage.getItem('auth_token');
         try {
           const response = await fetch(`/api/forum/posts/${postId}/pin`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parent_id: userInfo.parent_id, is_pinned: isPinned }),
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ is_pinned: isPinned }),
           });
           const result = await response.json();
           if (result.success) loadPosts(currentPage);
@@ -1769,11 +1791,15 @@
 
       async function essentialPost(postId, isEssential) {
         const userInfo = StorageUtil.getItem('userInfo');
+        const token = localStorage.getItem('auth_token');
         try {
           const response = await fetch(`/api/forum/posts/${postId}/essential`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parent_id: userInfo.parent_id, is_essential: isEssential }),
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ is_essential: isEssential }),
           });
           const result = await response.json();
           if (result.success) loadPosts(currentPage);
@@ -1805,7 +1831,6 @@
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              parent_id: userInfo.parent_id,
               post_id: postId,
               vote_type: voteType,
             }),
@@ -1856,7 +1881,6 @@
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              parent_id: userInfo.parent_id,
               post_id: postId,
               vote_type: voteType,
             }),
@@ -1888,12 +1912,16 @@
 
       async function likeComment(commentId) {
         const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) return;
+        const token = localStorage.getItem('auth_token');
+        if (!userInfo || !token) return;
         try {
           const response = await fetch('/api/forum/vote', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parent_id: userInfo.parent_id, comment_id: commentId, vote_type: 1 }),
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ comment_id: commentId, vote_type: 1 }),
           });
           const result = await response.json();
           if (result.success) {
@@ -1913,12 +1941,16 @@
 
       async function dislikeComment(commentId) {
         const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) return;
+        const token = localStorage.getItem('auth_token');
+        if (!userInfo || !token) return;
         try {
           const response = await fetch('/api/forum/vote', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parent_id: userInfo.parent_id, comment_id: commentId, vote_type: -1 }),
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ comment_id: commentId, vote_type: -1 }),
           });
           const result = await response.json();
           if (result.success) {
@@ -1943,15 +1975,19 @@
           return;
         }
         const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) {
+        const token = localStorage.getItem('auth_token');
+        if (!userInfo || !token) {
           alert('请先登录');
           return;
         }
         try {
           const response = await fetch('/api/forum/comments', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ post_id: postId, parent_id: userInfo.parent_id, content: commentContent }),
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ post_id: postId, content: commentContent }),
           });
           const result = await response.json();
           if (response.ok) {
@@ -1993,7 +2029,6 @@
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ parent_id: userInfo.parent_id }),
           });
           console.log('收藏操作响应状态:', response.status);
           const result = await response.json();

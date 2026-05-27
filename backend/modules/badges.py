@@ -2,6 +2,7 @@ from config import BADGES
 from flask import Blueprint, jsonify, request
 
 from database import execute_db
+from middleware import require_auth
 from utils.response_utils import error_response
 
 badges_bp = Blueprint("badges", __name__)
@@ -13,6 +14,7 @@ def get_all_badges():
 
 
 @badges_bp.route("/api/badges/<int:child_id>", methods=["GET"])
+@require_auth
 def get_child_badges(child_id):
     result = execute_db(
         """SELECT badge_id, earned_at
@@ -36,6 +38,7 @@ def get_child_badges(child_id):
 
 
 @badges_bp.route("/api/badges/award", methods=["POST"])
+@require_auth
 def award_badge():
     data = request.json
     child_id = data.get("child_id")

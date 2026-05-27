@@ -5,6 +5,7 @@ from datetime import datetime
 from config import FRONTEND_DIR
 from flask import Blueprint, jsonify, request
 
+from middleware import require_auth
 from utils.response_utils import error_response
 
 knowledge_bp = Blueprint("knowledge", __name__)
@@ -76,6 +77,7 @@ def get_tags():
 
 
 @knowledge_bp.route("/articles", methods=["POST"])
+@require_auth
 def create_article():
     data = request.json
 
@@ -118,6 +120,7 @@ def create_article():
 
 
 @knowledge_bp.route("/articles/<int:article_id>", methods=["PUT"])
+@require_auth
 def update_article(article_id):
     data = request.json
 
@@ -160,6 +163,7 @@ def update_article(article_id):
 
 
 @knowledge_bp.route("/articles/<int:article_id>", methods=["DELETE"])
+@require_auth
 def delete_article(article_id):
     articles = load_articles()
     article_index = None

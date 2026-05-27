@@ -237,20 +237,20 @@ def get_post(post_id):
 
 
 @forum_bp.route("/posts", methods=["POST"])
+@require_auth
 def create_post():
     data = request.json
-    parent_id = data.get("parent_id")
     title = data.get("title")
     content = data.get("content")
     category_id = data.get("category_id")
 
-    if not parent_id or not title or not content:
-        return error_response("家长ID、标题和内容不能为空", status=400)
+    if not title or not content:
+        return error_response("标题和内容不能为空", status=400)
 
     try:
         result, post_id = execute_db(
             "INSERT INTO forum_posts (parent_id, title, content, category_id) VALUES (?, ?, ?, ?)",
-            (parent_id, title, content, category_id),
+            (request.user_id, title, content, category_id),
             fetch_last_id=True,
         )
 
@@ -261,22 +261,19 @@ def create_post():
 
 
 @forum_bp.route("/posts/<int:post_id>", methods=["PUT"])
+@require_auth
 def update_post(post_id):
     data = request.json
-    parent_id = data.get("parent_id")
     title = data.get("title")
     content = data.get("content")
     category_id = data.get("category_id")
-
-    if not parent_id:
-        return error_response("用户ID不能为空", status=400)
 
     try:
         post_result = execute_db("SELECT parent_id FROM forum_posts WHERE id = ?", (post_id,))
         if not post_result:
             return error_response("帖子不存在", status=404)
 
-        if post_result[0][0] != parent_id and not is_admin(parent_id):
+        if post_result[0][0] != request.user_id and not is_admin(request.user_id):
             return error_response("无权编辑此帖子", status=403)
 
         update_data = {}
@@ -300,25 +297,14 @@ def update_post(post_id):
 
 
 @forum_bp.route("/posts/<int:post_id>", methods=["DELETE"])
+@require_auth
 def delete_post(post_id):
-    data = request.json or {}
-    parent_id = data.get("parent_id")
-
     try:
-        if parent_id:
-            if is_admin(parent_id):
-                execute_db("DELETE FROM forum_comments WHERE post_id = ?", (post_id,))
-                execute_db("DELETE FROM forum_votes WHERE post_id = ?", (post_id,))
-                execute_db("DELETE FROM forum_posts WHERE id = ?", (post_id,))
-                return success_response(None, "删除成功")
+        post_result = execute_db("SELECT parent_id FROM forum_posts WHERE id = ?", (post_id,))
+        if not post_result:
+            return error_response("帖子不存在", status=404)
 
-            post_result = execute_db("SELECT parent_id FROM forum_posts WHERE id = ?", (post_id,))
-            if post_result and post_result[0][0] == parent_id:
-                execute_db("DELETE FROM forum_comments WHERE post_id = ?", (post_id,))
-                execute_db("DELETE FROM forum_votes WHERE post_id = ?", (post_id,))
-                execute_db("DELETE FROM forum_posts WHERE id = ?", (post_id,))
-                return success_response(None, "删除成功")
-
+        if not is_admin(request.user_id) and post_result[0][0] != request.user_id:
             return error_response("无权删除此帖子", status=403)
 
         execute_db("DELETE FROM forum_comments WHERE post_id = ?", (post_id,))
@@ -331,12 +317,12 @@ def delete_post(post_id):
 
 
 @forum_bp.route("/posts/<int:post_id>/pin", methods=["POST"])
+@require_auth
 def pin_post(post_id):
     data = request.json
-    parent_id = data.get("parent_id")
     is_pinned = data.get("is_pinned", 1)
 
-    if not is_admin(parent_id):
+    if not is_admin(request.user_id):
         return error_response("无权操作", status=403)
 
     try:
@@ -348,12 +334,12 @@ def pin_post(post_id):
 
 
 @forum_bp.route("/posts/<int:post_id>/essential", methods=["POST"])
+@require_auth
 def essential_post(post_id):
     data = request.json
-    parent_id = data.get("parent_id")
     is_essential = data.get("is_essential", 1)
 
-    if not is_admin(parent_id):
+    if not is_admin(request.user_id):
         return error_response("无权操作", status=403)
 
     try:
@@ -439,18 +425,18 @@ def get_comments():
 
 
 @forum_bp.route("/comments", methods=["POST"])
+@require_auth
 def create_comment():
     data = request.json
     post_id = data.get("post_id")
-    parent_id = data.get("parent_id")
     content = data.get("content")
 
-    if not post_id or not parent_id or not content:
-        return error_response("帖子ID、家长ID和内容不能为空", status=400)
+    if not post_id or not content:
+        return error_response("帖子ID和内容不能为空", status=400)
 
     result, comment_id = execute_db(
         "INSERT INTO forum_comments (post_id, parent_id, content) VALUES (?, ?, ?)",
-        (post_id, parent_id, content),
+        (post_id, request.user_id, content),
         fetch_last_id=True,
     )
 
@@ -458,16 +444,13 @@ def create_comment():
 
 
 @forum_bp.route("/vote", methods=["POST"])
+@require_auth
 def vote():
     data = request.json
-    parent_id = data.get("parent_id")
     vote_type = data.get("vote_type")
     post_id = data.get("post_id")
     comment_id = data.get("comment_id")
 
-    # 增强参数校验
-    if not parent_id:
-        return error_response("用户ID不能为空", status=400)
     if vote_type is None:
         return error_response("投票类型不能为空", status=400)
     if not post_id and not comment_id:
@@ -476,9 +459,7 @@ def vote():
         return error_response("不能同时指定帖子和评论", status=400)
 
     try:
-        # 根据是帖子还是评论构建不同的查询条件
         if post_id:
-            # 检查帖子是否存在
             post_exists = execute_db("SELECT id FROM forum_posts WHERE id = ?", (post_id,))
             if not post_exists:
                 return error_response("帖子不存在", status=404)
@@ -488,39 +469,35 @@ def vote():
                 SELECT id FROM forum_votes
                 WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
             """,
-                (parent_id, post_id),
+                (request.user_id, post_id),
             )
 
             if existing:
                 if vote_type == 0:
-                    # 取消投票
                     execute_db(
                         """
                         DELETE FROM forum_votes
                         WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
                     """,
-                        (parent_id, post_id),
+                        (request.user_id, post_id),
                     )
                 else:
-                    # 更新投票类型
                     execute_db(
                         """
                         UPDATE forum_votes SET vote_type = ?
                         WHERE parent_id = ? AND post_id = ? AND comment_id IS NULL
                     """,
-                        (vote_type, parent_id, post_id),
+                        (vote_type, request.user_id, post_id),
                     )
             elif vote_type != 0:
-                # 新增投票
                 execute_db(
                     """
                     INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
                     VALUES (?, ?, NULL, ?)
                 """,
-                    (parent_id, post_id, vote_type),
+                    (request.user_id, post_id, vote_type),
                 )
         elif comment_id:
-            # 检查评论是否存在
             comment_exists = execute_db("SELECT id FROM forum_comments WHERE id = ?", (comment_id,))
             if not comment_exists:
                 return error_response("评论不存在", status=404)
@@ -530,36 +507,33 @@ def vote():
                 SELECT id FROM forum_votes
                 WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
             """,
-                (parent_id, comment_id),
+                (request.user_id, comment_id),
             )
 
             if existing:
                 if vote_type == 0:
-                    # 取消投票
                     execute_db(
                         """
                         DELETE FROM forum_votes
                         WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
                     """,
-                        (parent_id, comment_id),
+                        (request.user_id, comment_id),
                     )
                 else:
-                    # 更新投票类型
                     execute_db(
                         """
                         UPDATE forum_votes SET vote_type = ?
                         WHERE parent_id = ? AND post_id IS NULL AND comment_id = ?
                     """,
-                        (vote_type, parent_id, comment_id),
+                        (vote_type, request.user_id, comment_id),
                     )
             elif vote_type != 0:
-                # 新增投票
                 execute_db(
                     """
                     INSERT INTO forum_votes (parent_id, post_id, comment_id, vote_type)
                     VALUES (?, NULL, ?, ?)
                 """,
-                    (parent_id, comment_id, vote_type),
+                    (request.user_id, comment_id, vote_type),
                 )
 
         return success_response(None, "投票成功")
@@ -638,6 +612,7 @@ def get_categories():
 
 
 @forum_bp.route("/upload/image", methods=["POST"])
+@require_auth
 def upload_image():
     if "image" not in request.files:
         return error_response("没有上传图片", status=400)
@@ -650,7 +625,8 @@ def upload_image():
     if "." not in file.filename or file.filename.rsplit(".", 1)[1].lower() not in allowed_extensions:
         return error_response("不支持的文件格式", status=400)
 
-    filename = f"{uuid.uuid4().hex}.{file.filename.rsplit('.', 1)[1].lower()}"
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    filename = f"{request.user_id}_{uuid.uuid4().hex}.{ext}"
     upload_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
     file_path = os.path.join(upload_dir, filename)
