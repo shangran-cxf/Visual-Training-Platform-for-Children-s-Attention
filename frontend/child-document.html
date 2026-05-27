@@ -192,6 +192,29 @@
         justify-content: center;
       }
 
+      /* Toast 提示样式 */
+      .child-doc-toast {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #343559;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 15px;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+      .child-doc-toast.show {
+        opacity: 1;
+      }
+      .child-doc-toast.error {
+        background: #e74c3c;
+      }
+
       /* 响应式设计 */
       @media (max-width: 1200px) {
         .main-content {
@@ -229,6 +252,25 @@
       <!-- 右上卡片 - 儿童信息 -->
       <div class="card right-top-card">
         <div class="card-header">训练评析</div>
+
+        <!-- 儿童基本信息 -->
+        <div
+          id="child-info"
+          style="
+            margin-top: 16px;
+            color: #555;
+            font-size: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+          "
+        >
+          <span>姓名：<span id="child-name">-</span></span>
+          <span>年龄：<span id="child-age">-</span></span>
+          <span>训练时长：<span id="training-time">0分钟</span></span>
+          <span>完成课程：<span id="completed-courses">0次</span></span>
+          <span style="grid-column: 1 / -1">当前水平：<span id="current-level">-</span></span>
+        </div>
 
         <!-- AI 评价区域 -->
         <div
@@ -318,6 +360,25 @@
         },
       };
 
+      // Toast 提示
+      function showToast(msg, type) {
+        const existing = document.querySelector('.child-doc-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = 'child-doc-toast ' + (type || '');
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        requestAnimationFrame(function () {
+          toast.classList.add('show');
+        });
+        setTimeout(function () {
+          toast.classList.remove('show');
+          setTimeout(function () {
+            toast.remove();
+          }, 300);
+        }, 2000);
+      }
+
       // ===== 页面初始化 =====
 
       // 页面初始化在 DOMContentLoaded 事件中执行
@@ -353,7 +414,7 @@
           document.getElementById('selected-child-name').textContent = '加载中...';
 
           const result = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
-          childrenList = result.data || result || [];
+          childrenList = result.data || [];
 
           const optionsContainer = document.querySelector('.child-selector-options');
           if (!optionsContainer) {
@@ -392,11 +453,11 @@
           console.error('加载儿童列表失败:', error);
           document.getElementById('selected-child-name').textContent = '加载失败';
           // 显示错误提示
-          alert('加载儿童信息失败，请刷新页面重试');
+          showToast('加载儿童信息失败，请刷新页面重试', 'error');
         }
       }
 
-      function selectChild(element, childId) {
+      async function selectChild(element, childId) {
         // 移除所有活跃状态
         document.querySelectorAll('.child-option').forEach((option) => {
           option.classList.remove('active');
@@ -418,26 +479,35 @@
         arrow.classList.remove('active');
 
         currentChildId = childId;
-        updateChildInfo(childId);
+        await updateChildInfo(childId);
 
         // 更新图表
-        updateCharts(childId);
-        drawGrowthChart(childId);
+        await updateCharts(childId);
+        await drawGrowthChart(childId);
       }
 
       // 从后端获取儿童数据
       async function fetchChildData(childId) {
         try {
-          // 检查缓存
+          // 检查缓存（5分钟过期）
           const cacheKey = `child_data_${childId}`;
-          const cachedData = localStorage.getItem(cacheKey);
-          if (cachedData) {
+          const cachedRaw = localStorage.getItem(cacheKey);
+          if (cachedRaw) {
             try {
-              return JSON.parse(cachedData);
+              const cached = JSON.parse(cachedRaw);
+              if (cached._ts) {
+                if (Date.now() - cached._ts < 5 * 60 * 1000) {
+                  return cached.data;
+                }
+              } else {
+                // 旧格式缓存，补上时间戳继续用，5分钟后自然过期
+                localStorage.setItem(cacheKey, JSON.stringify({ data: cached, _ts: Date.now() }));
+                return cached;
+              }
             } catch (parseError) {
               console.error('解析缓存数据失败:', parseError);
-              localStorage.removeItem(cacheKey);
             }
+            localStorage.removeItem(cacheKey);
           }
 
           // 并行请求数据
@@ -448,9 +518,9 @@
           ]);
 
           // 数据验证和处理
-          const stats = statsResult.data || statsResult || {};
-          const detection = detectionResult.data || detectionResult || [];
-          const trend = trendResult.data || trendResult || {};
+          const stats = statsResult.data || {};
+          const detection = detectionResult.data || [];
+          const trend = trendResult.data || {};
 
           const child =
             childrenList && Array.isArray(childrenList) ? childrenList.find((c) => c.id === childId) || {} : {};
@@ -485,23 +555,15 @@
             info: {
               name: child.name || '-',
               age: child.age ? `${child.age}岁` : '-',
-              gender: '-',
-              time: stats.training_time ? `${stats.training_time}分钟` : '0分钟',
+              time: stats.training_time ? `${Math.round((stats.training_time / 60) * 10) / 10}分钟` : '0分钟',
               courses: stats.training_count ? `${stats.training_count}次` : '0次',
               level: stats.avg_score ? `平均分 ${stats.avg_score}` : '-',
             },
             radarData: radarData,
           };
 
-          // 缓存数据（5分钟）
           try {
-            localStorage.setItem(cacheKey, JSON.stringify(result));
-            setTimeout(
-              () => {
-                localStorage.removeItem(cacheKey);
-              },
-              5 * 60 * 1000,
-            );
+            localStorage.setItem(cacheKey, JSON.stringify({ data: result, _ts: Date.now() }));
           } catch (cacheError) {
             console.error('缓存数据失败:', cacheError);
           }
@@ -514,7 +576,6 @@
             info: {
               name: '-',
               age: '-',
-              gender: '-',
               time: '0分钟',
               courses: '0次',
               level: '-',
@@ -531,14 +592,12 @@
           const info = childData.info;
           const childNameEl = document.getElementById('child-name');
           const childAgeEl = document.getElementById('child-age');
-          const childGenderEl = document.getElementById('child-gender');
           const trainingTimeEl = document.getElementById('training-time');
           const completedCoursesEl = document.getElementById('completed-courses');
           const currentLevelEl = document.getElementById('current-level');
 
           if (childNameEl) childNameEl.textContent = info.name;
           if (childAgeEl) childAgeEl.textContent = info.age;
-          if (childGenderEl) childGenderEl.textContent = info.gender;
           if (trainingTimeEl) trainingTimeEl.textContent = info.time;
           if (completedCoursesEl) completedCoursesEl.textContent = info.courses;
           if (currentLevelEl) currentLevelEl.textContent = info.level;
@@ -699,13 +758,12 @@
             loadingEl.style.display = 'none';
             contentEl.style.display = 'block';
           } else {
-            // 即使 API 失败，也要显示默认内容，避免页面卡住
             const defaultEvaluation = {
-              summary: '暂无训练数据，快去做训练吧！',
+              summary: 'AI 评价生成失败，请稍后重试',
               strengths: ['暂无数据'],
               weaknesses: ['暂无数据'],
               suggestions: ['暂无数据'],
-              home_guidance: '暂无指导，完成训练后将生成专业建议',
+              home_guidance: '完成训练后将生成专业建议',
             };
             displayEvaluation(defaultEvaluation);
             loadingEl.style.display = 'none';
@@ -877,32 +935,36 @@
 
           // 页面加载完成后初始化
           try {
-            // 检查缓存
+            // 检查缓存（10分钟过期）
             const cacheKey = `growth_data_${childId}`;
-            const cachedData = localStorage.getItem(cacheKey);
+            const cachedRaw = localStorage.getItem(cacheKey);
             let trendData;
 
-            if (cachedData) {
+            if (cachedRaw) {
               try {
-                trendData = JSON.parse(cachedData);
+                const cached = JSON.parse(cachedRaw);
+                if (cached._ts) {
+                  if (Date.now() - cached._ts < 10 * 60 * 1000) {
+                    trendData = cached.data;
+                  }
+                } else {
+                  // 旧格式缓存，补上时间戳继续用，10分钟后自然过期
+                  localStorage.setItem(cacheKey, JSON.stringify({ data: cached, _ts: Date.now() }));
+                  trendData = cached;
+                }
               } catch (parseError) {
                 console.error('解析缓存数据失败:', parseError);
                 localStorage.removeItem(cacheKey);
                 trendData = null;
               }
-            } else {
+            }
+
+            if (!trendData) {
               const result = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
               trendData = result.data || result;
 
-              // 缓存数据（10分钟）
               try {
-                localStorage.setItem(cacheKey, JSON.stringify(trendData));
-                setTimeout(
-                  () => {
-                    localStorage.removeItem(cacheKey);
-                  },
-                  10 * 60 * 1000,
-                );
+                localStorage.setItem(cacheKey, JSON.stringify({ data: trendData, _ts: Date.now() }));
               } catch (cacheError) {
                 console.error('缓存数据失败:', cacheError);
               }
@@ -1044,12 +1106,25 @@
         } catch (error) {
           console.error('页面初始化失败:', error);
           // 显示错误提示
-          alert('页面加载失败，请刷新重试');
+          showToast('页面加载失败，请刷新重试', 'error');
         }
       });
 
       // 防抖函数
       let resizeTimeout = null;
+
+      // 点击外部关闭儿童选择器下拉
+      document.addEventListener('click', function (e) {
+        const selector = document.querySelector('.child-selector');
+        if (selector && !selector.contains(e.target)) {
+          const header = document.querySelector('.child-selector-header');
+          const options = document.querySelector('.child-selector-options');
+          const arrow = document.querySelector('.child-selector-arrow');
+          header.classList.remove('active');
+          options.classList.remove('active');
+          arrow.classList.remove('active');
+        }
+      });
 
       // 窗口大小改变时重绘图表
       window.addEventListener('resize', function () {
