@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 
 from database import execute_db
 from middleware import require_auth
@@ -33,7 +33,7 @@ def get_children(parent_id):
     result = execute_db("SELECT id, name, age FROM children WHERE parent_id = ?", (parent_id,))
 
     children = [{"id": c[0], "name": c[1], "age": c[2]} for c in result]
-    return jsonify(children), 200
+    return success_response(children)
 
 
 @children_bp.route("/api/children/<int:child_id>", methods=["DELETE"])
@@ -92,13 +92,12 @@ def get_child_stats(child_id):
             COUNT(ts.id) as training_count,
             COALESCE(SUM(ts.duration), 0) as total_time,
             COALESCE(AVG(ss.overall_score), 0) as avg_score,
-            COUNT(ub.id) as badges_count
+            (SELECT COUNT(*) FROM user_badges WHERE child_id = ?) as badges_count
         FROM training_sessions ts
         LEFT JOIN session_summaries ss ON ts.id = ss.session_id
-        LEFT JOIN user_badges ub ON ts.child_id = ub.child_id
         WHERE ts.child_id = ?
     """,
-        (child_id,),
+        (child_id, child_id),
     )
 
     return success_response(
