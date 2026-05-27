@@ -496,16 +496,53 @@
       // 游戏数据 & 研究参数 (基于Stroop范式，抑制控制训练)
       // 文献依据：方浩团队JMIR (2025)，ReStroop游戏 (arXiv 2025)
       // ========================
-      const ITEMS = {
+      
+      // 简单难度的垃圾项目
+      const EASY_ITEMS = {
         苹果核: { category: '厨余垃圾', emoji: '🍎', imageEmoji: '🍎' },
         香蕉皮: { category: '厨余垃圾', emoji: '🍌', imageEmoji: '🍌' },
         塑料瓶: { category: '可回收', emoji: '🧴', imageEmoji: '🧴' },
         报纸: { category: '可回收', emoji: '📰', imageEmoji: '📰' },
         电池: { category: '有害垃圾', emoji: '🔋', imageEmoji: '🔋' },
+        脏纸巾: { category: '其他垃圾', emoji: '🧻', imageEmoji: '🧻' },
+      };
+      
+      // 中等难度的垃圾项目（增加更多种类）
+      const MEDIUM_ITEMS = {
+        苹果核: { category: '厨余垃圾', emoji: '🍎', imageEmoji: '🍎' },
+        香蕉皮: { category: '厨余垃圾', emoji: '🍌', imageEmoji: '🍌' },
+        剩饭菜: { category: '厨余垃圾', emoji: '🍛', imageEmoji: '🍛' },
+        塑料瓶: { category: '可回收', emoji: '🧴', imageEmoji: '🧴' },
+        报纸: { category: '可回收', emoji: '📰', imageEmoji: '📰' },
+        易拉罐: { category: '可回收', emoji: '🥤', imageEmoji: '🥤' },
+        电池: { category: '有害垃圾', emoji: '🔋', imageEmoji: '🔋' },
         过期药品: { category: '有害垃圾', emoji: '💊', imageEmoji: '💊' },
         脏纸巾: { category: '其他垃圾', emoji: '🧻', imageEmoji: '🧻' },
         一次性餐具: { category: '其他垃圾', emoji: '🥢', imageEmoji: '🥢' },
       };
+      
+      // 困难难度的垃圾项目（更多种类）
+      const HARD_ITEMS = {
+        苹果核: { category: '厨余垃圾', emoji: '🍎', imageEmoji: '🍎' },
+        香蕉皮: { category: '厨余垃圾', emoji: '🍌', imageEmoji: '🍌' },
+        剩饭菜: { category: '厨余垃圾', emoji: '🍛', imageEmoji: '🍛' },
+        骨头: { category: '厨余垃圾', emoji: '🍖', imageEmoji: '🍖' },
+        蛋壳: { category: '厨余垃圾', emoji: '🥚', imageEmoji: '🥚' },
+        塑料瓶: { category: '可回收', emoji: '🧴', imageEmoji: '🧴' },
+        报纸: { category: '可回收', emoji: '📰', imageEmoji: '📰' },
+        易拉罐: { category: '可回收', emoji: '🥤', imageEmoji: '🥤' },
+        玻璃瓶: { category: '可回收', emoji: '🍾', imageEmoji: '🍾' },
+        旧衣服: { category: '可回收', emoji: '👕', imageEmoji: '👕' },
+        电池: { category: '有害垃圾', emoji: '🔋', imageEmoji: '🔋' },
+        过期药品: { category: '有害垃圾', emoji: '💊', imageEmoji: '💊' },
+        油漆桶: { category: '有害垃圾', emoji: '🪣', imageEmoji: '🪣' },
+        杀虫剂: { category: '有害垃圾', emoji: '🧪', imageEmoji: '🧪' },
+        脏纸巾: { category: '其他垃圾', emoji: '🧻', imageEmoji: '🧻' },
+        一次性餐具: { category: '其他垃圾', emoji: '🥢', imageEmoji: '🥢' },
+        烟蒂: { category: '其他垃圾', emoji: '🚬', imageEmoji: '🚬' },
+        陶瓷碎片: { category: '其他垃圾', emoji: '🗑️', imageEmoji: '🗑️' },
+      };
+      
       const CATEGORIES = ['厨余垃圾', '可回收', '有害垃圾', '其他垃圾'];
       const CATEGORY_EMOJI = {
         厨余垃圾: '🍂',
@@ -514,11 +551,11 @@
         其他垃圾: '🗑️',
       };
 
-      // 难度参数 (反应窗口基于849-969ms研究区间)
+      // 难度参数 (难度固定，根据用户选择设置不同的试次数量、时间限制和不一致比例)
       const DIFFICULTY_SETTINGS = {
-        easy: { timeLimit: 4000, incongruentRatio: 0.3, name: '简单', stars: '⭐' },
-        medium: { timeLimit: 3500, incongruentRatio: 0.5, name: '中等', stars: '⭐⭐' },
-        hard: { timeLimit: 2900, incongruentRatio: 0.7, name: '困难', stars: '⭐⭐⭐' },
+        easy: { timeLimit: 4000, incongruentRatio: 0.3, name: '简单', stars: '⭐', totalTrials: 20, items: EASY_ITEMS },
+        medium: { timeLimit: 3500, incongruentRatio: 0.5, name: '中等', stars: '⭐⭐', totalTrials: 30, items: MEDIUM_ITEMS },
+        hard: { timeLimit: 2900, incongruentRatio: 0.7, name: '困难', stars: '⭐⭐⭐', totalTrials: 40, items: HARD_ITEMS },
       };
 
       // 言语鼓励库 (金币+语音表情鼓励: 研究证实最优)
@@ -606,10 +643,12 @@
 
       // 生成不一致/一致试次 (Stroop核心)
       function generateTrial() {
+        const settings = DIFFICULTY_SETTINGS[gameState.currentDifficulty];
+        const ITEMS = settings.items; // 使用当前难度对应的物品列表
         const itemNames = Object.keys(ITEMS);
         const randomItem = itemNames[Math.floor(Math.random() * itemNames.length)];
         const correctCategory = ITEMS[randomItem].category;
-        const ratio = DIFFICULTY_SETTINGS[gameState.currentDifficulty].incongruentRatio;
+        const ratio = settings.incongruentRatio;
         const isIncongruent = Math.random() < ratio;
 
         let distractorText;
@@ -626,7 +665,7 @@
           correctCategory: correctCategory,
           distractorText: distractorText,
           isIncongruent: isIncongruent,
-          timeLimit: DIFFICULTY_SETTINGS[gameState.currentDifficulty].timeLimit,
+          timeLimit: settings.timeLimit,
         };
       }
 
@@ -761,31 +800,8 @@
           reactionTime: reactionTime,
           difficulty: gameState.currentDifficulty,
         });
-        if (gameState.trialHistory.length > 40) gameState.trialHistory.shift();
-
-        // 自适应难度调整（每5次更新）
-        if (gameState.trialHistory.length >= 10 && gameState.trialHistory.length % 5 === 0) {
-          adjustDifficultyByPerformance();
-        }
-      }
-
-      function adjustDifficultyByPerformance() {
-        const recent = gameState.trialHistory.slice(-12);
-        const incongruentTrials = recent.filter((t) => t.isIncongruent === true);
-        if (incongruentTrials.length < 5) return;
-        const correctIncongruent = incongruentTrials.filter((t) => t.isCorrect).length;
-        const correctRate = correctIncongruent / incongruentTrials.length;
-        let newDiff = gameState.currentDifficulty;
-
-        if (correctRate > 0.75 && gameState.currentDifficulty === 'easy') newDiff = 'medium';
-        else if (correctRate > 0.75 && gameState.currentDifficulty === 'medium') newDiff = 'hard';
-        else if (correctRate < 0.5 && gameState.currentDifficulty === 'hard') newDiff = 'medium';
-        else if (correctRate < 0.45 && gameState.currentDifficulty === 'medium') newDiff = 'easy';
-
-        if (newDiff !== gameState.currentDifficulty) {
-          gameState.currentDifficulty = newDiff;
-          updateUIStats();
-          showFeedbackMessage(`🌟 难度调整：${DIFFICULTY_SETTINGS[newDiff].name}`, true);
+        if (gameState.trialHistory.length > DIFFICULTY_SETTINGS[gameState.currentDifficulty].totalTrials) {
+          gameState.trialHistory.shift();
         }
       }
 
@@ -801,7 +817,8 @@
 
       async function nextTrial() {
         if (!active) return;
-        if (gameState.totalCount >= 40) {
+        const settings = DIFFICULTY_SETTINGS[gameState.currentDifficulty];
+        if (gameState.totalCount >= settings.totalTrials) {
           endGame();
           return;
         }
@@ -895,8 +912,8 @@
           startGame();
         });
         document.getElementById('backToStartBtn')?.addEventListener('click', () => {
-          container.innerHTML = '';
-          startScreen.classList.remove('hidden');
+          // 完全重置游戏状态并重新加载页面返回到开始界面（显示难度选择）
+          window.location.reload();
         });
         document.getElementById('completeDetectionBtn')?.addEventListener('click', () => {
           // 发送游戏完成事件给父窗口
@@ -914,6 +931,8 @@
               '*',
             );
           }
+          // 完全重置游戏状态并重新加载页面返回到开始界面（显示难度选择）
+          window.location.reload();
         });
       }
 
