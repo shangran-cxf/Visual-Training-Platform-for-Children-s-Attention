@@ -415,6 +415,7 @@
       let timeInterval;
       let currentDifficulty = 'easy'; // 默认难度
       let totalPairs = 4; // 默认4对（8张）
+      let flipAttempts = 0; // 记录翻牌尝试次数，用于计算顺序保持能力
 
       // 显示自定义弹窗
       function showAlert(title, message) {
@@ -533,6 +534,7 @@
 
         // 检查是否翻转了两张卡牌
         if (flippedCards.length === 2) {
+          flipAttempts++; // 记录一次翻牌尝试
           setTimeout(checkMatch, 500);
         }
       }
@@ -677,20 +679,27 @@
         });
       }
 
-      // 结束游戏
+      // 计算工作记忆得分
       function calculateWorkingMemoryScore() {
         // 计算各项指标
         const acc = totalPairs > 0 ? matchedPairs / totalPairs : 0;
-        // 放宽时间评分：使用更平滑的曲线，超时120秒才扣到0分
+        
+        // 时间评分：使用指数衰减，超时120秒扣到0分
         const timeOvertime = time - 60;
-        const speed = Math.max(0, 1 / (1 + timeOvertime / 90)); // 使用指数衰减
-        const order = 1; // 顺序错误次数（这里简化处理）
+        const speed = Math.max(0, 1 / (1 + timeOvertime / 90));
+        
+        // 顺序保持能力：根据翻牌尝试次数计算
+        // 最优情况下，每对牌只需翻一次（2张），所以期望尝试次数等于总对数
+        const expectedAttempts = totalPairs;
+        const actualAttempts = Math.max(expectedAttempts, flipAttempts); // 实际翻牌尝试次数
+        const orderErrorRatio = Math.max(0, (actualAttempts - expectedAttempts) / expectedAttempts);
+        const order = Math.max(0, 1 - orderErrorRatio * 0.5); // 错误越多，得分越低，最多扣50%
 
-        // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
-        const headStable = 0.8; // 头部稳定性
-        const blinkStable = 0.8; // 眨眼稳定性
+        // 使用实际视觉数据或默认值（0.5表示中等水平）
+        const headStable = window.visionData?.headStable || 0.5;
+        const blinkStable = window.visionData?.blinkStable || 0.5;
 
-        // 计算最终得分
+        // 计算最终得分（权重：正确率40%，顺序保持20%，速度20%，头部稳定12%，眨眼稳定8%）
         const scoreValue = (acc * 0.4 + order * 0.2 + speed * 0.2 + headStable * 0.12 + blinkStable * 0.08) * 100;
 
         return Math.max(0, Math.min(100, Math.round(scoreValue)));
