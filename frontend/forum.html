@@ -1067,8 +1067,10 @@
         ParentComponents.initPage('forum');
         const userInfo = ParentComponents.checkAuth();
         if (userInfo) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const startPage = parseInt(urlParams.get('page')) || 1;
           loadCategories();
-          loadPosts(1);
+          loadPosts(startPage);
           loadHotPosts();
           loadUserStats();
         }
@@ -1254,7 +1256,7 @@
             throw new Error(result.message || '操作失败');
           }
           const data = result.data || result;
-          const posts = showFavoritesOnly ? data : data.posts;
+          const posts = data.posts || data;
 
           if (posts && posts.length > 0) {
             const userInfo = StorageUtil.getItem('userInfo');
@@ -1387,7 +1389,7 @@
       }
 
       function goToPost(postId) {
-        window.location.href = `forum-detail.html?id=${postId}`;
+        window.location.href = `forum-detail.html?id=${postId}&from_page=${currentPage}`;
       }
 
       async function toggleComments(postId) {
@@ -1398,9 +1400,19 @@
 
       async function loadComments(postId) {
         try {
-          const response = await fetch(`/api/forum/comments?post_id=${postId}`);
+          const token = localStorage.getItem('auth_token');
+          const headers = {};
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`/api/forum/comments?post_id=${postId}&page=1&per_page=20`, {
+            headers,
+          });
           const result = await response.json();
           const data = result.data || result;
+          const comments = Array.isArray(data) ? data : data.comments || [];
+          const total = Array.isArray(data) ? data.length : data.total || 0;
           const commentsList = document.getElementById(`comments-list-${postId}`);
 
           // 获取帖子信息，包括收藏状态
@@ -1409,21 +1421,20 @@
           const postData = postResult.data || {};
           const isFavorited = postData.is_favorited || false;
 
-          if (data && data.length > 0) {
-            commentsList.innerHTML =
-              `
+          if (comments.length > 0) {
+            let html = `
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 14px; color: #666;">
-                            <span class="post-stat post-stat-action favorite-action ${isFavorited ? 'active' : ''}" 
+                            <span class="post-stat post-stat-action favorite-action ${isFavorited ? 'active' : ''}"
                                  onclick="toggleFavorite(${postId}, this); event.stopPropagation();">
                                 <span>⭐</span> ${isFavorited ? '已收藏' : '收藏'}
                             </span>
                         </div>
-                    ` +
-              data
-                .map((comment) => {
-                  const safeCommentAuthor = escapeHtml(comment.author_name || '用户');
-                  const initial = safeCommentAuthor.charAt(0).toUpperCase();
-                  return `
+                    `;
+            html += comments
+              .map((comment) => {
+                const safeCommentAuthor = escapeHtml(comment.author_name || '用户');
+                const initial = safeCommentAuthor.charAt(0).toUpperCase();
+                return `
                         <div class="comment">
                             <div class="comment-header">
                                 <div class="comment-avatar">${escapeHtml(initial)}</div>
@@ -1437,12 +1448,18 @@
                             </div>
                         </div>
                     `;
-                })
-                .join('');
+              })
+              .join('');
+            if (total > 20) {
+              html += `<div style="text-align: center; padding: 10px 0; color: #667eea; font-size: 13px;">
+                        <a href="forum-detail.html?id=${postId}" style="color: #667eea;">查看全部 ${total} 条评论 →</a>
+                      </div>`;
+            }
+            commentsList.innerHTML = html;
           } else {
             commentsList.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 14px; color: #666;">
-                            <span class="post-stat post-stat-action favorite-action ${isFavorited ? 'active' : ''}" 
+                            <span class="post-stat post-stat-action favorite-action ${isFavorited ? 'active' : ''}"
                                  onclick="toggleFavorite(${postId}, this); event.stopPropagation();">
                                 <span>⭐</span> ${isFavorited ? '已收藏' : '收藏'}
                             </span>
@@ -2036,16 +2053,21 @@
           if (result.success) {
             if (isFavorited) {
               el.classList.remove('active');
-              const currentCount = parseInt(el.querySelector('.count').textContent) || 0;
-              el.querySelector('.count').textContent = Math.max(0, currentCount - 1);
-              // 如果在收藏页面，重新加载收藏列表
+              const countEl = el.querySelector('.count');
+              if (countEl) {
+                const currentCount = parseInt(countEl.textContent) || 0;
+                countEl.textContent = Math.max(0, currentCount - 1);
+              }
               if (showFavoritesOnly) {
                 loadPosts(currentPage);
               }
             } else {
               el.classList.add('active');
-              const currentCount = parseInt(el.querySelector('.count').textContent) || 0;
-              el.querySelector('.count').textContent = currentCount + 1;
+              const countEl = el.querySelector('.count');
+              if (countEl) {
+                const currentCount = parseInt(countEl.textContent) || 0;
+                countEl.textContent = currentCount + 1;
+              }
             }
             loadUserStats();
           } else {
