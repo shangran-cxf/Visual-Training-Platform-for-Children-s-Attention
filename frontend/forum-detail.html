@@ -633,15 +633,16 @@
           if (data && data.length > 0) {
             commentsList.innerHTML = data
               .map((comment) => {
-                const initial = (comment.author_name || '用户').charAt(0).toUpperCase();
+                const safeCommentAuthor = escapeHtml(comment.author_name || '用户');
+                const initial = safeCommentAuthor.charAt(0).toUpperCase();
                 return `
                     <div class="comment-item">
                         <div class="comment-header">
-                            <div class="comment-avatar">${initial}</div>
-                            <span class="comment-author">${comment.author_name}</span>
-                            <span class="comment-time">${comment.created_at}</span>
+                            <div class="comment-avatar">${escapeHtml(initial)}</div>
+                            <span class="comment-author">${safeCommentAuthor}</span>
+                            <span class="comment-time">${escapeHtml(comment.created_at)}</span>
                         </div>
-                        <div class="comment-content">${comment.content}</div>
+                        <div class="comment-content">${escapeHtml(comment.content)}</div>
                         <div class="comment-actions">
                             <span class="comment-action ${comment.user_vote === 1 ? 'liked' : ''}" onclick="likeComment(${comment.id})"><span>👍</span> ${Math.max(0, comment.like_count || 0)}</span>
                             <span class="comment-action ${comment.user_vote === -1 ? 'disliked' : ''}" onclick="dislikeComment(${comment.id})"><span>👎</span> ${Math.max(0, comment.dislike_count || 0)}</span>
@@ -673,7 +674,7 @@
               'Content-Type': 'application/json',
               Authorization: `Bearer ${userInfo.token}`,
             },
-            body: JSON.stringify({ parent_id: userInfo.parent_id, post_id: postId, vote_type: voteType }),
+            body: JSON.stringify({ post_id: postId, vote_type: voteType }),
           });
           const responseData = await response.json();
           if (responseData.success) {
@@ -885,7 +886,6 @@
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ parent_id: userInfo.parent_id }),
           });
           const result = await response.json();
           if (result.success) {
@@ -916,7 +916,8 @@
           return;
         }
         const userInfo = StorageUtil.getItem('userInfo');
-        if (!userInfo) {
+        const token = localStorage.getItem('auth_token') || (userInfo && userInfo.token);
+        if (!userInfo || !token) {
           alert('请登录');
           return;
         }
@@ -925,9 +926,9 @@
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${userInfo.token}`,
+              Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ post_id: postId, parent_id: userInfo.parent_id, content }),
+            body: JSON.stringify({ post_id: postId, content }),
           });
           if (res.ok) {
             document.getElementById('comment-input').value = '';
@@ -950,7 +951,7 @@
               'Content-Type': 'application/json',
               Authorization: `Bearer ${user.token}`,
             },
-            body: JSON.stringify({ parent_id: user.parent_id, comment_id: cid, vote_type: 1 }),
+            body: JSON.stringify({ comment_id: cid, vote_type: 1 }),
           });
           const result = await response.json();
           if (result.success) {
@@ -971,7 +972,7 @@
               'Content-Type': 'application/json',
               Authorization: `Bearer ${user.token}`,
             },
-            body: JSON.stringify({ parent_id: user.parent_id, comment_id: cid, vote_type: -1 }),
+            body: JSON.stringify({ comment_id: cid, vote_type: -1 }),
           });
           const result = await response.json();
           if (result.success) {
@@ -1002,7 +1003,7 @@
               'Content-Type': 'application/json',
               Authorization: `Bearer ${user.token}`,
             },
-            body: JSON.stringify({ parent_id: user.parent_id, title: t, content: c }),
+            body: JSON.stringify({ title: t, content: c }),
           }).then((res) => {
             if (res.ok) loadPost();
             else alert('失败');
@@ -1019,7 +1020,6 @@
             'Content-Type': 'application/json',
             Authorization: `Bearer ${user.token}`,
           },
-          body: JSON.stringify({ parent_id: user.parent_id }),
         });
         if (res.ok) {
           alert('删除成功');
@@ -1035,7 +1035,7 @@
             'Content-Type': 'application/json',
             Authorization: `Bearer ${user.token}`,
           },
-          body: JSON.stringify({ parent_id: user.parent_id, is_pinned: postData.is_pinned ? 0 : 1 }),
+          body: JSON.stringify({ is_pinned: postData.is_pinned ? 0 : 1 }),
         });
         loadPost();
       }
@@ -1048,7 +1048,7 @@
             'Content-Type': 'application/json',
             Authorization: `Bearer ${user.token}`,
           },
-          body: JSON.stringify({ parent_id: user.parent_id, is_essential: postData.is_essential ? 0 : 1 }),
+          body: JSON.stringify({ is_essential: postData.is_essential ? 0 : 1 }),
         });
         loadPost();
       }

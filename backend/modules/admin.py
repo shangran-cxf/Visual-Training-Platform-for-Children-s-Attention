@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from database import execute_db
+from middleware import require_admin
 from utils import build_update_sql, check_user_exists, error_response, is_admin, success_response
 from utils.password_utils import hash_password
 
@@ -8,6 +9,7 @@ admin_bp = Blueprint("admin", __name__)
 
 
 @admin_bp.route("/api/admin/users", methods=["GET"])
+@require_admin
 def get_users():
     result = execute_db("""
         SELECT p.id, p.uid, p.username, p.role, p.is_banned,
@@ -25,6 +27,7 @@ def get_users():
 
 
 @admin_bp.route("/api/admin/ban_user", methods=["POST"])
+@require_admin
 def ban_user():
     data = request.json
     user_id = data.get("user_id")
@@ -48,6 +51,7 @@ def ban_user():
 
 
 @admin_bp.route("/api/admin/reset_password", methods=["POST"])
+@require_admin
 def reset_password():
     data = request.json
     user_id = data.get("user_id")
@@ -65,6 +69,7 @@ def reset_password():
 
 
 @admin_bp.route("/api/admin/edit_user", methods=["POST"])
+@require_admin
 def edit_user():
     data = request.json
     user_id = data.get("user_id")
@@ -98,6 +103,7 @@ def edit_user():
 
 
 @admin_bp.route("/api/admin/stats", methods=["GET"])
+@require_admin
 def get_admin_stats():
     users = execute_db("SELECT COUNT(*) FROM parents WHERE role = 'user'")[0][0]
     admins = execute_db("SELECT COUNT(*) FROM parents WHERE role = 'admin'")[0][0]
@@ -112,6 +118,7 @@ def get_admin_stats():
 
 
 @admin_bp.route("/api/admin/all-training", methods=["GET"])
+@require_admin
 def get_all_training():
     limit = request.args.get("limit", 50, type=int)
     offset = request.args.get("offset", 0, type=int)
@@ -148,6 +155,7 @@ def get_all_training():
 
 
 @admin_bp.route("/api/admin/all-children", methods=["GET"])
+@require_admin
 def get_all_children():
     result = execute_db("""
         SELECT c.id, c.name, c.age, p.username,
@@ -163,6 +171,7 @@ def get_all_children():
 
 
 @admin_bp.route("/api/admin/delete_user/<int:user_id>", methods=["DELETE"])
+@require_admin
 def delete_user(user_id):
     if not check_user_exists(user_id=user_id):
         return error_response("用户不存在", status=404)

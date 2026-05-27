@@ -559,6 +559,17 @@ function getBaseUrl() {
   return isLocal ? 'http://localhost:5000' : window.location.origin;
 }
 
+// HTML 转义函数，防止 XSS 攻击
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // 导出类
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { UserStateUtil, StorageUtil, MedalUtil, getBaseUrl };
@@ -567,4 +578,5 @@ if (typeof module !== 'undefined' && module.exports) {
   window.StorageUtil = StorageUtil;
   window.MedalUtil = MedalUtil;
   window.getBaseUrl = getBaseUrl;
+  window.escapeHtml = escapeHtml;
 }

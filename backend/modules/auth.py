@@ -3,8 +3,8 @@ import sqlite3
 from flask import Blueprint, jsonify, request
 
 from database import execute_db
-from middleware import generate_token
-from utils import build_update_sql, check_user_exists, error_response, success_response
+from middleware import generate_token, require_auth
+from utils import build_update_sql, error_response, success_response
 from utils.password_utils import hash_password, is_bcrypt_hash, verify_password
 
 auth_bp = Blueprint("auth", __name__)
@@ -104,6 +104,7 @@ def login():
 
 
 @auth_bp.route("/api/user/query", methods=["GET"])
+@require_auth
 def query_user():
     query_type = request.args.get("type")
     value = request.args.get("value")
@@ -133,19 +134,16 @@ def query_user():
 
 
 @auth_bp.route("/api/user/change-password", methods=["POST"])
+@require_auth
 def change_password():
     data = request.json
-    parent_id = data.get("parent_id")
     old_password = data.get("old_password")
     new_password = data.get("new_password")
 
-    if not parent_id or not old_password or not new_password:
+    if not old_password or not new_password:
         return error_response("参数不完整", status=400)
 
-    if not check_user_exists(user_id=parent_id):
-        return error_response("用户不存在", status=404)
-
-    user = execute_db("SELECT id, password FROM parents WHERE id = ?", (parent_id,))
+    user = execute_db("SELECT id, password FROM parents WHERE id = ?", (request.user_id,))
     stored_password = user[0][1]
     password_valid = False
 
@@ -158,7 +156,7 @@ def change_password():
         return error_response("旧密码错误", status=400)
 
     hashed_password = hash_password(new_password)
-    execute_db("UPDATE parents SET password = ? WHERE id = ?", (hashed_password, parent_id))
+    execute_db("UPDATE parents SET password = ? WHERE id = ?", (hashed_password, request.user_id))
     return success_response(None, "密码修改成功")
 
 
@@ -190,25 +188,19 @@ def verify_password_endpoint():
 
 @auth_bp.route("/api/user/update", methods=["POST"])
 @auth_bp.route("/api/user/update-profile", methods=["POST"])
+@require_auth
 def update_user_info():
     data = request.json
-    parent_id = data.get("parent_id")
     username = data.get("username")
     email = data.get("email")
     avatar = data.get("avatar")
     old_password = data.get("old_password")
     new_password = data.get("password")
 
-    if not parent_id:
-        return error_response("缺少parent_id参数", status=400)
-
-    if not check_user_exists(user_id=parent_id):
-        return error_response("用户不存在", status=404)
-
     update_data = {}
 
     if username is not None:
-        existing = execute_db("SELECT id FROM parents WHERE username = ? AND id != ?", (username, parent_id))
+        existing = execute_db("SELECT id FROM parents WHERE username = ? AND id != ?", (username, request.user_id))
         if existing:
             return error_response("用户名已被使用", status=400)
         update_data["username"] = username
@@ -220,7 +212,7 @@ def update_user_info():
         update_data["avatar"] = avatar
 
     if new_password:
-        user = execute_db("SELECT password FROM parents WHERE id = ?", (parent_id,))
+        user = execute_db("SELECT password FROM parents WHERE id = ?", (request.user_id,))
         stored_password = user[0][0] if user else None
         password_valid = False
 
@@ -239,23 +231,17 @@ def update_user_info():
         return error_response("没有需要更新的字段", status=400)
 
     sql, params = build_update_sql("parents", update_data, "id = ?")
-    execute_db(sql, params + (parent_id,))
+    execute_db(sql, params + (request.user_id,))
 
     return success_response(None, "更新成功")
 
 
 @auth_bp.route("/api/user/avatar", methods=["POST"])
+@require_auth
 def upload_avatar():
     import os
 
     from werkzeug.utils import secure_filename
-
-    parent_id = request.form.get("parent_id")
-    if not parent_id:
-        return error_response("缺少parent_id参数", status=400)
-
-    if not check_user_exists(user_id=parent_id):
-        return error_response("用户不存在", status=404)
 
     if "avatar" not in request.files:
         return error_response("缺少头像文件", status=400)
@@ -264,24 +250,18 @@ def upload_avatar():
     if file.filename == "":
         return error_response("没有选择文件", status=400)
 
-    # 确保上传目录存在
     upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
     if not os.path.exists(upload_folder):
         os.makedirs(upload_folder)
 
-    # 生成安全的文件名
     filename = secure_filename(file.filename)
-    # 添加parent_id作为前缀，确保文件名唯一
-    unique_filename = f"{parent_id}_{filename}"
+    unique_filename = f"{request.user_id}_{filename}"
     file_path = os.path.join(upload_folder, unique_filename)
 
-    # 保存文件
     file.save(file_path)
 
-    # 生成访问URL
     avatar_url = f"/uploads/{unique_filename}"
 
-    # 更新数据库中的头像URL
-    execute_db("UPDATE parents SET avatar = ? WHERE id = ?", (avatar_url, parent_id))
+    execute_db("UPDATE parents SET avatar = ? WHERE id = ?", (avatar_url, request.user_id))
 
     return success_response({"avatar_url": avatar_url}, "头像上传成功")

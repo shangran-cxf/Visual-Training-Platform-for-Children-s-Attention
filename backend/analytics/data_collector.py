@@ -1039,6 +1039,7 @@ def get_training_trend(child_id):
 
 
 @data_collector_bp.route("/api/upload/detection", methods=["POST"])
+@require_auth
 def upload_detection():
     data = request.json
     child_id = data.get("child_id")
@@ -1072,6 +1073,7 @@ def upload_detection():
 
 
 @data_collector_bp.route("/api/get/detection", methods=["GET"])
+@require_auth
 def get_detection():
     child_id = request.args.get("child_id")
 
