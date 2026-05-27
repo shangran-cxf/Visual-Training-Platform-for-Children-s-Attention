@@ -650,10 +650,21 @@ const ParentComponents = {
       if (editUsername) editUsername.value = data.username || userInfo.username || '';
       if (editEmail) editEmail.value = data.email || '';
 
+      // 同步 username/email 到 localStorage
+      let needSync = false;
+      if (data.username && data.username !== userInfo.username) {
+        userInfo.username = data.username;
+        needSync = true;
+      }
+      if (data.email !== undefined && data.email !== userInfo.email) {
+        userInfo.email = data.email;
+        needSync = true;
+      }
+
       // 设置头像
       if (data.avatar) {
         userInfo.avatar = data.avatar;
-        StorageUtil.setItem('userInfo', userInfo);
+        needSync = true;
 
         if (avatarElement) {
           this._setAvatarImg(avatarElement, data.avatar);
@@ -664,6 +675,10 @@ const ParentComponents = {
       } else if (avatarInitialElement) {
         const initial = (data.username || userInfo.username || 'U').charAt(0).toUpperCase();
         avatarInitialElement.textContent = initial;
+      }
+
+      if (needSync) {
+        StorageUtil.setItem('userInfo', userInfo);
       }
     } catch (err) {
       console.error('获取用户信息失败:', err);
@@ -870,6 +885,12 @@ const ParentComponents = {
       const result = await response.json();
 
       if (result.success) {
+        const u = StorageUtil.getItem('userInfo');
+        if (u) {
+          u.username = username;
+          u.email = email;
+          StorageUtil.setItem('userInfo', u);
+        }
         alert('个人信息更新成功');
         this.loadProfileInfo();
         this.cancelEdit();

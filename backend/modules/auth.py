@@ -58,12 +58,14 @@ def login():
     if not username or not password:
         return error_response("用户名和密码不能为空", status=400)
 
-    result = execute_db("SELECT id, uid, email, role, is_banned, password FROM parents WHERE username = ?", (username,))
+    result = execute_db(
+        "SELECT id, uid, email, role, is_banned, avatar, password FROM parents WHERE username = ?", (username,)
+    )
 
     if not result:
         return error_response("用户名或密码错误", status=401)
 
-    parent_id, uid, email, role, is_banned, stored_password = result[0]
+    parent_id, uid, email, role, is_banned, avatar, stored_password = result[0]
 
     if is_banned == 1:
         return error_response("账户已封禁", status=403)
@@ -97,6 +99,7 @@ def login():
             "uid": uid,
             "username": username,
             "role": role,
+            "avatar": avatar,
             "children": children_data,
             "token": token,
         }
