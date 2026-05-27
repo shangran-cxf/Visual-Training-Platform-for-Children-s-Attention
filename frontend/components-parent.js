@@ -633,7 +633,10 @@ const ParentComponents = {
     if (usernameElement) usernameElement.textContent = userInfo.username || '加载中...';
 
     try {
-      const response = await fetch(`/api/user/query?type=id&value=${userInfo.parent_id}`);
+      const token = localStorage.getItem('auth_token') || userInfo.token;
+      const response = await fetch(`/api/user/query?type=id&value=${userInfo.parent_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const result = await response.json();
       const data = result.data || result;
 
@@ -829,11 +832,14 @@ const ParentComponents = {
     if (!userInfo) return;
 
     try {
+      const token = localStorage.getItem('auth_token') || userInfo.token;
       const response = await fetch('/api/user/update-profile', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
-          parent_id: userInfo.parent_id,
           username: username,
           email: email,
           old_password: oldPassword,
@@ -868,11 +874,13 @@ const ParentComponents = {
 
     const formData = new FormData();
     formData.append('avatar', file);
-    formData.append('parent_id', userInfo.parent_id);
+
+    const token = localStorage.getItem('auth_token') || userInfo.token;
 
     try {
       const response = await fetch('/api/user/avatar', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 

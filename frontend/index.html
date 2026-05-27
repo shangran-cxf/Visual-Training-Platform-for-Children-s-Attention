@@ -1824,14 +1824,15 @@
           }
 
           // 为每个儿童添加到数据库
+          const token = localStorage.getItem('auth_token');
           for (let child of children) {
             await fetch(`${baseUrl}/api/children`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
-                parent_id: userInfo.parent_id,
                 name: child.name,
                 age: child.age,
               }),
