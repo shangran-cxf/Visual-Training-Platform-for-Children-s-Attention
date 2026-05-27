@@ -444,24 +444,13 @@ const ParentComponents = {
       })
       .join('');
 
-    // 获取用户头像
-    let avatarHtml = `
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#343559" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-        `;
-
-    // 尝试从本地存储获取用户信息
-    const userInfo = StorageUtil.getItem('userInfo');
-    if (userInfo && userInfo.avatar) {
-      avatarHtml = `<img src="${userInfo.avatar}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
-    }
-
     return `
             <div class="sidebar">
                 <div class="user-avatar-sidebar" onclick="ParentComponents.showProfileModal()" data-avatar-updatable="true">
-                    ${avatarHtml}
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#343559" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
                 </div>
                 <div class="divider top-divider"></div>
                 ${navItemsHtml}
@@ -475,13 +464,12 @@ const ParentComponents = {
                 </div>
             </div>
             <script>
-                // 页面加载后检查并更新头像
                 setTimeout(() => {
                     const sidebarAvatar = document.querySelector('.user-avatar-sidebar[data-avatar-updatable="true"]');
                     if (sidebarAvatar) {
                         const userInfo = StorageUtil.getItem('userInfo');
                         if (userInfo && userInfo.avatar) {
-                            sidebarAvatar.innerHTML = '<img src="' + userInfo.avatar + '" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">';
+                            ParentComponents._setAvatarImg(sidebarAvatar, userInfo.avatar);
                         }
                     }
                 }, 500);
@@ -571,6 +559,18 @@ const ParentComponents = {
   },
 
   /**
+   * 安全设置头像图片（避免 innerHTML XSS）
+   */
+  _setAvatarImg: function (element, url) {
+    element.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = '用户头像';
+    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+    element.appendChild(img);
+  },
+
+  /**
    * 初始化页面
    * @param {string} activePage - 当前活动页面ID
    */
@@ -634,7 +634,7 @@ const ParentComponents = {
 
     try {
       const token = localStorage.getItem('auth_token') || userInfo.token;
-      const response = await fetch(`/api/user/query?type=id&value=${userInfo.parent_id}`, {
+      const response = await fetch(getBaseUrl() + `/api/user/query?type=id&value=${userInfo.parent_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
@@ -652,18 +652,14 @@ const ParentComponents = {
 
       // 设置头像
       if (data.avatar) {
-        // 更新本地存储中的头像URL
         userInfo.avatar = data.avatar;
         StorageUtil.setItem('userInfo', userInfo);
 
-        // 更新弹窗头像
         if (avatarElement) {
-          avatarElement.innerHTML = `<img src="${data.avatar}" alt="头像">`;
+          this._setAvatarImg(avatarElement, data.avatar);
         }
-
-        // 更新侧边栏头像
         if (sidebarAvatar) {
-          sidebarAvatar.innerHTML = `<img src="${data.avatar}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
+          this._setAvatarImg(sidebarAvatar, data.avatar);
         }
       } else if (avatarInitialElement) {
         const initial = (data.username || userInfo.username || 'U').charAt(0).toUpperCase();
@@ -735,7 +731,7 @@ const ParentComponents = {
   /**
    * 验证旧密码
    */
-  verifyOldPassword: async function () {
+  verifyOldPassword: function () {
     const oldPasswordInput = document.getElementById('edit-old-password');
     const newPasswordInput = document.getElementById('edit-password');
     const confirmPasswordInput = document.getElementById('edit-confirm-password');
@@ -753,43 +749,57 @@ const ParentComponents = {
       return;
     }
 
-    const userInfo = StorageUtil.getItem('userInfo');
-    if (!userInfo) return;
+    clearTimeout(this._passwordVerifyTimer);
+    this._passwordVerifyTimer = setTimeout(async () => {
+      const userInfo = StorageUtil.getItem('userInfo');
+      if (!userInfo) return;
 
-    try {
-      const response = await fetch('/api/user/verify-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          parent_id: userInfo.parent_id,
-          old_password: oldPassword,
-        }),
-      });
+      try {
+        const token = localStorage.getItem('auth_token') || userInfo.token;
+        const response = await fetch(getBaseUrl() + '/api/user/verify-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            old_password: oldPassword,
+          }),
+        });
 
-      const result = await response.json();
-      const data = result.data || result;
+        const result = await response.json();
+        const data = result.data || result;
 
-      if (response.ok && data.valid) {
-        if (errorElement) errorElement.textContent = '';
-        if (newPasswordInput) newPasswordInput.disabled = false;
-        if (confirmPasswordInput) confirmPasswordInput.disabled = false;
-        this.oldPasswordVerified = true;
-      } else {
-        if (errorElement) errorElement.textContent = '旧密码错误，请重新输入！';
+        if (response.ok && data.valid) {
+          if (errorElement) errorElement.textContent = '';
+          if (newPasswordInput) newPasswordInput.disabled = false;
+          if (confirmPasswordInput) confirmPasswordInput.disabled = false;
+          this.oldPasswordVerified = true;
+        } else if (response.ok) {
+          if (errorElement) errorElement.textContent = '旧密码错误，请重新输入！';
+          if (newPasswordInput) newPasswordInput.disabled = true;
+          if (confirmPasswordInput) confirmPasswordInput.disabled = true;
+          this.oldPasswordVerified = false;
+        } else {
+          if (errorElement) errorElement.textContent = '验证失败，请稍后再试';
+        }
+      } catch (err) {
+        console.error('验证旧密码失败:', err);
+        if (errorElement) errorElement.textContent = '验证失败，请稍后再试';
         if (newPasswordInput) newPasswordInput.disabled = true;
         if (confirmPasswordInput) confirmPasswordInput.disabled = true;
         this.oldPasswordVerified = false;
       }
-    } catch (err) {
-      console.error('验证旧密码失败:', err);
-      if (errorElement) errorElement.textContent = '验证失败，请稍后再试';
-    }
+    }, 500);
   },
 
   /**
    * 保存个人信息
    */
   saveProfile: async function () {
+    const saveBtn = document.querySelector('.form-actions .btn-primary');
+    if (saveBtn && saveBtn.disabled) return;
+
     const username = document.getElementById('edit-username')?.value.trim();
     const email = document.getElementById('edit-email')?.value.trim();
     const oldPassword = document.getElementById('edit-old-password')?.value.trim();
@@ -822,6 +832,8 @@ const ParentComponents = {
         if (confirmError) confirmError.textContent = '两次输入的密码不一致！';
         return;
       }
+      const confirmError = document.getElementById('confirm-password-error');
+      if (confirmError) confirmError.textContent = '';
       if (newPassword.length < 6) {
         alert('新密码长度至少为6位');
         return;
@@ -829,11 +841,19 @@ const ParentComponents = {
     }
 
     const userInfo = StorageUtil.getItem('userInfo');
-    if (!userInfo) return;
+    if (!userInfo) {
+      alert('登录信息已过期，请重新登录');
+      return;
+    }
+
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = '保存中...';
+    }
 
     try {
       const token = localStorage.getItem('auth_token') || userInfo.token;
-      const response = await fetch('/api/user/update-profile', {
+      const response = await fetch(getBaseUrl() + '/api/user/update-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -859,6 +879,11 @@ const ParentComponents = {
     } catch (err) {
       console.error('更新个人信息失败:', err);
       alert('更新失败，请稍后再试');
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '保存';
+      }
     }
   },
 
@@ -869,8 +894,25 @@ const ParentComponents = {
     const file = event.target.files[0];
     if (!file) return;
 
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      alert('仅支持 png/jpg/jpeg/gif/webp 格式的图片');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('文件大小不能超过5MB');
+      event.target.value = '';
+      return;
+    }
+
     const userInfo = StorageUtil.getItem('userInfo');
     if (!userInfo) return;
+
+    const avatarElement = document.getElementById('modal-avatar');
+    const hintEl = document.querySelector('.avatar-upload-hint');
+    if (hintEl) hintEl.textContent = '上传中...';
 
     const formData = new FormData();
     formData.append('avatar', file);
@@ -878,7 +920,7 @@ const ParentComponents = {
     const token = localStorage.getItem('auth_token') || userInfo.token;
 
     try {
-      const response = await fetch('/api/user/avatar', {
+      const response = await fetch(getBaseUrl() + '/api/user/avatar', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -888,19 +930,16 @@ const ParentComponents = {
 
       if (result.success) {
         const data = result.data || result;
-        const avatarElement = document.getElementById('modal-avatar');
         if (avatarElement && data.avatar_url) {
-          avatarElement.innerHTML = `<img src="${data.avatar_url}" alt="头像">`;
+          this._setAvatarImg(avatarElement, data.avatar_url);
         }
 
-        // 更新本地存储中的头像URL
         userInfo.avatar = data.avatar_url;
         StorageUtil.setItem('userInfo', userInfo);
 
-        // 更新侧边栏头像
         const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
         if (sidebarAvatar && data.avatar_url) {
-          sidebarAvatar.innerHTML = `<img src="${data.avatar_url}" alt="用户头像" style="width: 100%; height: 100%; object-fit: cover;">`;
+          this._setAvatarImg(sidebarAvatar, data.avatar_url);
         }
 
         alert('头像上传成功');
@@ -910,6 +949,9 @@ const ParentComponents = {
     } catch (err) {
       console.error('上传头像失败:', err);
       alert('上传失败，请稍后再试');
+    } finally {
+      event.target.value = '';
+      if (hintEl) hintEl.textContent = '点击上传头像';
     }
   },
 
@@ -961,6 +1003,7 @@ const ParentComponents = {
 
   // 旧密码验证状态
   oldPasswordVerified: false,
+  _passwordVerifyTimer: null,
 };
 
 // 添加弹窗相关样式

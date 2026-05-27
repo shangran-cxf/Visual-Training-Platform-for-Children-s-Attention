@@ -116,12 +116,16 @@ def query_user():
         return error_response("type参数必须是id、uid或username", status=400)
 
     if query_type == "id":
-        result = execute_db("SELECT id, uid, username, email, role, created_at FROM parents WHERE id = ?", (value,))
+        result = execute_db(
+            "SELECT id, uid, username, email, role, avatar, created_at FROM parents WHERE id = ?", (value,)
+        )
     elif query_type == "uid":
-        result = execute_db("SELECT id, uid, username, email, role, created_at FROM parents WHERE uid = ?", (value,))
+        result = execute_db(
+            "SELECT id, uid, username, email, role, avatar, created_at FROM parents WHERE uid = ?", (value,)
+        )
     else:
         result = execute_db(
-            "SELECT id, uid, username, email, role, created_at FROM parents WHERE username = ?", (value,)
+            "SELECT id, uid, username, email, role, avatar, created_at FROM parents WHERE username = ?", (value,)
         )
 
     if not result:
@@ -129,7 +133,15 @@ def query_user():
 
     row = result[0]
     return success_response(
-        {"id": row[0], "uid": row[1], "username": row[2], "email": row[3], "role": row[4], "created_at": row[5]}
+        {
+            "id": row[0],
+            "uid": row[1],
+            "username": row[2],
+            "email": row[3],
+            "role": row[4],
+            "avatar": row[5],
+            "created_at": row[6],
+        }
     )
 
 
@@ -162,15 +174,15 @@ def change_password():
 
 @auth_bp.route("/api/verify-password", methods=["POST"])
 @auth_bp.route("/api/user/verify-password", methods=["POST"])
+@require_auth
 def verify_password_endpoint():
     data = request.json
-    parent_id = data.get("parent_id")
     password = data.get("password") or data.get("old_password")
 
-    if not parent_id or not password:
+    if not password:
         return error_response("参数不完整", status=400)
 
-    result = execute_db("SELECT id, password FROM parents WHERE id = ?", (parent_id,))
+    result = execute_db("SELECT id, password FROM parents WHERE id = ?", (request.user_id,))
 
     if not result:
         return jsonify({"valid": False}), 200
@@ -206,6 +218,10 @@ def update_user_info():
         update_data["username"] = username
 
     if email is not None:
+        import re
+
+        if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
+            return error_response("邮箱格式不正确", status=400)
         update_data["email"] = email
 
     if avatar is not None:
@@ -249,6 +265,23 @@ def upload_avatar():
     file = request.files["avatar"]
     if file.filename == "":
         return error_response("没有选择文件", status=400)
+
+    allowed_extensions = {"png", "jpg", "jpeg", "gif", "webp"}
+    allowed_mimetypes = {"image/png", "image/jpeg", "image/gif", "image/webp"}
+    max_size = 5 * 1024 * 1024  # 5MB
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in allowed_extensions:
+        return error_response("不支持的文件格式，仅允许 png/jpg/jpeg/gif/webp", status=400)
+
+    if file.content_type not in allowed_mimetypes:
+        return error_response("不支持的文件类型", status=400)
+
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+    if size > max_size:
+        return error_response("文件大小不能超过5MB", status=400)
 
     upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
     if not os.path.exists(upload_folder):

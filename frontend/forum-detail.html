@@ -1365,8 +1365,8 @@
       }
 
       window.onload = function () {
-        ParentComponents.initPage('forum');
         const user = checkAuth();
+        ParentComponents.initPage('forum');
         if (user) loadPost();
       };
     </script>
