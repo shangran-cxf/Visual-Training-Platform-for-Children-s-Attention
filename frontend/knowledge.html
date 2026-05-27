@@ -599,8 +599,8 @@
     <!-- 搜索框动画（核心） -->
     <script>
       window.onload = function () {
-        ParentComponents.initPage('knowledge');
         const userInfo = ParentComponents.checkAuth();
+        ParentComponents.initPage('knowledge');
         if (userInfo) {
           if (userInfo.role === 'admin') {
             document.getElementById('admin-entry-btn').classList.add('show');

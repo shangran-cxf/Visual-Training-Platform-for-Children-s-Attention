@@ -58,12 +58,14 @@ def login():
     if not username or not password:
         return error_response("用户名和密码不能为空", status=400)
 
-    result = execute_db("SELECT id, uid, email, role, is_banned, password FROM parents WHERE username = ?", (username,))
+    result = execute_db(
+        "SELECT id, uid, email, role, is_banned, avatar, password FROM parents WHERE username = ?", (username,)
+    )
 
     if not result:
         return error_response("用户名或密码错误", status=401)
 
-    parent_id, uid, email, role, is_banned, stored_password = result[0]
+    parent_id, uid, email, role, is_banned, avatar, stored_password = result[0]
 
     if is_banned == 1:
         return error_response("账户已封禁", status=403)
@@ -97,6 +99,7 @@ def login():
             "uid": uid,
             "username": username,
             "role": role,
+            "avatar": avatar,
             "children": children_data,
             "token": token,
         }
@@ -116,12 +119,16 @@ def query_user():
         return error_response("type参数必须是id、uid或username", status=400)
 
     if query_type == "id":
-        result = execute_db("SELECT id, uid, username, email, role, created_at FROM parents WHERE id = ?", (value,))
+        result = execute_db(
+            "SELECT id, uid, username, email, role, avatar, created_at FROM parents WHERE id = ?", (value,)
+        )
     elif query_type == "uid":
-        result = execute_db("SELECT id, uid, username, email, role, created_at FROM parents WHERE uid = ?", (value,))
+        result = execute_db(
+            "SELECT id, uid, username, email, role, avatar, created_at FROM parents WHERE uid = ?", (value,)
+        )
     else:
         result = execute_db(
-            "SELECT id, uid, username, email, role, created_at FROM parents WHERE username = ?", (value,)
+            "SELECT id, uid, username, email, role, avatar, created_at FROM parents WHERE username = ?", (value,)
         )
 
     if not result:
@@ -129,7 +136,15 @@ def query_user():
 
     row = result[0]
     return success_response(
-        {"id": row[0], "uid": row[1], "username": row[2], "email": row[3], "role": row[4], "created_at": row[5]}
+        {
+            "id": row[0],
+            "uid": row[1],
+            "username": row[2],
+            "email": row[3],
+            "role": row[4],
+            "avatar": row[5],
+            "created_at": row[6],
+        }
     )
 
 
@@ -162,15 +177,15 @@ def change_password():
 
 @auth_bp.route("/api/verify-password", methods=["POST"])
 @auth_bp.route("/api/user/verify-password", methods=["POST"])
+@require_auth
 def verify_password_endpoint():
     data = request.json
-    parent_id = data.get("parent_id")
     password = data.get("password") or data.get("old_password")
 
-    if not parent_id or not password:
+    if not password:
         return error_response("参数不完整", status=400)
 
-    result = execute_db("SELECT id, password FROM parents WHERE id = ?", (parent_id,))
+    result = execute_db("SELECT id, password FROM parents WHERE id = ?", (request.user_id,))
 
     if not result:
         return jsonify({"valid": False}), 200
@@ -206,6 +221,10 @@ def update_user_info():
         update_data["username"] = username
 
     if email is not None:
+        import re
+
+        if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
+            return error_response("邮箱格式不正确", status=400)
         update_data["email"] = email
 
     if avatar is not None:
@@ -241,7 +260,7 @@ def update_user_info():
 def upload_avatar():
     import os
 
-    from werkzeug.utils import secure_filename
+    from PIL import Image
 
     if "avatar" not in request.files:
         return error_response("缺少头像文件", status=400)
@@ -250,17 +269,49 @@ def upload_avatar():
     if file.filename == "":
         return error_response("没有选择文件", status=400)
 
+    file.seek(0, os.SEEK_END)
+    size = file.tell()
+    file.seek(0)
+    if size > 5 * 1024 * 1024:
+        return error_response("文件大小不能超过5MB", status=400)
+
+    try:
+        img = Image.open(file.stream)
+        img.verify()
+        file.seek(0)
+        img = Image.open(file.stream)
+    except Exception:
+        return error_response("无效的图片文件", status=400)
+
+    if img.format not in ("PNG", "JPEG", "GIF", "WEBP"):
+        return error_response("不支持的文件格式，仅允许 png/jpg/jpeg/gif/webp", status=400)
+
     upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
     if not os.path.exists(upload_folder):
         os.makedirs(upload_folder)
 
-    filename = secure_filename(file.filename)
-    unique_filename = f"{request.user_id}_{filename}"
-    file_path = os.path.join(upload_folder, unique_filename)
+    filename = f"{request.user_id}.jpg"
+    file_path = os.path.join(upload_folder, filename)
 
-    file.save(file_path)
+    if img.mode in ("RGBA", "P", "LA"):
+        img = img.convert("RGBA")
+        background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+        img = Image.alpha_composite(background, img)
+    img = img.convert("RGB")
 
-    avatar_url = f"/uploads/{unique_filename}"
+    # 居中裁剪为正方形
+    min_dim = min(img.width, img.height)
+    left = (img.width - min_dim) // 2
+    top = (img.height - min_dim) // 2
+    img = img.crop((left, top, left + min_dim, top + min_dim))
+
+    max_dim = 500
+    if min_dim > max_dim:
+        img = img.resize((max_dim, max_dim), Image.LANCZOS)
+
+    img.save(file_path, "JPEG", quality=85)
+
+    avatar_url = f"/uploads/{filename}"
 
     execute_db("UPDATE parents SET avatar = ? WHERE id = ?", (avatar_url, request.user_id))
 

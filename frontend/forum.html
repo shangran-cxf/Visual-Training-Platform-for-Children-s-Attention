@@ -1070,8 +1070,8 @@
 
     <script>
       window.onload = function () {
-        ParentComponents.initPage('forum');
         const userInfo = ParentComponents.checkAuth();
+        ParentComponents.initPage('forum');
         if (userInfo) {
           const urlParams = new URLSearchParams(window.location.search);
           const startPage = parseInt(urlParams.get('page')) || 1;

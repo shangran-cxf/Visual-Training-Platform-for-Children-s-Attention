@@ -25,7 +25,6 @@ init_db()
 PUBLIC_PATHS = [
     "/api/login",
     "/api/register",
-    "/api/verify-password",
 ]
 
 

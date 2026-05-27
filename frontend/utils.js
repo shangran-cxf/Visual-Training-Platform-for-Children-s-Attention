@@ -66,9 +66,9 @@ class UserStateUtil {
   static initFromLoginResponse(response) {
     const userInfo = {
       parent_id: response.parent_id,
-      uid: response.uid,
       username: response.username,
       role: response.role,
+      avatar: response.avatar || null,
       children: response.children || [],
       mode: 'parent',
       token: response.token,
