@@ -70,7 +70,7 @@
         background-size: cover;
         background-position: center;
         border-radius: 15px;
-        padding: 30px;
+        padding: 30px 30px 10px 30px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         margin-bottom: 30px;
         text-align: center;
@@ -78,7 +78,9 @@
         min-height: 600px;
         max-height: 85vh;
         position: relative;
-        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
       .difficulty-selector {
@@ -88,21 +90,29 @@
         justify-content: center;
         flex-wrap: wrap;
         max-width: 100%;
+        flex-shrink: 0;
       }
 
       .difficulty-btn {
-        padding: 10px 20px;
-        border: 2px solid #b8e3ff;
+        padding: 15px 20px;
+        border: 2px solid #b3d9ff;
         border-radius: 25px;
-        background-color: rgb(154, 245, 255);
-        color: rgb(32, 121, 181);
+        background-color: #e6f2ff;
+        color: #6699cc;
         cursor: pointer;
         transition: all 0.3s ease;
       }
 
+      .difficulty-btn:hover {
+        background-color: #cce5ff;
+        color: #4d88cc;
+      }
+
       .difficulty-btn.active {
-        background-color: rgb(154, 245, 255);
-        color: rgb(32, 121, 181);
+        background-color: #9edfff;
+        color: #ffffff;
+        border-color: #9edfff;
+        box-shadow: 0 2px 8px rgba(51, 153, 255, 0.4);
       }
 
       .target-info {
@@ -110,20 +120,25 @@
         font-size: 18px;
         font-weight: bold;
         color: #146607;
+        flex-shrink: 0;
       }
 
       .matrix-container {
-        margin-bottom: 30px;
-        overflow: auto;
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-gutter: stable;
         max-width: 100%;
+        min-height: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
       }
 
       .matrix {
         display: grid;
         gap: 5px;
         margin: 0 auto;
-        max-width: 100%;
-        overflow: auto;
       }
 
       .matrix-cell {
@@ -137,7 +152,6 @@
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
-        transition: all 0.3s ease;
         position: relative;
         box-sizing: border-box;
       }
@@ -231,6 +245,7 @@
         padding: 10px;
         border-radius: 5px;
         max-width: 100%;
+        flex-shrink: 0;
       }
 
       .feedback {
@@ -241,6 +256,8 @@
         border-radius: 5px;
         color: #4caf50;
         font-weight: bold;
+        flex-shrink: 0;
+        min-height: 42px;
       }
 
       /* 游戏结束弹窗 */
@@ -262,18 +279,20 @@
       }
 
       .game-over-content {
-        background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
-        padding: 40px;
+        background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 40%, #a5d6a7 100%);
+        padding: 35px 40px;
         border-radius: 20px;
         text-align: center;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        max-width: 500px;
-        animation: modalSlideIn 0.5s ease-out;
+        box-shadow: 0 8px 32px rgba(0, 80, 3, 0.25);
+        max-width: 480px;
+        width: 90%;
+        animation: modalSlideIn 0.4s ease-out;
+        border: 3px solid rgba(86, 171, 47, 0.3);
       }
 
       @keyframes modalSlideIn {
         from {
-          transform: translateY(-50px);
+          transform: translateY(-30px);
           opacity: 0;
         }
 
@@ -284,10 +303,9 @@
       }
 
       .game-over-content h2 {
-        color: white;
-        font-size: 32px;
-        margin-bottom: 30px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        color: #2e7d32;
+        font-size: 28px;
+        margin-bottom: 24px;
       }
 
       .stats-grid {
@@ -298,22 +316,23 @@
       }
 
       .stat-item {
-        background-color: rgba(255, 255, 255, 0.9);
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 80, 3, 0.1);
+        border: 1px solid #dcedc8;
       }
 
       .stat-label {
-        color: #56ab2f;
-        font-size: 16px;
-        margin-bottom: 10px;
+        color: #558b2f;
+        font-size: 14px;
+        margin-bottom: 8px;
         font-weight: bold;
       }
 
       .stat-value {
-        color: #333;
-        font-size: 28px;
+        color: #33691e;
+        font-size: 26px;
         font-weight: bold;
       }
 
@@ -335,22 +354,22 @@
       }
 
       .modal-btn.restart {
-        background-color: #ff9800;
+        background-color: #66bb6a;
         color: white;
       }
 
       .modal-btn.restart:hover {
-        background-color: #f57c00;
+        background-color: #43a047;
         transform: scale(1.05);
       }
 
       .modal-btn.back {
-        background-color: #2196f3;
+        background-color: #8d6e63;
         color: white;
       }
 
       .modal-btn.back:hover {
-        background-color: #1976d2;
+        background-color: #6d4c41;
         transform: scale(1.05);
       }
 
@@ -359,12 +378,16 @@
         gap: 20px;
         justify-content: center;
         align-items: center;
-        margin-top: 10px;
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        z-index: 100;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .controls > * {
+        pointer-events: auto;
       }
 
       .btn {
@@ -414,35 +437,6 @@
 
         100% {
           transform: translateY(-5px);
-        }
-      }
-
-      @keyframes celebratePop {
-        0% {
-          transform: translate(-50%, -50%) scale(0);
-          opacity: 0;
-        }
-
-        50% {
-          transform: translate(-50%, -50%) scale(1.5);
-          opacity: 1;
-        }
-
-        100% {
-          transform: translate(-50%, -50%) scale(1);
-          opacity: 0;
-        }
-      }
-
-      @keyframes confettiFall {
-        0% {
-          transform: translateY(0) rotate(0deg);
-          opacity: 1;
-        }
-
-        100% {
-          transform: translateY(300px) rotate(720deg);
-          opacity: 0;
         }
       }
     </style>
@@ -510,11 +504,11 @@
     <!-- 游戏结束弹窗 -->
     <div class="game-over-modal" id="gameOverModal">
       <div class="game-over-content">
-        <h2>🎉 游戏完成！🎉</h2>
+        <h2>游戏完成</h2>
         <div class="stats-grid">
           <div class="stat-item">
             <div class="stat-label">🏆 得分</div>
-            <div class="stat-value" id="modal-score" style="color: #ff9800; font-size: 36px">0</div>
+            <div class="stat-value" id="modal-score" style="color: #2e7d32; font-size: 32px">0</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">⏱️ 用时</div>
@@ -620,7 +614,9 @@
           correctCount++;
           document.getElementById('correct').textContent = correctCount;
           document.getElementById('feedback').textContent = '太棒啦!找到了垃圾!';
-          setTimeout(() => (document.getElementById('feedback').textContent = ''), 1000);
+          setTimeout(() => {
+            document.getElementById('feedback').textContent = '';
+          }, 1000);
           try {
             playCorrectSound();
           } catch (e) {}
@@ -634,7 +630,9 @@
           try {
             playErrorSound();
           } catch (e) {}
-          setTimeout(() => (document.getElementById('feedback').textContent = ''), 1000);
+          setTimeout(() => {
+            document.getElementById('feedback').textContent = '';
+          }, 1000);
         }
       }
 
@@ -661,46 +659,68 @@
         for (let i = 0; i < size; i++) {
           matrix[i] = [];
           for (let j = 0; j < size; j++) {
-            let num = Math.floor(Math.random() * 9) + 1;
-            if (Math.random() < 0.2) {
-              num = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
-            }
-            const isTarget = targetNumbers.includes(num);
-            if (isTarget) totalTargets++;
-            matrix[i][j] = { value: num, isTarget, isMarked: false };
+            if (currentDifficulty === 3) {
+              const isTarget = Math.random() < 0.2;
+              if (isTarget) totalTargets++;
+              matrix[i][j] = { value: 0, isTarget, isMarked: false };
 
-            const cell = document.createElement('div');
-            cell.className = 'matrix-cell';
-            if (isTarget) {
-              cell.classList.add('target');
-              // 目标数字：使用垃圾图片
-              let garbageImage;
-              if (currentDifficulty === 1 && currentGarbageImages.length > 0) {
-                // 简单模式：使用第一个垃圾图片
-                garbageImage = currentGarbageImages[0];
-              } else if (currentDifficulty === 2 && currentGarbageImages.length > 1) {
-                // 中等模式：随机使用两个垃圾图片中的一个
-                garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+              const cell = document.createElement('div');
+              cell.className = 'matrix-cell';
+              if (isTarget) {
+                cell.classList.add('target');
+                const garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+                cell.style.backgroundImage = `url('../images/${garbageImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
               } else {
-                // 困难模式或未初始化：随机使用垃圾图片
-                garbageImage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
+                cell.style.backgroundImage = `url('../images/${randomImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
               }
-              cell.style.backgroundImage = `url('../images/${garbageImage}')`;
-              cell.style.backgroundSize = 'cover';
-              cell.style.backgroundRepeat = 'no-repeat';
-              cell.style.backgroundPosition = 'center';
+              cell.dataset.row = i;
+              cell.dataset.col = j;
+              cell.addEventListener('click', handleCellClick);
+              matrixElement.appendChild(cell);
             } else {
-              // 非目标数字：随机使用flower、stone或grass图片
-              const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
-              cell.style.backgroundImage = `url('../images/${randomImage}')`;
-              cell.style.backgroundSize = 'cover';
-              cell.style.backgroundRepeat = 'no-repeat';
-              cell.style.backgroundPosition = 'center';
+              let num = Math.floor(Math.random() * 9) + 1;
+              if (Math.random() < 0.2) {
+                num = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
+              }
+              const isTarget = targetNumbers.includes(num);
+              if (isTarget) totalTargets++;
+              matrix[i][j] = { value: num, isTarget, isMarked: false };
+
+              const cell = document.createElement('div');
+              cell.className = 'matrix-cell';
+              if (isTarget) {
+                cell.classList.add('target');
+                let garbageImage;
+                if (currentDifficulty === 1 && currentGarbageImages.length > 0) {
+                  garbageImage = currentGarbageImages[0];
+                } else if (currentDifficulty === 2 && currentGarbageImages.length > 1) {
+                  garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+                } else {
+                  garbageImage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                }
+                cell.style.backgroundImage = `url('../images/${garbageImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
+              } else {
+                const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
+                cell.style.backgroundImage = `url('../images/${randomImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
+              }
+              cell.dataset.row = i;
+              cell.dataset.col = j;
+              cell.addEventListener('click', handleCellClick);
+              matrixElement.appendChild(cell);
             }
-            cell.dataset.row = i;
-            cell.dataset.col = j;
-            cell.addEventListener('click', handleCellClick);
-            matrixElement.appendChild(cell);
           }
         }
       }
@@ -738,15 +758,18 @@
           document.getElementById('target-info').innerHTML =
             `目标：圈出所有垃圾 <img src="../images/${randomGarbage1}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;"> 和 <img src="../images/${randomGarbage2}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
         } else {
-          targetNumbers = Math.random() > 0.5 ? [2, 4, 6, 8] : [1, 3, 5, 7, 9];
-          const type = targetNumbers[0] % 2 === 0 ? '偶数' : '奇数';
-          document.getElementById('target-info').innerHTML = `目标：圈出所有垃圾数字（${type}数字）`;
+          const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+          const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+          currentGarbageImages = [randomGarbage];
+          targetNumbers = [];
+          document.getElementById('target-info').innerHTML =
+            `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
         }
       }
 
       function startGame() {
         if (isGameStarted) return;
-        document.querySelector('.btn').style.display = 'none';
+        document.querySelector('.controls').style.display = 'none';
         generateRandomTargets();
         generateMatrix();
 
@@ -789,7 +812,7 @@
         document.getElementById('target-info').textContent = '准备就绪，点击开始按钮';
         document.getElementById('matrix').innerHTML = '';
         document.querySelector('.stats').style.visibility = 'hidden';
-        document.querySelector('.btn').style.display = 'flex';
+        document.querySelector('.controls').style.display = 'flex';
       }
 
       function updateTimer() {
@@ -829,90 +852,19 @@
           console.error('上传数据失败:', e);
         }
 
-        // 播放庆祝动画
-        console.log('播放庆祝动画...');
-        try {
-          showCelebrationEffect();
-        } catch (e) {
-          console.error('庆祝动画失败:', e);
+        // 显示弹窗
+        const modal = document.getElementById('gameOverModal');
+        if (modal) {
+          const score = calculateSelectiveAttentionScore(totalTime);
+
+          document.getElementById('modal-score').textContent = score;
+          document.getElementById('modal-time').textContent = totalTime + 's';
+          document.getElementById('modal-correct').textContent = correctCount;
+          document.getElementById('modal-missed').textContent = missedCount;
+          document.getElementById('modal-errors').textContent = errorCount;
+
+          modal.classList.add('show');
         }
-
-        // 0.8 秒后显示弹窗（强制显示）
-        console.log('准备显示弹窗...');
-        setTimeout(() => {
-          console.log('显示弹窗！');
-          try {
-            // 直接显示弹窗，不依赖其他函数
-            const modal = document.getElementById('gameOverModal');
-            if (modal) {
-              // 计算得分
-              const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
-              const score = calculateSelectiveAttentionScore(totalTime);
-
-              // 填充数据
-              document.getElementById('modal-score').textContent = score;
-              document.getElementById('modal-time').textContent = totalTime + 's';
-              document.getElementById('modal-correct').textContent = correctCount;
-              document.getElementById('modal-missed').textContent = missedCount;
-              document.getElementById('modal-errors').textContent = errorCount;
-
-              // 显示弹窗
-              modal.classList.add('show');
-              console.log('弹窗已成功显示');
-            } else {
-              console.error('找不到弹窗元素');
-            }
-          } catch (e) {
-            console.error('显示弹窗失败:', e);
-            // 如果还是失败，直接强制显示
-            const modal = document.getElementById('gameOverModal');
-            if (modal) {
-              modal.classList.add('show');
-              console.log('弹窗已强制显示');
-            }
-          }
-        }, 800);
-      }
-
-      function showCelebrationEffect() {
-        // 创建庆祝特效
-        const gameArea = document.querySelector('.game-area');
-        const celebration = document.createElement('div');
-        celebration.style.cssText = `
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                font-size: 100px;
-                z-index: 999;
-                animation: celebratePop 0.6s ease-out;
-                pointer-events: none;
-            `;
-        celebration.textContent = '🎉';
-        gameArea.appendChild(celebration);
-
-        // 创建多个彩带
-        for (let i = 0; i < 10; i++) {
-          setTimeout(() => {
-            const confetti = document.createElement('div');
-            confetti.style.cssText = `
-                        position: absolute;
-                        width: 10px;
-                        height: 10px;
-                        background: hsl(${Math.random() * 360}, 100%, 50%);
-                        top: 40%;
-                        left: ${50 + (Math.random() * 20 - 10)}%;
-                        border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
-                        animation: confettiFall ${0.5 + Math.random() * 0.5}s ease-out;
-                        pointer-events: none;
-                    `;
-            gameArea.appendChild(confetti);
-            setTimeout(() => confetti.remove(), 1000);
-          }, i * 50);
-        }
-
-        // 清理庆祝元素
-        setTimeout(() => celebration.remove(), 1000);
       }
 
       function calculateSelectiveAttentionScore(totalTime) {
@@ -935,37 +887,6 @@
           100;
 
         return Math.max(0, Math.min(100, Math.round(scoreValue)));
-      }
-
-      function showGameOverModal(totalTime) {
-        // 计算得分
-        const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
-        const score = calculateSelectiveAttentionScore(totalTime);
-
-        console.log('得分计算:', {
-          准确率: accuracy.toFixed(1) + '%',
-          正确数: correctCount,
-          总目标: totalTargets,
-          误划: errorCount,
-          用时: totalTime + 's',
-          最终得分: score,
-        });
-
-        // 填充数据
-        document.getElementById('modal-score').textContent = score;
-        document.getElementById('modal-time').textContent = totalTime + 's';
-        document.getElementById('modal-correct').textContent = correctCount;
-        document.getElementById('modal-missed').textContent = missedCount;
-        document.getElementById('modal-errors').textContent = errorCount;
-
-        // 显示弹窗
-        const modal = document.getElementById('gameOverModal');
-        if (modal) {
-          modal.classList.add('show');
-          console.log('弹窗已显示');
-        } else {
-          console.error('找不到弹窗元素');
-        }
       }
 
       function restartGame() {

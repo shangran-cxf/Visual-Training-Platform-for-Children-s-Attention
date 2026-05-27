@@ -85,6 +85,8 @@
       canvas {
         background: transparent;
         display: block;
+        transform: translateZ(0);
+        will-change: transform;
       }
 
       .instructions {
@@ -188,16 +190,20 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
+        width: 100vw;
+        height: 100vh;
+        background: rgba(10, 30, 15, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
         opacity: 0;
         visibility: hidden;
-        transition: all 0.3s ease;
+        transition:
+          opacity 0.35s ease,
+          visibility 0.35s ease;
       }
 
       .game-over-modal.show {
@@ -206,43 +212,203 @@
       }
 
       .modal-content {
-        background: linear-gradient(135deg, #b9d372, #a9ccb4);
-        border-radius: 20px;
-        padding: 40px;
+        background: linear-gradient(170deg, #e8f0e3 0%, #c8d9b8 25%, #9bb87f 60%, #5d7a4a 100%);
+        border-radius: 28px;
+        padding: 44px 36px 36px;
         text-align: center;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
-        max-width: 400px;
+        box-shadow:
+          0 16px 56px rgba(10, 40, 15, 0.5),
+          0 0 0 3px rgba(180, 210, 130, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        max-width: 420px;
         width: 90%;
+        position: relative;
+        overflow: hidden;
+        animation: forestBloom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      }
+
+      .modal-content::before {
+        content: '';
+        position: absolute;
+        top: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 260px;
+        height: 260px;
+        background: radial-gradient(ellipse, rgba(255, 210, 60, 0.18) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      .modal-content::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: radial-gradient(ellipse at bottom, rgba(40, 80, 30, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      @keyframes forestBloom {
+        0% {
+          transform: scale(0.75) translateY(50px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-icon {
+        font-size: 50px;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+        animation: iconFloat 0.55s 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes iconFloat {
+        0% {
+          transform: translateY(20px) scale(0);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
       }
 
       .modal-content h2 {
-        color: white;
-        font-size: 2em;
-        margin-bottom: 20px;
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        color: #1b3a1a;
+        font-size: 26px;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+        animation: fadeSlideUp 0.5s 0.25s ease both;
       }
 
-      .modal-content p {
-        color: white;
-        font-size: 1.2em;
-        margin-bottom: 10px;
+      .modal-subtitle {
+        color: #4a6d3a;
+        font-size: 13px;
+        margin-bottom: 22px;
+        position: relative;
+        z-index: 1;
+        animation: fadeSlideUp 0.5s 0.32s ease both;
+      }
+
+      @keyframes fadeSlideUp {
+        0% {
+          transform: translateY(10px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .modal-stat {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(4px);
+        border-radius: 14px;
+        padding: 12px 8px;
+        border: 1.5px solid rgba(130, 170, 100, 0.35);
+        animation: fadeSlideUp 0.5s ease both;
+      }
+
+      .modal-stat:nth-child(1) {
+        animation-delay: 0.38s;
+      }
+
+      .modal-stat:nth-child(2) {
+        animation-delay: 0.44s;
+      }
+
+      .modal-stat:nth-child(3) {
+        animation-delay: 0.5s;
+      }
+
+      .modal-stat:nth-child(4) {
+        animation-delay: 0.56s;
+      }
+
+      .modal-stat.highlight {
+        background: rgba(255, 215, 80, 0.15);
+        border-color: rgba(200, 170, 60, 0.5);
+      }
+
+      .modal-stat .ms-label {
+        color: #4a6d3a;
+        font-size: 11px;
+        font-weight: bold;
+        margin-bottom: 3px;
+      }
+
+      .modal-stat .ms-value {
+        color: #1b3a1a;
+        font-size: 22px;
+        font-weight: bold;
+      }
+
+      .modal-stat.highlight .ms-value {
+        color: #5d4037;
+        font-size: 26px;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        animation: fadeSlideUp 0.5s 0.62s ease both;
       }
 
       .modal-btn {
-        background: white;
-        color: #223b32;
+        padding: 11px 26px;
         border: none;
-        padding: 12px 30px;
         border-radius: 25px;
-        font-size: 16px;
+        font-size: 15px;
+        font-weight: bold;
         cursor: pointer;
-        margin-top: 20px;
-        transition: all 0.3s ease;
+        transition: all 0.25s ease;
       }
 
-      .modal-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+      .modal-btn.restart {
+        background: linear-gradient(135deg, #7cb342, #558b2f);
+        color: white;
+        box-shadow: 0 4px 14px rgba(85, 139, 47, 0.35);
+      }
+
+      .modal-btn.restart:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(85, 139, 47, 0.5);
+      }
+
+      .modal-btn.back {
+        background: transparent;
+        color: #4a6d3a;
+        border: 2px solid #a5c68a;
+      }
+
+      .modal-btn.back:hover {
+        background: rgba(130, 170, 100, 0.12);
+        border-color: #7cb342;
       }
     </style>
   </head>
@@ -284,10 +450,31 @@
     <!-- 游戏结束弹窗 -->
     <div class="game-over-modal" id="gameOverModal">
       <div class="modal-content">
-        <h2>游戏完成！</h2>
-        <p>得分：<span id="finalScore">0</span></p>
-        <p>错误：<span id="finalErrors">0</span></p>
-        <button class="modal-btn" onclick="resetGame()">再玩一次</button>
+        <div class="modal-icon">🦊</div>
+        <h2>森林探险完成！</h2>
+        <p class="modal-subtitle">你成功找到了所有发光的小动物</p>
+        <div class="modal-stats">
+          <div class="modal-stat highlight">
+            <div class="ms-label">🏆 得分</div>
+            <div class="ms-value" id="finalScore">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="ms-label">✅ 找到</div>
+            <div class="ms-value" id="finalHits">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="ms-label">❌ 误点</div>
+            <div class="ms-value" id="finalErrors">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="ms-label">⏱️ 用时</div>
+            <div class="ms-value" id="finalTime">0s</div>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button class="modal-btn restart" onclick="resetGame()">再玩一次</button>
+          <button class="modal-btn back" onclick="resetGame()">返回</button>
+        </div>
       </div>
     </div>
 
@@ -305,6 +492,8 @@
       const gameOverModal = document.getElementById('gameOverModal');
       const finalScore = document.getElementById('finalScore');
       const finalErrors = document.getElementById('finalErrors');
+      const finalHits = document.getElementById('finalHits');
+      const finalTime = document.getElementById('finalTime');
 
       // 动物图片路径
       const animalImages = [
@@ -324,6 +513,28 @@
         loadedImages[src] = img;
       });
 
+      // 预渲染发光光晕（避免每帧创建 RadialGradient）
+      const glowSize = 75;
+      const glowCanvas = document.createElement('canvas');
+      glowCanvas.width = glowSize * 2;
+      glowCanvas.height = glowSize * 2;
+      const glowCtx = glowCanvas.getContext('2d');
+      const glowGrad = glowCtx.createRadialGradient(
+        glowSize,
+        glowSize,
+        glowSize * 0.25,
+        glowSize,
+        glowSize,
+        glowSize * 0.85,
+      );
+      glowGrad.addColorStop(0, 'rgba(255, 235, 59, 0.5)');
+      glowGrad.addColorStop(0.5, 'rgba(255, 193, 7, 0.22)');
+      glowGrad.addColorStop(1, 'rgba(255, 193, 7, 0)');
+      glowCtx.fillStyle = glowGrad;
+      glowCtx.beginPath();
+      glowCtx.arc(glowSize, glowSize, glowSize * 0.85, 0, Math.PI * 2);
+      glowCtx.fill();
+
       let objects = [];
       let score = 0;
       let errors = 0;
@@ -336,15 +547,16 @@
       let reactionTimes = [];
       let selectionStartTime = 0;
       let gameStartTime = 0;
+      let lastFrameTime = 0;
 
       // 难度
-      let difficulty = { count: 8, target: 2, speed: 7, moveTime: 3000, highTime: 1500 };
+      let difficulty = { count: 8, target: 1, speed: 3, moveTime: 3000, highTime: 1500 };
       let currentDifficultyKey = 'easy';
       function setDifficulty(diff) {
         currentDifficultyKey = diff;
-        if (diff === 'easy') difficulty = { count: 8, target: 2, speed: 7, moveTime: 3000, highTime: 1500 };
-        if (diff === 'medium') difficulty = { count: 10, target: 3, speed: 9, moveTime: 3500, highTime: 1200 };
-        if (diff === 'hard') difficulty = { count: 15, target: 4, speed: 12, moveTime: 4000, highTime: 1000 };
+        if (diff === 'easy') difficulty = { count: 8, target: 1, speed: 3, moveTime: 3000, highTime: 1500 };
+        if (diff === 'medium') difficulty = { count: 10, target: 2, speed: 4, moveTime: 3500, highTime: 1200 };
+        if (diff === 'hard') difficulty = { count: 12, target: 3, speed: 4.5, moveTime: 4000, highTime: 1000 };
         document.querySelectorAll('.difficulty-btn').forEach((b) => b.classList.remove('active'));
         if (diff === 'easy') easyBtn.classList.add('active');
         if (diff === 'medium') mediumBtn.classList.add('active');
@@ -376,9 +588,12 @@
         ctx.clearRect(0, 0, 500, 500);
       }
 
-      // 检查两个物体是否重叠
+      // 检查两个物体是否重叠（真实距离 + 缓冲间距）
       function checkOverlap(obj1, obj2) {
-        return Math.abs(obj1.x - obj2.x) < obj1.size && Math.abs(obj1.y - obj2.y) < obj1.size;
+        const dx = obj1.x + obj1.size / 2 - (obj2.x + obj2.size / 2);
+        const dy = obj1.y + obj1.size / 2 - (obj2.y + obj2.size / 2);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        return dist < obj1.size + 20;
       }
 
       // 创建物体
@@ -386,27 +601,27 @@
         objects = [];
         let total = difficulty.count;
         let targetCount = difficulty.target;
+        const spawnMax = 425;
         for (let i = 0; i < total; i++) {
           let attempts = 0;
           let validPosition = false;
           let newObj = null;
 
-          while (!validPosition && attempts < 100) {
-            // 随机选择动物图片
+          while (!validPosition && attempts < 200) {
             const randomImage = animalImages[Math.floor(Math.random() * animalImages.length)];
+            const angle = Math.random() * Math.PI * 2;
             newObj = {
-              x: Math.random() * 400,
-              y: Math.random() * 400,
+              x: Math.random() * spawnMax,
+              y: Math.random() * spawnMax,
               size: 75,
-              vx: (Math.random() - 0.5) * difficulty.speed,
-              vy: (Math.random() - 0.5) * difficulty.speed,
+              vx: Math.cos(angle) * difficulty.speed,
+              vy: Math.sin(angle) * difficulty.speed,
               isTarget: i < targetCount,
               selected: false,
               image: randomImage,
               animation: 0,
             };
 
-            // 检查是否与现有物体重叠
             validPosition = true;
             for (let j = 0; j < objects.length; j++) {
               if (checkOverlap(newObj, objects[j])) {
@@ -423,13 +638,50 @@
         }
       }
 
+      // 移动停止后分离所有重叠的动物
+      function separateOverlapping() {
+        for (let iter = 0; iter < 10; iter++) {
+          let hasOverlap = false;
+          for (let i = 0; i < objects.length; i++) {
+            for (let j = i + 1; j < objects.length; j++) {
+              const a = objects[i];
+              const b = objects[j];
+              const cxA = a.x + a.size / 2;
+              const cyA = a.y + a.size / 2;
+              const cxB = b.x + b.size / 2;
+              const cyB = b.y + b.size / 2;
+              const dx = cxA - cxB;
+              const dy = cyA - cyB;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const minDist = a.size + 10;
+              if (dist < minDist && dist > 0) {
+                hasOverlap = true;
+                const nx = dx / dist;
+                const ny = dy / dist;
+                const push = (minDist - dist) / 2;
+                a.x += nx * push;
+                a.y += ny * push;
+                b.x -= nx * push;
+                b.y -= ny * push;
+                a.x = Math.max(0, Math.min(500 - a.size, a.x));
+                a.y = Math.max(0, Math.min(500 - a.size, a.y));
+                b.x = Math.max(0, Math.min(500 - b.size, b.x));
+                b.y = Math.max(0, Math.min(500 - b.size, b.y));
+              }
+            }
+          }
+          if (!hasOverlap) break;
+        }
+      }
+
       // 开始
       startBtn.onclick = () => {
         if (gameState !== 'ready') return;
         clearAnim();
         gameState = 'highlighting';
         startBtn.classList.add('hidden');
-        gameStartTime = Date.now(); // 记录游戏开始时间
+        gameStartTime = Date.now();
+        lastFrameTime = 0;
         createObjects();
         animate();
         setTimeout(() => {
@@ -438,42 +690,63 @@
         }, difficulty.highTime);
       };
 
-      // 稳定动画（永不锁死）
-      function animate() {
+      function animate(timestamp) {
+        if (!lastFrameTime) lastFrameTime = timestamp;
+        const rawDt = (timestamp - lastFrameTime) / 1000;
+        const dt = Math.min(rawDt, 0.1);
+        lastFrameTime = timestamp;
+
         ctx.clearRect(0, 0, 500, 500);
 
-        // 移动逻辑
         if (gameState === 'moving') {
+          const scale = dt * 60;
           objects.forEach((o) => {
-            o.x += o.vx;
-            o.y += o.vy;
-            if (o.x < 0 || o.x > 425) o.vx *= -1;
-            if (o.y < 0 || o.y > 425) o.vy *= -1;
+            o.x += o.vx * scale;
+            o.y += o.vy * scale;
+            if (o.x < 0) {
+              o.x = 0;
+              o.vx *= -1;
+            }
+            if (o.x + o.size > 500) {
+              o.x = 500 - o.size;
+              o.vx *= -1;
+            }
+            if (o.y < 0) {
+              o.y = 0;
+              o.vy *= -1;
+            }
+            if (o.y + o.size > 500) {
+              o.y = 500 - o.size;
+              o.vy *= -1;
+            }
           });
           if (Date.now() > moveEndTime) {
-            gameState = 'selecting'; // ✅ 绝对能进入可点击状态
-            selectionStartTime = Date.now(); // 记录选择开始时间
+            separateOverlapping();
+            gameState = 'selecting';
+            selectionStartTime = Date.now();
           }
         }
 
         // 绘制
         objects.forEach((o) => {
-          // 发光效果
+          const rx = Math.round(o.x);
+          const ry = Math.round(o.y);
+
+          // 发光效果 - 使用预渲染光晕图片
           if (o.isTarget && gameState === 'highlighting') {
-            ctx.shadowColor = '#FFEB3B';
-            ctx.shadowBlur = 20;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
+            ctx.save();
+            ctx.shadowColor = '#FFC107';
+            ctx.shadowBlur = 35;
+            ctx.drawImage(glowCanvas, rx - glowSize / 2, ry - glowSize / 2, glowSize * 2, glowSize * 2);
+            ctx.restore();
+            ctx.drawImage(glowCanvas, rx - glowSize / 2, ry - glowSize / 2, glowSize * 2, glowSize * 2);
           }
 
           // 绘制动物图片
           const img = loadedImages[o.image];
           if (img) {
-            ctx.drawImage(img, o.x, o.y, o.size, o.size);
+            ctx.drawImage(img, rx, ry, o.size, o.size);
           }
-
-          // 清除阴影
-          ctx.shadowBlur = 0;
 
           // 动画效果 - 闪光效果
           if (o.animation > 0) {
@@ -481,18 +754,16 @@
             if (o.animation > 1) {
               o.animation = 0;
             }
-            // 绘制闪光效果
             const animationRadius = o.size / 2 + o.animation * 30;
             const alpha = 1 - o.animation;
-            ctx.strokeStyle = o.isTarget ? `rgba(76, 175, 80, ${alpha})` : `rgba(244, 67, 54, ${alpha})`;
+            ctx.strokeStyle = o.isTarget ? `rgba(27, 94, 32, ${alpha})` : `rgba(244, 67, 54, ${alpha})`;
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.arc(o.x + o.size / 2, o.y + o.size / 2, animationRadius, 0, Math.PI * 2);
             ctx.stroke();
 
-            // 中心闪光
             const centerRadius = o.animation * 15;
-            ctx.fillStyle = o.isTarget ? `rgba(76, 175, 80, ${alpha})` : `rgba(244, 67, 54, ${alpha})`;
+            ctx.fillStyle = o.isTarget ? `rgba(27, 94, 32, ${alpha})` : `rgba(244, 67, 54, ${alpha})`;
             ctx.beginPath();
             ctx.arc(o.x + o.size / 2, o.y + o.size / 2, centerRadius, 0, Math.PI * 2);
             ctx.fill();
@@ -500,7 +771,7 @@
 
           // 选中效果
           if (o.selected) {
-            ctx.strokeStyle = o.isTarget ? '#4CAF50' : '#F44336';
+            ctx.strokeStyle = o.isTarget ? '#1B5E20' : '#F44336';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.arc(o.x + o.size / 2, o.y + o.size / 2, o.size / 2, 0, Math.PI * 2);
@@ -561,6 +832,7 @@
         // 新一轮
         setTimeout(() => {
           gameState = 'highlighting';
+          lastFrameTime = 0;
           createObjects();
           animate();
           setTimeout(() => {
@@ -607,6 +879,8 @@
           // 显示最终得分和相关数据
           finalScore.textContent = finalScoreValue;
           finalErrors.textContent = errors;
+          finalHits.textContent = score;
+          finalTime.textContent = Math.floor((Date.now() - gameStartTime) / 1000) + 's';
 
           console.log(
             '游戏结束 - 上传到雷达的得分:',

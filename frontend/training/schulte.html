@@ -328,6 +328,75 @@
         border-radius: 5px;
         border: 1px solid rgba(160, 160, 255, 0.3);
       }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes cosmosBloom {
+        0% {
+          transform: scale(0.8) translateY(40px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes starPulse {
+        0%,
+        100% {
+          text-shadow:
+            0 0 12px rgba(100, 200, 255, 0.6),
+            0 0 24px rgba(100, 180, 255, 0.3);
+        }
+
+        50% {
+          text-shadow:
+            0 0 20px rgba(150, 220, 255, 0.9),
+            0 0 40px rgba(100, 200, 255, 0.5);
+        }
+      }
+
+      @keyframes revealUp {
+        0% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes orbitFloat {
+        0% {
+          transform: translateY(0) rotate(0deg) scale(1);
+        }
+
+        100% {
+          transform: translateY(-14px) rotate(15deg) scale(1.2);
+        }
+      }
+
+      @keyframes loadingBar {
+        0% {
+          width: 0%;
+        }
+
+        100% {
+          width: 100%;
+        }
+      }
     </style>
   </head>
 
@@ -362,7 +431,7 @@
         </button>
       </div>
       <div class="header">
-        <h1>太空小火箭：按顺序发射任务</h1>
+        <h1>太空小火箭</h1>
         <p>小朋友是太空发射指挥官，要按照数字从小到大的顺序，依次点击火箭发射按钮，让火箭按顺序升空！</p>
       </div>
       <div class="game-area">
@@ -521,55 +590,109 @@
       function showAdjustmentModal(title, message) {
         const modal = document.createElement('div');
         modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                animation: fadeIn 0.3s ease-in-out;
-            `;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(5, 12, 30, 0.65);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease both;
+      `;
 
         const modalContent = document.createElement('div');
         modalContent.style.cssText = `
-                background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
-                border-radius: 20px;
-                padding: 40px;
-                width: 90%;
-                max-width: 400px;
-                box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
-                position: relative;
-                animation: bounceIn 0.5s ease-in-out;
-                border: 4px solid #4caf50;
-                text-align: center;
-            `;
+        background: linear-gradient(160deg, #0b1838 0%, #0f1d42 25%, #132050 55%, #0a1430 100%);
+        border-radius: 20px;
+        padding: 32px 36px;
+        width: 90%;
+        max-width: 380px;
+        box-shadow:
+          0 0 40px rgba(30, 120, 220, 0.15),
+          0 12px 36px rgba(5, 10, 30, 0.5),
+          0 0 0 2px rgba(80, 170, 240, 0.2),
+          inset 0 1px 0 rgba(140, 200, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+        animation: cosmosBloom 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        text-align: center;
+      `;
+
+        const topGlow = document.createElement('div');
+        topGlow.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 160px;
+        height: 160px;
+        background: radial-gradient(ellipse, rgba(60, 150, 240, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      `;
+        modalContent.appendChild(topGlow);
+
+        const iconEl = document.createElement('div');
+        iconEl.textContent = '\u{1F6F0}\uFE0F';
+        iconEl.style.cssText = `
+        font-size: 36px;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.05s ease both;
+      `;
+        modalContent.appendChild(iconEl);
 
         const modalTitle = document.createElement('h3');
         modalTitle.textContent = title;
         modalTitle.style.cssText = `
-                color: #4CAF50;
-                margin-bottom: 20px;
-                font-size: 1.8em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-                animation: pulse 1.5s ease-in-out infinite alternate;
-            `;
+        color: #b3e0ff;
+        margin-bottom: 8px;
+        font-size: 22px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.12s ease both;
+      `;
 
         const modalMessage = document.createElement('p');
         modalMessage.textContent = message;
         modalMessage.style.cssText = `
-                color: #a0a0ff;
-                margin-bottom: 30px;
-                font-size: 1.1em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            `;
+        color: #7eaed4;
+        margin-bottom: 16px;
+        font-size: 14px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.18s ease both;
+      `;
+
+        const loadingBar = document.createElement('div');
+        loadingBar.style.cssText = `
+        width: 100%;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+      `;
+        const loadingFill = document.createElement('div');
+        loadingFill.style.cssText = `
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #1e88e5, #42a5f5);
+        border-radius: 2px;
+        animation: loadingBar 1.8s ease-in-out forwards;
+      `;
+        loadingBar.appendChild(loadingFill);
 
         modalContent.appendChild(modalTitle);
         modalContent.appendChild(modalMessage);
+        modalContent.appendChild(loadingBar);
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
 
@@ -582,13 +705,13 @@
       function showPositiveFeedback(message) {
         const feedbackElement = document.getElementById('feedback');
         feedbackElement.textContent = message;
-        feedbackElement.style.backgroundColor = 'rgba(76, 175, 80, 0.3)';
-        feedbackElement.style.color = '#ffff';
+        feedbackElement.style.backgroundColor = 'rgba(30, 136, 229, 0.25)';
+        feedbackElement.style.color = '#e3f2fd';
 
         setTimeout(() => {
           feedbackElement.textContent = '';
-          feedbackElement.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
-          feedbackElement.style.color = '#ffff';
+          feedbackElement.style.backgroundColor = 'rgba(10, 20, 40, 0.3)';
+          feedbackElement.style.color = '#b3e0ff';
         }, 2000);
       }
 
@@ -1002,11 +1125,6 @@
             // 即使上传失败，也显示训练完成
             postTrainingOptimization(trainingData);
           });
-
-        // 显示开始按钮
-        setTimeout(() => {
-          document.getElementById('start-button').style.display = 'flex';
-        }, 3000);
       }
 
       // 训练后迭代优化
@@ -1048,19 +1166,19 @@
             name: '准确率',
             score: accuracyScore,
             max: 60,
-            color: '#4CAF50',
+            color: '#4fc3f7',
           },
           error: {
             name: '错误率',
             score: errorScore,
             max: 20,
-            color: '#FF9800',
+            color: '#ffb74d',
           },
           time: {
             name: '时间效率',
             score: timeScore,
             max: 20,
-            color: '#2196F3',
+            color: '#ab47bc',
           },
         };
 
@@ -1081,153 +1199,250 @@
       function showPostTrainingModal(title, message, showRecommendation = false, scoreDetails = null) {
         const modal = document.createElement('div');
         modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                animation: fadeIn 0.3s ease-in-out;
-            `;
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(5, 12, 30, 0.65);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease both;
+      `;
 
         const modalContent = document.createElement('div');
         modalContent.style.cssText = `
-                background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
-                border-radius: 20px;
-                padding: 40px;
-                width: 90%;
-                max-width: 500px;
-                box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
-                position: relative;
-                animation: bounceIn 0.5s ease-in-out;
-                border: 4px solid #4caf50;
-                text-align: center;
-            `;
+        background: linear-gradient(180deg, #0d1d3d 0%, #10224a 40%, #0b1a36 100%);
+        padding: 32px 36px 28px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow:
+          0 10px 40px rgba(5, 15, 35, 0.5),
+          0 0 0 2px rgba(80, 170, 240, 0.2);
+        max-width: 420px;
+        width: 90%;
+        animation: cosmosBloom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        position: relative;
+        overflow: hidden;
+      `;
 
-        const modalTitle = document.createElement('h3');
-        modalTitle.textContent = title;
+        const topGlow = document.createElement('div');
+        topGlow.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(ellipse, rgba(60, 150, 240, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      `;
+        modalContent.appendChild(topGlow);
+
+        const starField = document.createElement('div');
+        starField.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+      `;
+
+        for (let i = 0; i < 10; i++) {
+          const s = 1 + Math.random() * 1.5;
+          const star = document.createElement('div');
+          star.style.cssText = `
+          position: absolute;
+          width: ${s}px;
+          height: ${s}px;
+          background: white;
+          border-radius: 50%;
+          top: ${Math.random() * 100}%;
+          left: ${Math.random() * 100}%;
+          opacity: ${0.25 + Math.random() * 0.4};
+          box-shadow: 0 0 ${s * 2}px rgba(180, 220, 255, 0.5);
+        `;
+          starField.appendChild(star);
+        }
+
+        const floatDecor = ['\u{1F680}', '\u{2604}\uFE0F', '\u{2B50}', '\u{1F31F}', '\u{1F320}'];
+        for (let i = 0; i < 4; i++) {
+          const deco = document.createElement('div');
+          deco.textContent = floatDecor[i];
+          deco.style.cssText = `
+          position: absolute;
+          font-size: ${16 + i * 4}px;
+          top: ${10 + i * 18}%;
+          ${i % 2 === 0 ? 'left' : 'right'}: ${-5 + i * 2}px;
+          opacity: 0.35;
+          pointer-events: none;
+          animation: orbitFloat ${3 + i * 0.8}s ease-in-out ${i * 0.5}s infinite alternate;
+        `;
+          starField.appendChild(deco);
+        }
+
+        modalContent.appendChild(starField);
+
+        const iconEl = document.createElement('div');
+        iconEl.textContent = '\u{1F680}';
+        iconEl.style.cssText = `
+        font-size: 36px;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.02s ease both;
+      `;
+        modalContent.appendChild(iconEl);
+
+        const modalTitle = document.createElement('h2');
+        modalTitle.innerHTML = '\u2728 ' + title + ' \u2728';
         modalTitle.style.cssText = `
-                color: #4CAF50;
-                margin-bottom: 20px;
-                font-size: 1.8em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-                animation: pulse 1.5s ease-in-out infinite alternate;
-            `;
+        color: #b3e0ff;
+        font-size: 24px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.05s ease both;
+      `;
+        modalContent.appendChild(modalTitle);
+
+        if (scoreDetails) {
+          const scoreItems = Object.values(scoreDetails);
+          const statsGrid = document.createElement('div');
+          statsGrid.style.cssText = `
+          display: grid;
+          grid-template-columns: repeat(${scoreItems.length === 3 ? 3 : 2}, 1fr);
+          gap: 12px;
+          margin-bottom: 24px;
+          position: relative;
+          z-index: 1;
+        `;
+
+          scoreItems.forEach((detail, idx) => {
+            const statItem = document.createElement('div');
+            statItem.style.cssText = `
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(80, 170, 240, 0.2);
+            border-radius: 12px;
+            padding: 14px 8px;
+            animation: revealUp 0.4s ${0.12 + idx * 0.08}s ease both;
+          `;
+
+            const statLabel = document.createElement('div');
+            statLabel.textContent = detail.name;
+            statLabel.style.cssText = `
+            color: ${detail.color};
+            font-size: 11px;
+            margin-bottom: 6px;
+            font-weight: bold;
+          `;
+            statItem.appendChild(statLabel);
+
+            const statValue = document.createElement('div');
+            statValue.textContent = detail.score;
+            statValue.style.cssText = `
+            color: #e3f2fd;
+            font-size: 24px;
+            font-weight: bold;
+          `;
+            statItem.appendChild(statValue);
+
+            statsGrid.appendChild(statItem);
+          });
+
+          modalContent.appendChild(statsGrid);
+        }
 
         const modalMessage = document.createElement('p');
         modalMessage.textContent = message;
         modalMessage.style.cssText = `
-                color: #a0a0ff;
-                margin-bottom: 30px;
-                font-size: 1.1em;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-            `;
+        color: #7eaed4;
+        font-size: 13px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.3s ease both;
+      `;
+        modalContent.appendChild(modalMessage);
 
-        // 添加得分明细柱状图
-        if (scoreDetails) {
-          const detailsContainer = document.createElement('div');
-          detailsContainer.style.cssText = `
-                    margin-bottom: 30px;
-                    text-align: left;
-                `;
+        const modalButtons = document.createElement('div');
+        modalButtons.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.36s ease both;
+      `;
 
-          const detailsTitle = document.createElement('h4');
-          detailsTitle.textContent = '得分明细';
-          detailsTitle.style.cssText = `
-                    color: #4CAF50;
-                    margin-bottom: 15px;
-                    font-size: 1.2em;
-                    font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                `;
-          detailsContainer.appendChild(detailsTitle);
-
-          // 为每个得分项创建柱状图
-          Object.values(scoreDetails).forEach((detail) => {
-            const itemContainer = document.createElement('div');
-            itemContainer.style.cssText = `
-                        margin-bottom: 10px;
-                        display: flex;
-                        align-items: center;
-                    `;
-
-            const label = document.createElement('span');
-            label.textContent = detail.name;
-            label.style.cssText = `
-                        color: #a0a0ff;
-                        font-size: 14px;
-                        width: 80px;
-                        font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                    `;
-            itemContainer.appendChild(label);
-
-            const barContainer = document.createElement('div');
-            barContainer.style.cssText = `
-                        flex: 1;
-                        height: 20px;
-                        background-color: rgba(255, 255, 255, 0.1);
-                        border-radius: 10px;
-                        overflow: hidden;
-                        margin: 0 10px;
-                    `;
-
-            const bar = document.createElement('div');
-            const percentage = (detail.score / detail.max) * 100;
-            bar.style.cssText = `
-                        height: 100%;
-                        width: ${percentage}%;
-                        background-color: ${detail.color};
-                        border-radius: 10px;
-                        transition: width 1s ease-in-out;
-                    `;
-            barContainer.appendChild(bar);
-            itemContainer.appendChild(barContainer);
-
-            const scoreValue = document.createElement('span');
-            scoreValue.textContent = detail.score;
-            scoreValue.style.cssText = `
-                        color: #a0a0ff;
-                        font-size: 14px;
-                        width: 30px;
-                        text-align: right;
-                        font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                    `;
-            itemContainer.appendChild(scoreValue);
-
-            detailsContainer.appendChild(itemContainer);
-          });
-
-          modalContent.appendChild(detailsContainer);
-        }
-
-        const confirmButton = document.createElement('button');
-        confirmButton.textContent = '关闭';
-        confirmButton.style.cssText = `
-                background: linear-gradient(90deg, #4caf50, #81c784);
-                color: white;
-                border: none;
-                padding: 12px 30px;
-                border-radius: 30px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                font-family: 'Comic Sans MS', 'Arial', sans-serif;
-                animation: pulse 2s ease-in-out infinite alternate;
-            `;
-
-        confirmButton.onclick = function () {
+        const restartBtn = document.createElement('button');
+        restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
+        restartBtn.style.cssText = `
+        background: linear-gradient(135deg, #1e88e5, #1565c0);
+        color: white;
+        border: none;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(30, 136, 229, 0.35);
+      `;
+        restartBtn.onmouseover = () => {
+          restartBtn.style.transform = 'scale(1.05)';
+          restartBtn.style.boxShadow = '0 6px 18px rgba(30, 136, 229, 0.5)';
+        };
+        restartBtn.onmouseout = () => {
+          restartBtn.style.transform = 'scale(1)';
+          restartBtn.style.boxShadow = '0 4px 12px rgba(30, 136, 229, 0.35)';
+        };
+        restartBtn.onclick = function () {
           document.body.removeChild(modal);
-          // 不自动跳转到其他页面，由用户决定下一步操作
+          document.getElementById('start-button').style.display = 'flex';
+          document.getElementById('schulte-grid').innerHTML = '';
+          document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
         };
 
-        modalContent.appendChild(modalTitle);
-        modalContent.appendChild(modalMessage);
-        modalContent.appendChild(confirmButton);
+        const backBtn = document.createElement('button');
+        backBtn.textContent = '\u8FD4\u56DE';
+        backBtn.style.cssText = `
+        background: transparent;
+        color: #7eaed4;
+        border: 2px solid rgba(80, 170, 240, 0.3);
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        backBtn.onmouseover = () => {
+          backBtn.style.background = 'rgba(80, 170, 240, 0.1)';
+          backBtn.style.borderColor = 'rgba(80, 170, 240, 0.5)';
+        };
+        backBtn.onmouseout = () => {
+          backBtn.style.background = 'transparent';
+          backBtn.style.borderColor = 'rgba(80, 170, 240, 0.3)';
+        };
+        backBtn.onclick = function () {
+          document.body.removeChild(modal);
+          document.getElementById('start-button').style.display = 'flex';
+          document.getElementById('schulte-grid').innerHTML = '';
+          document.getElementById('feedback').textContent = '准备就绪，点击开始发射按钮';
+        };
+
+        modalButtons.appendChild(restartBtn);
+        modalButtons.appendChild(backBtn);
+
+        modalContent.appendChild(modalButtons);
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
       }
