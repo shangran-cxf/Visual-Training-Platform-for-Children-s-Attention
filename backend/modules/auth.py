@@ -260,7 +260,7 @@ def update_user_info():
 def upload_avatar():
     import os
 
-    from werkzeug.utils import secure_filename
+    from PIL import Image
 
     if "avatar" not in request.files:
         return error_response("缺少头像文件", status=400)
@@ -269,34 +269,49 @@ def upload_avatar():
     if file.filename == "":
         return error_response("没有选择文件", status=400)
 
-    allowed_extensions = {"png", "jpg", "jpeg", "gif", "webp"}
-    allowed_mimetypes = {"image/png", "image/jpeg", "image/gif", "image/webp"}
-    max_size = 5 * 1024 * 1024  # 5MB
-
-    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
-    if ext not in allowed_extensions:
-        return error_response("不支持的文件格式，仅允许 png/jpg/jpeg/gif/webp", status=400)
-
-    if file.content_type not in allowed_mimetypes:
-        return error_response("不支持的文件类型", status=400)
-
     file.seek(0, os.SEEK_END)
     size = file.tell()
     file.seek(0)
-    if size > max_size:
+    if size > 5 * 1024 * 1024:
         return error_response("文件大小不能超过5MB", status=400)
+
+    try:
+        img = Image.open(file.stream)
+        img.verify()
+        file.seek(0)
+        img = Image.open(file.stream)
+    except Exception:
+        return error_response("无效的图片文件", status=400)
+
+    if img.format not in ("PNG", "JPEG", "GIF", "WEBP"):
+        return error_response("不支持的文件格式，仅允许 png/jpg/jpeg/gif/webp", status=400)
 
     upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
     if not os.path.exists(upload_folder):
         os.makedirs(upload_folder)
 
-    filename = secure_filename(file.filename)
-    unique_filename = f"{request.user_id}_{filename}"
-    file_path = os.path.join(upload_folder, unique_filename)
+    filename = f"{request.user_id}.jpg"
+    file_path = os.path.join(upload_folder, filename)
 
-    file.save(file_path)
+    if img.mode in ("RGBA", "P", "LA"):
+        img = img.convert("RGBA")
+        background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+        img = Image.alpha_composite(background, img)
+    img = img.convert("RGB")
 
-    avatar_url = f"/uploads/{unique_filename}"
+    # 居中裁剪为正方形
+    min_dim = min(img.width, img.height)
+    left = (img.width - min_dim) // 2
+    top = (img.height - min_dim) // 2
+    img = img.crop((left, top, left + min_dim, top + min_dim))
+
+    max_dim = 500
+    if min_dim > max_dim:
+        img = img.resize((max_dim, max_dim), Image.LANCZOS)
+
+    img.save(file_path, "JPEG", quality=85)
+
+    avatar_url = f"/uploads/{filename}"
 
     execute_db("UPDATE parents SET avatar = ? WHERE id = ?", (avatar_url, request.user_id))
 

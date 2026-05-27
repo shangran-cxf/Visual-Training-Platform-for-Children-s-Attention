@@ -561,9 +561,29 @@ const ParentComponents = {
   /**
    * 安全设置头像图片（避免 innerHTML XSS）
    */
-  _setAvatarImg: function (element, url) {
+  _showToast: function (msg, type) {
+    const existing = document.querySelector('.parent-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'parent-toast parent-toast-' + (type || 'info');
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  },
+
+  _setAvatarImg: function (element, url, bustCache) {
     element.innerHTML = '';
     const img = document.createElement('img');
+    if (bustCache) {
+      url = url + (url.indexOf('?') !== -1 ? '&' : '?') + 't=' + Date.now();
+    }
+    img.onerror = () => {
+      element.innerHTML = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#343559" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+    };
     img.src = url;
     img.alt = '用户头像';
     img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
@@ -629,7 +649,7 @@ const ParentComponents = {
     const avatarInitialElement = document.getElementById('modal-avatar-initial');
     const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
 
-    if (idElement) idElement.textContent = userInfo.parent_id || '-';
+    if (idElement) idElement.textContent = String(userInfo.parent_id).padStart(6, '0');
     if (usernameElement) usernameElement.textContent = userInfo.username || '加载中...';
 
     try {
@@ -822,24 +842,24 @@ const ParentComponents = {
     const confirmPassword = document.getElementById('edit-confirm-password')?.value.trim();
 
     if (!username) {
-      alert('请输入用户名');
+      this._showToast('请输入用户名', 'error');
       return;
     }
 
     if (!email) {
-      alert('请输入邮箱');
+      this._showToast('请输入邮箱', 'error');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      alert('请输入有效的邮箱地址');
+      this._showToast('请输入有效的邮箱地址', 'error');
       return;
     }
 
     if (newPassword) {
       if (!this.oldPasswordVerified) {
-        alert('请先输入正确的旧密码');
+        this._showToast('请先输入正确的旧密码', 'error');
         return;
       }
       if (newPassword !== confirmPassword) {
@@ -850,14 +870,14 @@ const ParentComponents = {
       const confirmError = document.getElementById('confirm-password-error');
       if (confirmError) confirmError.textContent = '';
       if (newPassword.length < 6) {
-        alert('新密码长度至少为6位');
+        this._showToast('新密码长度至少为6位', 'error');
         return;
       }
     }
 
     const userInfo = StorageUtil.getItem('userInfo');
     if (!userInfo) {
-      alert('登录信息已过期，请重新登录');
+      this._showToast('登录信息已过期，请重新登录', 'error');
       return;
     }
 
@@ -891,15 +911,15 @@ const ParentComponents = {
           u.email = email;
           StorageUtil.setItem('userInfo', u);
         }
-        alert('个人信息更新成功');
+        this._showToast('个人信息更新成功', 'success');
         this.loadProfileInfo();
         this.cancelEdit();
       } else {
-        alert(result.error?.message || result.error || '更新失败');
+        this._showToast(result.error?.message || result.error || '更新失败', 'error');
       }
     } catch (err) {
       console.error('更新个人信息失败:', err);
-      alert('更新失败，请稍后再试');
+      this._showToast('更新失败，请稍后再试', 'error');
     } finally {
       if (saveBtn) {
         saveBtn.disabled = false;
@@ -915,15 +935,8 @@ const ParentComponents = {
     const file = event.target.files[0];
     if (!file) return;
 
-    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      alert('仅支持 png/jpg/jpeg/gif/webp 格式的图片');
-      event.target.value = '';
-      return;
-    }
-
     if (file.size > 5 * 1024 * 1024) {
-      alert('文件大小不能超过5MB');
+      this._showToast('文件大小不能超过5MB', 'error');
       event.target.value = '';
       return;
     }
@@ -951,25 +964,24 @@ const ParentComponents = {
 
       if (result.success) {
         const data = result.data || result;
+        const url = data.avatar_url + '?t=' + Date.now();
         if (avatarElement && data.avatar_url) {
-          this._setAvatarImg(avatarElement, data.avatar_url);
+          this._setAvatarImg(avatarElement, url, true);
         }
 
-        userInfo.avatar = data.avatar_url;
+        userInfo.avatar = url;
         StorageUtil.setItem('userInfo', userInfo);
 
         const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
         if (sidebarAvatar && data.avatar_url) {
-          this._setAvatarImg(sidebarAvatar, data.avatar_url);
+          this._setAvatarImg(sidebarAvatar, url, true);
         }
-
-        alert('头像上传成功');
       } else {
-        alert(result.error?.message || '头像上传失败');
+        this._showToast(result.error?.message || '头像上传失败', 'error');
       }
     } catch (err) {
       console.error('上传头像失败:', err);
-      alert('上传失败，请稍后再试');
+      this._showToast('上传失败，请稍后再试', 'error');
     } finally {
       event.target.value = '';
       if (hintEl) hintEl.textContent = '点击上传头像';
@@ -987,7 +999,7 @@ const ParentComponents = {
     }
 
     if (!userInfo.children || userInfo.children.length === 0) {
-      alert('请先添加儿童信息');
+      this._showToast('请先添加儿童信息', 'error');
       window.location.href = 'child-document.html';
       return;
     }
@@ -1181,10 +1193,47 @@ const profileModalStyles = `
     }
 `;
 
+const toastStyles = `
+    .parent-toast {
+        position: fixed;
+        top: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-20px);
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 500;
+        z-index: 9999;
+        opacity: 0;
+        transition: all 0.3s ease;
+        pointer-events: none;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    .parent-toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    .parent-toast-error {
+        background: #FEF2F2;
+        color: #DC2626;
+        border: 1px solid #FECACA;
+    }
+    .parent-toast-success {
+        background: #F0FDF4;
+        color: #16A34A;
+        border: 1px solid #BBF7D0;
+    }
+    .parent-toast-info {
+        background: #EEF2FF;
+        color: #4F46E5;
+        border: 1px solid #C7D2FE;
+    }
+`;
+
 // 保存原始的getStyles方法
 ParentComponents._originalGetStyles = ParentComponents.getStyles;
 
 // 将弹窗样式添加到组件库
 ParentComponents.getStyles = function () {
-  return this._originalGetStyles() + profileModalStyles;
+  return this._originalGetStyles() + profileModalStyles + toastStyles;
 };
