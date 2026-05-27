@@ -1,550 +1,397 @@
 <!doctype html>
 <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>植物浇水 - 注意力训练</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>植物浇水 - 注意力训练</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+      body {
+        font-family: 'Arial', sans-serif;
+        background-image: url('../images/ground10.png');
+        background-size: cover;
+        background-position: center;
+        color: #045207;
+        overflow-y: auto;
+        min-height: 100vh;
+      }
 
-    body {
-      font-family: 'Arial', sans-serif;
-      background-image: url('../images/ground10.png');
-      background-size: cover;
-      background-position: center;
-      color: #045207;
-      overflow-y: auto;
-      min-height: 100vh;
-    }
+      .container {
+        max-width: 100vw;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
 
-    .container {
-      max-width: 100vw;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
 
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
+      .header h1 {
+        color: #4caf50;
+        font-size: 3em;
+        margin-bottom: 10px;
+      }
 
-    .header h1 {
-      color: #4caf50;
-      font-size: 3em;
-      margin-bottom: 10px;
-    }
+      .header p {
+        font-size: 1.5em;
+        color: #065e09;
+        font-weight: bold;
+      }
 
-    .header p {
-      font-size: 1.5em;
-      color: #065e09;
-      font-weight: bold;
-    }
+      .game-area {
+        background-image: url('../images/ground4.png');
+        background-size: cover;
+        background-position: center;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+        text-align: center;
+        border: 2px solid #8fd7fb;
+        min-height: 600px;
+        position: relative;
+      }
 
-    .game-area {
-      background-image: url('../images/ground4.png');
-      background-size: cover;
-      background-position: center;
-      border-radius: 15px;
-      padding: 30px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      margin-bottom: 10px;
-      text-align: center;
-      border: 2px solid #8fd7fb;
-      min-height: 600px;
-      position: relative;
-    }
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+        font-size: 14px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
 
-    .stats {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-      font-size: 14px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+      .stat-item {
+        background-color: rgba(255, 255, 255, 0.5);
+        padding: 10px 15px;
+        border-radius: 10px;
+        min-width: 120px;
+      }
 
-    .stat-item {
-      background-color: rgba(255, 255, 255, 0.5);
-      padding: 10px 15px;
-      border-radius: 10px;
-      min-width: 120px;
-    }
+      .stat-label {
+        color: #666;
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
 
-    .stat-label {
-      color: #666;
-      font-size: 12px;
-      margin-bottom: 5px;
-    }
+      .stat-value {
+        color: #4caf50;
+        font-size: 18px;
+        font-weight: bold;
+      }
 
-    .stat-value {
-      color: #4caf50;
-      font-size: 18px;
-      font-weight: bold;
-    }
+      .progress-container {
+        margin-bottom: 30px;
+      }
 
-    .progress-container {
-      margin-bottom: 30px;
-    }
+      .progress-label {
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: #085b06;
+      }
 
-    .progress-label {
-      font-size: 16px;
-      margin-bottom: 10px;
-      color: #085b06;
-    }
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background-color: #e0e0e0;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+      }
 
-    .progress-bar {
-      width: 100%;
-      height: 20px;
-      background-color: #e0e0e0;
-      border-radius: 15px;
-      overflow: hidden;
-      position: relative;
-    }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #81c784, #4caf50);
+        width: 0%;
+        transition: width 0.1s linear;
+        border-radius: 15px;
+      }
 
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #81c784, #4caf50);
-      width: 0%;
-      transition: width 0.1s linear;
-      border-radius: 15px;
-    }
+      .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        color: #333;
+        font-size: 14px;
+      }
 
-    .progress-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-weight: bold;
-      color: #333;
-      font-size: 14px;
-    }
+      .game-scene {
+        width: 100%;
+        height: 400px;
+        background-color: transparent;
+        border-radius: 15px;
+        position: relative;
+        margin-bottom: 5px;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 5px;
+      }
 
-    .game-scene {
-      width: 100%;
-      height: 400px;
-      background-color: transparent;
-      border-radius: 15px;
-      position: relative;
-      margin-bottom: 5px;
-      overflow: hidden;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      padding-bottom: 5px;
-    }
+      .plant-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
 
-    .plant-container {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .plant {
-      width: 150px;
-      height: 150px;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      transition: all 0.3s ease;
-      opacity: 0;
-    }
-
-    .plant.visible {
-      opacity: 1;
-    }
-
-    .plant.stage-0 {
-      background-image: url('../images/plant1.png');
-      transform: scale(0.6);
-    }
-
-    .plant.stage-1 {
-      background-image: url('../images/plant2.png');
-      transform: scale(0.8);
-    }
-
-    .plant.stage-2 {
-      background-image: url('../images/plant3.png');
-    }
-
-    .plant.stage-3 {
-      background-image: url('../images/plant4.png');
-    }
-
-    .plant.stage-4 {
-      background-image: url('../images/plant5.png');
-    }
-
-    .feedback {
-      margin-bottom: 20px;
-      font-size: 16px;
-      color: #0b660e;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .success-message {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(20, 50, 20, 0.55);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .success-message.show {
-      display: flex;
-    }
-
-    .success-card {
-      background: linear-gradient(175deg, #f1f8e9 0%, #dcedc8 30%, #c5e1a5 70%, #aed581 100%);
-      padding: 40px 36px 32px;
-      border-radius: 28px;
-      text-align: center;
-      box-shadow:
-        0 12px 48px rgba(30, 70, 20, 0.35),
-        0 0 0 4px rgba(139, 195, 74, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-      max-width: 420px;
-      width: 90%;
-      animation: cardBloom 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .success-card::before {
-      content: '';
-      position: absolute;
-      top: -30px;
-      right: -30px;
-      width: 100px;
-      height: 100px;
-      background: radial-gradient(circle, rgba(139, 195, 74, 0.25) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .success-card::after {
-      content: '';
-      position: absolute;
-      bottom: -20px;
-      left: -20px;
-      width: 80px;
-      height: 80px;
-      background: radial-gradient(circle, rgba(129, 212, 250, 0.2) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    @keyframes cardBloom {
-      0% {
-        transform: scale(0.7) translateY(40px);
+      .plant {
+        width: 150px;
+        height: 150px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        transition: all 0.3s ease;
         opacity: 0;
       }
 
-      100% {
-        transform: scale(1) translateY(0);
+      .plant.visible {
         opacity: 1;
       }
-    }
 
-    .success-icon {
-      font-size: 56px;
-      margin-bottom: 8px;
-      animation: iconBounce 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
+      .plant.stage-0 {
+        background-image: url('../images/plant1.png');
+        transform: scale(0.6);
+      }
 
-    @keyframes iconBounce {
-      0% {
-        transform: scale(0);
+      .plant.stage-1 {
+        background-image: url('../images/plant2.png');
+        transform: scale(0.8);
+      }
+
+      .plant.stage-2 {
+        background-image: url('../images/plant3.png');
+      }
+
+      .plant.stage-3 {
+        background-image: url('../images/plant4.png');
+      }
+
+      .plant.stage-4 {
+        background-image: url('../images/plant5.png');
+      }
+
+      .feedback {
+        margin-bottom: 20px;
+        font-size: 16px;
+        color: #0b660e;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .success-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 40px;
+        border-radius: 30px;
+        text-align: center;
+        box-shadow:
+          0 8px 30px rgba(0, 0, 0, 0.2),
+          0 0 0 10px rgba(76, 175, 80, 0.1);
+        display: none;
+        z-index: 100;
+        max-width: 400px;
+        width: 90%;
+        border: 3px solid #4caf50;
+      }
+
+      .success-message.show {
+        display: block;
+        animation: popIn 0.5s ease-out;
+      }
+
+      @keyframes popIn {
+        0% {
+          transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+          opacity: 0;
+        }
+
+        50% {
+          transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+          opacity: 1;
+        }
+
+        100% {
+          transform: translate(-50%, -50%) scale(1) rotate(0deg);
+          opacity: 1;
+        }
+      }
+
+      .success-message h2 {
+        color: #4caf50;
+        margin-bottom: 20px;
+        font-size: 32px;
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .success-message p {
+        color: #666;
+        margin-bottom: 15px;
+        font-size: 18px;
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+      }
+
+      .success-message #final-score {
+        color: #ff9800;
+        font-size: 24px;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #4caf50, #81c784);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        margin-top: 20px;
+      }
+
+      .btn:hover {
+        transform: scale(1.1) rotate(2deg);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+      }
+
+      .btn:active {
+        transform: scale(0.95);
+      }
+
+      .start-btn {
+        background: linear-gradient(135deg, #4caf50, #81c784);
+        color: white;
+        border: none;
+        padding: 0;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 100;
+      }
+
+      .start-btn:hover {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+      }
+
+      .watering-can {
+        position: absolute;
+        width: 90px;
+        height: 90px;
+        background-image: url('../images/water.png');
+        background-size: cover;
+        cursor: pointer;
+        user-select: none;
+        top: 70px;
+        left: 205px;
+        transform: rotate(-15deg);
+        transition: transform 0.1s ease;
+        z-index: 10;
+      }
+
+      .watering-can.moving {
+        animation: autoMoveLeftRight 3s ease-in-out infinite;
+      }
+
+      .watering-can.active {
+        transform: rotate(-25deg) scale(1.1);
+      }
+
+      @keyframes autoMoveLeftRight {
+        0%,
+        100% {
+          left: 10px;
+        }
+
+        50% {
+          left: calc(100% - 90px);
+        }
+      }
+
+      .water-effect {
+        position: absolute;
+        width: 4px;
+        height: 15px;
+        background: linear-gradient(180deg, #4fc3f7, #2196f3);
+        border-radius: 2px;
         opacity: 0;
+        pointer-events: none;
+        animation: waterDrop 0.5s linear infinite;
       }
 
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
+      @keyframes waterDrop {
+        0% {
+          opacity: 1;
+          transform: translateY(0) scaleY(1);
+        }
 
-    .success-card h2 {
-      color: #33691e;
-      margin-bottom: 6px;
-      font-size: 28px;
-      animation: fadeSlideUp 0.5s 0.3s ease both;
-    }
-
-    .success-card .subtitle {
-      color: #689f38;
-      font-size: 15px;
-      margin-bottom: 22px;
-      animation: fadeSlideUp 0.5s 0.4s ease both;
-    }
-
-    @keyframes fadeSlideUp {
-      0% {
-        transform: translateY(12px);
-        opacity: 0;
+        100% {
+          opacity: 0;
+          transform: translateY(60px) scaleY(0.5);
+        }
       }
 
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .success-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 24px;
-    }
-
-    .success-stat {
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 14px;
-      padding: 12px 8px;
-      border: 1.5px solid rgba(139, 195, 74, 0.3);
-      animation: fadeSlideUp 0.5s ease both;
-      position: relative;
-    }
-
-    .success-stat:nth-child(1) {
-      animation-delay: 0.45s;
-    }
-
-    .success-stat:nth-child(2) {
-      animation-delay: 0.5s;
-    }
-
-    .success-stat:nth-child(3) {
-      animation-delay: 0.55s;
-    }
-
-    .success-stat:nth-child(4) {
-      animation-delay: 0.6s;
-    }
-
-    .success-stat .s-label {
-      color: #689f38;
-      font-size: 12px;
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
-
-    .success-stat .s-value {
-      color: #33691e;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    .success-stat.highlight {
-      background: rgba(139, 195, 74, 0.15);
-      border-color: rgba(139, 195, 74, 0.5);
-    }
-
-    .success-stat.highlight .s-value {
-      color: #2e7d32;
-      font-size: 26px;
-    }
-
-    .success-buttons {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      animation: fadeSlideUp 0.5s 0.65s ease both;
-    }
-
-    .btn-success {
-      background: linear-gradient(135deg, #66bb6a, #43a047);
-      color: white;
-      border: none;
-      padding: 12px 28px;
-      border-radius: 25px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 14px rgba(67, 160, 71, 0.35);
-    }
-
-    .btn-success:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(67, 160, 71, 0.5);
-    }
-
-    .btn-success:active {
-      transform: scale(0.96);
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: #689f38;
-      border: 2px solid #aed581;
-      padding: 12px 28px;
-      border-radius: 25px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.25s ease;
-    }
-
-    .btn-outline:hover {
-      background: rgba(139, 195, 74, 0.12);
-      border-color: #8bc34a;
-    }
-
-    .btn {
-      background: linear-gradient(135deg, #4caf50, #81c784);
-      color: white;
-      border: none;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      margin-top: 20px;
-    }
-
-    .btn:hover {
-      transform: scale(1.1) rotate(2deg);
-      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
-    }
-
-    .btn:active {
-      transform: scale(0.95);
-    }
-
-    .start-btn {
-      background: linear-gradient(135deg, #4caf50, #81c784);
-      color: white;
-      border: none;
-      padding: 0;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-      transition: all 0.3s ease;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 100;
-    }
-
-    .start-btn:hover {
-      transform: translate(-50%, -50%) scale(1.1);
-      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
-    }
-
-    .watering-can {
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      background-image: url('../images/water.png');
-      background-size: cover;
-      cursor: pointer;
-      user-select: none;
-      top: 70px;
-      left: 205px;
-      transform: rotate(-15deg);
-      transition: transform 0.1s ease;
-      z-index: 10;
-    }
-
-    .watering-can.moving {
-      animation: autoMoveLeftRight 3s ease-in-out infinite;
-    }
-
-    .watering-can.active {
-      transform: rotate(-25deg) scale(1.1);
-    }
-
-    @keyframes autoMoveLeftRight {
-
-      0%,
-      100% {
-        left: 10px;
+      .instruction {
+        margin-bottom: 30px;
+        line-height: 1.6;
+        text-align: center;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
-      50% {
-        left: calc(100% - 90px);
-      }
-    }
-
-    .water-effect {
-      position: absolute;
-      width: 4px;
-      height: 15px;
-      background: linear-gradient(180deg, #4fc3f7, #2196f3);
-      border-radius: 2px;
-      opacity: 0;
-      pointer-events: none;
-      animation: waterDrop 0.5s linear infinite;
-    }
-
-    @keyframes waterDrop {
-      0% {
-        opacity: 1;
-        transform: translateY(0) scaleY(1);
+      .instruction-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #4caf50;
       }
 
-      100% {
-        opacity: 0;
-        transform: translateY(60px) scaleY(0.5);
+      .literature {
+        margin-top: 20px;
+        color: #666;
+        font-size: 14px;
       }
-    }
+    </style>
+  </head>
 
-    .instruction {
-      margin-bottom: 30px;
-      line-height: 1.6;
-      text-align: center;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .instruction-title {
-      font-weight: bold;
-      margin-bottom: 8px;
-      color: #4caf50;
-    }
-
-    .literature {
-      margin-top: 20px;
-      color: #666;
-      font-size: 14px;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="container">
-    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
-      <button onclick="exitGame()" style="
+  <body>
+    <div class="container">
+      <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
+        <button
+          onclick="exitGame()"
+          style="
             background: linear-gradient(135deg, #4caf50, #81c784);
             color: white;
             border: none;
@@ -558,310 +405,286 @@
             display: flex;
             align-items: center;
             justify-content: center;
-          " onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
-        onmouseout="this.style.transform = 'scale(1) rotate(0deg)'">
-        ←
-      </button>
-    </div>
+          "
+          onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
+          onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
+        >
+          ←
+        </button>
+      </div>
 
-    <div class="header">
-      <h1>植物浇水</h1>
-    </div>
+      <div class="header">
+        <h1>植物浇水</h1>
+      </div>
 
-    <div class="instruction">
-      <div>当鼠标在水壶上时，长按鼠标进行浇水，进度条会上涨</div>
-      <div>松开鼠标或移开水壶，浇水停止。坚持浇水20秒，植物就会开花！</div>
-    </div>
+      <div class="instruction">
+        <div>当鼠标在水壶上时，长按鼠标进行浇水，进度条会上涨</div>
+        <div>松开鼠标或移开水壶，浇水停止。坚持浇水30秒，植物就会开花！</div>
+      </div>
 
-    <div class="game-area">
-      <div class="stats">
-        <div class="stat-item">
-          <div class="stat-label">有效浇水时长</div>
-          <div class="stat-value"><span id="watering-time">0</span>s</div>
+      <div class="game-area">
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-label">有效浇水时长</div>
+            <div class="stat-value"><span id="watering-time">0</span>s</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">中断次数</div>
+            <div class="stat-value" id="interrupt-count">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">误触次数</div>
+            <div class="stat-value" id="mistouch-count">0</div>
+          </div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label">中断次数</div>
-          <div class="stat-value" id="interrupt-count">0</div>
+
+        <div class="progress-container">
+          <div class="progress-label">植物成长进度</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+            <div class="progress-text" id="progress-text">0%</div>
+          </div>
         </div>
-        <div class="stat-item">
-          <div class="stat-label">误触次数</div>
-          <div class="stat-value" id="mistouch-count">0</div>
+
+        <div class="feedback" id="feedback">准备就绪，按住水壶开始浇水</div>
+
+        <div class="game-scene" id="game-scene">
+          <div class="plant-container">
+            <div class="plant stage-0" id="plant"></div>
+          </div>
+          <div class="watering-can" id="watering-can"></div>
+          <button class="start-btn" id="start-btn" onclick="startGame()">开始游戏</button>
         </div>
       </div>
 
-      <div class="progress-container">
-        <div class="progress-label">植物成长进度</div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progress-fill"></div>
-          <div class="progress-text" id="progress-text">0%</div>
-        </div>
+      <div class="success-message" id="success-message">
+        <h2>🎉 恭喜通关！</h2>
+        <p>植物开花了！</p>
+        <p>得分: <span id="final-score">0</span></p>
+        <p>有效浇水时长: <span id="final-time">0</span>秒</p>
+        <p>中断次数: <span id="final-interrupts">0</span></p>
+        <button class="btn" onclick="resetGame()">再玩一次</button>
       </div>
 
-      <div class="feedback" id="feedback">准备就绪，按住水壶开始浇水</div>
-
-      <div class="game-scene" id="game-scene">
-        <div class="plant-container">
-          <div class="plant stage-0" id="plant"></div>
-        </div>
-        <div class="watering-can" id="watering-can"></div>
-        <button class="start-btn" id="start-btn" onclick="startGame()">开始游戏</button>
+      <div class="literature">
+        <p>文献依据：持续性注意训练研究</p>
       </div>
     </div>
 
-    <div class="success-message" id="success-message">
-      <div class="success-card">
-        <div class="success-icon">🎉</div>
-        <h2>恭喜通关！</h2>
-        <p class="subtitle">植物在你的精心照料下开花啦</p>
-        <div class="success-stats">
-          <div class="success-stat highlight">
-            <div class="s-label">🏆 得分</div>
-            <div class="s-value" id="final-score">0</div>
-          </div>
-          <div class="success-stat">
-            <div class="s-label">💧 有效浇水</div>
-            <div class="s-value"><span id="final-time">0</span>s</div>
-          </div>
-          <div class="success-stat">
-            <div class="s-label">⚡ 中断次数</div>
-            <div class="s-value" id="final-interrupts">0</div>
-          </div>
-          <div class="success-stat">
-            <div class="s-label">🌱 误触次数</div>
-            <div class="s-value" id="final-mistouches">0</div>
-          </div>
-        </div>
-        <div class="success-buttons">
-          <button class="btn-success" onclick="resetGame()">再玩一次</button>
-          <button class="btn-outline" onclick="resetGame()">返回</button>
-        </div>
-      </div>
-    </div>
+    <script src="../utils.js"></script>
+    <script>
+      let isGameStarted = false;
+      let isWatering = false;
+      let progress = 0;
+      let wateringTime = 0;
+      let interruptCount = 0;
+      let mistouchCount = 0;
+      let startTime = 0;
+      let lastWateringStart = 0;
+      let gameInterval;
+      let progressInterval;
+      let wateringStartTime = 0;
+      let totalWateringDuration = 0;
 
-    <div class="literature">
-      <p>文献依据：持续性注意训练研究</p>
-    </div>
-  </div>
+      const targetDuration = 30;
+      const progressPerSecond = 100 / targetDuration;
 
-  <script src="../utils.js"></script>
-  <script>
-    let isGameStarted = false;
-    let isWatering = false;
-    let progress = 0;
-    let wateringTime = 0;
-    let interruptCount = 0;
-    let mistouchCount = 0;
-    let startTime = 0;
-    let lastWateringStart = 0;
-    let gameInterval;
-    let progressInterval;
-    let wateringStartTime = 0;
-    let totalWateringDuration = 0;
+      const wateringCan = document.getElementById('watering-can');
+      const plant = document.getElementById('plant');
+      const gameScene = document.getElementById('game-scene');
+      const progressFill = document.getElementById('progress-fill');
+      const progressText = document.getElementById('progress-text');
+      const feedback = document.getElementById('feedback');
 
-    const targetDuration = 20;
-    const progressPerSecond = 100 / targetDuration;
+      let waterEffectInterval = null;
+      let isMouseOverCan = false;
+      let isMouseDown = false;
 
-    const wateringCan = document.getElementById('watering-can');
-    const plant = document.getElementById('plant');
-    const gameScene = document.getElementById('game-scene');
-    const progressFill = document.getElementById('progress-fill');
-    const progressText = document.getElementById('progress-text');
-    const feedback = document.getElementById('feedback');
+      function resetGameData() {
+        isGameStarted = false;
+        isWatering = false;
+        progress = 0;
+        wateringTime = 0;
+        interruptCount = 0;
+        mistouchCount = 0;
+        totalWateringDuration = 0;
+        wateringStartTime = 0;
+        isMouseOverCan = false;
+        isMouseDown = false;
 
-    let waterEffectInterval = null;
-    let isMouseOverCan = false;
-    let isMouseDown = false;
+        updateProgress();
+        updateStats();
+        updatePlantStage();
 
-    function resetGameData() {
-      isGameStarted = false;
-      isWatering = false;
-      progress = 0;
-      wateringTime = 0;
-      interruptCount = 0;
-      mistouchCount = 0;
-      totalWateringDuration = 0;
-      wateringStartTime = 0;
-      isMouseOverCan = false;
-      isMouseDown = false;
+        wateringCan.classList.remove('active');
+        wateringCan.classList.remove('moving');
+        plant.classList.remove('visible');
+        document.getElementById('start-btn').style.display = 'flex';
+        document.getElementById('success-message').classList.remove('show');
+        feedback.textContent = '准备就绪，跟随水壶并长按浇水';
 
-      updateProgress();
-      updateStats();
-      updatePlantStage();
+        clearInterval(gameInterval);
+        clearInterval(progressInterval);
+        clearInterval(waterEffectInterval);
+      }
 
-      wateringCan.classList.remove('active');
-      wateringCan.classList.remove('moving');
-      plant.classList.remove('visible');
-      document.getElementById('start-btn').style.display = 'flex';
-      document.getElementById('success-message').classList.remove('show');
-      feedback.textContent = '准备就绪，跟随水壶并长按浇水';
+      function startGame() {
+        if (isGameStarted) return;
+        resetGameData();
+        isGameStarted = true;
+        document.getElementById('start-btn').style.display = 'none';
+        plant.classList.add('visible');
+        wateringCan.classList.add('moving');
+        feedback.textContent = '游戏开始！移动鼠标跟随水壶，长按浇水';
 
-      clearInterval(gameInterval);
-      clearInterval(progressInterval);
-      clearInterval(waterEffectInterval);
-    }
+        // 绑定鼠标事件
+        wateringCan.addEventListener('mouseenter', onMouseEnterCan);
+        wateringCan.addEventListener('mouseleave', onMouseLeaveCan);
+        document.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mouseup', onMouseUp);
 
-    function startGame() {
-      if (isGameStarted) return;
-      resetGameData();
-      isGameStarted = true;
-      document.getElementById('start-btn').style.display = 'none';
-      plant.classList.add('visible');
-      wateringCan.classList.add('moving');
-      feedback.textContent = '游戏开始！移动鼠标跟随水壶，长按浇水';
+        // 触摸事件支持
+        wateringCan.addEventListener('touchstart', onTouchStart, { passive: false });
+        document.addEventListener('touchend', onMouseUp);
+      }
 
-      // 绑定鼠标事件
-      wateringCan.addEventListener('mouseenter', onMouseEnterCan);
-      wateringCan.addEventListener('mouseleave', onMouseLeaveCan);
-      document.addEventListener('mousedown', onMouseDown);
-      document.addEventListener('mouseup', onMouseUp);
-
-      // 触摸事件支持
-      wateringCan.addEventListener('touchstart', onTouchStart, { passive: false });
-      document.addEventListener('touchend', onMouseUp);
-    }
-
-    function onMouseEnterCan() {
-      if (!isGameStarted) return;
-      isMouseOverCan = true;
-      checkWateringCondition();
-    }
-
-    function onMouseLeaveCan() {
-      if (!isGameStarted) return;
-      isMouseOverCan = false;
-      stopWatering();
-    }
-
-    function onMouseDown(e) {
-      if (!isGameStarted) return;
-      isMouseDown = true;
-      checkWateringCondition();
-    }
-
-    function onMouseUp() {
-      isMouseDown = false;
-      stopWatering();
-    }
-
-    function onTouchStart(e) {
-      if (!isGameStarted) return;
-      e.preventDefault();
-      const touch = e.touches[0];
-      const canRect = wateringCan.getBoundingClientRect();
-
-      // 检查触摸是否在水壶上
-      if (
-        touch.clientX >= canRect.left &&
-        touch.clientX <= canRect.right &&
-        touch.clientY >= canRect.top &&
-        touch.clientY <= canRect.bottom
-      ) {
+      function onMouseEnterCan() {
+        if (!isGameStarted) return;
         isMouseOverCan = true;
+        checkWateringCondition();
+      }
+
+      function onMouseLeaveCan() {
+        if (!isGameStarted) return;
+        isMouseOverCan = false;
+        stopWatering();
+      }
+
+      function onMouseDown(e) {
+        if (!isGameStarted) return;
         isMouseDown = true;
         checkWateringCondition();
       }
-    }
 
-    function checkWateringCondition() {
-      // 只有当鼠标在水壶上并且按下时才开始浇水
-      if (isMouseOverCan && isMouseDown && !isWatering) {
-        startWatering();
-      }
-    }
-
-    function startWatering() {
-      if (!isGameStarted || isWatering) return;
-
-      // 检查水壶是否在植物上方
-      const canRect = wateringCan.getBoundingClientRect();
-      const plantRect = plant.getBoundingClientRect();
-      const horizontalOverlap = canRect.left < plantRect.right && canRect.right > plantRect.left;
-      const abovePlant = canRect.bottom <= plantRect.top + 100;
-
-      if (horizontalOverlap && abovePlant) {
-        isWatering = true;
-        wateringStartTime = Date.now();
-        wateringCan.classList.add('active');
-        feedback.textContent = '正在浇水...';
-
-        // 创建浇水特效
-        waterEffectInterval = setInterval(createWaterEffect, 100);
-      } else {
-        feedback.textContent = '请将水壶移到植物上方再浇水';
-      }
-    }
-
-    function stopWatering() {
-      if (!isGameStarted || !isWatering) return;
-      isWatering = false;
-      const duration = (Date.now() - wateringStartTime) / 1000;
-      totalWateringDuration += duration;
-      wateringTime = Math.floor(totalWateringDuration);
-      interruptCount++;
-      updateStats();
-      wateringCan.classList.remove('active');
-
-      if (isMouseOverCan) {
-        feedback.textContent = '跟随水壶，长按继续浇水';
-      } else {
-        feedback.textContent = '移动鼠标跟随水壶';
+      function onMouseUp() {
+        isMouseDown = false;
+        stopWatering();
       }
 
-      clearInterval(waterEffectInterval);
-      // 清除所有水滴特效
-      document.querySelectorAll('.water-effect').forEach((drop) => drop.remove());
-    }
+      function onTouchStart(e) {
+        if (!isGameStarted) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const canRect = wateringCan.getBoundingClientRect();
 
-    function createWaterEffect() {
-      if (!isWatering) return;
-
-      const drop = document.createElement('div');
-      drop.className = 'water-effect';
-
-      const canRect = wateringCan.getBoundingClientRect();
-      const sceneRect = gameScene.getBoundingClientRect();
-
-      // 在水壶底部随机位置生成水滴
-      const randomX = Math.random() * 40 + 20;
-      drop.style.left = canRect.left - sceneRect.left + randomX + 'px';
-      drop.style.top = canRect.bottom - sceneRect.top + 'px';
-
-      gameScene.appendChild(drop);
-
-      // 动画结束后移除水滴
-      setTimeout(() => {
-        if (drop.parentNode) {
-          drop.remove();
+        // 检查触摸是否在水壶上
+        if (
+          touch.clientX >= canRect.left &&
+          touch.clientX <= canRect.right &&
+          touch.clientY >= canRect.top &&
+          touch.clientY <= canRect.bottom
+        ) {
+          isMouseOverCan = true;
+          isMouseDown = true;
+          checkWateringCondition();
         }
-      }, 500);
-    }
-
-    function updateProgress() {
-      progressFill.style.width = progress + '%';
-      progressText.textContent = Math.round(progress) + '%';
-    }
-
-    function updateStats() {
-      document.getElementById('watering-time').textContent = wateringTime;
-      document.getElementById('interrupt-count').textContent = interruptCount;
-      document.getElementById('mistouch-count').textContent = mistouchCount;
-    }
-
-    function updatePlantStage() {
-      const stage = Math.min(Math.floor(progress / 20), 4);
-      plant.className = 'plant stage-' + stage;
-      if (isGameStarted) {
-        plant.classList.add('visible');
       }
-    }
 
-    function gameLoop() {
-      if (!isGameStarted) return;
+      function checkWateringCondition() {
+        // 只有当鼠标在水壶上并且按下时才开始浇水
+        if (isMouseOverCan && isMouseDown && !isWatering) {
+          startWatering();
+        }
+      }
 
-      if (isWatering) {
-        const currentDuration = (Date.now() - wateringStartTime) / 1000;
-        wateringTime = Math.floor(totalWateringDuration + currentDuration);
+      function startWatering() {
+        if (!isGameStarted || isWatering) return;
+
+        // 检查水壶是否在植物上方
+        const canRect = wateringCan.getBoundingClientRect();
+        const plantRect = plant.getBoundingClientRect();
+        const horizontalOverlap = canRect.left < plantRect.right && canRect.right > plantRect.left;
+        const abovePlant = canRect.bottom <= plantRect.top + 100;
+
+        if (horizontalOverlap && abovePlant) {
+          isWatering = true;
+          wateringStartTime = Date.now();
+          wateringCan.classList.add('active');
+          feedback.textContent = '正在浇水...';
+
+          // 创建浇水特效
+          waterEffectInterval = setInterval(createWaterEffect, 100);
+        } else {
+          feedback.textContent = '请将水壶移到植物上方再浇水';
+        }
+      }
+
+      function stopWatering() {
+        if (!isGameStarted || !isWatering) return;
+        isWatering = false;
+        const duration = (Date.now() - wateringStartTime) / 1000;
+        totalWateringDuration += duration;
+        wateringTime = Math.floor(totalWateringDuration);
+        interruptCount++;
         updateStats();
+        wateringCan.classList.remove('active');
+
+        if (isMouseOverCan) {
+          feedback.textContent = '跟随水壶，长按继续浇水';
+        } else {
+          feedback.textContent = '移动鼠标跟随水壶';
+        }
+
+        clearInterval(waterEffectInterval);
+        // 清除所有水滴特效
+        document.querySelectorAll('.water-effect').forEach((drop) => drop.remove());
+      }
+
+      function createWaterEffect() {
+        if (!isWatering) return;
+
+        const drop = document.createElement('div');
+        drop.className = 'water-effect';
+
+        const canRect = wateringCan.getBoundingClientRect();
+        const sceneRect = gameScene.getBoundingClientRect();
+
+        // 在水壶底部随机位置生成水滴
+        const randomX = Math.random() * 40 + 20;
+        drop.style.left = canRect.left - sceneRect.left + randomX + 'px';
+        drop.style.top = canRect.bottom - sceneRect.top + 'px';
+
+        gameScene.appendChild(drop);
+
+        // 动画结束后移除水滴
+        setTimeout(() => {
+          if (drop.parentNode) {
+            drop.remove();
+          }
+        }, 500);
+      }
+
+      function updateProgress() {
+        progressFill.style.width = progress + '%';
+        progressText.textContent = Math.round(progress) + '%';
+      }
+
+      function updateStats() {
+        document.getElementById('watering-time').textContent = wateringTime;
+        document.getElementById('interrupt-count').textContent = interruptCount;
+        document.getElementById('mistouch-count').textContent = mistouchCount;
+      }
+
+      function updatePlantStage() {
+        const stage = Math.min(Math.floor(progress / 20), 4);
+        plant.className = 'plant stage-' + stage;
+        if (isGameStarted) {
+          plant.classList.add('visible');
+        }
+      }
+
+      function gameLoop() {
+        if (!isGameStarted || !isWatering) return;
 
         progress += progressPerSecond / 10;
         if (progress >= 100) progress = 100;
@@ -873,210 +696,208 @@
           winGame();
         }
       }
-    }
 
-    function calculateSustainedAttentionScore() {
-      // 计算各项指标
-      const totalTime = 20;
-      const acc = Math.max(0, 1 - interruptCount / 10); // 中断次数越少，得分越高
-      const consistency = Math.max(0, 1 - mistouchCount / 10); // 误触次数越少，得分越高
-      // 放宽时间评分：使用更平滑的曲线，超时60秒才扣到0分
-      const timeOvertime = wateringTime - totalTime;
-      const speed = Math.max(0, 1 / (1 + timeOvertime / 45)); // 使用指数衰减，45秒后降到约50%
+      function calculateSustainedAttentionScore() {
+        // 计算各项指标
+        const totalTime = 30; // 目标时间30秒
+        const acc = Math.max(0, 1 - interruptCount / 10); // 中断次数越少，得分越高
+        const consistency = Math.max(0, 1 - mistouchCount / 10); // 误触次数越少，得分越高
+        // 放宽时间评分：使用更平滑的曲线，超时60秒才扣到0分
+        const timeOvertime = wateringTime - totalTime;
+        const speed = Math.max(0, 1 / (1 + timeOvertime / 45)); // 使用指数衰减，45秒后降到约50%
 
-      // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
-      const headStable = 0.8; // 头部稳定性
-      const faceStable = 0.8; // 面部稳定性
-      const blinkStable = 0.8; // 眨眼稳定性
+        // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
+        const headStable = 0.8; // 头部稳定性
+        const faceStable = 0.8; // 面部稳定性
+        const blinkStable = 0.8; // 眨眼稳定性
 
-      // 计算最终得分
-      const scoreValue =
-        (acc * 0.4 + consistency * 0.3 + speed * 0.15 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) *
-        100;
+        // 计算最终得分
+        const scoreValue =
+          (acc * 0.4 + consistency * 0.3 + speed * 0.15 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) *
+          100;
 
-      return Math.max(0, Math.min(100, Math.round(scoreValue)));
-    }
-
-    function winGame() {
-      isGameStarted = false;
-      clearInterval(progressInterval);
-
-      const finalScore = calculateSustainedAttentionScore();
-
-      document.getElementById('final-time').textContent = wateringTime;
-      document.getElementById('final-interrupts').textContent = interruptCount;
-      document.getElementById('final-mistouches').textContent = mistouchCount;
-      document.getElementById('final-score').textContent = finalScore;
-      document.getElementById('success-message').classList.add('show');
-      feedback.textContent = '恭喜！植物成功开花！';
-
-      // 统计游戏使用时间
-      try {
-        if (typeof GameTimeUtil !== 'undefined') {
-          GameTimeUtil.endGame('water-plants');
-        }
-      } catch (e) {
-        console.log('GameTimeUtil 未定义，跳过');
+        return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
-      if (typeof MedalUtil !== 'undefined') {
-        MedalUtil.recordGameProgress('game4', null, { increment: true });
-      }
-
-      // 上传数据到后端
-      uploadTrainingData();
-    }
-
-    function uploadTrainingData() {
-      try {
-        const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-        const childId =
-          typeof UserStateUtil !== 'undefined'
-            ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-            : 1;
-        let sessionId = null;
+      function winGame() {
+        isGameStarted = false;
+        clearInterval(progressInterval);
 
         // 计算持续性注意得分
         const finalScore = calculateSustainedAttentionScore();
-        const accuracy = 100 - interruptCount * 10;
 
-        // 检测环境，设置API地址
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+        document.getElementById('final-time').textContent = wateringTime;
+        document.getElementById('final-interrupts').textContent = interruptCount;
+        document.getElementById('final-score').textContent = finalScore;
+        document.getElementById('success-message').classList.add('show');
+        feedback.textContent = '恭喜！植物成功开花！';
 
-        // 开始训练会话
-        fetch(`${baseUrl}/api/training/session/start`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-          body: JSON.stringify({
-            child_id: childId,
-            game_type: 'water-plants',
-            device_id: 'web',
-          }),
-        })
-          .then((response) => response.json())
-          .then((result) => {
-            if (result.success) {
-              sessionId = result.data.session_id;
-              console.log('训练会话创建成功:', sessionId);
+        // 统计游戏使用时间
+        try {
+          if (typeof GameTimeUtil !== 'undefined') {
+            GameTimeUtil.endGame('water-plants');
+          }
+        } catch (e) {
+          console.log('GameTimeUtil 未定义，跳过');
+        }
 
-              // 上传游戏数据
-              return fetch(`${baseUrl}/api/training/game-data`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-                body: JSON.stringify({
-                  session_id: sessionId,
-                  request_id: Date.now().toString(),
-                  timestamp: new Date().toISOString(),
-                  event_type: 'game_complete',
-                  score: finalScore,
-                  accuracy: accuracy,
-                  level: 1,
-                  time: wateringTime,
-                  correct: 1,
-                  error: interruptCount + mistouchCount,
-                  total_target: 1,
-                  total_step: 1,
-                }),
-              });
-            } else {
-              throw new Error(result.message || '创建会话失败');
-            }
-          })
-          .then((response) => response.json())
-          .then((result) => {
-            if (result.success) {
-              console.log('游戏数据上传成功');
+        if (typeof MedalUtil !== 'undefined') {
+          MedalUtil.recordGameProgress('game4', null, { increment: true });
+        }
 
-              // 清除能力评估页面的缓存
-              const cacheKey = `child_data_${childId}`;
-              localStorage.removeItem(cacheKey);
-              console.log('已清除能力评估缓存:', cacheKey);
-
-              // 结束训练会话
-              return fetch(`${baseUrl}/api/training/session/end`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-                body: JSON.stringify({
-                  session_id: sessionId,
-                  final_score: finalScore,
-                  total_accuracy: accuracy,
-                  duration: wateringTime,
-                }),
-              });
-            } else {
-              throw new Error(result.message || '上传游戏数据失败');
-            }
-          })
-          .then((response) => response.json())
-          .then((result) => {
-            console.log('会话结束响应数据:', result);
-            if (result.success) {
-              console.log('训练数据上传完成');
-
-              // 保存训练时间到 localStorage，用于今日训练页面显示
-              const today = new Date().toISOString().split('T')[0];
-              const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-              if (!trainingData[today]) {
-                trainingData[today] = { totalTime: 0 };
-              }
-
-              // 累加游戏时间（秒）
-              trainingData[today].totalTime += wateringTime;
-              localStorage.setItem('trainingData', JSON.stringify(trainingData));
-              console.log('训练时间已保存到 localStorage');
-            }
-          })
-          .catch((error) => {
-            console.error('上传训练数据失败:', error);
-          });
-      } catch (e) {
-        console.error('uploadTrainingData 错误:', e);
+        // 上传数据到后端
+        uploadTrainingData();
       }
-    }
 
-    function resetGame() {
-      // 隐藏成功弹窗
-      document.getElementById('success-message').classList.remove('show');
-      // 重置游戏数据
-      resetGameData();
-      // 显示开始按钮
-      document.getElementById('start-btn').style.display = 'flex';
-    }
+      function uploadTrainingData() {
+        try {
+          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+          const childId =
+            typeof UserStateUtil !== 'undefined'
+              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+              : 1;
+          let sessionId = null;
 
-    function exitGame() {
-      // 清除游戏状态
-      isGameStarted = false;
-      isWatering = false;
+          // 计算持续性注意得分
+          const finalScore = calculateSustainedAttentionScore();
+          const accuracy = 100 - interruptCount * 10;
 
-      // 清除所有定时器
-      clearInterval(gameInterval);
-      clearInterval(progressInterval);
-      clearInterval(waterEffectInterval);
+          // 检测环境，设置API地址
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-      // 隐藏所有弹窗
-      document.getElementById('success-message').classList.remove('show');
+          // 开始训练会话
+          fetch(`${baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: childId,
+              game_type: 'water-plants',
+              device_id: 'web',
+            }),
+          })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                sessionId = result.data.session_id;
+                console.log('训练会话创建成功:', sessionId);
 
-      // 延迟跳转，确保状态清理完成
-      setTimeout(() => {
-        window.location.href = '../child-home.html';
-      }, 100);
-    }
+                // 上传游戏数据
+                return fetch(`${baseUrl}/api/training/game-data`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                  },
+                  body: JSON.stringify({
+                    session_id: sessionId,
+                    request_id: Date.now().toString(),
+                    timestamp: new Date().toISOString(),
+                    event_type: 'game_complete',
+                    score: finalScore,
+                    accuracy: accuracy,
+                    level: 1,
+                    time: wateringTime,
+                    correct: 1,
+                    error: interruptCount + mistouchCount,
+                    total_target: 1,
+                    total_step: 1,
+                  }),
+                });
+              } else {
+                throw new Error(result.message || '创建会话失败');
+              }
+            })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                console.log('游戏数据上传成功');
 
-    // 游戏主循环
-    setInterval(gameLoop, 100);
-  </script>
-  <script src="../attention-loader.js"></script>
-</body>
+                // 清除能力评估页面的缓存
+                const cacheKey = `child_data_${childId}`;
+                localStorage.removeItem(cacheKey);
+                console.log('已清除能力评估缓存:', cacheKey);
 
+                // 结束训练会话
+                return fetch(`${baseUrl}/api/training/session/end`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                  },
+                  body: JSON.stringify({
+                    session_id: sessionId,
+                    final_score: finalScore,
+                    total_accuracy: accuracy,
+                    duration: wateringTime,
+                  }),
+                });
+              } else {
+                throw new Error(result.message || '上传游戏数据失败');
+              }
+            })
+            .then((response) => response.json())
+            .then((result) => {
+              console.log('会话结束响应数据:', result);
+              if (result.success) {
+                console.log('训练数据上传完成');
+
+                // 保存训练时间到 localStorage，用于今日训练页面显示
+                const today = new Date().toISOString().split('T')[0];
+                const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                if (!trainingData[today]) {
+                  trainingData[today] = { totalTime: 0 };
+                }
+
+                // 累加游戏时间（秒）
+                trainingData[today].totalTime += wateringTime;
+                localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                console.log('训练时间已保存到 localStorage');
+              }
+            })
+            .catch((error) => {
+              console.error('上传训练数据失败:', error);
+            });
+        } catch (e) {
+          console.error('uploadTrainingData 错误:', e);
+        }
+      }
+
+      function resetGame() {
+        // 隐藏成功弹窗
+        document.getElementById('success-message').classList.remove('show');
+        // 重置游戏数据
+        resetGameData();
+        // 显示开始按钮
+        document.getElementById('start-btn').style.display = 'flex';
+      }
+
+      function exitGame() {
+        // 清除游戏状态
+        isGameStarted = false;
+        isWatering = false;
+
+        // 清除所有定时器
+        clearInterval(gameInterval);
+        clearInterval(progressInterval);
+        clearInterval(waterEffectInterval);
+
+        // 隐藏所有弹窗
+        document.getElementById('success-message').classList.remove('show');
+
+        // 延迟跳转，确保状态清理完成
+        setTimeout(() => {
+          window.location.href = '../child-home.html';
+        }, 100);
+      }
+
+      // 游戏主循环
+      setInterval(gameLoop, 100);
+    </script>
+    <script src="../attention-loader.js"></script>
+  </body>
 </html>
