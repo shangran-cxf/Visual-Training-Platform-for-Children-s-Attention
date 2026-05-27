@@ -499,7 +499,7 @@ const ParentComponents = {
                         <div class="profile-info">
                             <div class="profile-username" id="profile-username">加载中...</div>
                             <div class="profile-meta">
-                                <div class="profile-meta-item">UID: <span id="profile-uid">-</span></div>
+                                <div class="profile-meta-item">ID: <span id="profile-id">-</span></div>
                                 <div class="profile-meta-item">注册时间: <span id="profile-created">-</span></div>
                                 <div class="profile-meta-item">邮箱: <span id="profile-email-display">-</span></div>
                             </div>
@@ -621,7 +621,7 @@ const ParentComponents = {
     const userInfo = StorageUtil.getItem('userInfo');
     if (!userInfo) return;
 
-    const uidElement = document.getElementById('profile-uid');
+    const idElement = document.getElementById('profile-id');
     const usernameElement = document.getElementById('profile-username');
     const emailElement = document.getElementById('profile-email-display');
     const createdElement = document.getElementById('profile-created');
@@ -629,7 +629,7 @@ const ParentComponents = {
     const avatarInitialElement = document.getElementById('modal-avatar-initial');
     const sidebarAvatar = document.querySelector('.user-avatar-sidebar');
 
-    if (uidElement) uidElement.textContent = userInfo.uid || '-';
+    if (idElement) idElement.textContent = userInfo.parent_id || '-';
     if (usernameElement) usernameElement.textContent = userInfo.username || '加载中...';
 
     try {
