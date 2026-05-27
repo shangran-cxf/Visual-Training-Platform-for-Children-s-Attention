@@ -193,66 +193,219 @@
       }
 
       .success-message {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-        padding: 40px;
-        border-radius: 30px;
-        text-align: center;
-        box-shadow:
-          0 8px 30px rgba(0, 0, 0, 0.2),
-          0 0 0 10px rgba(76, 175, 80, 0.1);
         display: none;
-        z-index: 100;
-        max-width: 400px;
-        width: 90%;
-        border: 3px solid #4caf50;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(20, 50, 20, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
       }
 
       .success-message.show {
-        display: block;
-        animation: popIn 0.5s ease-out;
+        display: flex;
       }
 
-      @keyframes popIn {
+      .success-card {
+        background: linear-gradient(175deg, #f1f8e9 0%, #dcedc8 30%, #c5e1a5 70%, #aed581 100%);
+        padding: 40px 36px 32px;
+        border-radius: 28px;
+        text-align: center;
+        box-shadow:
+          0 12px 48px rgba(30, 70, 20, 0.35),
+          0 0 0 4px rgba(139, 195, 74, 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        max-width: 420px;
+        width: 90%;
+        animation: cardBloom 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .success-card::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(139, 195, 74, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      .success-card::after {
+        content: '';
+        position: absolute;
+        bottom: -20px;
+        left: -20px;
+        width: 80px;
+        height: 80px;
+        background: radial-gradient(circle, rgba(129, 212, 250, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      @keyframes cardBloom {
         0% {
-          transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+          transform: scale(0.7) translateY(40px);
           opacity: 0;
         }
 
-        50% {
-          transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+        100% {
+          transform: scale(1) translateY(0);
           opacity: 1;
+        }
+      }
+
+      .success-icon {
+        font-size: 56px;
+        margin-bottom: 8px;
+        animation: iconBounce 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes iconBounce {
+        0% {
+          transform: scale(0);
+          opacity: 0;
         }
 
         100% {
-          transform: translate(-50%, -50%) scale(1) rotate(0deg);
+          transform: scale(1);
           opacity: 1;
         }
       }
 
-      .success-message h2 {
-        color: #4caf50;
-        margin-bottom: 20px;
-        font-size: 32px;
-        font-family: 'Comic Sans MS', cursive, sans-serif;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      .success-card h2 {
+        color: #33691e;
+        margin-bottom: 6px;
+        font-size: 28px;
+        animation: fadeSlideUp 0.5s 0.3s ease both;
       }
 
-      .success-message p {
-        color: #666;
-        margin-bottom: 15px;
-        font-size: 18px;
-        font-family: 'Comic Sans MS', cursive, sans-serif;
+      .success-card .subtitle {
+        color: #689f38;
+        font-size: 15px;
+        margin-bottom: 22px;
+        animation: fadeSlideUp 0.5s 0.4s ease both;
       }
 
-      .success-message #final-score {
-        color: #ff9800;
-        font-size: 24px;
+      @keyframes fadeSlideUp {
+        0% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .success-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+
+      .success-stat {
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 14px;
+        padding: 12px 8px;
+        border: 1.5px solid rgba(139, 195, 74, 0.3);
+        animation: fadeSlideUp 0.5s ease both;
+        position: relative;
+      }
+
+      .success-stat:nth-child(1) {
+        animation-delay: 0.45s;
+      }
+
+      .success-stat:nth-child(2) {
+        animation-delay: 0.5s;
+      }
+
+      .success-stat:nth-child(3) {
+        animation-delay: 0.55s;
+      }
+
+      .success-stat:nth-child(4) {
+        animation-delay: 0.6s;
+      }
+
+      .success-stat .s-label {
+        color: #689f38;
+        font-size: 12px;
         font-weight: bold;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        margin-bottom: 4px;
+      }
+
+      .success-stat .s-value {
+        color: #33691e;
+        font-size: 22px;
+        font-weight: bold;
+      }
+
+      .success-stat.highlight {
+        background: rgba(139, 195, 74, 0.15);
+        border-color: rgba(139, 195, 74, 0.5);
+      }
+
+      .success-stat.highlight .s-value {
+        color: #2e7d32;
+        font-size: 26px;
+      }
+
+      .success-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        animation: fadeSlideUp 0.5s 0.65s ease both;
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #66bb6a, #43a047);
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(67, 160, 71, 0.35);
+      }
+
+      .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(67, 160, 71, 0.5);
+      }
+
+      .btn-success:active {
+        transform: scale(0.96);
+      }
+
+      .btn-outline {
+        background: transparent;
+        color: #689f38;
+        border: 2px solid #aed581;
+        padding: 12px 28px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+
+      .btn-outline:hover {
+        background: rgba(139, 195, 74, 0.12);
+        border-color: #8bc34a;
       }
 
       .btn {
@@ -419,7 +572,7 @@
 
       <div class="instruction">
         <div>当鼠标在水壶上时，长按鼠标进行浇水，进度条会上涨</div>
-        <div>松开鼠标或移开水壶，浇水停止。坚持浇水30秒，植物就会开花！</div>
+        <div>松开鼠标或移开水壶，浇水停止。坚持浇水20秒，植物就会开花！</div>
       </div>
 
       <div class="game-area">
@@ -458,12 +611,33 @@
       </div>
 
       <div class="success-message" id="success-message">
-        <h2>🎉 恭喜通关！</h2>
-        <p>植物开花了！</p>
-        <p>得分: <span id="final-score">0</span></p>
-        <p>有效浇水时长: <span id="final-time">0</span>秒</p>
-        <p>中断次数: <span id="final-interrupts">0</span></p>
-        <button class="btn" onclick="resetGame()">再玩一次</button>
+        <div class="success-card">
+          <div class="success-icon">🎉</div>
+          <h2>恭喜通关！</h2>
+          <p class="subtitle">植物在你的精心照料下开花啦</p>
+          <div class="success-stats">
+            <div class="success-stat highlight">
+              <div class="s-label">🏆 得分</div>
+              <div class="s-value" id="final-score">0</div>
+            </div>
+            <div class="success-stat">
+              <div class="s-label">💧 有效浇水</div>
+              <div class="s-value"><span id="final-time">0</span>s</div>
+            </div>
+            <div class="success-stat">
+              <div class="s-label">⚡ 中断次数</div>
+              <div class="s-value" id="final-interrupts">0</div>
+            </div>
+            <div class="success-stat">
+              <div class="s-label">🌱 误触次数</div>
+              <div class="s-value" id="final-mistouches">0</div>
+            </div>
+          </div>
+          <div class="success-buttons">
+            <button class="btn-success" onclick="resetGame()">再玩一次</button>
+            <button class="btn-outline" onclick="resetGame()">返回</button>
+          </div>
+        </div>
       </div>
 
       <div class="literature">
@@ -486,7 +660,7 @@
       let wateringStartTime = 0;
       let totalWateringDuration = 0;
 
-      const targetDuration = 30;
+      const targetDuration = 20;
       const progressPerSecond = 100 / targetDuration;
 
       const wateringCan = document.getElementById('watering-can');
@@ -684,22 +858,28 @@
       }
 
       function gameLoop() {
-        if (!isGameStarted || !isWatering) return;
+        if (!isGameStarted) return;
 
-        progress += progressPerSecond / 10;
-        if (progress >= 100) progress = 100;
+        if (isWatering) {
+          const currentDuration = (Date.now() - wateringStartTime) / 1000;
+          wateringTime = Math.floor(totalWateringDuration + currentDuration);
+          updateStats();
 
-        updateProgress();
-        updatePlantStage();
+          progress += progressPerSecond / 10;
+          if (progress >= 100) progress = 100;
 
-        if (progress >= 100) {
-          winGame();
+          updateProgress();
+          updatePlantStage();
+
+          if (progress >= 100) {
+            winGame();
+          }
         }
       }
 
       function calculateSustainedAttentionScore() {
         // 计算各项指标
-        const totalTime = 30; // 目标时间30秒
+        const totalTime = 20;
         const acc = Math.max(0, 1 - interruptCount / 10); // 中断次数越少，得分越高
         const consistency = Math.max(0, 1 - mistouchCount / 10); // 误触次数越少，得分越高
         // 放宽时间评分：使用更平滑的曲线，超时60秒才扣到0分
@@ -723,11 +903,11 @@
         isGameStarted = false;
         clearInterval(progressInterval);
 
-        // 计算持续性注意得分
         const finalScore = calculateSustainedAttentionScore();
 
         document.getElementById('final-time').textContent = wateringTime;
         document.getElementById('final-interrupts').textContent = interruptCount;
+        document.getElementById('final-mistouches').textContent = mistouchCount;
         document.getElementById('final-score').textContent = finalScore;
         document.getElementById('success-message').classList.add('show');
         feedback.textContent = '恭喜！植物成功开花！';
