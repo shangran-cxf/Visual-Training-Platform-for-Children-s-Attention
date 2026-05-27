@@ -295,6 +295,7 @@
       }
 
       .empty-state {
+        column-span: all;
         text-align: center;
         padding: 80px 20px;
         color: #999;
@@ -755,7 +756,8 @@
       }
 
       function formatArticleContent(c) {
-        const escaped = escapeHtml(c);
+        const normalized = c.replace(/\r\n/g, '\n');
+        const escaped = escapeHtml(normalized);
         const f = escaped.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
         return `<p>${f}</p>`;
       }
@@ -859,7 +861,7 @@
       });
 
       // 回车键搜索
-      searchInput.addEventListener('keypress', (e) => {
+      searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') doSearch();
       });
     </script>

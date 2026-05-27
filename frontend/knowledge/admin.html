@@ -726,8 +726,8 @@
           const tagElement = document.createElement('div');
           tagElement.className = 'tag-pill';
           tagElement.innerHTML = `
-            ${tag}
-            <button type="button" onclick="removeTag('${tag}')">×</button>
+            ${escapeHtml(tag)}
+            <button type="button" onclick="removeTag('${tag.replace(/'/g, "\\'")}')">×</button>
           `;
           container.appendChild(tagElement);
         });
@@ -845,7 +845,7 @@
               ${tagsHtml ? `<div class="article-card-tags">${tagsHtml}</div>` : ''}
               ${article.summary ? `<p class="article-card-summary">${escapeHtml(article.summary)}</p>` : ''}
               <div class="article-card-actions">
-                <button class="btn-delete" onclick="deleteArticle('${escapeHtml(String(article.id))}')">删除</button>
+                <button class="btn-delete" onclick="deleteArticle('${escapeHtml(String(article.id)).replace(/'/g, "\\'")}')">删除</button>
               </div>
             </div>`;
         });
@@ -880,6 +880,7 @@
       }
 
       function resetForm() {
+        if (!confirm('确定要清空表单吗？已输入的内容将丢失。')) return;
         document.getElementById('title').value = '';
         document.getElementById('content').value = '';
         document.getElementById('author').value = '专业团队';
@@ -893,13 +894,17 @@
         document.getElementById('tags').value = '';
       }
 
+      let notificationTimer = null;
+
       function showNotification(message, type) {
         const notification = document.getElementById('notification');
+        if (notificationTimer) clearTimeout(notificationTimer);
+        notification.style.display = '';
         notification.textContent = message;
         notification.className = `notification ${type}`;
-
-        setTimeout(() => {
+        notificationTimer = setTimeout(() => {
           notification.style.display = 'none';
+          notificationTimer = null;
         }, 5000);
       }
 
