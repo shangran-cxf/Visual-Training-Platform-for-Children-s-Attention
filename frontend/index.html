@@ -1585,7 +1585,7 @@
             // 直接跳转到家长端首页
             window.location.href = 'child-document.html';
           } else {
-            errorMessage.textContent = result.error || '用户名或密码错误';
+            errorMessage.textContent = result.error?.message || result.error || '用户名或密码错误';
           }
         } catch (error) {
           console.error('登录失败:', error);
