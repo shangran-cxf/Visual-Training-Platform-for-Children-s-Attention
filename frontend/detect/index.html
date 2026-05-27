@@ -42,10 +42,12 @@
         display: flex;
         gap: 24px;
         padding: 24px;
+        padding-left: 194px;
       }
 
       .sidebar {
         width: 130px;
+        height: calc(100vh - 48px);
         background: #62b4a5;
         box-shadow: var(--shadow-soft);
         padding: 24px 0;
@@ -54,7 +56,10 @@
         align-items: center;
         gap: 30px;
         border-radius: 32px;
-        position: relative;
+        position: fixed;
+        top: 24px;
+        left: 40px;
+        z-index: 100;
       }
 
       .logo-section {
@@ -105,6 +110,10 @@
         transform: translateY(-4px) scale(1.02);
       }
 
+      .nav-item:hover .nav-icon {
+        transform: scale(1.1);
+      }
+
       .nav-item.active {
         background: #ffd387;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -113,6 +122,20 @@
       .nav-item.active .nav-icon,
       .nav-item.active .nav-label {
         color: white;
+      }
+
+      .nav-item.switch-mode {
+        background: #d0ece4;
+      }
+      .nav-item.switch-mode:hover {
+        background: #ddf5ee;
+      }
+      .nav-item.switch-mode .nav-icon {
+        color: #2d5a4a;
+      }
+      .nav-item.switch-mode .nav-label {
+        color: #2d5a4a;
+        font-weight: 700;
       }
 
       .nav-icon {
@@ -151,7 +174,10 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        max-width: calc(100% - 134px);
+        gap: 24px;
+        padding: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
       }
 
       .title-section {
@@ -970,12 +996,12 @@
         <span class="nav-label">勋章墙</span>
       </div>
 
-      <div class="nav-item" onclick="window.location.href = '../child-document.html'">
+      <div class="nav-item switch-mode" onclick="window.location.href = '../child-document.html'">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
-        <span class="nav-label">家长端</span>
+        <span class="nav-label">家长报告</span>
       </div>
     </nav>
 
