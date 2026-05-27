@@ -19,7 +19,11 @@
         overflow-y: auto;
         flex: 1;
         padding: 24px;
-        max-width: calc(100% - 154px);
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .main-content::-webkit-scrollbar {
+        display: none;
       }
 
       /* 左侧主卡片 - 跨两行 */
