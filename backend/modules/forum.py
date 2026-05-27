@@ -185,7 +185,8 @@ def get_post(post_id):
         SELECT p.id, p.title, p.content, p.created_at, p.view_count, p.parent_id, p.category_id, p.is_pinned, p.is_essential,
                pr.username as author_name, pr.level as author_level,
                COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = 1), 0) as like_count,
-               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count
+               COALESCE((SELECT COUNT(*) FROM forum_votes WHERE post_id = p.id AND vote_type = -1), 0) as dislike_count,
+               COALESCE((SELECT COUNT(*) FROM favorites WHERE post_id = p.id), 0) as favorite_count
     """
 
     # 如果用户已登录，添加用户投票状态和收藏状态
@@ -226,12 +227,13 @@ def get_post(post_id):
         "author_level": p[10],
         "like_count": p[11],
         "dislike_count": p[12],
+        "favorite_count": p[13],
     }
 
     # 如果用户已登录，添加用户投票状态和收藏状态
-    if user_id and len(p) > 12:
-        post_data["user_vote"] = p[13] if p[13] else 0
-        post_data["is_favorited"] = p[14] == 1
+    if user_id and len(p) > 13:
+        post_data["user_vote"] = p[14] if p[14] else 0
+        post_data["is_favorited"] = p[15] == 1
 
     return success_response(post_data)
 
@@ -394,22 +396,44 @@ def get_comments():
     if not post_id:
         return error_response("帖子ID不能为空", status=400)
 
-    comments = execute_db(
-        """
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 20))
+    offset = (page - 1) * per_page
+
+    user_id = request.user_id if hasattr(request, "user_id") else None
+
+    base_query = """
         SELECT c.id, c.content, c.created_at, c.parent_id,
                pr.username as author_name,
                COALESCE((SELECT COUNT(*) FROM forum_votes WHERE comment_id = c.id AND vote_type = 1), 0) as like_count,
                COALESCE((SELECT COUNT(*) FROM forum_votes WHERE comment_id = c.id AND vote_type = -1), 0) as dislike_count
+    """
+
+    if user_id:
+        base_query += """,
+               (SELECT vote_type FROM forum_votes WHERE comment_id = c.id AND parent_id = ?) as user_vote
+        """
+
+    base_query += """
         FROM forum_comments c
         JOIN parents pr ON c.parent_id = pr.id
         WHERE c.post_id = ?
         ORDER BY c.created_at ASC
-    """,
-        (post_id,),
-    )
+        LIMIT ? OFFSET ?
+    """
 
-    comments_data = [
-        {
+    params = []
+    if user_id:
+        params.append(user_id)
+    params.extend([post_id, per_page, offset])
+
+    comments = execute_db(base_query, params)
+
+    total = execute_db("SELECT COUNT(*) FROM forum_comments WHERE post_id = ?", (post_id,))[0][0]
+
+    comments_data = []
+    for c in comments:
+        comment = {
             "id": c[0],
             "content": c[1],
             "created_at": c[2],
@@ -418,10 +442,19 @@ def get_comments():
             "like_count": c[5],
             "dislike_count": c[6],
         }
-        for c in comments
-    ]
+        if user_id and len(c) > 7:
+            comment["user_vote"] = c[7] if c[7] else 0
+        comments_data.append(comment)
 
-    return success_response(comments_data)
+    return success_response(
+        {
+            "comments": comments_data,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": (total + per_page - 1) // per_page,
+        }
+    )
 
 
 @forum_bp.route("/comments", methods=["POST"])
@@ -546,6 +579,11 @@ def vote():
 @require_auth
 def get_favorites():
     parent_id = request.user_id
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 10))
+    offset = (page - 1) * per_page
+
+    total = execute_db("SELECT COUNT(*) FROM favorites WHERE parent_id = ?", (parent_id,))[0][0]
 
     result = execute_db(
         """
@@ -559,8 +597,9 @@ def get_favorites():
         JOIN parents pr ON p.parent_id = pr.id
         WHERE f.parent_id = ?
         ORDER BY f.created_at DESC
+        LIMIT ? OFFSET ?
     """,
-        (parent_id,),
+        (parent_id, per_page, offset),
     )
 
     favorites = [
@@ -579,7 +618,15 @@ def get_favorites():
         for f in result
     ]
 
-    return success_response(favorites)
+    return success_response(
+        {
+            "posts": favorites,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": (total + per_page - 1) // per_page,
+        }
+    )
 
 
 @forum_bp.route("/favorites/<int:post_id>", methods=["POST"])
