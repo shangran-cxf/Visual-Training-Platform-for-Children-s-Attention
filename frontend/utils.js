@@ -1,4 +1,4 @@
-﻿// 存储工具类
+// 存储工具类
 class StorageUtil {
   // 获取存储项
   static getItem(key) {
@@ -127,8 +127,11 @@ class UserStateUtil {
 
 // 勋章工具类
 class MedalUtil {
+  static _defaultMedalsCache = null;
+  
   static getDefaultMedals() {
-    return [
+    if (this._defaultMedalsCache === null) {
+      this._defaultMedalsCache = [
       {
         id: 1,
         name: '太空小达人',
@@ -280,6 +283,9 @@ class MedalUtil {
         unlocked: false,
       },
     ];
+    }
+    // 返回缓存的深拷贝，防止外部修改缓存
+    return JSON.parse(JSON.stringify(this._defaultMedalsCache));
   }
 
   static getCurrentChildId() {
