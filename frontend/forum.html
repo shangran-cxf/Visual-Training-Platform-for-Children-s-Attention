@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="view-transition" content="same-origin" />
     <title>家长论坛 - 儿童注意力训练平台</title>
     <script src="utils.js"></script>
     <script src="components-parent.js"></script>
@@ -776,6 +775,11 @@
       body {
         background: #f5f7fa;
         overflow-x: hidden;
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+        padding-left: 178px;
+        min-height: 100vh;
       }
 
       @media (max-width: 1024px) {
@@ -809,7 +813,7 @@
         z-index: 10000;
       }
 
-      .modal-overlay {
+      .post-form-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -819,7 +823,7 @@
         z-index: 9999;
       }
 
-      .modal-content {
+      .post-form-content {
         position: fixed;
         top: 50%;
         left: 50%;
@@ -1040,8 +1044,8 @@
 
     <!-- 发布/编辑帖子表单 -->
     <div class="post-form-modal" id="postFormModal" style="display: none">
-      <div class="modal-overlay"></div>
-      <div class="modal-content">
+      <div class="post-form-overlay"></div>
+      <div class="post-form-content">
         <div class="modal-header">
           <h3 id="postFormTitle">发布新帖</h3>
           <button class="modal-close" onclick="closePostForm()">×</button>
