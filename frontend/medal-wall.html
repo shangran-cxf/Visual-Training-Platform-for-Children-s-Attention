@@ -46,7 +46,6 @@
         gap: 24px;
         padding: 24px;
         padding-left: 194px;
-        contain: layout style paint;
       }
 
       /* 主内容加载状态 */
@@ -54,7 +53,6 @@
         opacity: 1;
         transition: opacity 0.5s ease-in;
       }
-
 
       /* 勋章墙内容初始隐藏，加载完成后显示 */
       .medal-showcase,
@@ -285,10 +283,6 @@
         font-weight: 700;
       }
 
-      .nav-item:hover .nav-icon {
-        transform: scale(1.1);
-      }
-
       .nav-icon {
         width: 28px;
         height: 28px;
@@ -300,7 +294,6 @@
         font-weight: 600;
         color: var(--text-dark);
         margin-top: 4px;
-      }
       }
 
       .user-avatar-sidebar {
@@ -873,17 +866,6 @@
 
       .modal-buttons button:last-child:hover {
         transform: translateY(-2px);
-      }
-
-      /* 减少动画偏好 */
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
       }
     </style>
   </head>
