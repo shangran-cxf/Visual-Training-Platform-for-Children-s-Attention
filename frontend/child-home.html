@@ -43,11 +43,13 @@
         display: flex;
         gap: 24px;
         padding: 24px;
+        padding-left: 194px;
       }
 
       /* 左侧导航栏 - 粘土风格 */
       .sidebar {
         width: 130px;
+        height: calc(100vh - 48px);
         background: #62b4a5;
         box-shadow: var(--shadow-soft);
         padding: 24px 0;
@@ -56,7 +58,10 @@
         align-items: center;
         gap: 30px;
         border-radius: 32px;
-        position: relative;
+        position: fixed;
+        top: 24px;
+        left: 40px;
+        z-index: 100;
       }
 
       .logo-section {
@@ -202,8 +207,10 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 2px;
-        max-width: calc(100% - 134px);
+        gap: 24px;
+        padding: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
       }
 
       /* 顶部欢迎区 */
