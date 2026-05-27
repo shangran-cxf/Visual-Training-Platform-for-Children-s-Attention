@@ -111,11 +111,11 @@ const ParentComponents = {
 
             /* 导航项 */
             .nav-item {
-                width: 75px;
-                height: 75px;
+                width: 85px;
+                height: 85px;
                 margin-left: 12px;
                 margin-right: 12px;
-                margin-top: 15px;
+                margin-bottom: 12px;
                 border-radius: 20px;
                 background: #FFFFFF;
                 color: #000000;
@@ -149,6 +149,17 @@ const ParentComponents = {
             .nav-item.active .nav-icon,
             .nav-item.active .nav-label {
                 color: white;
+            }
+
+            .nav-item.switch-mode {
+                background: #d5c8e8;
+            }
+            .nav-item.switch-mode:hover {
+                background: #e0d5f0;
+            }
+            .nav-item.switch-mode .nav-label {
+                color: #4a2d7a;
+                font-weight: 700;
             }
 
             .nav-icon {
