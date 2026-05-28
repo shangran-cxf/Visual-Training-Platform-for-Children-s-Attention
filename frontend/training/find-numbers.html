@@ -70,7 +70,7 @@
         background-size: cover;
         background-position: center;
         border-radius: 15px;
-        padding: 30px;
+        padding: 30px 30px 10px 30px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         margin-bottom: 30px;
         text-align: center;
@@ -78,7 +78,9 @@
         min-height: 600px;
         max-height: 85vh;
         position: relative;
-        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
       .difficulty-selector {
@@ -88,21 +90,29 @@
         justify-content: center;
         flex-wrap: wrap;
         max-width: 100%;
+        flex-shrink: 0;
       }
 
       .difficulty-btn {
-        padding: 10px 20px;
-        border: 2px solid #b8e3ff;
+        padding: 15px 20px;
+        border: 2px solid #b3d9ff;
         border-radius: 25px;
-        background-color: rgb(154, 245, 255);
-        color: rgb(32, 121, 181);
+        background-color: #e6f2ff;
+        color: #6699cc;
         cursor: pointer;
         transition: all 0.3s ease;
       }
 
+      .difficulty-btn:hover {
+        background-color: #cce5ff;
+        color: #4d88cc;
+      }
+
       .difficulty-btn.active {
-        background-color: rgb(154, 245, 255);
-        color: rgb(32, 121, 181);
+        background-color: #9edfff;
+        color: #ffffff;
+        border-color: #9edfff;
+        box-shadow: 0 2px 8px rgba(51, 153, 255, 0.4);
       }
 
       .target-info {
@@ -110,20 +120,25 @@
         font-size: 18px;
         font-weight: bold;
         color: #146607;
+        flex-shrink: 0;
       }
 
       .matrix-container {
-        margin-bottom: 30px;
-        overflow: auto;
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-gutter: stable;
         max-width: 100%;
+        min-height: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
       }
 
       .matrix {
         display: grid;
         gap: 5px;
         margin: 0 auto;
-        max-width: 100%;
-        overflow: auto;
       }
 
       .matrix-cell {
@@ -137,7 +152,6 @@
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
-        transition: all 0.3s ease;
         position: relative;
         box-sizing: border-box;
       }
@@ -231,6 +245,7 @@
         padding: 10px;
         border-radius: 5px;
         max-width: 100%;
+        flex-shrink: 0;
       }
 
       .feedback {
@@ -241,117 +256,65 @@
         border-radius: 5px;
         color: #4caf50;
         font-weight: bold;
+        flex-shrink: 0;
+        min-height: 42px;
       }
 
-      /* 游戏结束弹窗 */
-      .game-over-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .game-over-modal.show {
-        display: flex;
-      }
-
-      .game-over-content {
-        background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
-        padding: 40px;
-        border-radius: 20px;
-        text-align: center;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        max-width: 500px;
-        animation: modalSlideIn 0.5s ease-out;
-      }
-
-      @keyframes modalSlideIn {
+      @keyframes fadeIn {
         from {
-          transform: translateY(-50px);
           opacity: 0;
         }
 
         to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes cosmosBloom {
+        0% {
+          transform: scale(0.8) translateY(40px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes revealUp {
+        0% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+
+        100% {
           transform: translateY(0);
           opacity: 1;
         }
       }
 
-      .game-over-content h2 {
-        color: white;
-        font-size: 32px;
-        margin-bottom: 30px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      @keyframes orbitFloat {
+        0% {
+          transform: translateY(0) rotate(0deg) scale(1);
+        }
+
+        100% {
+          transform: translateY(-14px) rotate(15deg) scale(1.2);
+        }
       }
 
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        margin-bottom: 30px;
-      }
+      @keyframes natureBounce {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.6;
+        }
 
-      .stat-item {
-        background-color: rgba(255, 255, 255, 0.9);
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      }
-
-      .stat-label {
-        color: #56ab2f;
-        font-size: 16px;
-        margin-bottom: 10px;
-        font-weight: bold;
-      }
-
-      .stat-value {
-        color: #333;
-        font-size: 28px;
-        font-weight: bold;
-      }
-
-      .modal-buttons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-      }
-
-      .modal-btn {
-        padding: 12px 30px;
-        border: none;
-        border-radius: 25px;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      }
-
-      .modal-btn.restart {
-        background-color: #ff9800;
-        color: white;
-      }
-
-      .modal-btn.restart:hover {
-        background-color: #f57c00;
-        transform: scale(1.05);
-      }
-
-      .modal-btn.back {
-        background-color: #2196f3;
-        color: white;
-      }
-
-      .modal-btn.back:hover {
-        background-color: #1976d2;
-        transform: scale(1.05);
+        50% {
+          transform: translateY(-8px);
+          opacity: 1;
+        }
       }
 
       .controls {
@@ -359,12 +322,16 @@
         gap: 20px;
         justify-content: center;
         align-items: center;
-        margin-top: 10px;
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        z-index: 100;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .controls > * {
+        pointer-events: auto;
       }
 
       .btn {
@@ -414,35 +381,6 @@
 
         100% {
           transform: translateY(-5px);
-        }
-      }
-
-      @keyframes celebratePop {
-        0% {
-          transform: translate(-50%, -50%) scale(0);
-          opacity: 0;
-        }
-
-        50% {
-          transform: translate(-50%, -50%) scale(1.5);
-          opacity: 1;
-        }
-
-        100% {
-          transform: translate(-50%, -50%) scale(1);
-          opacity: 0;
-        }
-      }
-
-      @keyframes confettiFall {
-        0% {
-          transform: translateY(0) rotate(0deg);
-          opacity: 1;
-        }
-
-        100% {
-          transform: translateY(300px) rotate(720deg);
-          opacity: 0;
         }
       }
     </style>
@@ -507,39 +445,6 @@
       </div>
     </div>
 
-    <!-- 游戏结束弹窗 -->
-    <div class="game-over-modal" id="gameOverModal">
-      <div class="game-over-content">
-        <h2>🎉 游戏完成！🎉</h2>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-label">🏆 得分</div>
-            <div class="stat-value" id="modal-score" style="color: #ff9800; font-size: 36px">0</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">⏱️ 用时</div>
-            <div class="stat-value" id="modal-time">0s</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">✅ 正确</div>
-            <div class="stat-value" id="modal-correct">0</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">❌ 遗漏</div>
-            <div class="stat-value" id="modal-missed">0</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">⚠️ 误划</div>
-            <div class="stat-value" id="modal-errors">0</div>
-          </div>
-        </div>
-        <div class="modal-buttons">
-          <button class="modal-btn restart" onclick="restartGame()">🔄 再来一局</button>
-          <button class="modal-btn back" onclick="backToStart()">🏠 返回开始</button>
-        </div>
-      </div>
-    </div>
-
     <script>
       let currentDifficulty = 1;
       let targetNumbers = [5];
@@ -553,6 +458,10 @@
       let isGameStarted = false;
       let timeInterval;
       let refreshInterval;
+
+      // [scoring-system] Session created in startGame() so vision data
+      // covers the full gameplay period, not just the end-of-game API window.
+      let gameSessionId = null;
 
       // 创建音频上下文和音效生成器
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -620,7 +529,9 @@
           correctCount++;
           document.getElementById('correct').textContent = correctCount;
           document.getElementById('feedback').textContent = '太棒啦!找到了垃圾!';
-          setTimeout(() => (document.getElementById('feedback').textContent = ''), 1000);
+          setTimeout(() => {
+            document.getElementById('feedback').textContent = '';
+          }, 1000);
           try {
             playCorrectSound();
           } catch (e) {}
@@ -634,7 +545,9 @@
           try {
             playErrorSound();
           } catch (e) {}
-          setTimeout(() => (document.getElementById('feedback').textContent = ''), 1000);
+          setTimeout(() => {
+            document.getElementById('feedback').textContent = '';
+          }, 1000);
         }
       }
 
@@ -661,46 +574,68 @@
         for (let i = 0; i < size; i++) {
           matrix[i] = [];
           for (let j = 0; j < size; j++) {
-            let num = Math.floor(Math.random() * 9) + 1;
-            if (Math.random() < 0.2) {
-              num = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
-            }
-            const isTarget = targetNumbers.includes(num);
-            if (isTarget) totalTargets++;
-            matrix[i][j] = { value: num, isTarget, isMarked: false };
+            if (currentDifficulty === 3) {
+              const isTarget = Math.random() < 0.2;
+              if (isTarget) totalTargets++;
+              matrix[i][j] = { value: 0, isTarget, isMarked: false };
 
-            const cell = document.createElement('div');
-            cell.className = 'matrix-cell';
-            if (isTarget) {
-              cell.classList.add('target');
-              // 目标数字：使用垃圾图片
-              let garbageImage;
-              if (currentDifficulty === 1 && currentGarbageImages.length > 0) {
-                // 简单模式：使用第一个垃圾图片
-                garbageImage = currentGarbageImages[0];
-              } else if (currentDifficulty === 2 && currentGarbageImages.length > 1) {
-                // 中等模式：随机使用两个垃圾图片中的一个
-                garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+              const cell = document.createElement('div');
+              cell.className = 'matrix-cell';
+              if (isTarget) {
+                cell.classList.add('target');
+                const garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+                cell.style.backgroundImage = `url('../images/${garbageImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
               } else {
-                // 困难模式或未初始化：随机使用垃圾图片
-                garbageImage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
+                cell.style.backgroundImage = `url('../images/${randomImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
               }
-              cell.style.backgroundImage = `url('../images/${garbageImage}')`;
-              cell.style.backgroundSize = 'cover';
-              cell.style.backgroundRepeat = 'no-repeat';
-              cell.style.backgroundPosition = 'center';
+              cell.dataset.row = i;
+              cell.dataset.col = j;
+              cell.addEventListener('click', handleCellClick);
+              matrixElement.appendChild(cell);
             } else {
-              // 非目标数字：随机使用flower、stone或grass图片
-              const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
-              cell.style.backgroundImage = `url('../images/${randomImage}')`;
-              cell.style.backgroundSize = 'cover';
-              cell.style.backgroundRepeat = 'no-repeat';
-              cell.style.backgroundPosition = 'center';
+              let num = Math.floor(Math.random() * 9) + 1;
+              if (Math.random() < 0.2) {
+                num = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
+              }
+              const isTarget = targetNumbers.includes(num);
+              if (isTarget) totalTargets++;
+              matrix[i][j] = { value: num, isTarget, isMarked: false };
+
+              const cell = document.createElement('div');
+              cell.className = 'matrix-cell';
+              if (isTarget) {
+                cell.classList.add('target');
+                let garbageImage;
+                if (currentDifficulty === 1 && currentGarbageImages.length > 0) {
+                  garbageImage = currentGarbageImages[0];
+                } else if (currentDifficulty === 2 && currentGarbageImages.length > 1) {
+                  garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+                } else {
+                  garbageImage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                }
+                cell.style.backgroundImage = `url('../images/${garbageImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
+              } else {
+                const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
+                cell.style.backgroundImage = `url('../images/${randomImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
+              }
+              cell.dataset.row = i;
+              cell.dataset.col = j;
+              cell.addEventListener('click', handleCellClick);
+              matrixElement.appendChild(cell);
             }
-            cell.dataset.row = i;
-            cell.dataset.col = j;
-            cell.addEventListener('click', handleCellClick);
-            matrixElement.appendChild(cell);
           }
         }
       }
@@ -738,15 +673,18 @@
           document.getElementById('target-info').innerHTML =
             `目标：圈出所有垃圾 <img src="../images/${randomGarbage1}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;"> 和 <img src="../images/${randomGarbage2}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
         } else {
-          targetNumbers = Math.random() > 0.5 ? [2, 4, 6, 8] : [1, 3, 5, 7, 9];
-          const type = targetNumbers[0] % 2 === 0 ? '偶数' : '奇数';
-          document.getElementById('target-info').innerHTML = `目标：圈出所有垃圾数字（${type}数字）`;
+          const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+          const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+          currentGarbageImages = [randomGarbage];
+          targetNumbers = [];
+          document.getElementById('target-info').innerHTML =
+            `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
         }
       }
 
       function startGame() {
         if (isGameStarted) return;
-        document.querySelector('.btn').style.display = 'none';
+        document.querySelector('.controls').style.display = 'none';
         generateRandomTargets();
         generateMatrix();
 
@@ -771,6 +709,41 @@
             generateMatrix();
           }, 10000);
         }
+
+        // [scoring-system] Create training session at game start so that
+        // vision data captured during gameplay is associated with this session.
+        const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+        const _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+        const _childId =
+          (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
+          _userInfo?.currentChildId ||
+          1;
+
+        fetch(`${_baseUrl}/api/training/session/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+          body: JSON.stringify({
+            child_id: _childId,
+            game_type: 'find-numbers',
+            device_id: 'web',
+          }),
+        })
+          .then((r) => r.json())
+          .then((res) => {
+            if (res.success) {
+              gameSessionId = res.data.session_id;
+              if (typeof visionUploader !== 'undefined') {
+                visionUploader.start(gameSessionId);
+              }
+            }
+          })
+          .catch((err) => {
+            console.warn('Failed to create session at game start:', err);
+          });
       }
 
       function resetGame() {
@@ -789,7 +762,7 @@
         document.getElementById('target-info').textContent = '准备就绪，点击开始按钮';
         document.getElementById('matrix').innerHTML = '';
         document.querySelector('.stats').style.visibility = 'hidden';
-        document.querySelector('.btn').style.display = 'flex';
+        document.querySelector('.controls').style.display = 'flex';
       }
 
       function updateTimer() {
@@ -820,8 +793,6 @@
         const totalTime = Math.floor((Date.now() - startTime) / 1000);
         missedCount = totalTargets - correctCount;
 
-        console.log('游戏结束！总时间:', totalTime, '正确:', correctCount, '总目标:', totalTargets);
-
         // 上传数据到后端（异步，不阻塞）
         try {
           uploadTrainingData(totalTime);
@@ -829,90 +800,7 @@
           console.error('上传数据失败:', e);
         }
 
-        // 播放庆祝动画
-        console.log('播放庆祝动画...');
-        try {
-          showCelebrationEffect();
-        } catch (e) {
-          console.error('庆祝动画失败:', e);
-        }
-
-        // 0.8 秒后显示弹窗（强制显示）
-        console.log('准备显示弹窗...');
-        setTimeout(() => {
-          console.log('显示弹窗！');
-          try {
-            // 直接显示弹窗，不依赖其他函数
-            const modal = document.getElementById('gameOverModal');
-            if (modal) {
-              // 计算得分
-              const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
-              const score = calculateSelectiveAttentionScore(totalTime);
-
-              // 填充数据
-              document.getElementById('modal-score').textContent = score;
-              document.getElementById('modal-time').textContent = totalTime + 's';
-              document.getElementById('modal-correct').textContent = correctCount;
-              document.getElementById('modal-missed').textContent = missedCount;
-              document.getElementById('modal-errors').textContent = errorCount;
-
-              // 显示弹窗
-              modal.classList.add('show');
-              console.log('弹窗已成功显示');
-            } else {
-              console.error('找不到弹窗元素');
-            }
-          } catch (e) {
-            console.error('显示弹窗失败:', e);
-            // 如果还是失败，直接强制显示
-            const modal = document.getElementById('gameOverModal');
-            if (modal) {
-              modal.classList.add('show');
-              console.log('弹窗已强制显示');
-            }
-          }
-        }, 800);
-      }
-
-      function showCelebrationEffect() {
-        // 创建庆祝特效
-        const gameArea = document.querySelector('.game-area');
-        const celebration = document.createElement('div');
-        celebration.style.cssText = `
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                font-size: 100px;
-                z-index: 999;
-                animation: celebratePop 0.6s ease-out;
-                pointer-events: none;
-            `;
-        celebration.textContent = '🎉';
-        gameArea.appendChild(celebration);
-
-        // 创建多个彩带
-        for (let i = 0; i < 10; i++) {
-          setTimeout(() => {
-            const confetti = document.createElement('div');
-            confetti.style.cssText = `
-                        position: absolute;
-                        width: 10px;
-                        height: 10px;
-                        background: hsl(${Math.random() * 360}, 100%, 50%);
-                        top: 40%;
-                        left: ${50 + (Math.random() * 20 - 10)}%;
-                        border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
-                        animation: confettiFall ${0.5 + Math.random() * 0.5}s ease-out;
-                        pointer-events: none;
-                    `;
-            gameArea.appendChild(confetti);
-            setTimeout(() => confetti.remove(), 1000);
-          }, i * 50);
-        }
-
-        // 清理庆祝元素
-        setTimeout(() => celebration.remove(), 1000);
+        showGameOverModal(totalTime);
       }
 
       function calculateSelectiveAttentionScore(totalTime) {
@@ -938,43 +826,300 @@
       }
 
       function showGameOverModal(totalTime) {
-        // 计算得分
-        const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
         const score = calculateSelectiveAttentionScore(totalTime);
 
-        console.log('得分计算:', {
-          准确率: accuracy.toFixed(1) + '%',
-          正确数: correctCount,
-          总目标: totalTargets,
-          误划: errorCount,
-          用时: totalTime + 's',
-          最终得分: score,
+        const scoreDetails = {
+          time: {
+            name: '用时',
+            score: totalTime + 's',
+            color: '#81c784',
+          },
+          correct: {
+            name: '正确',
+            score: correctCount,
+            color: '#4fc3f7',
+          },
+          missed: {
+            name: '遗漏',
+            score: missedCount,
+            color: '#ef5350',
+          },
+          error: {
+            name: '误划',
+            score: errorCount,
+            color: '#ce93d8',
+          },
+        };
+
+        const message = '你的评分为：' + score + '分';
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(180, 210, 180, 0.35);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease both;
+      `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+        background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 40%, #dcedc8 100%);
+        padding: 32px 36px 28px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 2px 16px rgba(100, 160, 100, 0.15);
+        max-width: 420px;
+        width: 90%;
+        animation: cosmosBloom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        position: relative;
+        overflow: hidden;
+      `;
+
+        const topGlow = document.createElement('div');
+        topGlow.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(ellipse, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      `;
+        modalContent.appendChild(topGlow);
+
+        const starField = document.createElement('div');
+        starField.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+      `;
+
+        for (let i = 0; i < 10; i++) {
+          const s = 1 + Math.random() * 1.5;
+          const star = document.createElement('div');
+          star.style.cssText = `
+          position: absolute;
+          width: ${s}px;
+          height: ${s}px;
+          background: #fff;
+          border-radius: 50%;
+          top: ${Math.random() * 100}%;
+          left: ${Math.random() * 100}%;
+          opacity: ${0.2 + Math.random() * 0.3};
+          box-shadow: 0 0 ${s * 1.5}px rgba(255, 255, 255, 0.6);
+        `;
+          starField.appendChild(star);
+        }
+
+        const floatDecor = ['\u{1F331}', '\u{1F33F}', '\u{1F33C}', '\u{1F340}', '\u{2618}\uFE0F'];
+        for (let i = 0; i < 4; i++) {
+          const deco = document.createElement('div');
+          deco.textContent = floatDecor[i];
+          deco.style.cssText = `
+          position: absolute;
+          font-size: ${16 + i * 4}px;
+          top: ${10 + i * 18}%;
+          ${i % 2 === 0 ? 'left' : 'right'}: ${-5 + i * 2}px;
+          opacity: 0.2;
+          pointer-events: none;
+        `;
+          starField.appendChild(deco);
+        }
+
+        modalContent.appendChild(starField);
+
+        const iconEl = document.createElement('div');
+        iconEl.textContent = '\u{1F33F}';
+        iconEl.style.cssText = `
+        font-size: 36px;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.02s ease both;
+      `;
+        modalContent.appendChild(iconEl);
+
+        const modalTitle = document.createElement('h2');
+        modalTitle.innerHTML = '\u2728 游戏完成 \u2728';
+        modalTitle.style.cssText = `
+        color: #2e7d32;
+        font-size: 24px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.05s ease both;
+      `;
+        modalContent.appendChild(modalTitle);
+
+        const scoreItems = Object.values(scoreDetails);
+        const statsGrid = document.createElement('div');
+        statsGrid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+      `;
+
+        scoreItems.forEach((detail, idx) => {
+          const statItem = document.createElement('div');
+          statItem.style.cssText = `
+          background: rgba(255, 255, 255, 0.55);
+          border-radius: 12px;
+          padding: 12px 8px;
+          animation: revealUp 0.4s ${0.12 + idx * 0.08}s ease both;
+        `;
+
+          const statLabel = document.createElement('div');
+          statLabel.textContent = detail.name;
+          statLabel.style.cssText = `
+          color: ${detail.color};
+          font-size: 11px;
+          margin-bottom: 4px;
+          font-weight: bold;
+        `;
+          statItem.appendChild(statLabel);
+
+          const statValue = document.createElement('div');
+          statValue.textContent = detail.score;
+          statValue.style.cssText = `
+          color: #33691e;
+          font-size: 22px;
+          font-weight: bold;
+        `;
+          statItem.appendChild(statValue);
+
+          statsGrid.appendChild(statItem);
         });
 
-        // 填充数据
-        document.getElementById('modal-score').textContent = score;
-        document.getElementById('modal-time').textContent = totalTime + 's';
-        document.getElementById('modal-correct').textContent = correctCount;
-        document.getElementById('modal-missed').textContent = missedCount;
-        document.getElementById('modal-errors').textContent = errorCount;
+        modalContent.appendChild(statsGrid);
 
-        // 显示弹窗
-        const modal = document.getElementById('gameOverModal');
-        if (modal) {
-          modal.classList.add('show');
-          console.log('弹窗已显示');
-        } else {
-          console.error('找不到弹窗元素');
+        const modalMessage = document.createElement('p');
+        modalMessage.textContent = message;
+        modalMessage.style.cssText = `
+        color: #33691e;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.3s ease both;
+      `;
+        modalContent.appendChild(modalMessage);
+
+        const modalButtons = document.createElement('div');
+        modalButtons.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.36s ease both;
+      `;
+
+        const restartBtn = document.createElement('button');
+        restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
+        restartBtn.style.cssText = `
+        background: #66bb6a;
+        color: white;
+        border: none;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        restartBtn.onmouseover = () => {
+          restartBtn.style.transform = 'scale(1.05)';
+          restartBtn.style.background = '#81c784';
+        };
+        restartBtn.onmouseout = () => {
+          restartBtn.style.transform = 'scale(1)';
+          restartBtn.style.background = '#66bb6a';
+        };
+        restartBtn.onclick = function () {
+          document.body.removeChild(modal);
+          resetGame();
+          setTimeout(() => {
+            startGame();
+          }, 500);
+        };
+
+        const backBtn = document.createElement('button');
+        backBtn.textContent = '\u8FD4\u56DE';
+        backBtn.style.cssText = `
+        background: transparent;
+        color: #81c784;
+        border: 2px solid #a5d6a7;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        backBtn.onmouseover = () => {
+          backBtn.style.background = 'rgba(255, 255, 255, 0.4)';
+          backBtn.style.color = '#43a047';
+        };
+        backBtn.onmouseout = () => {
+          backBtn.style.background = 'transparent';
+          backBtn.style.color = '#81c784';
+        };
+        backBtn.onclick = function () {
+          document.body.removeChild(modal);
+          resetGame();
+        };
+
+        modalButtons.appendChild(restartBtn);
+        modalButtons.appendChild(backBtn);
+
+        modalContent.appendChild(modalButtons);
+
+        const natureRow = document.createElement('div');
+        natureRow.style.cssText =
+          'display:flex;justify-content:center;gap:12px;margin-top:20px;position:relative;z-index:1;';
+        const natureColors = ['#aed581', '#9ccc65', '#81c784', '#66bb6a', '#4caf50', '#43a047', '#388e3c'];
+        for (let i = 0; i < 7; i++) {
+          const s = 4 + Math.random() * 3;
+          const dot = document.createElement('div');
+          dot.style.cssText =
+            'width:' +
+            s +
+            'px;height:' +
+            s +
+            'px;border-radius:50%;background:' +
+            natureColors[i] +
+            ';' +
+            'animation:natureBounce 1.5s ease-in-out infinite;animation-delay:' +
+            i * 0.2 +
+            's;';
+          natureRow.appendChild(dot);
         }
+        modalContent.appendChild(natureRow);
+
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
       }
 
       function restartGame() {
-        // 隐藏弹窗
-        const modal = document.getElementById('gameOverModal');
-        if (modal) {
-          modal.classList.remove('show');
-        }
-        // 重新开始游戏
         resetGame();
         setTimeout(() => {
           startGame();
@@ -982,129 +1127,162 @@
       }
 
       function backToStart() {
-        // 隐藏弹窗
-        const modal = document.getElementById('gameOverModal');
-        if (modal) {
-          modal.classList.remove('show');
-        }
-        // 返回到开始状态
         resetGame();
       }
 
       function uploadTrainingData(totalTime) {
         try {
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const parentId = userInfo?.parent_id || userInfo?.userId || userInfo?.id || 1;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
-          let sessionId = null;
+          // [scoring-system] Upload game data + end session.
+          // Session was created in startGame(); use gameSessionId directly.
+          const _uploadAndEnd = () => {
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
 
-          // 计算准确率和得分
-          const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
-          const score = calculateSelectiveAttentionScore(totalTime);
+            // 计算准确率和得分
+            const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
+            const score = calculateSelectiveAttentionScore(totalTime);
 
-          // 检测环境，设置API地址
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            // 检测环境，设置API地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-          // 开始训练会话
-          fetch(`${baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: childId,
-              game_type: 'find-numbers',
-              device_id: 'web',
-            }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                sessionId = result.data.session_id;
-                console.log('训练会话创建成功:', sessionId);
+            if (typeof visionUploader !== 'undefined') {
+              visionUploader.stop();
+            }
 
-                // 上传游戏数据
-                return fetch(`${baseUrl}/api/training/game-data`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                  },
-                  body: JSON.stringify({
-                    session_id: sessionId,
-                    request_id: Date.now().toString(),
-                    timestamp: new Date().toISOString(),
-                    event_type: 'game_complete',
-                    score: score,
-                    accuracy: accuracy,
-                    level: currentDifficulty,
-                    time: totalTime,
-                    correct: correctCount,
-                    error: errorCount,
-                    total_target: totalTargets,
-                    total_step: totalTargets,
-                  }),
-                });
-              } else {
-                throw new Error(result.message || '创建会话失败');
-              }
+            // 上传游戏数据
+            fetch(`${baseUrl}/api/training/game-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                session_id: gameSessionId,
+                request_id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                event_type: 'game_complete',
+                score: score,
+                accuracy: accuracy,
+                level: currentDifficulty,
+                time: totalTime,
+                correct: correctCount,
+                error: errorCount,
+                total_target: totalTargets,
+                total_step: totalTargets,
+              }),
             })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                console.log('游戏数据上传成功');
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
 
-                // 清除能力评估页面的缓存
-                const cacheKey = `child_data_${childId}`;
-                localStorage.removeItem(cacheKey);
-                console.log('已清除能力评估缓存:', cacheKey);
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
 
-                // 结束训练会话
-                return fetch(`${baseUrl}/api/training/session/end`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                  },
-                  body: JSON.stringify({
-                    session_id: sessionId,
-                    final_score: score,
-                    total_accuracy: accuracy,
-                    duration: totalTime,
-                  }),
-                });
-              } else {
-                throw new Error(result.message || '上传游戏数据失败');
-              }
-            })
-            .then((response) => response.json())
-            .then((result) => {
-              console.log('会话结束响应数据:', result);
-              if (result.success) {
-                console.log('训练数据上传完成');
-
-                // 保存训练时间到 localStorage，用于今日训练页面显示
-                const today = new Date().toISOString().split('T')[0];
-                const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-                if (!trainingData[today]) {
-                  trainingData[today] = { totalTime: 0 };
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: gameSessionId,
+                      final_score: score,
+                      total_accuracy: accuracy,
+                      duration: totalTime,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
                 }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
 
-                // 累加游戏时间（秒）
-                trainingData[today].totalTime += totalTime;
-                localStorage.setItem('trainingData', JSON.stringify(trainingData));
-                console.log('训练时间已保存到 localStorage');
-              }
+                  // 保存训练时间到 localStorage，用于今日训练页面显示
+                  const today = new Date().toISOString().split('T')[0];
+                  const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                  if (!trainingData[today]) {
+                    trainingData[today] = { totalTime: 0 };
+                  }
+
+                  // 累加游戏时间（秒）
+                  trainingData[today].totalTime += totalTime;
+                  localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                  console.log('训练时间已保存到 localStorage');
+
+                  // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                  var backendScore = null;
+                  var backendLevel = null;
+                  if (result.data && result.data.summary) {
+                    backendScore = Math.round(result.data.summary.final_score);
+                    backendLevel = result.data.summary.performance_level;
+                  }
+                  if (backendScore !== null) {
+                    var scoreEl = document.getElementById('modal-score');
+                    if (scoreEl) {
+                      scoreEl.textContent = backendScore + '分 (' + (backendLevel || '') + ')';
+                    }
+                  }
+                }
+              })
+              .catch((error) => {
+                console.error('上传训练数据失败:', error);
+              });
+          };
+
+          if (gameSessionId) {
+            _uploadAndEnd();
+          } else {
+            // [scoring-system] Fallback: session not ready from startGame().
+            // Create session inline so the game still records properly.
+            console.warn('Session not ready from startGame, creating inline');
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+            fetch(`${baseUrl}/api/training/session/start`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                child_id: childId,
+                game_type: 'find-numbers',
+                device_id: 'web',
+              }),
             })
-            .catch((error) => {
-              console.error('上传训练数据失败:', error);
-            });
+              .then((r) => r.json())
+              .then((res) => {
+                if (res.success) {
+                  gameSessionId = res.data.session_id;
+                  // 先上传缓冲的视觉数据，再提交游戏数据
+                  var flushDone = Promise.resolve();
+                  if (typeof visionUploader !== 'undefined') {
+                    flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
+                  }
+                  flushDone.then(function () {
+                    _uploadAndEnd();
+                  });
+                }
+              });
+          }
         } catch (e) {
           console.error('uploadTrainingData 错误:', e);
         }
@@ -1124,10 +1302,12 @@
 
         // 延迟跳转，确保状态清理完成
         setTimeout(() => {
-          window.location.href = '../child-home.html';
+          window.location.href = getTrainingReturnUrl();
         }, 100);
       }
     </script>
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script src="../utils.js"></script>
     <script src="../attention-loader.js"></script>
   </body>

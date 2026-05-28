@@ -47,11 +47,13 @@ const ParentComponents = {
                 display: flex;
                 gap: 24px;
                 padding: 24px;
+                padding-left: 194px;
             }
 
             /* ===== 侧边栏样式 ===== */
             .sidebar {
                 width: 130px;
+                height: calc(100vh - 48px);
                 background: #886ab4;
                 box-shadow: 0 8px 32px rgba(46, 19, 68, 0.15), 0 4px 16px rgba(15, 14, 14, 0.1);
                 padding: 24px 0;
@@ -60,7 +62,10 @@ const ParentComponents = {
                 align-items: center;
                 gap: 20px;
                 border-radius: 32px;
-                position: relative;
+                position: fixed;
+                top: 24px;
+                left: 40px;
+                z-index: 100;
             }
 
             /* 用户头像 */
@@ -106,11 +111,11 @@ const ParentComponents = {
 
             /* 导航项 */
             .nav-item {
-                width: 75px;
-                height: 75px;
+                width: 85px;
+                height: 85px;
                 margin-left: 12px;
                 margin-right: 12px;
-                margin-top: 15px;
+                margin-bottom: 12px;
                 border-radius: 20px;
                 background: #FFFFFF;
                 color: #000000;
@@ -144,6 +149,17 @@ const ParentComponents = {
             .nav-item.active .nav-icon,
             .nav-item.active .nav-label {
                 color: white;
+            }
+
+            .nav-item.switch-mode {
+                background: #d5c8e8;
+            }
+            .nav-item.switch-mode:hover {
+                background: #e0d5f0;
+            }
+            .nav-item.switch-mode .nav-label {
+                color: #4a2d7a;
+                font-weight: 700;
             }
 
             .nav-icon {
@@ -203,7 +219,8 @@ const ParentComponents = {
                 flex: 1;
                 padding: 24px;
                 overflow-y: auto;
-                max-width: calc(100% - 154px);
+                max-width: 1400px;
+                margin: 0 auto;
             }
 
             /* ===== 卡片基础样式 ===== */
@@ -260,8 +277,8 @@ const ParentComponents = {
                 position: fixed;
                 top: 0;
                 left: 0;
-                right: 0;
-                bottom: 0;
+                width: 100vw;
+                height: 100vh;
                 background: rgba(0, 0, 0, 0.5);
                 display: none;
                 align-items: center;
@@ -410,74 +427,6 @@ const ParentComponents = {
   },
 
   /**
-   * 获取侧边栏HTML
-   * @param {string} activePage - 当前活动页面ID
-   */
-  getSidebar: function (activePage = '') {
-    const navItems = [
-      { id: 'profile', label: '儿童档案', href: 'child-document.html', icon: this.getIcons().document },
-      { id: 'knowledge', label: '科普知识', href: 'knowledge.html', icon: this.getIcons().book },
-      { id: 'forum', label: '论坛', href: 'forum.html', icon: this.getIcons().message },
-      {
-        id: 'child',
-        label: '儿童端',
-        href: '#',
-        icon: this.getIcons().game,
-        action: 'ParentComponents.switchToChildMode(); return false;',
-      },
-    ];
-
-    let navItemsHtml = navItems
-      .map((item, index) => {
-        const activeClass = item.id === activePage ? 'active' : '';
-        const firstClass = index === 0 ? 'first-nav-item' : '';
-        const clickAction = item.action ? `onclick="${item.action}; return false;"` : '';
-
-        return `
-                <a href="${item.href}" class="nav-item ${activeClass} ${firstClass}" ${clickAction}>
-                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        ${item.icon}
-                    </svg>
-                    <span class="nav-label">${item.label}</span>
-                </a>
-            `;
-      })
-      .join('');
-
-    return `
-            <div class="sidebar">
-                <div class="user-avatar-sidebar" onclick="ParentComponents.showProfileModal()" data-avatar-updatable="true">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#343559" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </div>
-                <div class="divider top-divider"></div>
-                ${navItemsHtml}
-                <div class="divider"></div>
-                <div class="logout-btn" onclick="ParentComponents.logout()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                </div>
-            </div>
-            <script>
-                setTimeout(() => {
-                    const sidebarAvatar = document.querySelector('.user-avatar-sidebar[data-avatar-updatable="true"]');
-                    if (sidebarAvatar) {
-                        const userInfo = StorageUtil.getItem('userInfo');
-                        if (userInfo && userInfo.avatar) {
-                            ParentComponents._setAvatarImg(sidebarAvatar, userInfo.avatar);
-                        }
-                    }
-                }, 500);
-            </script>
-        `;
-  },
-
-  /**
    * 获取个人中心弹窗HTML
    */
   getProfileModal: function () {
@@ -545,20 +494,6 @@ const ParentComponents = {
   },
 
   /**
-   * 获取图标SVG路径
-   */
-  getIcons: function () {
-    return {
-      document:
-        '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
-      book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
-      message:
-        '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>',
-      game: '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>',
-    };
-  },
-
-  /**
    * 安全设置头像图片（避免 innerHTML XSS）
    */
   _showToast: function (msg, type) {
@@ -595,14 +530,16 @@ const ParentComponents = {
    * @param {string} activePage - 当前活动页面ID
    */
   initPage: function (activePage = '') {
-    // 插入样式
-    const styleElement = document.createElement('style');
-    styleElement.textContent = this.getStyles();
-    document.head.appendChild(styleElement);
+    // CSS 已在脚本加载时同步注入，侧边栏已硬编码到各页面
 
-    // 插入侧边栏
-    const sidebarHtml = this.getSidebar(activePage);
-    document.body.insertAdjacentHTML('afterbegin', sidebarHtml);
+    // 鼠标悬停导航项时预加载目标页面，减少切换白屏
+    document.querySelector('.sidebar').addEventListener('mouseover', function (e) {
+      const link = e.target.closest('.nav-item');
+      if (link && link.href && !link.href.endsWith('#') && !link._prefetched) {
+        link._prefetched = true;
+        fetch(link.href);
+      }
+    });
 
     // 插入个人中心弹窗
     const modalHtml = this.getProfileModal();
@@ -1237,3 +1174,11 @@ ParentComponents._originalGetStyles = ParentComponents.getStyles;
 ParentComponents.getStyles = function () {
   return this._originalGetStyles() + profileModalStyles + toastStyles;
 };
+
+// 关键CSS同步注入 — 在脚本加载时立即生效，不等onload
+// 消除页面首屏白屏闪烁
+(function () {
+  var style = document.createElement('style');
+  style.textContent = ParentComponents.getStyles();
+  document.head.appendChild(style);
+})();

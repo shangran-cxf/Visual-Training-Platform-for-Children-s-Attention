@@ -110,6 +110,7 @@ class UserStateUtil {
   static logout() {
     StorageUtil.removeItem('userInfo');
     localStorage.removeItem('currentChildId');
+    localStorage.removeItem('auth_token');
   }
 
   // 获取当前孩子的名字
@@ -128,161 +129,161 @@ class UserStateUtil {
 // 勋章工具类
 class MedalUtil {
   static _defaultMedalsCache = null;
-  
+
   static getDefaultMedals() {
     if (this._defaultMedalsCache === null) {
       this._defaultMedalsCache = [
-      {
-        id: 1,
-        name: '太空小达人',
-        howto: '成功完成太空小火箭所有难度关卡',
-        gameId: 'game1',
-        image: 'medal-image/game1.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 2,
-        name: '垃圾小助手',
-        howto: '成功完成垃圾小卫士所有难度关卡',
-        gameId: 'game2',
-        image: 'medal-image/game2.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 3,
-        name: '魔法冒险家',
-        howto: '成功完成魔法迷宫所有难度关卡',
-        gameId: 'game3',
-        image: 'medal-image/game3.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 4,
-        name: '植物守护者',
-        howto: '成功完成植物浇水所有难度关卡',
-        gameId: 'game4',
-        image: 'medal-image/game4.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 5,
-        name: '太阳追踪者',
-        howto: '成功完成追太阳所有难度关卡',
-        gameId: 'game5',
-        image: 'medal-image/game5.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 6,
-        name: '动物追踪员',
-        howto: '成功完成森林小动物追踪所有难度关卡',
-        gameId: 'game6',
-        image: 'medal-image/game6.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 7,
-        name: '金牌甜品销售员',
-        howto: '成功完成甜品店小帮工所有难度关卡',
-        gameId: 'game7',
-        image: 'medal-image/game7.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 8,
-        name: '海底捉迷藏大师',
-        howto: '成功完成海底捉迷藏所有难度关卡',
-        gameId: 'game8',
-        image: 'medal-image/game8.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 9,
-        name: '分类小能手',
-        howto: '成功完成环保小卫士所有难度关卡',
-        gameId: 'game9',
-        image: 'medal-image/game9.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 10,
-        name: '冰雪信使',
-        howto: '成功完成冰雪王国小邮差所有难度关卡',
-        gameId: 'game10',
-        image: 'medal-image/game10.png',
-        completedLevels: 0,
-        totalLevels: 3,
-        unlocked: false,
-      },
-      {
-        id: 11,
-        name: '打卡小新星',
-        howto: '连续打卡3天',
-        type: 'checkin',
-        image: 'medal-image/3day.png',
-        days: 0,
-        required: 3,
-        unlocked: false,
-      },
-      {
-        id: 12,
-        name: '坚持小勇士',
-        howto: '连续打卡7天',
-        type: 'checkin',
-        image: 'medal-image/7day.png',
-        days: 0,
-        required: 7,
-        unlocked: false,
-      },
-      {
-        id: 13,
-        name: '专注小达人',
-        howto: '连续打卡14天',
-        type: 'checkin',
-        image: 'medal-image/14day.png',
-        days: 0,
-        required: 14,
-        unlocked: false,
-      },
-      {
-        id: 14,
-        name: '自律小榜样',
-        howto: '连续打卡30天',
-        type: 'checkin',
-        image: 'medal-image/30day.png',
-        days: 0,
-        required: 30,
-        unlocked: false,
-      },
-      {
-        id: 15,
-        name: '毅力小冠军',
-        howto: '连续打卡60天',
-        type: 'checkin',
-        image: 'medal-image/60day.png',
-        days: 0,
-        required: 60,
-        unlocked: false,
-      },
-    ];
+        {
+          id: 1,
+          name: '太空小达人',
+          howto: '成功完成太空小火箭所有难度关卡',
+          gameId: 'game1',
+          image: 'medal-image/game1.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 2,
+          name: '垃圾小助手',
+          howto: '成功完成垃圾小卫士所有难度关卡',
+          gameId: 'game2',
+          image: 'medal-image/game2.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 3,
+          name: '魔法冒险家',
+          howto: '成功完成魔法迷宫所有难度关卡',
+          gameId: 'game3',
+          image: 'medal-image/game3.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 4,
+          name: '植物守护者',
+          howto: '成功完成植物浇水所有难度关卡',
+          gameId: 'game4',
+          image: 'medal-image/game4.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 5,
+          name: '太阳追踪者',
+          howto: '成功完成追太阳所有难度关卡',
+          gameId: 'game5',
+          image: 'medal-image/game5.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 6,
+          name: '动物追踪员',
+          howto: '成功完成森林小动物追踪所有难度关卡',
+          gameId: 'game6',
+          image: 'medal-image/game6.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 7,
+          name: '金牌甜品销售员',
+          howto: '成功完成甜品店小帮工所有难度关卡',
+          gameId: 'game7',
+          image: 'medal-image/game7.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 8,
+          name: '海底捉迷藏大师',
+          howto: '成功完成海底捉迷藏所有难度关卡',
+          gameId: 'game8',
+          image: 'medal-image/game8.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 9,
+          name: '分类小能手',
+          howto: '成功完成环保小卫士所有难度关卡',
+          gameId: 'game9',
+          image: 'medal-image/game9.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 10,
+          name: '冰雪信使',
+          howto: '成功完成冰雪王国小邮差所有难度关卡',
+          gameId: 'game10',
+          image: 'medal-image/game10.png',
+          completedLevels: 0,
+          totalLevels: 3,
+          unlocked: false,
+        },
+        {
+          id: 11,
+          name: '打卡小新星',
+          howto: '连续打卡3天',
+          type: 'checkin',
+          image: 'medal-image/3day.png',
+          days: 0,
+          required: 3,
+          unlocked: false,
+        },
+        {
+          id: 12,
+          name: '坚持小勇士',
+          howto: '连续打卡7天',
+          type: 'checkin',
+          image: 'medal-image/7day.png',
+          days: 0,
+          required: 7,
+          unlocked: false,
+        },
+        {
+          id: 13,
+          name: '专注小达人',
+          howto: '连续打卡14天',
+          type: 'checkin',
+          image: 'medal-image/14day.png',
+          days: 0,
+          required: 14,
+          unlocked: false,
+        },
+        {
+          id: 14,
+          name: '自律小榜样',
+          howto: '连续打卡30天',
+          type: 'checkin',
+          image: 'medal-image/30day.png',
+          days: 0,
+          required: 30,
+          unlocked: false,
+        },
+        {
+          id: 15,
+          name: '毅力小冠军',
+          howto: '连续打卡60天',
+          type: 'checkin',
+          image: 'medal-image/60day.png',
+          days: 0,
+          required: 60,
+          unlocked: false,
+        },
+      ];
     }
     // 返回缓存的深拷贝，防止外部修改缓存
     return JSON.parse(JSON.stringify(this._defaultMedalsCache));
@@ -565,6 +566,21 @@ function getBaseUrl() {
   return isLocal ? 'http://localhost:5000' : window.location.origin;
 }
 
+// 获取训练游戏的返回URL（根据进入游戏前的记录，返回到正确的来源页面）
+function getTrainingReturnUrl() {
+  try {
+    const state = JSON.parse(sessionStorage.getItem('returnState'));
+    sessionStorage.removeItem('returnState');
+    if (state && state.from === 'today-training') {
+      return '../today-training.html';
+    }
+    if (state && state.from === 'child-home' && state.category) {
+      return `../child-home.html?category=${encodeURIComponent(state.category)}`;
+    }
+  } catch (e) {}
+  return '../child-home.html'; // fallback
+}
+
 // HTML 转义函数，防止 XSS 攻击
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -585,4 +601,5 @@ if (typeof module !== 'undefined' && module.exports) {
   window.MedalUtil = MedalUtil;
   window.getBaseUrl = getBaseUrl;
   window.escapeHtml = escapeHtml;
+  window.getTrainingReturnUrl = getTrainingReturnUrl;
 }

@@ -243,7 +243,7 @@
       <!-- 可爱的返回按钮 -->
       <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
         <button
-          onclick="window.location.href = '../child-home.html'"
+          onclick="window.location.href = getTrainingReturnUrl()"
           style="
             background: linear-gradient(135deg, #ff6699, #ff99cc);
             color: white;
@@ -322,65 +322,6 @@
       </div>
     </div>
 
-    <!-- 自定义游戏结束弹窗 -->
-    <div
-      id="game-over-modal"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-        animation: fadeIn 0.3s ease-in-out;
-      "
-    >
-      <div
-        style="
-          background-color: #f4dd9b;
-          border-radius: 20px;
-          padding: 30px;
-          text-align: center;
-          max-width: 400px;
-          box-shadow: 0 10px 30px rgba(255, 102, 153, 0.4);
-          border: 3px solid rgb(235, 135, 124);
-          animation: popIn 0.4s ease-out;
-        "
-      >
-        <h2 style="color: rgb(200, 77, 64); margin-bottom: 20px">工作结束！</h2>
-        <div style="background-color: #f2e9d0; border-radius: 15px; padding: 20px; margin-bottom: 20px">
-          <p style="font-size: 18px; color: #333; margin: 10px 0">
-            获得甜品勋章：<span id="modal-score" style="font-weight: bold; color: #ff6699"></span>枚
-          </p>
-          <p style="font-size: 18px; color: #333; margin: 10px 0">
-            完成关卡：<span id="modal-level" style="font-weight: bold; color: #ff6699"></span>关
-          </p>
-          <p style="font-size: 18px; color: #333; margin: 10px 0">
-            错误次数：<span id="modal-errors" style="font-weight: bold; color: #ff6699"></span>次
-          </p>
-        </div>
-        <button
-          id="modal-close"
-          style="
-            background-color: rgb(200, 77, 64);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 12px 24px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-          "
-        >
-          再来一次
-        </button>
-      </div>
-    </div>
-
     <style>
       @keyframes fadeIn {
         from {
@@ -392,19 +333,97 @@
         }
       }
 
-      @keyframes popIn {
-        from {
-          transform: scale(0.8);
+      @keyframes cosmosBloom {
+        0% {
+          transform: scale(0.8) translateY(40px);
           opacity: 0;
         }
 
-        to {
-          transform: scale(1);
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes revealUp {
+        0% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .sprinkle-row {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 20px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .sprinkle-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        animation: sprinkleBounce 1.5s ease-in-out infinite;
+      }
+
+      .sprinkle-dot:nth-child(1) {
+        background: #ffb3ba;
+        animation-delay: 0s;
+      }
+
+      .sprinkle-dot:nth-child(2) {
+        background: #ffd54f;
+        animation-delay: 0.2s;
+      }
+
+      .sprinkle-dot:nth-child(3) {
+        background: #a5d6a7;
+        animation-delay: 0.4s;
+      }
+
+      .sprinkle-dot:nth-child(4) {
+        background: #90caf9;
+        animation-delay: 0.6s;
+      }
+
+      .sprinkle-dot:nth-child(5) {
+        background: #ce93d8;
+        animation-delay: 0.8s;
+      }
+
+      .sprinkle-dot:nth-child(6) {
+        background: #ffcc80;
+        animation-delay: 1s;
+      }
+
+      .sprinkle-dot:nth-child(7) {
+        background: #ef9a9a;
+        animation-delay: 1.2s;
+      }
+
+      @keyframes sprinkleBounce {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.6;
+        }
+
+        50% {
+          transform: translateY(-8px);
           opacity: 1;
         }
       }
     </style>
 
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script src="../utils.js"></script>
     <script>
       // 游戏变量
@@ -420,6 +439,10 @@
       let userSelection = []; // 用户选择的甜品
       let round = 0; // 当前训练轮数
       const maxRounds = 5; // 每轮训练的最大轮数
+
+      // [scoring-system] Session created in startGame() so vision data
+      // covers the full gameplay period, not just the end-of-game API window.
+      let gameSessionId = null;
 
       // 游戏配置
       const config = {
@@ -512,54 +535,80 @@
               endGame();
             }
           }, 1000);
+
+          // [scoring-system] Create training session at game start so that
+          // vision data captured during gameplay is associated with this session.
+          const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+          const _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+          const _childId =
+            (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
+            _userInfo?.currentChildId ||
+            1;
+
+          fetch(`${_baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: _childId,
+              game_type: 'reverse-memory',
+              device_id: 'web',
+            }),
+          })
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success) {
+                gameSessionId = res.data.session_id;
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.start(gameSessionId);
+                }
+              }
+            })
+            .catch((err) => {
+              console.warn('Failed to create session at game start:', err);
+            });
         }
       }
 
-      // 生成序列
       function generateSequence() {
         currentSequence = [];
         isWordRound = Math.random() > 0.5;
 
         for (let i = 0; i < config.sequenceLength; i++) {
           if (isWordRound) {
-            // 生成甜品词汇
             const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
             currentSequence.push(randomWord);
           } else {
-            // 生成数字
             const randomNumber = Math.floor(Math.random() * 10);
             currentSequence.push(randomNumber.toString());
           }
         }
       }
 
-      // 显示序列
       function displaySequence() {
-        // 清空输入框内容
         document.getElementById('userInput').value = '';
 
         const displayText = document.getElementById('displayText');
         displayText.textContent = currentSequence.join(' ');
 
-        // 禁用输入
         document.getElementById('userInput').disabled = true;
         document.getElementById('submitBtn').disabled = true;
         document.getElementById('dessert-buttons').style.display = 'none';
 
-        // 显示一段时间后隐藏
         setTimeout(() => {
           displayText.textContent = isWordRound ? '请按倒序点击甜品' : '请输入倒述的订单内容';
           gameState = 'input';
           userSelection = [];
 
           if (isWordRound) {
-            // 显示甜品按钮
             document.getElementById('userInput').style.display = 'none';
             document.getElementById('dessert-buttons').style.display = 'flex';
             document.getElementById('submitBtn').disabled = true;
             createDessertButtons();
           } else {
-            // 显示输入框
             document.getElementById('userInput').style.display = 'block';
             document.getElementById('dessert-buttons').style.display = 'none';
             document.getElementById('userInput').disabled = false;
@@ -607,12 +656,8 @@
             // 词汇回合，使用用户点击的顺序
             userInput = userSelection;
           } else {
-            // 数字回合，使用用户输入的文本
-            userInput = document
-              .getElementById('userInput')
-              .value.trim()
-              .split(' ')
-              .filter((item) => item !== '');
+            const rawValue = document.getElementById('userInput').value.trim().replace(/\s+/g, '');
+            userInput = rawValue.split('');
           }
 
           // 检查答案是否正确
@@ -632,9 +677,7 @@
 
           // 检查是否完成所有轮数
           if (round < maxRounds) {
-            // 保持当前难度对应的序列长度
             config.sequenceLength = difficultySettings[currentDifficulty];
-
             gameState = 'displaying';
             generateSequence();
             displaySequence();
@@ -644,14 +687,11 @@
         }
       }
 
-      // 结束游戏
       function calculateWorkingMemoryScore() {
-        // 计算各项指标
         const acc = score > 0 ? score / 10 / (level + errors) : 0;
-        // 放宽时间评分：使用更平滑的曲线，超时120秒才扣到0分
         const timeOvertime = 30 - time;
-        const speed = Math.max(0, 1 / (1 + timeOvertime / 45)); // 使用指数衰减
-        const order = 1; // 顺序错误次数（这里简化处理）
+        const speed = Math.max(0, 1 / (1 + timeOvertime / 45));
+        const order = 1;
 
         // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
         const headStable = 0.8; // 头部稳定性
@@ -706,24 +746,304 @@
           console.log('StorageUtil 未定义，跳过');
         }
 
-        // 显示自定义游戏结束弹窗
-        document.getElementById('modal-score').textContent = finalScore;
-        document.getElementById('modal-level').textContent = level;
-        document.getElementById('modal-errors').textContent = errors;
-        document.getElementById('game-over-modal').style.display = 'flex';
-
-        // 上传数据到后端
-        uploadTrainingData();
+        showGameOverModal(finalScore);
+        uploadTrainingData(finalScore);
       }
 
-      function uploadTrainingData() {
-        try {
+
+    function showGameOverModal(finalScore) {
+      const elapsed = 30 - time;
+
+      const scoreDetails = {
+        time: {
+          name: '用时',
+          score: elapsed + 's',
+          color: '#e65100',
+        },
+        level: {
+          name: '完成关卡',
+          score: level,
+          color: '#2e7d32',
+        },
+        errors: {
+          name: '错误次数',
+          score: errors,
+          color: '#c62828',
+        },
+      };
+
+        const message = '你的评分为：' + finalScore + '分';
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(160, 60, 50, 0.25);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease both;
+      `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+        background: linear-gradient(180deg, #FFF0F5 0%, #FFD6E0 100%);
+        padding: 32px 36px 28px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 2px 16px rgba(200, 77, 64, 0.12);
+        max-width: 420px;
+        width: 90%;
+        animation: cosmosBloom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        position: relative;
+        overflow: hidden;
+      `;
+
+        const topGlow = document.createElement('div');
+        topGlow.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(ellipse, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      `;
+        modalContent.appendChild(topGlow);
+
+        const starField = document.createElement('div');
+        starField.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+      `;
+
+        for (let i = 0; i < 10; i++) {
+          const s = 1 + Math.random() * 1.5;
+          const star = document.createElement('div');
+          star.style.cssText = `
+          position: absolute;
+          width: ${s}px;
+          height: ${s}px;
+          background: #fff;
+          border-radius: 50%;
+          top: ${Math.random() * 100}%;
+          left: ${Math.random() * 100}%;
+          opacity: ${0.2 + Math.random() * 0.3};
+          box-shadow: 0 0 ${s * 1.5}px rgba(255, 150, 130, 0.5);
+        `;
+          starField.appendChild(star);
+        }
+
+        const floatDecor = ['\u{1F36A}', '\u{1F369}', '\u{1F382}', '\u2728', '\u{1F495}'];
+        for (let i = 0; i < 4; i++) {
+          const deco = document.createElement('div');
+          deco.textContent = floatDecor[i];
+          deco.style.cssText = `
+          position: absolute;
+          font-size: ${16 + i * 4}px;
+          top: ${10 + i * 18}%;
+          ${i % 2 === 0 ? 'left' : 'right'}: ${-5 + i * 2}px;
+          opacity: 0.2;
+          pointer-events: none;
+        `;
+          starField.appendChild(deco);
+        }
+
+        modalContent.appendChild(starField);
+
+        const modalTitle = document.createElement('h2');
+        modalTitle.innerHTML = '\u{1F9C1} \u5DE5\u4F5C\u7ED3\u675F\uFF01 \u{1F9C1}';
+        modalTitle.style.cssText = `
+        color: #b3473a;
+        font-size: 24px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.05s ease both;
+      `;
+        modalContent.appendChild(modalTitle);
+
+        const scoreItems = Object.values(scoreDetails);
+        const statsGrid = document.createElement('div');
+        statsGrid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+      `;
+
+        scoreItems.forEach((detail, idx) => {
+          const statItem = document.createElement('div');
+          statItem.style.cssText = `
+          background: rgba(255, 255, 255, 0.55);
+          border-radius: 12px;
+          padding: 12px 8px;
+          animation: revealUp 0.4s ${0.12 + idx * 0.08}s ease both;
+        `;
+
+          const statLabel = document.createElement('div');
+          statLabel.textContent = detail.name;
+          statLabel.style.cssText = `
+          color: ${detail.color};
+          font-size: 11px;
+          margin-bottom: 4px;
+          font-weight: bold;
+        `;
+          statItem.appendChild(statLabel);
+
+          const statValue = document.createElement('div');
+          statValue.textContent = detail.score;
+          statValue.style.cssText = `
+          color: #b3473a;
+          font-size: 22px;
+          font-weight: bold;
+        `;
+          statItem.appendChild(statValue);
+
+          statsGrid.appendChild(statItem);
+        });
+
+        modalContent.appendChild(statsGrid);
+
+        const modalMessage = document.createElement('p');
+        modalMessage.textContent = message;
+        modalMessage.style.cssText = `
+        color: #b3473a;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.3s ease both;
+      `;
+        modalContent.appendChild(modalMessage);
+
+        const modalButtons = document.createElement('div');
+        modalButtons.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.36s ease both;
+      `;
+
+        const restartBtn = document.createElement('button');
+        restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
+        restartBtn.style.cssText = `
+        background: #d4695a;
+        color: white;
+        border: none;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        restartBtn.onmouseover = () => {
+          restartBtn.style.transform = 'scale(1.05)';
+          restartBtn.style.background = '#e0897c';
+        };
+        restartBtn.onmouseout = () => {
+          restartBtn.style.transform = 'scale(1)';
+          restartBtn.style.background = '#d4695a';
+        };
+        restartBtn.onclick = function () {
+          document.body.removeChild(modal);
+          startGame();
+        };
+
+        const backBtn = document.createElement('button');
+        backBtn.textContent = '\u8FD4\u56DE';
+        backBtn.style.cssText = `
+        background: transparent;
+        color: #b86e5c;
+        border: 2px solid #f4c2c2;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        backBtn.onmouseover = () => {
+          backBtn.style.background = 'rgba(255, 255, 255, 0.4)';
+          backBtn.style.color = '#b3473a';
+        };
+        backBtn.onmouseout = () => {
+          backBtn.style.background = 'transparent';
+          backBtn.style.color = '#b86e5c';
+        };
+        backBtn.onclick = function () {
+          document.body.removeChild(modal);
+          gameState = 'ready';
+          score = 0;
+          level = 1;
+          time = 30;
+          errors = 0;
+          round = 0;
+          updateUI();
+          document.getElementById('displayText').textContent = '';
+          document.getElementById('userInput').value = '';
+          document.getElementById('userInput').disabled = true;
+          document.getElementById('startBtn').style.display = 'inline-block';
+          document.getElementById('submitBtn').style.display = 'none';
+          document.getElementById('dessert-buttons').style.display = 'none';
+        };
+
+        modalButtons.appendChild(restartBtn);
+        modalButtons.appendChild(backBtn);
+
+        modalContent.appendChild(modalButtons);
+
+        const sprinkleRow = document.createElement('div');
+        sprinkleRow.className = 'sprinkle-row';
+        const sprinkleColors = ['#ffb3ba', '#ffd54f', '#a5d6a7', '#90caf9', '#ce93d8', '#ffcc80', '#ef9a9a'];
+        for (let i = 0; i < 7; i++) {
+          const dot = document.createElement('div');
+          dot.className = 'sprinkle-dot';
+          dot.style.cssText = `
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: ${sprinkleColors[i]};
+          animation: sprinkleBounce 1.5s ease-in-out infinite;
+          animation-delay: ${i * 0.2}s;
+        `;
+          sprinkleRow.appendChild(dot);
+        }
+        modalContent.appendChild(sprinkleRow);
+
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+      }
+
+    function uploadTrainingData(frontendScore) {
+      try {
+        // [scoring-system] Upload game data + end session.
+        // Session was created in startGame(); use gameSessionId directly.
+        const _uploadAndEnd = () => {
           const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
           const childId =
             typeof UserStateUtil !== 'undefined'
               ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
               : 1;
-          let sessionId = null;
 
           // 计算工作记忆得分
           const finalScore = calculateWorkingMemoryScore();
@@ -733,7 +1053,130 @@
           const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
           const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-          // 开始训练会话
+          if (typeof visionUploader !== 'undefined') {
+            visionUploader.stop();
+          }
+
+      function uploadTrainingData() {
+        try {
+          // [scoring-system] Upload game data + end session.
+          // Session was created in startGame(); use gameSessionId directly.
+          const _uploadAndEnd = () => {
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
+
+            // 计算工作记忆得分
+            const finalScore = calculateWorkingMemoryScore();
+            const accuracy = score > 0 ? (score / 10 / (level + errors)) * 100 : 0;
+
+            // 检测环境，设置API地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+            if (typeof visionUploader !== 'undefined') {
+              visionUploader.stop();
+            }
+
+            // 上传游戏数据
+            fetch(`${baseUrl}/api/training/game-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                session_id: gameSessionId,
+                request_id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                event_type: 'game_complete',
+                score: finalScore,
+                accuracy: accuracy,
+                level: level,
+                time: time,
+                correct: score,
+                error: errors,
+                total_target: level,
+                total_step: level,
+              }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
+
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
+
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: gameSessionId,
+                      final_score: finalScore,
+                      total_accuracy: accuracy,
+                      duration: time,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
+                }
+              })
+            
+              .then((response) => response.json())
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
+
+                  // 保存训练时间到 localStorage，用于今日训练页面显示
+                  const today = new Date().toISOString().split('T')[0];
+                  const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                  if (!trainingData[today]) {
+                    trainingData[today] = { totalTime: 0 };
+                  }
+                  
+                // 累加游戏时间（秒）
+                trainingData[today].totalTime += time;
+                localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                console.log('训练时间已保存到 localStorage');
+
+                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                var displayScore = frontendScore;
+                if (result.data && result.data.summary && result.data.summary.final_score) {
+                  displayScore = Math.round(result.data.summary.final_score);
+                }
+                showGameOverModal(displayScore);
+              }
+            })
+            .catch((error) => {
+              console.error('上传训练数据失败:', error);
+              showGameOverModal(frontendScore);
+            });
+        };
+
+        if (gameSessionId) {
+          _uploadAndEnd();
+        } else {
+          // [scoring-system] Fallback: session not ready from startGame().
+          console.warn('Session not ready from startGame, creating inline');
+          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+          const childId =
+            typeof UserStateUtil !== 'undefined'
+              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+              : 1;
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
           fetch(`${baseUrl}/api/training/session/start`, {
             method: 'POST',
             headers: {
@@ -746,98 +1189,41 @@
               device_id: 'web',
             }),
           })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                sessionId = result.data.session_id;
-                console.log('训练会话创建成功:', sessionId);
-
-                // 上传游戏数据
-                return fetch(`${baseUrl}/api/training/game-data`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                  },
-                  body: JSON.stringify({
-                    session_id: sessionId,
-                    request_id: Date.now().toString(),
-                    timestamp: new Date().toISOString(),
-                    event_type: 'game_complete',
-                    score: finalScore,
-                    accuracy: accuracy,
-                    level: level,
-                    time: time,
-                    correct: score,
-                    error: errors,
-                    total_target: level,
-                    total_step: level,
-                  }),
-                });
-              } else {
-                throw new Error(result.message || '创建会话失败');
-              }
-            })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                console.log('游戏数据上传成功');
-
-                // 清除能力评估页面的缓存
-                const cacheKey = `child_data_${childId}`;
-                localStorage.removeItem(cacheKey);
-                console.log('已清除能力评估缓存:', cacheKey);
-
-                // 结束训练会话
-                return fetch(`${baseUrl}/api/training/session/end`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                  },
-                  body: JSON.stringify({
-                    session_id: sessionId,
-                    final_score: finalScore,
-                    total_accuracy: accuracy,
-                    duration: time,
-                  }),
-                });
-              } else {
-                throw new Error(result.message || '上传游戏数据失败');
-              }
-            })
-            .then((response) => response.json())
-            .then((result) => {
-              console.log('会话结束响应数据:', result);
-              if (result.success) {
-                console.log('训练数据上传完成');
-
-                // 保存训练时间到 localStorage，用于今日训练页面显示
-                const today = new Date().toISOString().split('T')[0];
-                const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-                if (!trainingData[today]) {
-                  trainingData[today] = { totalTime: 0 };
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success) {
+                gameSessionId = res.data.session_id;
+                // 先上传缓冲的视觉数据，再提交游戏数据
+                var flushDone = Promise.resolve();
+                if (typeof visionUploader !== 'undefined') {
+                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
                 }
-
-                // 累加游戏时间（秒）
-                trainingData[today].totalTime += time;
-                localStorage.setItem('trainingData', JSON.stringify(trainingData));
-                console.log('训练时间已保存到 localStorage');
-              }
-            })
-            .catch((error) => {
-              console.error('上传训练数据失败:', error);
-            });
+              });
+          }
         } catch (e) {
           console.error('uploadTrainingData 错误:', e);
+            showGameOverModal(frontendScore);
         }
+
+      function restartGame() {
+        startGame();
       }
 
-      // 初始化弹窗关闭按钮
-      document.getElementById('modal-close').addEventListener('click', function () {
-        document.getElementById('game-over-modal').style.display = 'none';
-      });
+      function backToStart() {
+        gameState = 'ready';
+        score = 0;
+        level = 1;
+        time = 30;
+        errors = 0;
+        round = 0;
+        updateUI();
+        document.getElementById('displayText').textContent = '';
+        document.getElementById('userInput').value = '';
+        document.getElementById('userInput').disabled = true;
+        document.getElementById('startBtn').style.display = 'inline-block';
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('dessert-buttons').style.display = 'none';
+      }
 
       // 更新UI
       function updateUI() {
@@ -852,5 +1238,6 @@
         initGame();
       };
     </script>
+    <script src="../attention-loader.js"></script>
   </body>
 </html>

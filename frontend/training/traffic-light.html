@@ -351,6 +351,53 @@
         }
       }
 
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes cosmosBloom {
+        0% {
+          transform: scale(0.8) translateY(40px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes revealUp {
+        0% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes leafBounce {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.6;
+        }
+
+        50% {
+          transform: translateY(-8px);
+          opacity: 1;
+        }
+      }
+
       /* 计时条 */
       .timer-bar {
         height: 8px;
@@ -372,39 +419,6 @@
         font-size: 20px;
         text-align: right;
         color: #000000;
-      }
-
-      /* 结束面板 */
-      .end-panel {
-        background: white;
-        margin: 20px;
-        padding: 28px;
-        border-radius: 40px;
-        text-align: center;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      }
-
-      .end-panel h3 {
-        font-size: 28px;
-        color: #2c5e2d;
-        margin-bottom: 16px;
-      }
-
-      .restart-btn {
-        background: #2c5e2d;
-        border: none;
-        padding: 14px 32px;
-        border-radius: 60px;
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: white;
-        cursor: pointer;
-        margin-top: 20px;
-        transition: all 0.2s;
-      }
-
-      .restart-btn:active {
-        transform: scale(0.96);
       }
 
       .hidden {
@@ -474,8 +488,6 @@
             <p><strong>游戏规则：</strong></p>
             <p>• 忽略文字，根据图片的真实类别选择分类</p>
             <p>• 越快回答，获得的金币越多</p>
-            <p>• 完成40个试次后训练结束</p>
-            <p>• 难度会根据你的表现自动调整</p>
           </div>
           <div class="difficulty-selector">
             <h4>选择难度：</h4>
@@ -491,21 +503,89 @@
       </div>
     </div>
 
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script>
       // ========================
       // 游戏数据 & 研究参数 (基于Stroop范式，抑制控制训练)
       // 文献依据：方浩团队JMIR (2025)，ReStroop游戏 (arXiv 2025)
       // ========================
-      const ITEMS = {
+
+      // 简单难度的垃圾项目
+      const EASY_ITEMS = {
         苹果核: { category: '厨余垃圾', emoji: '🍎', imageEmoji: '🍎' },
         香蕉皮: { category: '厨余垃圾', emoji: '🍌', imageEmoji: '🍌' },
+        西瓜皮: { category: '厨余垃圾', emoji: '🍉', imageEmoji: '🍉' },
+        橙子皮: { category: '厨余垃圾', emoji: '🍊', imageEmoji: '🍊' },
         塑料瓶: { category: '可回收', emoji: '🧴', imageEmoji: '🧴' },
         报纸: { category: '可回收', emoji: '📰', imageEmoji: '📰' },
+        书本: { category: '可回收', emoji: '📚', imageEmoji: '📚' },
+        纸盒: { category: '可回收', emoji: '📦', imageEmoji: '📦' },
+        电池: { category: '有害垃圾', emoji: '🔋', imageEmoji: '🔋' },
+        灯泡: { category: '有害垃圾', emoji: '💡', imageEmoji: '💡' },
+        脏纸巾: { category: '其他垃圾', emoji: '🧻', imageEmoji: '🧻' },
+        塑料袋: { category: '其他垃圾', emoji: '🛍️', imageEmoji: '🛍️' },
+      };
+
+      // 中等难度的垃圾项目（增加更多种类）
+      const MEDIUM_ITEMS = {
+        苹果核: { category: '厨余垃圾', emoji: '🍎', imageEmoji: '🍎' },
+        香蕉皮: { category: '厨余垃圾', emoji: '🍌', imageEmoji: '🍌' },
+        剩饭菜: { category: '厨余垃圾', emoji: '🍛', imageEmoji: '🍛' },
+        骨头: { category: '厨余垃圾', emoji: '🍖', imageEmoji: '🍖' },
+        蛋壳: { category: '厨余垃圾', emoji: '🥚', imageEmoji: '🥚' },
+        菜叶: { category: '厨余垃圾', emoji: '🥬', imageEmoji: '🥬' },
+        塑料瓶: { category: '可回收', emoji: '🧴', imageEmoji: '🧴' },
+        报纸: { category: '可回收', emoji: '📰', imageEmoji: '📰' },
+        易拉罐: { category: '可回收', emoji: '🥤', imageEmoji: '🥤' },
+        玻璃瓶: { category: '可回收', emoji: '🍾', imageEmoji: '🍾' },
+        旧衣服: { category: '可回收', emoji: '👕', imageEmoji: '👕' },
+        金属罐: { category: '可回收', emoji: '🥫', imageEmoji: '🥫' },
         电池: { category: '有害垃圾', emoji: '🔋', imageEmoji: '🔋' },
         过期药品: { category: '有害垃圾', emoji: '💊', imageEmoji: '💊' },
+        油漆桶: { category: '有害垃圾', emoji: '🪣', imageEmoji: '🪣' },
+        荧光灯: { category: '有害垃圾', emoji: '💡', imageEmoji: '💡' },
         脏纸巾: { category: '其他垃圾', emoji: '🧻', imageEmoji: '🧻' },
         一次性餐具: { category: '其他垃圾', emoji: '🥢', imageEmoji: '🥢' },
+        烟蒂: { category: '其他垃圾', emoji: '🚬', imageEmoji: '🚬' },
+        口香糖: { category: '其他垃圾', emoji: '🍬', imageEmoji: '🍬' },
       };
+
+      // 困难难度的垃圾项目（更多种类）
+      const HARD_ITEMS = {
+        苹果核: { category: '厨余垃圾', emoji: '🍎', imageEmoji: '🍎' },
+        香蕉皮: { category: '厨余垃圾', emoji: '🍌', imageEmoji: '🍌' },
+        剩饭菜: { category: '厨余垃圾', emoji: '🍛', imageEmoji: '🍛' },
+        骨头: { category: '厨余垃圾', emoji: '🍖', imageEmoji: '🍖' },
+        蛋壳: { category: '厨余垃圾', emoji: '🥚', imageEmoji: '🥚' },
+        菜叶: { category: '厨余垃圾', emoji: '🥬', imageEmoji: '🥬' },
+        果皮: { category: '厨余垃圾', emoji: '🍑', imageEmoji: '🍑' },
+        鱼骨: { category: '厨余垃圾', emoji: '🐟', imageEmoji: '🐟' },
+        玉米芯: { category: '厨余垃圾', emoji: '🌽', imageEmoji: '🌽' },
+        咖啡渣: { category: '厨余垃圾', emoji: '☕', imageEmoji: '☕' },
+        塑料瓶: { category: '可回收', emoji: '🧴', imageEmoji: '🧴' },
+        报纸: { category: '可回收', emoji: '📰', imageEmoji: '📰' },
+        易拉罐: { category: '可回收', emoji: '🥤', imageEmoji: '🥤' },
+        玻璃瓶: { category: '可回收', emoji: '🍾', imageEmoji: '🍾' },
+        旧衣服: { category: '可回收', emoji: '👕', imageEmoji: '👕' },
+        金属罐: { category: '可回收', emoji: '🥫', imageEmoji: '🥫' },
+        纸箱: { category: '可回收', emoji: '📦', imageEmoji: '📦' },
+        泡沫塑料: { category: '可回收', emoji: '🧽', imageEmoji: '🧽' },
+        电池: { category: '有害垃圾', emoji: '🔋', imageEmoji: '🔋' },
+        过期药品: { category: '有害垃圾', emoji: '💊', imageEmoji: '💊' },
+        油漆桶: { category: '有害垃圾', emoji: '🪣', imageEmoji: '🪣' },
+        杀虫剂: { category: '有害垃圾', emoji: '🧪', imageEmoji: '🧪' },
+        荧光灯: { category: '有害垃圾', emoji: '💡', imageEmoji: '💡' },
+        温度计: { category: '有害垃圾', emoji: '🌡️', imageEmoji: '🌡️' },
+        脏纸巾: { category: '其他垃圾', emoji: '🧻', imageEmoji: '🧻' },
+        一次性餐具: { category: '其他垃圾', emoji: '🥢', imageEmoji: '🥢' },
+        烟蒂: { category: '其他垃圾', emoji: '🚬', imageEmoji: '🚬' },
+        陶瓷碎片: { category: '其他垃圾', emoji: '🗑️', imageEmoji: '🗑️' },
+        口香糖: { category: '其他垃圾', emoji: '🍬', imageEmoji: '🍬' },
+        尿不湿: { category: '其他垃圾', emoji: '🧷', imageEmoji: '🧷' },
+        创可贴: { category: '其他垃圾', emoji: '🩹', imageEmoji: '🩹' },
+      };
+
       const CATEGORIES = ['厨余垃圾', '可回收', '有害垃圾', '其他垃圾'];
       const CATEGORY_EMOJI = {
         厨余垃圾: '🍂',
@@ -514,11 +594,25 @@
         其他垃圾: '🗑️',
       };
 
-      // 难度参数 (反应窗口基于849-969ms研究区间)
+      // 难度参数 (难度固定，根据用户选择设置不同的试次数量、时间限制和不一致比例)
       const DIFFICULTY_SETTINGS = {
-        easy: { timeLimit: 4000, incongruentRatio: 0.3, name: '简单', stars: '⭐' },
-        medium: { timeLimit: 3500, incongruentRatio: 0.5, name: '中等', stars: '⭐⭐' },
-        hard: { timeLimit: 2900, incongruentRatio: 0.7, name: '困难', stars: '⭐⭐⭐' },
+        easy: { timeLimit: 4000, incongruentRatio: 0.3, name: '简单', stars: '⭐', totalTrials: 20, items: EASY_ITEMS },
+        medium: {
+          timeLimit: 3500,
+          incongruentRatio: 0.5,
+          name: '中等',
+          stars: '⭐⭐',
+          totalTrials: 30,
+          items: MEDIUM_ITEMS,
+        },
+        hard: {
+          timeLimit: 2900,
+          incongruentRatio: 0.7,
+          name: '困难',
+          stars: '⭐⭐⭐',
+          totalTrials: 40,
+          items: HARD_ITEMS,
+        },
       };
 
       // 言语鼓励库 (金币+语音表情鼓励: 研究证实最优)
@@ -547,9 +641,15 @@
         currentDifficulty: 'medium',
         trialHistory: [], // 用于自适应
         waitingNext: false,
+        level: 2, // 难度映射: easy=1, medium=2, hard=3
       };
 
       let timeoutId = null;
+      let gameStartTime = 0;
+
+      // [scoring-system] Session created in startGame() so vision data
+      // covers the full gameplay period, not just the end-of-game API window.
+      let gameSessionId = null;
 
       // DOM 元素
       const container = document.getElementById('gameMainArea');
@@ -567,13 +667,15 @@
         btn.addEventListener('click', () => {
           diffBtns.forEach((b) => b.classList.remove('active'));
           btn.classList.add('active');
-          gameState.currentDifficulty = btn.getAttribute('data-difficulty');
+          const diff = btn.getAttribute('data-difficulty');
+          gameState.currentDifficulty = diff;
+          gameState.level = diff === 'easy' ? 1 : diff === 'medium' ? 2 : 3;
         });
       });
 
       // 返回按钮点击事件
       document.getElementById('backBtn').addEventListener('click', () => {
-        window.location.href = '../child-home.html';
+        window.location.href = getTrainingReturnUrl();
       });
 
       // 开始游戏按钮
@@ -604,12 +706,23 @@
         // 简单金币飘字感觉
       }
 
+      let lastItemName = null;
+
       // 生成不一致/一致试次 (Stroop核心)
       function generateTrial() {
+        const settings = DIFFICULTY_SETTINGS[gameState.currentDifficulty];
+        const ITEMS = settings.items; // 使用当前难度对应的物品列表
         const itemNames = Object.keys(ITEMS);
-        const randomItem = itemNames[Math.floor(Math.random() * itemNames.length)];
+
+        let randomItem;
+        do {
+          randomItem = itemNames[Math.floor(Math.random() * itemNames.length)];
+        } while (randomItem === lastItemName && itemNames.length > 1);
+
+        lastItemName = randomItem;
+
         const correctCategory = ITEMS[randomItem].category;
-        const ratio = DIFFICULTY_SETTINGS[gameState.currentDifficulty].incongruentRatio;
+        const ratio = settings.incongruentRatio;
         const isIncongruent = Math.random() < ratio;
 
         let distractorText;
@@ -626,7 +739,7 @@
           correctCategory: correctCategory,
           distractorText: distractorText,
           isIncongruent: isIncongruent,
-          timeLimit: DIFFICULTY_SETTINGS[gameState.currentDifficulty].timeLimit,
+          timeLimit: settings.timeLimit,
         };
       }
 
@@ -761,31 +874,8 @@
           reactionTime: reactionTime,
           difficulty: gameState.currentDifficulty,
         });
-        if (gameState.trialHistory.length > 40) gameState.trialHistory.shift();
-
-        // 自适应难度调整（每5次更新）
-        if (gameState.trialHistory.length >= 10 && gameState.trialHistory.length % 5 === 0) {
-          adjustDifficultyByPerformance();
-        }
-      }
-
-      function adjustDifficultyByPerformance() {
-        const recent = gameState.trialHistory.slice(-12);
-        const incongruentTrials = recent.filter((t) => t.isIncongruent === true);
-        if (incongruentTrials.length < 5) return;
-        const correctIncongruent = incongruentTrials.filter((t) => t.isCorrect).length;
-        const correctRate = correctIncongruent / incongruentTrials.length;
-        let newDiff = gameState.currentDifficulty;
-
-        if (correctRate > 0.75 && gameState.currentDifficulty === 'easy') newDiff = 'medium';
-        else if (correctRate > 0.75 && gameState.currentDifficulty === 'medium') newDiff = 'hard';
-        else if (correctRate < 0.5 && gameState.currentDifficulty === 'hard') newDiff = 'medium';
-        else if (correctRate < 0.45 && gameState.currentDifficulty === 'medium') newDiff = 'easy';
-
-        if (newDiff !== gameState.currentDifficulty) {
-          gameState.currentDifficulty = newDiff;
-          updateUIStats();
-          showFeedbackMessage(`🌟 难度调整：${DIFFICULTY_SETTINGS[newDiff].name}`, true);
+        if (gameState.trialHistory.length > DIFFICULTY_SETTINGS[gameState.currentDifficulty].totalTrials) {
+          gameState.trialHistory.shift();
         }
       }
 
@@ -801,7 +891,8 @@
 
       async function nextTrial() {
         if (!active) return;
-        if (gameState.totalCount >= 40) {
+        const settings = DIFFICULTY_SETTINGS[gameState.currentDifficulty];
+        if (gameState.totalCount >= settings.totalTrials) {
           endGame();
           return;
         }
@@ -818,33 +909,99 @@
           coins: 0,
           correctCount: 0,
           totalCount: 0,
-          currentDifficulty: gameState.currentDifficulty, // 保持用户选择的难度
+          currentDifficulty: gameState.currentDifficulty,
           trialHistory: [],
           waitingNext: false,
+          level: gameState.level,
         };
         updateUIStats();
         currentTrial = generateTrial();
         startTime = Date.now();
+        gameStartTime = Date.now();
         canRespond = true;
         renderGame();
+
+        // [scoring-system] Create training session at game start so that
+        // vision data captured during gameplay is associated with this session.
+        const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+        const _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+        const _childId =
+          (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
+          _userInfo?.currentChildId ||
+          1;
+
+        fetch(`${_baseUrl}/api/training/session/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+          body: JSON.stringify({
+            child_id: _childId,
+            game_type: 'traffic-light',
+            device_id: 'web',
+          }),
+        })
+          .then((r) => r.json())
+          .then((res) => {
+            if (res.success) {
+              gameSessionId = res.data.session_id;
+              if (typeof visionUploader !== 'undefined') {
+                visionUploader.start(gameSessionId);
+              }
+            }
+          })
+          .catch((err) => {
+            console.warn('Failed to create session at game start:', err);
+          });
       }
 
       function calculateInhibitionScore() {
-        // 计算各项指标
         const totalTrial = gameState.totalCount;
         const acc = totalTrial > 0 ? gameState.correctCount / totalTrial : 0;
-        const impulse = totalTrial > 0 ? 1 - (gameState.totalCount - gameState.correctCount) / totalTrial : 0;
+        const incongruentTrials = gameState.trialHistory.filter((t) => t.isIncongruent === true);
+        const incongAcc =
+          incongruentTrials.length > 0
+            ? incongruentTrials.filter((t) => t.isCorrect).length / incongruentTrials.length
+            : acc;
+        const gameTime = Math.max(1, Math.floor((Date.now() - gameStartTime) / 1000));
+        const difficultyConfig = DIFFICULTY_SETTINGS[gameState.currentDifficulty];
+        const totalTrials = difficultyConfig ? difficultyConfig.totalTrials : 20;
+        const expectedTime = totalTrials * 3;
+        const timeOvertime = gameTime - expectedTime;
+        const timeFactor = 1 / (1 + timeOvertime / (expectedTime * 1.5));
+        const timeScore = Math.max(0, Math.min(1, timeFactor)) * 20;
 
-        // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
-        const headStable = 0.8; // 头部稳定性
-        const faceStable = 0.8; // 面部稳定性
-        const blinkStable = 0.8; // 眨眼稳定性
+        const accuracyScore = Math.round(acc * 50);
+        const inhibitionScore = Math.round(incongAcc * 30);
+        const speedScore = Math.round(timeScore);
 
-        // 计算最终得分
-        const scoreValue =
-          (impulse * 0.4 + acc * 0.3 + headStable * 0.15 + faceStable * 0.08 + blinkStable * 0.07) * 100;
+        const finalScore = Math.max(0, Math.min(100, accuracyScore + inhibitionScore + speedScore));
 
-        return Math.max(0, Math.min(100, Math.round(scoreValue)));
+        return {
+          finalScore: finalScore,
+          scoreDetails: {
+            accuracy: {
+              name: '准确率',
+              score: accuracyScore,
+              max: 50,
+              color: '#4fc3f7',
+            },
+            inhibition: {
+              name: '抑制控制',
+              score: inhibitionScore,
+              max: 30,
+              color: '#ef6c00',
+            },
+            speed: {
+              name: '反应速度',
+              score: speedScore,
+              max: 20,
+              color: '#ab47bc',
+            },
+          },
+        };
       }
 
       function endGame() {
@@ -861,7 +1018,7 @@
         }
 
         if (typeof MedalUtil !== 'undefined') {
-          MedalUtil.recordGameProgress('game9', gameState.currentDifficulty);
+          MedalUtil.recordGameProgress('game9', gameState.level || gameState.currentDifficulty);
         }
 
         const accuracy =
@@ -872,109 +1029,335 @@
             ? 0
             : ((incongruentTrials.filter((t) => t.isCorrect).length / incongruentTrials.length) * 100).toFixed(1);
 
-        // 计算抑制控制得分
-        const finalScore = calculateInhibitionScore();
+        const scoreResult = calculateInhibitionScore();
+        const finalScore = scoreResult.finalScore;
+        const gameTime = Math.max(1, Math.floor((Date.now() - gameStartTime) / 1000));
 
         // 上传数据到后端
-        uploadTrainingData(accuracy, incongAcc, finalScore);
+        uploadTrainingData(accuracy, incongAcc, finalScore, gameTime);
 
-        container.innerHTML = `
-            <div class="end-panel">
-                <h3>🎉 训练完成 🎉</h3>
-                <p>🪙 获得金币: ${gameState.coins}</p>
-                <p>⭐ 总分: ${finalScore}</p>
-                <p>🎯 总正确率: ${accuracy}%</p>
-                <p>🧠 抑制控制(不一致试次)正确率: ${incongAcc}%</p>
-                <p>📚 研究建议: 每周3次，每次20分钟，持续提升注意力</p>
-                <button class="restart-btn" id="restartBtn">🔄 新的一轮</button>
-                <button class="start-btn" style="margin-top: 12px;" id="backToStartBtn">🏠 返回开始</button>
-                <button class="start-btn" style="margin-top: 12px;" id="completeDetectionBtn">✅ 完成检测</button>
-            </div>
-        `;
-        document.getElementById('restartBtn')?.addEventListener('click', () => {
-          startGame();
-        });
-        document.getElementById('backToStartBtn')?.addEventListener('click', () => {
-          container.innerHTML = '';
-          startScreen.classList.remove('hidden');
-        });
-        document.getElementById('completeDetectionBtn')?.addEventListener('click', () => {
-          // 发送游戏完成事件给父窗口
-          if (window.parent) {
-            window.parent.postMessage(
-              {
-                type: 'gameCompleted',
-                data: {
-                  score: finalScore,
-                  coins: gameState.coins,
-                  correctCount: gameState.correctCount,
-                  totalCount: gameState.totalCount,
-                },
-              },
-              '*',
-            );
-          }
-        });
+        showGameOverModal(finalScore, gameTime);
       }
 
-      function uploadTrainingData(accuracy, incongAcc, finalScore) {
+      function showGameOverModal(finalScore, gameTime) {
+        const errorCount = gameState.totalCount - gameState.correctCount;
+
+        const scoreDetails = {
+          total: {
+            name: '总次数',
+            score: gameState.totalCount,
+            color: '#2e7d32',
+          },
+          correct: {
+            name: '正确次数',
+            score: gameState.correctCount,
+            color: '#4caf50',
+          },
+          error: {
+            name: '错误次数',
+            score: errorCount,
+            color: '#c62828',
+          },
+        };
+
+        const message = '你的评分为：' + finalScore + '分';
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(40, 60, 30, 0.3);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease both;
+      `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+        background: linear-gradient(180deg, #F1F8E9 0%, #C5E1A5 100%);
+        padding: 32px 36px 28px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 2px 16px rgba(60, 100, 40, 0.12);
+        max-width: 420px;
+        width: 90%;
+        animation: cosmosBloom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        position: relative;
+        overflow: hidden;
+      `;
+
+        const topGlow = document.createElement('div');
+        topGlow.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(ellipse, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      `;
+        modalContent.appendChild(topGlow);
+
+        const starField = document.createElement('div');
+        starField.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+      `;
+
+        for (let i = 0; i < 10; i++) {
+          const s = 1 + Math.random() * 1.5;
+          const star = document.createElement('div');
+          star.style.cssText = `
+          position: absolute;
+          width: ${s}px;
+          height: ${s}px;
+          background: #fff;
+          border-radius: 50%;
+          top: ${Math.random() * 100}%;
+          left: ${Math.random() * 100}%;
+          opacity: ${0.2 + Math.random() * 0.3};
+          box-shadow: 0 0 ${s * 1.5}px rgba(150, 200, 120, 0.5);
+        `;
+          starField.appendChild(star);
+        }
+
+        const floatDecor = ['\u{1F331}', '\u{267B}\uFE0F', '\u2728', '\u{1F33F}', '\u{1F340}'];
+        for (let i = 0; i < 4; i++) {
+          const deco = document.createElement('div');
+          deco.textContent = floatDecor[i];
+          deco.style.cssText = `
+          position: absolute;
+          font-size: ${16 + i * 4}px;
+          top: ${10 + i * 18}%;
+          ${i % 2 === 0 ? 'left' : 'right'}: ${-5 + i * 2}px;
+          opacity: 0.2;
+          pointer-events: none;
+        `;
+          starField.appendChild(deco);
+        }
+
+        modalContent.appendChild(starField);
+
+        const modalTitle = document.createElement('h2');
+        modalTitle.innerHTML = '\u{1F331} \u6210\u4E3A\u73AF\u4FDD\u5C0F\u536B\u58EB \u{1F331}';
+        modalTitle.style.cssText = `
+        color: #2c5e2d;
+        font-size: 24px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.05s ease both;
+      `;
+        modalContent.appendChild(modalTitle);
+
+        const scoreItems = Object.values(scoreDetails);
+        const statsGrid = document.createElement('div');
+        statsGrid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+      `;
+
+        scoreItems.forEach((detail, idx) => {
+          const statItem = document.createElement('div');
+          statItem.style.cssText = `
+          background: rgba(255, 255, 255, 0.55);
+          border-radius: 12px;
+          padding: 12px 8px;
+          animation: revealUp 0.4s ${0.12 + idx * 0.08}s ease both;
+        `;
+
+          const statLabel = document.createElement('div');
+          statLabel.textContent = detail.name;
+          statLabel.style.cssText = `
+          color: ${detail.color};
+          font-size: 11px;
+          margin-bottom: 4px;
+          font-weight: bold;
+        `;
+          statItem.appendChild(statLabel);
+
+          const statValue = document.createElement('div');
+          statValue.textContent = detail.score;
+          statValue.style.cssText = `
+          color: #1b5e20;
+          font-size: 22px;
+          font-weight: bold;
+        `;
+          statItem.appendChild(statValue);
+
+          statsGrid.appendChild(statItem);
+        });
+
+        modalContent.appendChild(statsGrid);
+
+        const modalMessage = document.createElement('p');
+        modalMessage.textContent = message;
+        modalMessage.style.cssText = `
+        color: #1b5e20;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.3s ease both;
+      `;
+        modalContent.appendChild(modalMessage);
+
+        const modalButtons = document.createElement('div');
+        modalButtons.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.36s ease both;
+      `;
+
+        const restartBtn = document.createElement('button');
+        restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
+        restartBtn.style.cssText = `
+        background: #7cb342;
+        color: white;
+        border: none;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        restartBtn.onmouseover = () => {
+          restartBtn.style.transform = 'scale(1.05)';
+          restartBtn.style.background = '#9ccc65';
+        };
+        restartBtn.onmouseout = () => {
+          restartBtn.style.transform = 'scale(1)';
+          restartBtn.style.background = '#7cb342';
+        };
+        restartBtn.onclick = function () {
+          document.body.removeChild(modal);
+          startGame();
+        };
+
+        const backBtn = document.createElement('button');
+        backBtn.textContent = '\u8FD4\u56DE';
+        backBtn.style.cssText = `
+        background: transparent;
+        color: #689f38;
+        border: 2px solid #aed581;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        backBtn.onmouseover = () => {
+          backBtn.style.background = 'rgba(255, 255, 255, 0.4)';
+          backBtn.style.color = '#33691e';
+        };
+        backBtn.onmouseout = () => {
+          backBtn.style.background = 'transparent';
+          backBtn.style.color = '#689f38';
+        };
+        backBtn.onclick = function () {
+          document.body.removeChild(modal);
+          window.location.reload();
+        };
+
+        modalButtons.appendChild(restartBtn);
+        modalButtons.appendChild(backBtn);
+
+        modalContent.appendChild(modalButtons);
+
+        const leafRow = document.createElement('div');
+        leafRow.style.cssText = `
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        margin-top: 20px;
+        position: relative;
+        z-index: 1;
+      `;
+        const leafColors = ['#aed581', '#9ccc65', '#8bc34a', '#7cb342', '#689f38', '#558b2f', '#43a047'];
+        for (let i = 0; i < 7; i++) {
+          const leaf = document.createElement('div');
+          leaf.style.cssText = `
+          width: ${6 + Math.random() * 4}px;
+          height: ${6 + Math.random() * 4}px;
+          border-radius: 50%;
+          background: ${leafColors[i]};
+          animation: leafBounce 1.5s ease-in-out infinite;
+          animation-delay: ${i * 0.2}s;
+        `;
+          leafRow.appendChild(leaf);
+        }
+        modalContent.appendChild(leafRow);
+        
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+      }
+
+      function uploadTrainingData(accuracy, incongAcc, finalScore, gameTime) {
         try {
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
-          let sessionId = null;
+          // [scoring-system] Upload game data + end session.
+          // Session was created in startGame(); use gameSessionId directly.
+          const _uploadAndEnd = () => {
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
 
-          // 检测环境，设置API地址
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            // 检测环境，设置API地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-          // 开始训练会话
-          fetch(`${baseUrl}/api/training/session/start`, {
+            if (typeof visionUploader !== 'undefined') {
+              visionUploader.stop();
+            }
+            
+          // 上传游戏数据
+          fetch(`${baseUrl}/api/training/game-data`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
             },
             body: JSON.stringify({
-              child_id: childId,
-              game_type: 'traffic-light',
-              device_id: 'web',
+              session_id: gameSessionId,
+              request_id: Date.now().toString(),
+              timestamp: new Date().toISOString(),
+              event_type: 'game_complete',
+              score: finalScore,
+              accuracy: parseFloat(accuracy),
+              level: gameState.level || 1,
+              time: gameTime,
+              correct: gameState.correctCount,
+              error: gameState.totalCount - gameState.correctCount,
+              total_target: gameState.totalCount,
+              total_step: gameState.totalCount,
+              total_trial: gameState.totalCount,
             }),
           })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                sessionId = result.data.session_id;
-                console.log('训练会话创建成功:', sessionId);
-
-                // 上传游戏数据
-                return fetch(`${baseUrl}/api/training/game-data`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                  },
-                  body: JSON.stringify({
-                    session_id: sessionId,
-                    request_id: Date.now().toString(),
-                    timestamp: new Date().toISOString(),
-                    event_type: 'game_complete',
-                    score: finalScore,
-                    accuracy: parseFloat(accuracy),
-                    level: gameState.level || 1,
-                    time: Math.floor((Date.now() - startTime) / 1000),
-                    correct: gameState.correctCount,
-                    error: gameState.totalCount - gameState.correctCount,
-                    total_target: gameState.totalCount,
-                    total_step: gameState.totalCount,
-                  }),
-                });
-              } else {
-                throw new Error(result.message || '创建会话失败');
-              }
-            })
             .then((response) => {
               if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -998,40 +1381,118 @@
                     Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
                   },
                   body: JSON.stringify({
-                    session_id: sessionId,
+                    session_id: gameSessionId,
                     final_score: finalScore,
                     total_accuracy: parseFloat(accuracy),
-                    duration: Math.floor((Date.now() - startTime) / 1000),
+                    duration: gameTime,
                   }),
                 });
               } else {
                 throw new Error(result.message || '上传游戏数据失败');
               }
             })
-            .then((response) => response.json())
-            .then((result) => {
-              console.log('会话结束响应数据:', result);
-              if (result.success) {
-                console.log('训练数据上传完成');
-
-                // 保存训练时间到 localStorage，用于今日训练页面显示
-                const today = new Date().toISOString().split('T')[0];
-                const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-                if (!trainingData[today]) {
-                  trainingData[today] = { totalTime: 0 };
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                return response.json();
+              })
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
 
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
+
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: gameSessionId,
+                      final_score: finalScore,
+                      total_accuracy: parseFloat(accuracy),
+                      duration: gameTime,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
+                }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
+
+                  // 保存训练时间到 localStorage，用于今日训练页面显示
+                  const today = new Date().toISOString().split('T')[0];
+                  const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                  if (!trainingData[today]) {
+                    trainingData[today] = { totalTime: 0 };
+                  }
+                  
                 // 累加游戏时间（秒）
-                const gameTime = Math.floor((Date.now() - startTime) / 1000);
                 trainingData[today].totalTime += gameTime;
                 localStorage.setItem('trainingData', JSON.stringify(trainingData));
                 console.log('训练时间已保存到 localStorage');
+
+                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                var displayScore = finalScore;
+                if (result.data && result.data.summary && result.data.summary.final_score) {
+                  displayScore = Math.round(result.data.summary.final_score);
+                }
+                showGameOverModal(displayScore, gameTime);
               }
             })
             .catch((error) => {
               console.error('上传训练数据失败:', error);
+              showGameOverModal(finalScore, gameTime);
             });
+        };
+
+        if (gameSessionId) {
+          _uploadAndEnd();
+        } else {
+          // [scoring-system] Fallback: session not ready from startGame().
+          console.warn('Session not ready from startGame, creating inline');
+          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+          const childId =
+            typeof UserStateUtil !== 'undefined'
+              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+              : 1;
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+          fetch(`${baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: childId,
+              game_type: 'traffic-light',
+              device_id: 'web',
+            }),
+          })
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success) {
+                gameSessionId = res.data.session_id;
+                // 先上传缓冲的视觉数据，再提交游戏数据
+                var flushDone = Promise.resolve();
+                if (typeof visionUploader !== 'undefined') {
+                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
+                }
+              });
+          }
         } catch (e) {
           console.error('uploadTrainingData 错误:', e);
         }
@@ -1045,5 +1506,7 @@
       // 页面加载完成后初始化
       window.addEventListener('DOMContentLoaded', initGame);
     </script>
+    <script src="../utils.js"></script>
+    <script src="../attention-loader.js"></script>
   </body>
 </html>
