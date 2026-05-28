@@ -71,6 +71,7 @@
   let floatingBall = null;
   let panel = null;
   let panelUpdateInterval = null;
+  let panelCloseTimer = null;
 
   // ========== 拖拽联动变量 ==========
   let activeDragElement = null;
@@ -973,6 +974,16 @@
   function openPanel() {
     if (!panel) createPanel();
 
+    // 清理关闭动画残留的 transitionend 监听器和超时
+    if (panelCloseTimer) {
+      clearTimeout(panelCloseTimer);
+      panelCloseTimer = null;
+    }
+    // 移除所有残留的 transitionend 监听器（克隆节点方式最可靠）
+    panel.style.transition = 'none';
+    panel.style.opacity = '0';
+    panel.style.transform = 'translateY(8px)';
+
     var ballRect = floatingBall.getBoundingClientRect();
     var panelLeft = ballRect.left - 296;
     var panelTop = ballRect.top;
@@ -986,13 +997,13 @@
     panel.style.right = 'auto';
     panel.style.bottom = 'auto';
     panel.style.display = 'block';
-    panel.style.pointerEvents = 'auto';
 
-    // 双 rAF 确保浏览器先绘制初始态再触发过渡
     requestAnimationFrame(function () {
+      panel.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
       requestAnimationFrame(function () {
         panel.style.opacity = '1';
         panel.style.transform = 'translateY(0)';
+        panel.style.pointerEvents = 'auto';
       });
     });
 
@@ -1003,7 +1014,13 @@
   }
 
   function closePanel() {
-    if (!panel) return;
+    if (!panel || !isPanelOpen) return;
+
+    // 清理之前的 transitionend 监听器和超时
+    if (panelCloseTimer) {
+      clearTimeout(panelCloseTimer);
+      panelCloseTimer = null;
+    }
 
     panel.style.opacity = '0';
     panel.style.transform = 'translateY(8px)';
@@ -1012,8 +1029,16 @@
     var onTransitionEnd = function () {
       panel.style.display = 'none';
       panel.removeEventListener('transitionend', onTransitionEnd);
+      panelCloseTimer = null;
     };
     panel.addEventListener('transitionend', onTransitionEnd);
+
+    // 300ms 超时保底，防止 transitionend 不触发
+    panelCloseTimer = setTimeout(function () {
+      panel.style.display = 'none';
+      panel.removeEventListener('transitionend', onTransitionEnd);
+      panelCloseTimer = null;
+    }, 300);
 
     isPanelOpen = false;
     if (panelUpdateInterval) {
