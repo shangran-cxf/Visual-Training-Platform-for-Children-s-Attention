@@ -1040,16 +1040,16 @@
       clearInterval(timeInterval);
       document.body.style.overflow = 'auto';
 
-      var finalScore = calculateInhibitionScore();
+      var frontendScore = calculateInhibitionScore();
 
       if (typeof MedalUtil !== 'undefined') {
         MedalUtil.recordGameProgress('game10', difficulty);
       }
       try {
-        uploadTrainingData();
-      } catch (e) { }
-
-      showGameOverModal(finalScore);
+        uploadTrainingData(frontendScore);
+      } catch (e) {
+        showGameOverModal(frontendScore);
+      }
     }
 
     function showGameOverModal(finalScore) {
@@ -1233,7 +1233,7 @@
     }
 
     // 上传数据
-    function uploadTrainingData() {
+    function uploadTrainingData(frontendScore) {
       try {
         // [scoring-system] Upload game data + end session.
         // Session was created in startGame(); use gameSessionId directly.
@@ -1264,19 +1264,23 @@
               Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
             },
             body: JSON.stringify({
-              session_id: gameSessionId,
-              request_id: Date.now().toString(),
-              timestamp: new Date().toISOString(),
-              event_type: 'game_complete',
-              score: finalScore,
-              accuracy: accuracy,
-              level: level,
-              time: time,
-              game_data: {
-                collision_count: collisionCount,
-                game_type: 'command-adventure',
-              },
-            }),
+                session_id: gameSessionId,
+                request_id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                event_type: 'game_complete',
+                score: finalScore,
+                accuracy: accuracy,
+                level: level,
+                time: time,
+                correct: level,
+                error: 0,
+                obstacle: collisionCount,
+                total_trial: level,
+                game_data: {
+                  collision_count: collisionCount,
+                  game_type: 'command-adventure',
+                },
+              }),
           })
             .then((response) => response.json())
             .then((result) => {
@@ -1331,16 +1335,20 @@
                 console.log('训练时间已保存到 localStorage');
 
                 // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                var backendScore = null;
-                var backendLevel = null;
-                if (result.data && result.data.summary) {
-                  backendScore = Math.round(result.data.summary.final_score);
-                  backendLevel = result.data.summary.performance_level;
+                var displayScore = frontendScore;
+                if (result.data && result.data.summary && result.data.summary.final_score) {
+                  displayScore = Math.round(result.data.summary.final_score);
+                  console.log('使用后端分数:', displayScore);
                 }
+                
+                // 显示游戏结束弹窗
+                showGameOverModal(displayScore);
               }
             })
             .catch((error) => {
               console.error('上传训练数据失败:', error);
+              // 如果上传失败，使用前端计算的分数
+              showGameOverModal(frontendScore);
             });
         };
 
@@ -1386,6 +1394,8 @@
         }
       } catch (e) {
         console.error('uploadTrainingData 错误:', e);
+        // 如果发生错误，使用前端计算的分数
+        showGameOverModal(frontendScore);
       }
     }
 
@@ -1427,9 +1437,11 @@
       document.body.style.overflow = 'auto';
     }
 
-    window.onload = initGame;
   </script>
   <script src="../attention-loader.js"></script>
+  <script>
+    window.onload = initGame;
+  </script>
 </body>
 
 </html>
