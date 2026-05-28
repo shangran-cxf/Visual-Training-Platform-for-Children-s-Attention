@@ -951,6 +951,10 @@
       right: '20px',
       zIndex: '9999',
       display: 'none',
+      opacity: '0',
+      transform: 'translateY(8px)',
+      transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
+      pointerEvents: 'none',
       cursor: 'move',
     });
 
@@ -969,16 +973,12 @@
   function openPanel() {
     if (!panel) createPanel();
 
-    const ballRect = floatingBall.getBoundingClientRect();
-    let panelLeft = ballRect.left - 296;
-    let panelTop = ballRect.top;
+    var ballRect = floatingBall.getBoundingClientRect();
+    var panelLeft = ballRect.left - 296;
+    var panelTop = ballRect.top;
 
-    if (panelLeft < 10) {
-      panelLeft = ballRect.right + 10;
-    }
-    if (panelTop + 430 > window.innerHeight) {
-      panelTop = window.innerHeight - 440;
-    }
+    if (panelLeft < 10) panelLeft = ballRect.right + 10;
+    if (panelTop + 430 > window.innerHeight) panelTop = window.innerHeight - 440;
     if (panelTop < 10) panelTop = 10;
 
     panel.style.left = panelLeft + 'px';
@@ -986,6 +986,15 @@
     panel.style.right = 'auto';
     panel.style.bottom = 'auto';
     panel.style.display = 'block';
+    panel.style.pointerEvents = 'auto';
+
+    // 双 rAF 确保浏览器先绘制初始态再触发过渡
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        panel.style.opacity = '1';
+        panel.style.transform = 'translateY(0)';
+      });
+    });
 
     isPanelOpen = true;
     updatePanelData();
@@ -994,7 +1003,18 @@
   }
 
   function closePanel() {
-    if (panel) panel.style.display = 'none';
+    if (!panel) return;
+
+    panel.style.opacity = '0';
+    panel.style.transform = 'translateY(8px)';
+    panel.style.pointerEvents = 'none';
+
+    var onTransitionEnd = function () {
+      panel.style.display = 'none';
+      panel.removeEventListener('transitionend', onTransitionEnd);
+    };
+    panel.addEventListener('transitionend', onTransitionEnd);
+
     isPanelOpen = false;
     if (panelUpdateInterval) {
       clearInterval(panelUpdateInterval);
