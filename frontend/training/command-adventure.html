@@ -1,487 +1,487 @@
 <!doctype html>
 <html lang="zh-CN">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>冰雪王国小邮差</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: #e3f2fd;
-      color: #2a2c90;
-      background-image: url('../images/ground20.png');
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: cover;
-      background-attachment: fixed;
-      width: 100vw;
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .header h1 {
-      color: #ffffff;
-      font-size: 2.5em;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .header p {
-      font-size: 1.2em;
-      color: #0288d1;
-      margin-bottom: 5px;
-    }
-
-    .header .source {
-      font-size: 1em;
-      color: #0277bd;
-      font-style: italic;
-    }
-
-    .game-container {
-      background-color: transparent;
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 4px 20px rgba(237, 245, 247, 0.3);
-      margin-bottom: 30px;
-      text-align: center;
-      border: 2px solid #ffffff;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .game-info {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 15px;
-      padding: 10px;
-      background-color: rgba(255, 245, 248, 0.9);
-      border-radius: 15px;
-      border: 2px dashed #ffffff;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .info-item {
-      text-align: center;
-    }
-
-    .info-item h3 {
-      color: #0277bd;
-      margin-bottom: 5px;
-      font-size: 1.1em;
-    }
-
-    .info-item p {
-      font-size: 1.1em;
-      font-weight: bold;
-      color: #0277bd;
-    }
-
-    .game-area {
-      background-color: rgba(255, 255, 255, 0.8);
-      border-radius: 15px;
-      padding: 15px;
-      margin-bottom: 20px;
-      min-height: 400px;
-      position: relative;
-      border: 3px solid #ffffff;
-      background-image: url('../images/ground21.png');
-      background-size: cover;
-      background-position: center;
-      max-width: 860px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .player {
-      width: 90px;
-      height: 90px;
-      background-image: url('../images/sender.png');
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-      border-radius: 10px;
-      position: absolute;
-      top: 155px;
-      left: 355px;
-      transition: all 0.3s ease;
-      z-index: 3;
-    }
-
-    .obstacle {
-      width: 70px;
-      height: 70px;
-      background-image: url('../images/obstacle.png');
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-      border-radius: 50%;
-      position: absolute;
-      z-index: 2;
-    }
-
-    .goal {
-      width: 120px;
-      height: 120px;
-      background-image: url('../images/house.png');
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-      border-radius: 15px;
-      position: absolute;
-      transition: all 0.5s ease;
-      filter: drop-shadow(0 0 12px rgba(255, 220, 100, 0.6));
-      animation: goalGlow 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes goalGlow {
-      0% {
-        filter: drop-shadow(0 0 8px rgba(255, 220, 100, 0.5));
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>冰雪王国小邮差</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      100% {
-        filter: drop-shadow(0 0 20px rgba(255, 240, 150, 0.8));
+      body {
+        background-color: #e3f2fd;
+        color: #2a2c90;
+        background-image: url('../images/ground20.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        background-attachment: fixed;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
       }
-    }
 
-    .snowflake {
-      position: absolute;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.35;
-      font-size: 20px;
-      animation: snowFall linear infinite;
-      color: #fff;
-      text-shadow: 0 0 4px rgba(180, 220, 255, 0.6);
-    }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+      }
 
-    @keyframes snowFall {
-      0% {
-        transform: translateY(-30px) rotate(0deg);
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        color: #ffffff;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .header p {
+        font-size: 1.2em;
+        color: #0288d1;
+        margin-bottom: 5px;
+      }
+
+      .header .source {
+        font-size: 1em;
+        color: #0277bd;
+        font-style: italic;
+      }
+
+      .game-container {
+        background-color: transparent;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(237, 245, 247, 0.3);
+        margin-bottom: 30px;
+        text-align: center;
+        border: 2px solid #ffffff;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .game-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: rgba(255, 245, 248, 0.9);
+        border-radius: 15px;
+        border: 2px dashed #ffffff;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .info-item {
+        text-align: center;
+      }
+
+      .info-item h3 {
+        color: #0277bd;
+        margin-bottom: 5px;
+        font-size: 1.1em;
+      }
+
+      .info-item p {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #0277bd;
+      }
+
+      .game-area {
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 20px;
+        min-height: 400px;
+        position: relative;
+        border: 3px solid #ffffff;
+        background-image: url('../images/ground21.png');
+        background-size: cover;
+        background-position: center;
+        max-width: 860px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .player {
+        width: 90px;
+        height: 90px;
+        background-image: url('../images/sender.png');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 10px;
+        position: absolute;
+        top: 155px;
+        left: 355px;
+        transition: all 0.3s ease;
+        z-index: 3;
+      }
+
+      .obstacle {
+        width: 70px;
+        height: 70px;
+        background-image: url('../images/obstacle.png');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 50%;
+        position: absolute;
+        z-index: 2;
+      }
+
+      .goal {
+        width: 120px;
+        height: 120px;
+        background-image: url('../images/house.png');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 15px;
+        position: absolute;
+        transition: all 0.5s ease;
+        filter: drop-shadow(0 0 12px rgba(255, 220, 100, 0.6));
+        animation: goalGlow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes goalGlow {
+        0% {
+          filter: drop-shadow(0 0 8px rgba(255, 220, 100, 0.5));
+        }
+
+        100% {
+          filter: drop-shadow(0 0 20px rgba(255, 240, 150, 0.8));
+        }
+      }
+
+      .snowflake {
+        position: absolute;
+        pointer-events: none;
+        z-index: 1;
         opacity: 0.35;
+        font-size: 20px;
+        animation: snowFall linear infinite;
+        color: #fff;
+        text-shadow: 0 0 4px rgba(180, 220, 255, 0.6);
       }
 
-      50% {
-        opacity: 0.6;
+      @keyframes snowFall {
+        0% {
+          transform: translateY(-30px) rotate(0deg);
+          opacity: 0.35;
+        }
+
+        50% {
+          opacity: 0.6;
+        }
+
+        100% {
+          transform: translateY(420px) rotate(360deg);
+          opacity: 0.15;
+        }
       }
 
-      100% {
-        transform: translateY(420px) rotate(360deg);
-        opacity: 0.15;
-      }
-    }
-
-    .goal-flag {
-      width: 120px;
-      height: 120px;
-      background-color: transparent;
-      position: absolute;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48px;
-      transition: all 0.5s ease;
-      z-index: 50;
-    }
-
-    .command-area {
-      margin-bottom: 30px;
-    }
-
-    .command {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 20px;
-      padding: 15px;
-      background-color: rgba(255, 245, 248, 0.9);
-      border-radius: 15px;
-      border: 2px dashed #fcfcfc;
-      color: #3756b3;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .controls {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      max-width: 200px;
-      margin: 0 auto;
-      margin-top: 15px;
-    }
-
-    .dpad-row {
-      display: flex;
-      justify-content: center;
-      gap: 0;
-    }
-
-    .control-btn {
-      background: linear-gradient(135deg, #d4eafc, #b8daf8);
-      color: #1a5f8a;
-      border: none;
-      border-radius: 12px;
-      font-size: 22px;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 3px 10px rgba(100, 170, 220, 0.3);
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 3px;
-    }
-
-    .control-btn:hover {
-      background: linear-gradient(135deg, #b8daf8, #8cc8f0);
-      transform: scale(1.08);
-      box-shadow: 0 5px 18px rgba(100, 170, 220, 0.5);
-      color: #0d4a6e;
-    }
-
-    .control-btn:active {
-      transform: scale(0.95);
-      box-shadow: 0 2px 6px rgba(100, 170, 220, 0.3);
-    }
-
-    .control-btn.placeholder {
-      visibility: hidden;
-    }
-
-    .controls .btn {
-      margin: 0 10px;
-    }
-
-    .btn {
-      background: linear-gradient(135deg, #d4eafc, #b8daf8);
-      color: #1a5f8a;
-      border: none;
-      padding: 10px 25px;
-      border-radius: 20px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin: 0 10px;
-      font-family: Arial, sans-serif;
-      box-shadow: 0 3px 8px rgba(100, 170, 220, 0.3);
-    }
-
-    .btn:hover {
-      background: linear-gradient(135deg, #b8daf8, #8cc8f0);
-      transform: scale(1.05);
-      box-shadow: 0 6px 15px rgba(100, 170, 220, 0.45);
-      color: #0d4a6e;
-    }
-
-    .difficulty-btn.active {
-      background: linear-gradient(135deg, #8cc8f0, #5ba8d8);
-      color: #fff;
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(80, 150, 200, 0.45);
-    }
-
-    .btn-secondary {
-      background: linear-gradient(135deg, #ffccdd, #ffb3cc);
-      color: #ff6699;
-    }
-
-    .btn-secondary:hover {
-      background: linear-gradient(135deg, #ffb3cc, #ff99bb);
-    }
-
-    .instructions {
-      background-color: rgba(255, 245, 248, 0.5);
-      border-radius: 15px;
-      padding: 15px;
-      margin-bottom: 20px;
-      border: 2px solid #ffffff;
-      text-align: center;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .instructions h2 {
-      color: #3756b3;
-      margin-bottom: 15px;
-      font-size: 1.8em;
-    }
-
-    .instructions h3 {
-      color: #0288d1;
-      margin: 15px 0 10px;
-      font-size: 1.4em;
-    }
-
-    .instructions p {
-      margin-bottom: 10px;
-      line-height: 1.4;
-      font-size: 1.1em;
-    }
-
-    .instructions ul {
-      text-align: center;
-      list-style-position: inside;
-      margin-bottom: 15px;
-      padding-left: 0;
-    }
-
-    .instructions li {
-      margin-bottom: 10px;
-      font-size: 1.1em;
-    }
-
-    .footer {
-      text-align: center;
-      color: #0277bd;
-    }
-
-    @keyframes bounce {
-      0% {
-        transform: translateY(0);
+      .goal-flag {
+        width: 120px;
+        height: 120px;
+        background-color: transparent;
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        transition: all 0.5s ease;
+        z-index: 50;
       }
 
-      100% {
-        transform: translateY(-10px);
-      }
-    }
-
-    @keyframes successPulse {
-      0% {
-        transform: scale(1);
-        opacity: 1;
+      .command-area {
+        margin-bottom: 30px;
       }
 
-      50% {
-        transform: scale(1.8);
-        opacity: 0.6;
+      .command {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: rgba(255, 245, 248, 0.9);
+        border-radius: 15px;
+        border: 2px dashed #fcfcfc;
+        color: #3756b3;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-
-    .goal.success-animation {
-      animation: successPulse 0.6s ease-out;
-    }
-
-    .player.invincible {
-      animation: playerBlink 0.15s ease-in-out infinite alternate;
-    }
-
-    @keyframes playerBlink {
-      0% {
-        opacity: 1;
+      .controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        max-width: 200px;
+        margin: 0 auto;
+        margin-top: 15px;
       }
 
-      100% {
-        opacity: 0.3;
-      }
-    }
-
-    .level-complete-flash {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 100;
-      animation: flashOut 0.8s ease-out forwards;
-    }
-
-    @keyframes flashOut {
-      0% {
-        opacity: 1;
+      .dpad-row {
+        display: flex;
+        justify-content: center;
+        gap: 0;
       }
 
-      100% {
-        opacity: 0;
-      }
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    @keyframes cosmosBloom {
-      0% {
-        transform: scale(0.8) translateY(40px);
-        opacity: 0;
+      .control-btn {
+        background: linear-gradient(135deg, #d4eafc, #b8daf8);
+        color: #1a5f8a;
+        border: none;
+        border-radius: 12px;
+        font-size: 22px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 3px 10px rgba(100, 170, 220, 0.3);
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 3px;
       }
 
-      100% {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes revealUp {
-      0% {
-        transform: translateY(12px);
-        opacity: 0;
+      .control-btn:hover {
+        background: linear-gradient(135deg, #b8daf8, #8cc8f0);
+        transform: scale(1.08);
+        box-shadow: 0 5px 18px rgba(100, 170, 220, 0.5);
+        color: #0d4a6e;
       }
 
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes snowBounce {
-
-      0%,
-      100% {
-        transform: translateY(0);
-        opacity: 0.6;
+      .control-btn:active {
+        transform: scale(0.95);
+        box-shadow: 0 2px 6px rgba(100, 170, 220, 0.3);
       }
 
-      50% {
-        transform: translateY(-8px);
-        opacity: 1;
+      .control-btn.placeholder {
+        visibility: hidden;
       }
-    }
-  </style>
-</head>
 
-<body>
-  <div class="container">
-    <!-- 可爱的返回按钮 -->
-    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
-      <button onclick="window.location.href = '../child-home.html'" style="
+      .controls .btn {
+        margin: 0 10px;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #d4eafc, #b8daf8);
+        color: #1a5f8a;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 0 10px;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 3px 8px rgba(100, 170, 220, 0.3);
+      }
+
+      .btn:hover {
+        background: linear-gradient(135deg, #b8daf8, #8cc8f0);
+        transform: scale(1.05);
+        box-shadow: 0 6px 15px rgba(100, 170, 220, 0.45);
+        color: #0d4a6e;
+      }
+
+      .difficulty-btn.active {
+        background: linear-gradient(135deg, #8cc8f0, #5ba8d8);
+        color: #fff;
+        transform: scale(1.1);
+        box-shadow: 0 8px 20px rgba(80, 150, 200, 0.45);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #ffccdd, #ffb3cc);
+        color: #ff6699;
+      }
+
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #ffb3cc, #ff99bb);
+      }
+
+      .instructions {
+        background-color: rgba(255, 245, 248, 0.5);
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 2px solid #ffffff;
+        text-align: center;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .instructions h2 {
+        color: #3756b3;
+        margin-bottom: 15px;
+        font-size: 1.8em;
+      }
+
+      .instructions h3 {
+        color: #0288d1;
+        margin: 15px 0 10px;
+        font-size: 1.4em;
+      }
+
+      .instructions p {
+        margin-bottom: 10px;
+        line-height: 1.4;
+        font-size: 1.1em;
+      }
+
+      .instructions ul {
+        text-align: center;
+        list-style-position: inside;
+        margin-bottom: 15px;
+        padding-left: 0;
+      }
+
+      .instructions li {
+        margin-bottom: 10px;
+        font-size: 1.1em;
+      }
+
+      .footer {
+        text-align: center;
+        color: #0277bd;
+      }
+
+      @keyframes bounce {
+        0% {
+          transform: translateY(0);
+        }
+
+        100% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes successPulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+
+        50% {
+          transform: scale(1.8);
+          opacity: 0.6;
+        }
+
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .goal.success-animation {
+        animation: successPulse 0.6s ease-out;
+      }
+
+      .player.invincible {
+        animation: playerBlink 0.15s ease-in-out infinite alternate;
+      }
+
+      @keyframes playerBlink {
+        0% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: 0.3;
+        }
+      }
+
+      .level-complete-flash {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 100;
+        animation: flashOut 0.8s ease-out forwards;
+      }
+
+      @keyframes flashOut {
+        0% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: 0;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes cosmosBloom {
+        0% {
+          transform: scale(0.8) translateY(40px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes revealUp {
+        0% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes snowBounce {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.6;
+        }
+
+        50% {
+          transform: translateY(-8px);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- 可爱的返回按钮 -->
+      <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
+        <button
+          onclick="window.location.href = getTrainingReturnUrl()"
+          style="
             background: linear-gradient(135deg, #0288d1, #03a9f4);
             color: white;
             border: none;
@@ -496,939 +496,978 @@
             align-items: center;
             justify-content: center;
             animation: bounce 2s ease-in-out infinite alternate;
-          " onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
-        onmouseout="this.style.transform = 'scale(1) rotate(0deg)'">
-        ←
-      </button>
-    </div>
-    <div class="header">
-      <h1>冰雪王国小邮差</h1>
-    </div>
+          "
+          onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
+          onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
+        >
+          ←
+        </button>
+      </div>
+      <div class="header">
+        <h1>冰雪王国小邮差</h1>
+      </div>
 
-    <div class="instructions">
-      <p>冰雪王国的雪花信件要送给雪精灵！</p>
-      <p>你是可爱的冰雪小邮差，要按照指令穿过雪地，把信件送到雪屋。路上有蓝色冰刺，脚千万不能碰到！</p>
-      <p>每关指令不同，要仔细阅读再行动。</p>
-    </div>
+      <div class="instructions">
+        <p>冰雪王国的雪花信件要送给雪精灵！</p>
+        <p>你是可爱的冰雪小邮差，要按照指令穿过雪地，把信件送到雪屋。路上有蓝色冰刺，脚千万不能碰到！</p>
+        <p>每关指令不同，要仔细阅读再行动。</p>
+      </div>
 
-    <div class="game-container">
-      <div class="game-info">
-        <div class="info-item">
-          <h3>关卡</h3>
-          <p id="level">1</p>
+      <div class="game-container">
+        <div class="game-info">
+          <div class="info-item">
+            <h3>关卡</h3>
+            <p id="level">1</p>
+          </div>
+          <div class="info-item">
+            <h3>碰撞次数</h3>
+            <p id="collisionDisplay">0</p>
+          </div>
+          <div class="info-item">
+            <h3>时间</h3>
+            <p id="time">60</p>
+          </div>
         </div>
-        <div class="info-item">
-          <h3>碰撞次数</h3>
-          <p id="collisionDisplay">0</p>
+
+        <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 15px">
+          <div style="display: flex; gap: 10px">
+            <button class="btn difficulty-btn" onclick="setDifficulty('easy')" id="easy-btn">简单</button>
+            <button class="btn difficulty-btn" onclick="setDifficulty('medium')" id="medium-btn">中等</button>
+            <button class="btn difficulty-btn" onclick="setDifficulty('hard')" id="hard-btn">困难</button>
+          </div>
         </div>
-        <div class="info-item">
-          <h3>时间</h3>
-          <p id="time">60</p>
+
+        <div class="command-area">
+          <div class="command" id="command">使用方向键或按钮控制角色移动到送信点</div>
+        </div>
+
+        <div class="game-area" id="gameArea">
+          <div class="player" id="player"></div>
+        </div>
+
+        <div class="controls">
+          <div class="dpad-row">
+            <button class="control-btn placeholder">←</button>
+            <button class="control-btn" onclick="movePlayer('up')">↑</button>
+            <button class="control-btn placeholder">→</button>
+          </div>
+          <div class="dpad-row">
+            <button class="control-btn" onclick="movePlayer('left')">←</button>
+            <button class="control-btn" onclick="movePlayer('down')">↓</button>
+            <button class="control-btn" onclick="movePlayer('right')">→</button>
+          </div>
+          <div style="width: 100%; display: flex; justify-content: center; margin-top: 15px">
+            <button class="btn" id="startBtn">开始游戏</button>
+          </div>
         </div>
       </div>
 
-      <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 15px">
-        <div style="display: flex; gap: 10px">
-          <button class="btn difficulty-btn" onclick="setDifficulty('easy')" id="easy-btn">简单</button>
-          <button class="btn difficulty-btn" onclick="setDifficulty('medium')" id="medium-btn">中等</button>
-          <button class="btn difficulty-btn" onclick="setDifficulty('hard')" id="hard-btn">困难</button>
-        </div>
-      </div>
-
-      <div class="command-area">
-        <div class="command" id="command">使用方向键或按钮控制角色移动到送信点</div>
-      </div>
-
-      <div class="game-area" id="gameArea">
-        <div class="player" id="player"></div>
-      </div>
-
-      <div class="controls">
-        <div class="dpad-row">
-          <button class="control-btn placeholder">←</button>
-          <button class="control-btn" onclick="movePlayer('up')">↑</button>
-          <button class="control-btn placeholder">→</button>
-        </div>
-        <div class="dpad-row">
-          <button class="control-btn" onclick="movePlayer('left')">←</button>
-          <button class="control-btn" onclick="movePlayer('down')">↓</button>
-          <button class="control-btn" onclick="movePlayer('right')">→</button>
-        </div>
-        <div style="width: 100%; display: flex; justify-content: center; margin-top: 15px">
-          <button class="btn" id="startBtn">开始游戏</button>
-        </div>
+      <div class="footer">
+        <p>© 2026 注意力训练平台</p>
       </div>
     </div>
 
-    <div class="footer">
-      <p>© 2026 注意力训练平台</p>
-    </div>
-  </div>
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
+    <script src="../utils.js"></script>
+    <script>
+      let player;
+      let obstacles = [];
+      let goal;
+      let level = 1;
+      let score = 0;
+      let time = 0;
+      let gameState = 'ready';
+      let timeInterval;
+      let commandMapping = { up: 'up', down: 'down', left: 'left', right: 'right' };
+      let difficulty = 'easy';
+      let collisionCount = 0;
+      let isInvincible = false;
 
-  <script src="../floating-ball.js"></script>
-  <script src="../api/vision-uploader.js"></script>
-  <script src="../utils.js"></script>
-  <script>
-    let player;
-    let obstacles = [];
-    let goal;
-    let level = 1;
-    let score = 0;
-    let time = 0;
-    let gameState = 'ready';
-    let timeInterval;
-    let commandMapping = { up: 'up', down: 'down', left: 'left', right: 'right' };
-    let difficulty = 'easy';
-    let collisionCount = 0;
-    let isInvincible = false;
+      // [scoring-system] Session created in startGame() so vision data
+      // covers the full gameplay period, not just the end-of-game API window.
+      let gameSessionId = null;
 
-    // [scoring-system] Session created in startGame() so vision data
-    // covers the full gameplay period, not just the end-of-game API window.
-    let gameSessionId = null;
+      const config = {
+        playerSpeed: 10,
+        gameAreaWidth: 800,
+        gameAreaHeight: 400,
+      };
 
-    const config = {
-      playerSpeed: 10,
-      gameAreaWidth: 800,
-      gameAreaHeight: 400,
-    };
+      function initGame() {
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.addEventListener('keydown', handleKeyPress);
+        const gameArea = document.getElementById('gameArea');
+        gameArea.style.width = config.gameAreaWidth + 'px';
+        gameArea.style.height = config.gameAreaHeight + 'px';
+        gameArea.style.margin = '0 auto';
+        player = document.getElementById('player');
+        document.getElementById('easy-btn').classList.add('active');
+      }
 
-    function initGame() {
-      document.getElementById('startBtn').addEventListener('click', startGame);
-      document.addEventListener('keydown', handleKeyPress);
-      const gameArea = document.getElementById('gameArea');
-      gameArea.style.width = config.gameAreaWidth + 'px';
-      gameArea.style.height = config.gameAreaHeight + 'px';
-      gameArea.style.margin = '0 auto';
-      player = document.getElementById('player');
-      document.getElementById('easy-btn').classList.add('active');
-    }
+      function resetPlayerPosition() {
+        player.style.top = '20px';
+        player.style.left = '20px';
+      }
 
-    function resetPlayerPosition() {
-      player.style.top = '20px';
-      player.style.left = '20px';
-    }
-
-    function startGame() {
-      if (gameState === 'ready' || gameState === 'gameOver') {
-        level = 1;
-        score = 0;
-        time = 0;
-        collisionCount = 0;
-        isInvincible = false;
-        gameState = 'playing';
-        document.body.style.overflow = 'hidden';
-        generateLevel();
-        resetPlayerPosition();
-        updateUI();
-        clearInterval(timeInterval);
-        timeInterval = setInterval(function () {
-          time++;
+      function startGame() {
+        if (gameState === 'ready' || gameState === 'gameOver') {
+          level = 1;
+          score = 0;
+          time = 0;
+          collisionCount = 0;
+          isInvincible = false;
+          gameState = 'playing';
+          document.body.style.overflow = 'hidden';
+          generateLevel();
+          resetPlayerPosition();
           updateUI();
-        }, 1000);
+          clearInterval(timeInterval);
+          timeInterval = setInterval(function () {
+            time++;
+            updateUI();
+          }, 1000);
 
-        // [scoring-system] Create training session at game start so that
-        // vision data captured during gameplay is associated with this session.
-        var _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        var _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
-        var _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-        var _childId =
-          (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
-          _userInfo?.currentChildId ||
-          1;
+          // [scoring-system] Create training session at game start so that
+          // vision data captured during gameplay is associated with this session.
+          var _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          var _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+          var _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+          var _childId =
+            (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
+            _userInfo?.currentChildId ||
+            1;
 
-        fetch(`${_baseUrl}/api/training/session/start`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-          body: JSON.stringify({
-            child_id: _childId,
-            game_type: 'command-adventure',
-            device_id: 'web',
-          }),
-        })
-          .then(function (r) {
-            return r.json();
+          fetch(`${_baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: _childId,
+              game_type: 'command-adventure',
+              device_id: 'web',
+            }),
           })
-          .then(function (res) {
-            if (res.success) {
-              gameSessionId = res.data.session_id;
-              if (typeof visionUploader !== 'undefined') {
-                visionUploader.start(gameSessionId);
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (res) {
+              if (res.success) {
+                gameSessionId = res.data.session_id;
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.start(gameSessionId);
+                }
+              }
+            })
+            .catch(function (err) {
+              console.warn('Failed to create session at game start:', err);
+            });
+        }
+      }
+
+      function validateLevel(obsList, goalTop, goalLeft, minSqueeze) {
+        var cellSize = 20;
+        var cols = Math.floor(config.gameAreaWidth / cellSize);
+        var rows = Math.floor(config.gameAreaHeight / cellSize);
+        var grid = [];
+        for (var r = 0; r < rows; r++) {
+          grid[r] = [];
+          for (var c = 0; c < cols; c++) {
+            grid[r][c] = 1;
+          }
+        }
+        for (var i = 0; i < obsList.length; i++) {
+          var ot = parseInt(obsList[i].top);
+          var ol = parseInt(obsList[i].left);
+          var oc = Math.floor((ol + 35) / cellSize);
+          var or_ = Math.floor((ot + 35) / cellSize);
+          var rad = 1;
+          for (var dr = -rad; dr <= rad; dr++) {
+            for (var dc = -rad; dc <= rad; dc++) {
+              var cr = or_ + dr;
+              var cc = oc + dc;
+              if (cr >= 0 && cr < rows && cc >= 0 && cc < cols) {
+                grid[cr][cc] = 0;
               }
             }
-          })
-          .catch(function (err) {
-            console.warn('Failed to create session at game start:', err);
+          }
+        }
+        var startC = Math.floor(65 / cellSize);
+        var startR = Math.floor(65 / cellSize);
+        var goalC = Math.floor((goalLeft + 40) / cellSize);
+        var goalR = Math.floor((goalTop + 40) / cellSize);
+        if (startR < 0 || startR >= rows || startC < 0 || startC >= cols) return { ok: false, path: false };
+        if (goalR < 0 || goalR >= rows || goalC < 0 || goalC >= cols) return { ok: false, path: false };
+        if (grid[startR][startC] === 0 || grid[goalR][goalC] === 0) return { ok: false, path: false };
+
+        var parent = {};
+        var queue = [{ r: startR, c: startC }];
+        var visited = {};
+        visited[startR + ',' + startC] = true;
+        var dirs = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ];
+        var found = false;
+        while (queue.length > 0 && !found) {
+          var cur = queue.shift();
+          if (cur.r === goalR && cur.c === goalC) {
+            found = true;
+            break;
+          }
+          for (var d = 0; d < dirs.length; d++) {
+            var nr = cur.r + dirs[d][0];
+            var nc = cur.c + dirs[d][1];
+            var key = nr + ',' + nc;
+            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] === 1 && !visited[key]) {
+              visited[key] = true;
+              parent[key] = cur.r + ',' + cur.c;
+              queue.push({ r: nr, c: nc });
+            }
+          }
+        }
+        if (!found) return { ok: false, path: false };
+
+        var pathCells = [];
+        var key = goalR + ',' + goalC;
+        while (key) {
+          pathCells.push(key);
+          key = parent[key];
+        }
+
+        var squeezeCount = 0;
+        for (var i = 0; i < pathCells.length; i++) {
+          var p = pathCells[i].split(',');
+          var pr = parseInt(p[0]);
+          var pc = parseInt(p[1]);
+          var blockedSides = 0;
+          for (var d = 0; d < dirs.length; d++) {
+            var ar = pr + dirs[d][0];
+            var ac = pc + dirs[d][1];
+            if (ar < 0 || ar >= rows || ac < 0 || ac >= cols || grid[ar][ac] === 0) {
+              blockedSides++;
+            }
+          }
+          if (blockedSides >= 2) squeezeCount++;
+        }
+
+        return { ok: squeezeCount >= minSqueeze, path: true };
+      }
+
+      function createSnowflakes() {
+        var existing = document.querySelectorAll('.snowflake');
+        for (var i = 0; i < existing.length; i++) {
+          existing[i].remove();
+        }
+        var symbols = ['❄', '❅', '❆', '✦', '✧'];
+        for (var i = 0; i < 12; i++) {
+          var sf = document.createElement('div');
+          sf.className = 'snowflake';
+          sf.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+          sf.style.left = Math.random() * (config.gameAreaWidth - 20) + 'px';
+          sf.style.fontSize = 12 + Math.random() * 16 + 'px';
+          sf.style.animationDuration = 6 + Math.random() * 8 + 's';
+          sf.style.animationDelay = Math.random() * 5 + 's';
+          document.getElementById('gameArea').appendChild(sf);
+        }
+      }
+
+      function generateLevel() {
+        obstacles.forEach(function (obs) {
+          obs.remove();
+        });
+        obstacles = [];
+        if (goal) goal.remove();
+
+        var goalTop = config.gameAreaHeight - 130 + (Math.random() - 0.5) * 40;
+        var goalLeft = config.gameAreaWidth - 130 + (Math.random() - 0.5) * 40;
+
+        createSnowflakes();
+
+        goal = document.createElement('div');
+        goal.className = 'goal';
+        goal.style.top = goalTop + 'px';
+        goal.style.left = goalLeft + 'px';
+        document.getElementById('gameArea').appendChild(goal);
+        resetPlayerPosition();
+
+        var obstacleCount;
+        switch (difficulty) {
+          case 'easy':
+            obstacleCount = 5;
+            break;
+          case 'medium':
+            obstacleCount = 8;
+            break;
+          case 'hard':
+            obstacleCount = 11;
+            break;
+          default:
+            obstacleCount = 5;
+        }
+
+        var pathFound = false;
+        var maxRegen = 80;
+        var regenCount = 0;
+        var minSqueeze = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 5 : 8;
+        var fallbackObs = null;
+        var fallbackPath = false;
+        while (!pathFound && regenCount < maxRegen) {
+          regenCount++;
+          obstacles.forEach(function (obs) {
+            obs.remove();
           });
-      }
-    }
-
-    function validateLevel(obsList, goalTop, goalLeft, minSqueeze) {
-      var cellSize = 20;
-      var cols = Math.floor(config.gameAreaWidth / cellSize);
-      var rows = Math.floor(config.gameAreaHeight / cellSize);
-      var grid = [];
-      for (var r = 0; r < rows; r++) {
-        grid[r] = [];
-        for (var c = 0; c < cols; c++) {
-          grid[r][c] = 1;
-        }
-      }
-      for (var i = 0; i < obsList.length; i++) {
-        var ot = parseInt(obsList[i].top);
-        var ol = parseInt(obsList[i].left);
-        var oc = Math.floor((ol + 35) / cellSize);
-        var or_ = Math.floor((ot + 35) / cellSize);
-        var rad = 1;
-        for (var dr = -rad; dr <= rad; dr++) {
-          for (var dc = -rad; dc <= rad; dc++) {
-            var cr = or_ + dr;
-            var cc = oc + dc;
-            if (cr >= 0 && cr < rows && cc >= 0 && cc < cols) {
-              grid[cr][cc] = 0;
-            }
-          }
-        }
-      }
-      var startC = Math.floor(65 / cellSize);
-      var startR = Math.floor(65 / cellSize);
-      var goalC = Math.floor((goalLeft + 40) / cellSize);
-      var goalR = Math.floor((goalTop + 40) / cellSize);
-      if (startR < 0 || startR >= rows || startC < 0 || startC >= cols) return { ok: false, path: false };
-      if (goalR < 0 || goalR >= rows || goalC < 0 || goalC >= cols) return { ok: false, path: false };
-      if (grid[startR][startC] === 0 || grid[goalR][goalC] === 0) return { ok: false, path: false };
-
-      var parent = {};
-      var queue = [{ r: startR, c: startC }];
-      var visited = {};
-      visited[startR + ',' + startC] = true;
-      var dirs = [
-        [-1, 0],
-        [1, 0],
-        [0, -1],
-        [0, 1],
-      ];
-      var found = false;
-      while (queue.length > 0 && !found) {
-        var cur = queue.shift();
-        if (cur.r === goalR && cur.c === goalC) {
-          found = true;
-          break;
-        }
-        for (var d = 0; d < dirs.length; d++) {
-          var nr = cur.r + dirs[d][0];
-          var nc = cur.c + dirs[d][1];
-          var key = nr + ',' + nc;
-          if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] === 1 && !visited[key]) {
-            visited[key] = true;
-            parent[key] = cur.r + ',' + cur.c;
-            queue.push({ r: nr, c: nc });
-          }
-        }
-      }
-      if (!found) return { ok: false, path: false };
-
-      var pathCells = [];
-      var key = goalR + ',' + goalC;
-      while (key) {
-        pathCells.push(key);
-        key = parent[key];
-      }
-
-      var squeezeCount = 0;
-      for (var i = 0; i < pathCells.length; i++) {
-        var p = pathCells[i].split(',');
-        var pr = parseInt(p[0]);
-        var pc = parseInt(p[1]);
-        var blockedSides = 0;
-        for (var d = 0; d < dirs.length; d++) {
-          var ar = pr + dirs[d][0];
-          var ac = pc + dirs[d][1];
-          if (ar < 0 || ar >= rows || ac < 0 || ac >= cols || grid[ar][ac] === 0) {
-            blockedSides++;
-          }
-        }
-        if (blockedSides >= 2) squeezeCount++;
-      }
-
-      return { ok: squeezeCount >= minSqueeze, path: true };
-    }
-
-    function createSnowflakes() {
-      var existing = document.querySelectorAll('.snowflake');
-      for (var i = 0; i < existing.length; i++) {
-        existing[i].remove();
-      }
-      var symbols = ['❄', '❅', '❆', '✦', '✧'];
-      for (var i = 0; i < 12; i++) {
-        var sf = document.createElement('div');
-        sf.className = 'snowflake';
-        sf.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-        sf.style.left = Math.random() * (config.gameAreaWidth - 20) + 'px';
-        sf.style.fontSize = 12 + Math.random() * 16 + 'px';
-        sf.style.animationDuration = 6 + Math.random() * 8 + 's';
-        sf.style.animationDelay = Math.random() * 5 + 's';
-        document.getElementById('gameArea').appendChild(sf);
-      }
-    }
-
-    function generateLevel() {
-      obstacles.forEach(function (obs) {
-        obs.remove();
-      });
-      obstacles = [];
-      if (goal) goal.remove();
-
-      var goalTop = config.gameAreaHeight - 130 + (Math.random() - 0.5) * 40;
-      var goalLeft = config.gameAreaWidth - 130 + (Math.random() - 0.5) * 40;
-
-      createSnowflakes();
-
-      goal = document.createElement('div');
-      goal.className = 'goal';
-      goal.style.top = goalTop + 'px';
-      goal.style.left = goalLeft + 'px';
-      document.getElementById('gameArea').appendChild(goal);
-      resetPlayerPosition();
-
-      var obstacleCount;
-      switch (difficulty) {
-        case 'easy':
-          obstacleCount = 5;
-          break;
-        case 'medium':
-          obstacleCount = 8;
-          break;
-        case 'hard':
-          obstacleCount = 11;
-          break;
-        default:
-          obstacleCount = 5;
-      }
-
-      var pathFound = false;
-      var maxRegen = 80;
-      var regenCount = 0;
-      var minSqueeze = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 5 : 8;
-      var fallbackObs = null;
-      var fallbackPath = false;
-      while (!pathFound && regenCount < maxRegen) {
-        regenCount++;
-        obstacles.forEach(function (obs) {
-          obs.remove();
-        });
-        obstacles = [];
-        for (var i = 0; i < obstacleCount; i++) {
-          var top, left;
-          var valid = false;
-          var attempts = 0;
-          while (!valid && attempts < 300) {
-            attempts++;
-            top = 10 + Math.random() * (config.gameAreaHeight - 100);
-            left = 10 + Math.random() * (config.gameAreaWidth - 100);
-            var dStart = Math.sqrt(Math.pow(top + 35 - 65, 2) + Math.pow(left + 35 - 65, 2));
-            var dGoal = Math.sqrt(Math.pow(top + 35 - (goalTop + 60), 2) + Math.pow(left + 35 - (goalLeft + 60), 2));
-            var tooClose = false;
-            for (var k = 0; k < obstacles.length; k++) {
-              var et = parseInt(obstacles[k].style.top);
-              var el = parseInt(obstacles[k].style.left);
-              if (Math.sqrt(Math.pow(top + 35 - (et + 35), 2) + Math.pow(left + 35 - (el + 35), 2)) < 60) {
-                tooClose = true;
-                break;
+          obstacles = [];
+          for (var i = 0; i < obstacleCount; i++) {
+            var top, left;
+            var valid = false;
+            var attempts = 0;
+            while (!valid && attempts < 300) {
+              attempts++;
+              top = 10 + Math.random() * (config.gameAreaHeight - 100);
+              left = 10 + Math.random() * (config.gameAreaWidth - 100);
+              var dStart = Math.sqrt(Math.pow(top + 35 - 65, 2) + Math.pow(left + 35 - 65, 2));
+              var dGoal = Math.sqrt(Math.pow(top + 35 - (goalTop + 60), 2) + Math.pow(left + 35 - (goalLeft + 60), 2));
+              var tooClose = false;
+              for (var k = 0; k < obstacles.length; k++) {
+                var et = parseInt(obstacles[k].style.top);
+                var el = parseInt(obstacles[k].style.left);
+                if (Math.sqrt(Math.pow(top + 35 - (et + 35), 2) + Math.pow(left + 35 - (el + 35), 2)) < 60) {
+                  tooClose = true;
+                  break;
+                }
               }
+              if (dStart > 100 && dGoal > 130 && !tooClose) valid = true;
             }
-            if (dStart > 100 && dGoal > 130 && !tooClose) valid = true;
+            var obs = document.createElement('div');
+            obs.className = 'obstacle';
+            obs.style.top = top + 'px';
+            obs.style.left = left + 'px';
+            document.getElementById('gameArea').appendChild(obs);
+            obstacles.push(obs);
           }
-          var obs = document.createElement('div');
-          obs.className = 'obstacle';
-          obs.style.top = top + 'px';
-          obs.style.left = left + 'px';
-          document.getElementById('gameArea').appendChild(obs);
-          obstacles.push(obs);
+          var result = validateLevel(obstacles, goalTop, goalLeft, minSqueeze);
+          if (result.ok) {
+            pathFound = true;
+          } else if (result.path && !fallbackPath) {
+            var savedObs = [];
+            for (var j = 0; j < obstacles.length; j++) {
+              savedObs.push({ top: obstacles[j].style.top, left: obstacles[j].style.left });
+            }
+            fallbackObs = savedObs;
+            fallbackPath = true;
+          }
         }
-        var result = validateLevel(obstacles, goalTop, goalLeft, minSqueeze);
-        if (result.ok) {
-          pathFound = true;
-        } else if (result.path && !fallbackPath) {
-          var savedObs = [];
-          for (var j = 0; j < obstacles.length; j++) {
-            savedObs.push({ top: obstacles[j].style.top, left: obstacles[j].style.left });
+
+        if (!pathFound && fallbackObs) {
+          obstacles.forEach(function (obs) {
+            obs.remove();
+          });
+          obstacles = [];
+          for (var i = 0; i < fallbackObs.length; i++) {
+            var obs = document.createElement('div');
+            obs.className = 'obstacle';
+            obs.style.top = fallbackObs[i].top;
+            obs.style.left = fallbackObs[i].left;
+            document.getElementById('gameArea').appendChild(obs);
+            obstacles.push(obs);
           }
-          fallbackObs = savedObs;
-          fallbackPath = true;
+        }
+        generateCommand();
+      }
+
+      // 生成指令
+      function generateCommand() {
+        const commandElement = document.getElementById('command');
+        const commandType = Math.floor(Math.random() * 3) + 1;
+
+        switch (commandType) {
+          case 1:
+            commandElement.innerHTML =
+              '注意：方向相反！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应↓, ↓对应↑, ←对应→, →对应←';
+            commandMapping = {
+              up: 'down',
+              down: 'up',
+              left: 'right',
+              right: 'left',
+            };
+            break;
+          case 2:
+            commandElement.innerHTML =
+              '注意：方向顺时针旋转！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应→, →对应↓, ↓对应←, ←对应↑';
+            commandMapping = {
+              up: 'right',
+              right: 'down',
+              down: 'left',
+              left: 'up',
+            };
+            break;
+          case 3:
+            commandElement.innerHTML =
+              '注意：方向逆时针旋转！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应←, ←对应↓, ↓对应→, →对应↑';
+            commandMapping = {
+              up: 'left',
+              left: 'down',
+              down: 'right',
+              right: 'up',
+            };
+            break;
         }
       }
 
-      if (!pathFound && fallbackObs) {
-        obstacles.forEach(function (obs) {
-          obs.remove();
+      function setDifficulty(level) {
+        difficulty = level;
+        document.querySelectorAll('.difficulty-btn').forEach(function (btn) {
+          btn.classList.remove('active');
         });
-        obstacles = [];
-        for (var i = 0; i < fallbackObs.length; i++) {
-          var obs = document.createElement('div');
-          obs.className = 'obstacle';
-          obs.style.top = fallbackObs[i].top;
-          obs.style.left = fallbackObs[i].left;
-          document.getElementById('gameArea').appendChild(obs);
-          obstacles.push(obs);
+        document.getElementById(level + '-btn').classList.add('active');
+        if (gameState === 'playing') {
+          obstacles.forEach(function (obs) {
+            obs.remove();
+          });
+          obstacles = [];
+          if (goal) goal.remove();
+          goal = null;
+          generateLevel();
+          resetPlayerPosition();
         }
       }
-      generateCommand();
-    }
 
-    // 生成指令
-    function generateCommand() {
-      const commandElement = document.getElementById('command');
-      const commandType = Math.floor(Math.random() * 3) + 1;
+      // 移动玩家
+      function movePlayer(direction) {
+        if (gameState !== 'playing') return;
+        const mappedDirection = commandMapping[direction];
+        let currentTop = parseInt(player.style.top) || 20;
+        let currentLeft = parseInt(player.style.left) || 20;
 
-      switch (commandType) {
-        case 1:
-          commandElement.innerHTML =
-            '注意：方向相反！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应↓, ↓对应↑, ←对应→, →对应←';
-          commandMapping = {
-            up: 'down',
-            down: 'up',
-            left: 'right',
-            right: 'left',
-          };
-          break;
-        case 2:
-          commandElement.innerHTML =
-            '注意：方向顺时针旋转！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应→, →对应↓, ↓对应←, ←对应↑';
-          commandMapping = {
-            up: 'right',
-            right: 'down',
-            down: 'left',
-            left: 'up',
-          };
-          break;
-        case 3:
-          commandElement.innerHTML =
-            '注意：方向逆时针旋转！使用方向键或按钮控制角色移动到送信点<br>方向对应：↑对应←, ←对应↓, ↓对应→, →对应↑';
-          commandMapping = {
-            up: 'left',
-            left: 'down',
-            down: 'right',
-            right: 'up',
-          };
-          break;
+        switch (mappedDirection) {
+          case 'up':
+            currentTop = Math.max(0, currentTop - config.playerSpeed);
+            break;
+          case 'down':
+            currentTop = Math.min(config.gameAreaHeight - 90, currentTop + config.playerSpeed);
+            break;
+          case 'left':
+            currentLeft = Math.max(0, currentLeft - config.playerSpeed);
+            break;
+          case 'right':
+            currentLeft = Math.min(config.gameAreaWidth - 90, currentLeft + config.playerSpeed);
+            break;
+        }
+
+        player.style.top = `${currentTop}px`;
+        player.style.left = `${currentLeft}px`;
+        checkCollision();
       }
-    }
 
-    function setDifficulty(level) {
-      difficulty = level;
-      document.querySelectorAll('.difficulty-btn').forEach(function (btn) {
-        btn.classList.remove('active');
-      });
-      document.getElementById(level + '-btn').classList.add('active');
-      if (gameState === 'playing') {
+      // 处理按键
+      function handleKeyPress(e) {
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+          e.preventDefault();
+        }
+        switch (e.key) {
+          case 'ArrowUp':
+            movePlayer('up');
+            break;
+          case 'ArrowDown':
+            movePlayer('down');
+            break;
+          case 'ArrowLeft':
+            movePlayer('left');
+            break;
+          case 'ArrowRight':
+            movePlayer('right');
+            break;
+        }
+      }
+
+      function checkCollision() {
+        if (gameState !== 'playing') return;
+        var pr = player.getBoundingClientRect();
+        var gr = goal.getBoundingClientRect();
+
+        var hitGoal = !(
+          pr.right < gr.left + 40 ||
+          pr.left > gr.right - 40 ||
+          pr.bottom < gr.top + 40 ||
+          pr.top > gr.bottom - 40
+        );
+
+        if (hitGoal) {
+          endGame();
+          return;
+        }
+
+        if (isInvincible) return;
+
+        for (var i = 0; i < obstacles.length; i++) {
+          var or_ = obstacles[i].getBoundingClientRect();
+          var margin = 15;
+          var hitObs = !(
+            pr.right - 8 < or_.left + margin ||
+            pr.left + 8 > or_.right - margin ||
+            pr.bottom < or_.top + margin ||
+            pr.bottom - 10 > or_.bottom - margin
+          );
+          if (hitObs) {
+            collisionCount++;
+            isInvincible = true;
+            player.classList.add('invincible');
+            resetPlayerPosition();
+            updateUI();
+            setTimeout(function () {
+              isInvincible = false;
+              player.classList.remove('invincible');
+            }, 1500);
+            return;
+          }
+        }
+      }
+
+      // 计算得分
+      function calculateInhibitionScore() {
+        const totalTrial = level - 1;
+        const acc = totalTrial > 0 ? totalTrial / 10 : 0;
+        const impulse = totalTrial > 0 ? 1 - collisionCount / totalTrial : 0;
+        const scoreValue = (impulse * 0.4 + acc * 0.3 + 0.8 * 0.3) * 100;
+        return Math.max(0, Math.min(100, Math.round(scoreValue)));
+      }
+
+      function endGame() {
+        gameState = 'gameOver';
+        clearInterval(timeInterval);
+        document.body.style.overflow = 'auto';
+
+        var frontendScore = calculateInhibitionScore();
+
+        if (typeof MedalUtil !== 'undefined') {
+          MedalUtil.recordGameProgress('game10', difficulty);
+        }
+        try {
+          uploadTrainingData(frontendScore);
+        } catch (e) {
+          showGameOverModal(frontendScore);
+        }
+      }
+
+      function showGameOverModal(finalScore) {
+        var scoreDetails = {
+          time: {
+            name: '用时',
+            score: time + 's',
+            color: '#0277bd',
+          },
+          level: {
+            name: '关卡',
+            score: level,
+            color: '#00838f',
+          },
+          collision: {
+            name: '碰撞',
+            score: collisionCount,
+            color: '#c62828',
+          },
+        };
+
+        var message = '你的评分为：' + finalScore + '分';
+
+        var modal = document.createElement('div');
+        modal.style.cssText =
+          'display:flex;position:fixed;top:0;left:0;width:100%;height:100%;' +
+          'background:rgba(15,40,65,0.3);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);' +
+          'z-index:1000;justify-content:center;align-items:center;animation:fadeIn 0.3s ease both;';
+
+        var modalContent = document.createElement('div');
+        modalContent.style.cssText =
+          'background:linear-gradient(180deg,#E3F2FD 0%,#BBDEFB 100%);' +
+          'padding:32px 36px 28px;border-radius:20px;text-align:center;' +
+          'box-shadow:0 2px 16px rgba(0,100,180,0.12);max-width:420px;width:90%;' +
+          'animation:cosmosBloom 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;' +
+          'position:relative;overflow:hidden;';
+
+        var topGlow = document.createElement('div');
+        topGlow.style.cssText =
+          'position:absolute;top:-40px;left:50%;transform:translateX(-50%);' +
+          'width:200px;height:200px;background:radial-gradient(ellipse,rgba(255,255,255,0.25) 0%,transparent 70%);' +
+          'border-radius:50%;pointer-events:none;';
+        modalContent.appendChild(topGlow);
+
+        var starField = document.createElement('div');
+        starField.style.cssText =
+          'position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;';
+
+        for (var i = 0; i < 10; i++) {
+          var s = 1 + Math.random() * 1.5;
+          var star = document.createElement('div');
+          star.style.cssText =
+            'position:absolute;width:' +
+            s +
+            'px;height:' +
+            s +
+            'px;background:#fff;border-radius:50%;' +
+            'top:' +
+            Math.random() * 100 +
+            '%;left:' +
+            Math.random() * 100 +
+            '%;' +
+            'opacity:' +
+            (0.2 + Math.random() * 0.3) +
+            ';' +
+            'box-shadow:0 0 ' +
+            s * 1.5 +
+            'px rgba(150,200,230,0.5);';
+          starField.appendChild(star);
+        }
+
+        var floatDecor = ['\u2744\uFE0F', '\u2603\uFE0F', '\u2728', '\u{1F4EE}', '\u2601\uFE0F'];
+        for (var i = 0; i < 4; i++) {
+          var deco = document.createElement('div');
+          deco.textContent = floatDecor[i];
+          deco.style.cssText =
+            'position:absolute;font-size:' +
+            (16 + i * 4) +
+            'px;' +
+            'top:' +
+            (10 + i * 18) +
+            '%;' +
+            (i % 2 === 0 ? 'left' : 'right') +
+            ':' +
+            (-5 + i * 2) +
+            'px;' +
+            'opacity:0.2;pointer-events:none;';
+          starField.appendChild(deco);
+        }
+
+        modalContent.appendChild(starField);
+
+        var modalTitle = document.createElement('h2');
+        modalTitle.innerHTML = '\u2744\uFE0F \u4FE1\u4EF6\u9001\u8FBE\uFF01 \u2744\uFE0F';
+        modalTitle.style.cssText =
+          'color:#1a4a6e;font-size:24px;margin-bottom:20px;' +
+          'position:relative;z-index:1;animation:revealUp 0.45s 0.05s ease both;';
+        modalContent.appendChild(modalTitle);
+
+        var scoreItems = Object.values(scoreDetails);
+        var statsGrid = document.createElement('div');
+        statsGrid.style.cssText =
+          'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;' +
+          'margin-bottom:24px;position:relative;z-index:1;';
+
+        scoreItems.forEach(function (detail, idx) {
+          var statItem = document.createElement('div');
+          statItem.style.cssText =
+            'background:rgba(255,255,255,0.55);border-radius:12px;padding:12px 8px;' +
+            'animation:revealUp 0.4s ' +
+            (0.12 + idx * 0.08) +
+            's ease both;';
+
+          var statLabel = document.createElement('div');
+          statLabel.textContent = detail.name;
+          statLabel.style.cssText = 'color:' + detail.color + ';font-size:11px;margin-bottom:4px;font-weight:bold;';
+          statItem.appendChild(statLabel);
+
+          var statValue = document.createElement('div');
+          statValue.textContent = detail.score;
+          statValue.style.cssText = 'color:#0d3b5c;font-size:22px;font-weight:bold;';
+          statItem.appendChild(statValue);
+
+          statsGrid.appendChild(statItem);
+        });
+
+        modalContent.appendChild(statsGrid);
+
+        var modalMessage = document.createElement('p');
+        modalMessage.textContent = message;
+        modalMessage.style.cssText =
+          'color:#0d3b5c;font-size:20px;font-weight:bold;margin-bottom:20px;' +
+          'position:relative;z-index:1;animation:revealUp 0.4s 0.3s ease both;';
+        modalContent.appendChild(modalMessage);
+
+        var modalButtons = document.createElement('div');
+        modalButtons.style.cssText =
+          'display:flex;gap:12px;justify-content:center;' +
+          'position:relative;z-index:1;animation:revealUp 0.45s 0.36s ease both;';
+
+        var restartBtn = document.createElement('button');
+        restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
+        restartBtn.style.cssText =
+          'background:#5a9cc8;color:white;border:none;padding:10px 26px;border-radius:25px;' +
+          'font-size:14px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;';
+        restartBtn.onmouseover = function () {
+          restartBtn.style.transform = 'scale(1.05)';
+          restartBtn.style.background = '#7db8dc';
+        };
+        restartBtn.onmouseout = function () {
+          restartBtn.style.transform = 'scale(1)';
+          restartBtn.style.background = '#5a9cc8';
+        };
+        restartBtn.onclick = function () {
+          document.body.removeChild(modal);
+          startGame();
+        };
+
+        var backBtn = document.createElement('button');
+        backBtn.textContent = '\u8FD4\u56DE';
+        backBtn.style.cssText =
+          'background:transparent;color:#3a7aaa;border:2px solid #90caf9;' +
+          'padding:10px 26px;border-radius:25px;font-size:14px;font-weight:bold;' +
+          'cursor:pointer;transition:all 0.3s ease;';
+        backBtn.onmouseover = function () {
+          backBtn.style.background = 'rgba(255,255,255,0.4)';
+          backBtn.style.color = '#1a4a6e';
+        };
+        backBtn.onmouseout = function () {
+          backBtn.style.background = 'transparent';
+          backBtn.style.color = '#3a7aaa';
+        };
+        backBtn.onclick = function () {
+          document.body.removeChild(modal);
+          backToStart();
+        };
+
+        modalButtons.appendChild(restartBtn);
+        modalButtons.appendChild(backBtn);
+
+        modalContent.appendChild(modalButtons);
+
+        var snowRow = document.createElement('div');
+        snowRow.style.cssText =
+          'display:flex;justify-content:center;gap:14px;margin-top:20px;' + 'position:relative;z-index:1;';
+        var snowColors = ['#e3f2fd', '#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5'];
+        for (var i = 0; i < 7; i++) {
+          var dot = document.createElement('div');
+          dot.style.cssText =
+            'width:' +
+            (6 + Math.random() * 4) +
+            'px;height:' +
+            (6 + Math.random() * 4) +
+            'px;' +
+            'border-radius:50%;background:' +
+            snowColors[i] +
+            ';' +
+            'animation:snowBounce 1.5s ease-in-out infinite;animation-delay:' +
+            i * 0.2 +
+            's;';
+          snowRow.appendChild(dot);
+        }
+        modalContent.appendChild(snowRow);
+
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+      }
+
+      // 上传数据
+      function uploadTrainingData(frontendScore) {
+        try {
+          // [scoring-system] Upload game data + end session.
+          // Session was created in startGame(); use gameSessionId directly.
+          var _uploadAndEnd = function () {
+            // 检测当前环境，自动切换 API 地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
+
+            // 计算抑制控制得分
+            const finalScore = calculateInhibitionScore();
+            const accuracy = level > 1 ? ((level - 1) / 10) * 100 : 0;
+
+            if (typeof visionUploader !== 'undefined') {
+              visionUploader.stop();
+            }
+
+            // 上传游戏数据
+            fetch(`${baseUrl}/api/training/game-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                session_id: gameSessionId,
+                request_id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                event_type: 'game_complete',
+                score: finalScore,
+                accuracy: accuracy,
+                level: level,
+                time: time,
+                correct: level,
+                error: 0,
+                obstacle: collisionCount,
+                total_trial: level,
+                game_data: {
+                  collision_count: collisionCount,
+                  game_type: 'command-adventure',
+                },
+              }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
+
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
+
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: gameSessionId,
+                      final_score: finalScore,
+                      total_accuracy: accuracy,
+                      duration: time,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
+                }
+              })
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+              })
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
+
+                  // 保存训练时间到 localStorage，用于今日训练页面显示
+                  const today = new Date().toISOString().split('T')[0];
+                  const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                  if (!trainingData[today]) {
+                    trainingData[today] = { totalTime: 0 };
+                  }
+
+                  // 累加游戏时间（秒）
+                  trainingData[today].totalTime += time;
+                  localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                  console.log('训练时间已保存到 localStorage');
+
+                  // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                  var displayScore = frontendScore;
+                  if (result.data && result.data.summary && result.data.summary.final_score) {
+                    displayScore = Math.round(result.data.summary.final_score);
+                    console.log('使用后端分数:', displayScore);
+                  }
+
+                  // 显示游戏结束弹窗
+                  showGameOverModal(displayScore);
+                }
+              })
+              .catch((error) => {
+                console.error('上传训练数据失败:', error);
+                // 如果上传失败，使用前端计算的分数
+                showGameOverModal(frontendScore);
+              });
+          };
+
+          if (gameSessionId) {
+            _uploadAndEnd();
+          } else {
+            // [scoring-system] Fallback: session not ready from startGame().
+            console.warn('Session not ready from startGame, creating inline');
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
+
+            fetch(`${baseUrl}/api/training/session/start`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                child_id: childId,
+                game_type: 'command-adventure',
+                device_id: 'web',
+              }),
+            })
+              .then((r) => r.json())
+              .then((res) => {
+                if (res.success) {
+                  gameSessionId = res.data.session_id;
+                  // 先上传缓冲的视觉数据，再提交游戏数据
+                  var flushDone = Promise.resolve();
+                  if (typeof visionUploader !== 'undefined') {
+                    flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
+                  }
+                  flushDone.then(function () {
+                    _uploadAndEnd();
+                  });
+                }
+              });
+          }
+        } catch (e) {
+          console.error('uploadTrainingData 错误:', e);
+          // 如果发生错误，使用前端计算的分数
+          showGameOverModal(frontendScore);
+        }
+      }
+
+      function updateUI() {
+        document.getElementById('level').textContent = level;
+        document.getElementById('collisionDisplay').textContent = collisionCount;
+        document.getElementById('time').textContent = time;
+      }
+
+      function restartGame() {
+        startGame();
+      }
+
+      function backToStart() {
+        clearInterval(timeInterval);
         obstacles.forEach(function (obs) {
           obs.remove();
         });
         obstacles = [];
         if (goal) goal.remove();
         goal = null;
-        generateLevel();
+        player.classList.remove('invincible');
+        isInvincible = false;
+        var snowflakes = document.querySelectorAll('.snowflake');
+        for (var i = 0; i < snowflakes.length; i++) {
+          snowflakes[i].remove();
+        }
         resetPlayerPosition();
+        level = 1;
+        score = 0;
+        time = 0;
+        collisionCount = 0;
+        gameState = 'ready';
+        commandMapping = { up: 'up', down: 'down', left: 'left', right: 'right' };
+        document.getElementById('command').textContent = '使用方向键或按钮控制角色移动到送信点';
+        document.getElementById('startBtn').textContent = '开始游戏';
+        document.getElementById('startBtn').onclick = startGame;
+        updateUI();
+        document.body.style.overflow = 'auto';
       }
-    }
-
-    // 移动玩家
-    function movePlayer(direction) {
-      if (gameState !== 'playing') return;
-      const mappedDirection = commandMapping[direction];
-      let currentTop = parseInt(player.style.top) || 20;
-      let currentLeft = parseInt(player.style.left) || 20;
-
-      switch (mappedDirection) {
-        case 'up':
-          currentTop = Math.max(0, currentTop - config.playerSpeed);
-          break;
-        case 'down':
-          currentTop = Math.min(config.gameAreaHeight - 90, currentTop + config.playerSpeed);
-          break;
-        case 'left':
-          currentLeft = Math.max(0, currentLeft - config.playerSpeed);
-          break;
-        case 'right':
-          currentLeft = Math.min(config.gameAreaWidth - 90, currentLeft + config.playerSpeed);
-          break;
-      }
-
-      player.style.top = `${currentTop}px`;
-      player.style.left = `${currentLeft}px`;
-      checkCollision();
-    }
-
-    // 处理按键
-    function handleKeyPress(e) {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-      }
-      switch (e.key) {
-        case 'ArrowUp':
-          movePlayer('up');
-          break;
-        case 'ArrowDown':
-          movePlayer('down');
-          break;
-        case 'ArrowLeft':
-          movePlayer('left');
-          break;
-        case 'ArrowRight':
-          movePlayer('right');
-          break;
-      }
-    }
-
-    function checkCollision() {
-      if (gameState !== 'playing') return;
-      var pr = player.getBoundingClientRect();
-      var gr = goal.getBoundingClientRect();
-
-      var hitGoal = !(
-        pr.right < gr.left + 40 ||
-        pr.left > gr.right - 40 ||
-        pr.bottom < gr.top + 40 ||
-        pr.top > gr.bottom - 40
-      );
-
-      if (hitGoal) {
-        endGame();
-        return;
-      }
-
-      if (isInvincible) return;
-
-      for (var i = 0; i < obstacles.length; i++) {
-        var or_ = obstacles[i].getBoundingClientRect();
-        var margin = 15;
-        var hitObs = !(
-          pr.right - 8 < or_.left + margin ||
-          pr.left + 8 > or_.right - margin ||
-          pr.bottom < or_.top + margin ||
-          pr.bottom - 10 > or_.bottom - margin
-        );
-        if (hitObs) {
-          collisionCount++;
-          isInvincible = true;
-          player.classList.add('invincible');
-          resetPlayerPosition();
-          updateUI();
-          setTimeout(function () {
-            isInvincible = false;
-            player.classList.remove('invincible');
-          }, 1500);
-          return;
-        }
-      }
-    }
-
-    // 计算得分
-    function calculateInhibitionScore() {
-      const totalTrial = level - 1;
-      const acc = totalTrial > 0 ? totalTrial / 10 : 0;
-      const impulse = totalTrial > 0 ? 1 - collisionCount / totalTrial : 0;
-      const scoreValue = (impulse * 0.4 + acc * 0.3 + 0.8 * 0.3) * 100;
-      return Math.max(0, Math.min(100, Math.round(scoreValue)));
-    }
-
-    function endGame() {
-      gameState = 'gameOver';
-      clearInterval(timeInterval);
-      document.body.style.overflow = 'auto';
-
-      var finalScore = calculateInhibitionScore();
-
-      if (typeof MedalUtil !== 'undefined') {
-        MedalUtil.recordGameProgress('game10', difficulty);
-      }
-      try {
-        uploadTrainingData();
-      } catch (e) { }
-
-      showGameOverModal(finalScore);
-    }
-
-    function showGameOverModal(finalScore) {
-      var scoreDetails = {
-        time: {
-          name: '用时',
-          score: time + 's',
-          color: '#0277bd',
-        },
-        level: {
-          name: '关卡',
-          score: level,
-          color: '#00838f',
-        },
-        collision: {
-          name: '碰撞',
-          score: collisionCount,
-          color: '#c62828',
-        },
-      };
-
-      var message = '你的评分为：' + finalScore + '分';
-
-      var modal = document.createElement('div');
-      modal.style.cssText =
-        'display:flex;position:fixed;top:0;left:0;width:100%;height:100%;' +
-        'background:rgba(15,40,65,0.3);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);' +
-        'z-index:1000;justify-content:center;align-items:center;animation:fadeIn 0.3s ease both;';
-
-      var modalContent = document.createElement('div');
-      modalContent.style.cssText =
-        'background:linear-gradient(180deg,#E3F2FD 0%,#BBDEFB 100%);' +
-        'padding:32px 36px 28px;border-radius:20px;text-align:center;' +
-        'box-shadow:0 2px 16px rgba(0,100,180,0.12);max-width:420px;width:90%;' +
-        'animation:cosmosBloom 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;' +
-        'position:relative;overflow:hidden;';
-
-      var topGlow = document.createElement('div');
-      topGlow.style.cssText =
-        'position:absolute;top:-40px;left:50%;transform:translateX(-50%);' +
-        'width:200px;height:200px;background:radial-gradient(ellipse,rgba(255,255,255,0.25) 0%,transparent 70%);' +
-        'border-radius:50%;pointer-events:none;';
-      modalContent.appendChild(topGlow);
-
-      var starField = document.createElement('div');
-      starField.style.cssText =
-        'position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;';
-
-      for (var i = 0; i < 10; i++) {
-        var s = 1 + Math.random() * 1.5;
-        var star = document.createElement('div');
-        star.style.cssText =
-          'position:absolute;width:' + s + 'px;height:' + s + 'px;background:#fff;border-radius:50%;' +
-          'top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;' +
-          'opacity:' + (0.2 + Math.random() * 0.3) + ';' +
-          'box-shadow:0 0 ' + (s * 1.5) + 'px rgba(150,200,230,0.5);';
-        starField.appendChild(star);
-      }
-
-      var floatDecor = ['\u2744\uFE0F', '\u2603\uFE0F', '\u2728', '\u{1F4EE}', '\u2601\uFE0F'];
-      for (var i = 0; i < 4; i++) {
-        var deco = document.createElement('div');
-        deco.textContent = floatDecor[i];
-        deco.style.cssText =
-          'position:absolute;font-size:' + (16 + i * 4) + 'px;' +
-          'top:' + (10 + i * 18) + '%;' +
-          (i % 2 === 0 ? 'left' : 'right') + ':' + (-5 + i * 2) + 'px;' +
-          'opacity:0.2;pointer-events:none;';
-        starField.appendChild(deco);
-      }
-
-      modalContent.appendChild(starField);
-
-      var modalTitle = document.createElement('h2');
-      modalTitle.innerHTML = '\u2744\uFE0F \u4FE1\u4EF6\u9001\u8FBE\uFF01 \u2744\uFE0F';
-      modalTitle.style.cssText =
-        'color:#1a4a6e;font-size:24px;margin-bottom:20px;' +
-        'position:relative;z-index:1;animation:revealUp 0.45s 0.05s ease both;';
-      modalContent.appendChild(modalTitle);
-
-      var scoreItems = Object.values(scoreDetails);
-      var statsGrid = document.createElement('div');
-      statsGrid.style.cssText =
-        'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;' +
-        'margin-bottom:24px;position:relative;z-index:1;';
-
-      scoreItems.forEach(function (detail, idx) {
-        var statItem = document.createElement('div');
-        statItem.style.cssText =
-          'background:rgba(255,255,255,0.55);border-radius:12px;padding:12px 8px;' +
-          'animation:revealUp 0.4s ' + (0.12 + idx * 0.08) + 's ease both;';
-
-        var statLabel = document.createElement('div');
-        statLabel.textContent = detail.name;
-        statLabel.style.cssText =
-          'color:' + detail.color + ';font-size:11px;margin-bottom:4px;font-weight:bold;';
-        statItem.appendChild(statLabel);
-
-        var statValue = document.createElement('div');
-        statValue.textContent = detail.score;
-        statValue.style.cssText =
-          'color:#0d3b5c;font-size:22px;font-weight:bold;';
-        statItem.appendChild(statValue);
-
-        statsGrid.appendChild(statItem);
-      });
-
-      modalContent.appendChild(statsGrid);
-
-      var modalMessage = document.createElement('p');
-      modalMessage.textContent = message;
-      modalMessage.style.cssText =
-        'color:#0d3b5c;font-size:20px;font-weight:bold;margin-bottom:20px;' +
-        'position:relative;z-index:1;animation:revealUp 0.4s 0.3s ease both;';
-      modalContent.appendChild(modalMessage);
-
-      var modalButtons = document.createElement('div');
-      modalButtons.style.cssText =
-        'display:flex;gap:12px;justify-content:center;' +
-        'position:relative;z-index:1;animation:revealUp 0.45s 0.36s ease both;';
-
-      var restartBtn = document.createElement('button');
-      restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
-      restartBtn.style.cssText =
-        'background:#5a9cc8;color:white;border:none;padding:10px 26px;border-radius:25px;' +
-        'font-size:14px;font-weight:bold;cursor:pointer;transition:all 0.3s ease;';
-      restartBtn.onmouseover = function () {
-        restartBtn.style.transform = 'scale(1.05)';
-        restartBtn.style.background = '#7db8dc';
-      };
-      restartBtn.onmouseout = function () {
-        restartBtn.style.transform = 'scale(1)';
-        restartBtn.style.background = '#5a9cc8';
-      };
-      restartBtn.onclick = function () {
-        document.body.removeChild(modal);
-        startGame();
-      };
-
-      var backBtn = document.createElement('button');
-      backBtn.textContent = '\u8FD4\u56DE';
-      backBtn.style.cssText =
-        'background:transparent;color:#3a7aaa;border:2px solid #90caf9;' +
-        'padding:10px 26px;border-radius:25px;font-size:14px;font-weight:bold;' +
-        'cursor:pointer;transition:all 0.3s ease;';
-      backBtn.onmouseover = function () {
-        backBtn.style.background = 'rgba(255,255,255,0.4)';
-        backBtn.style.color = '#1a4a6e';
-      };
-      backBtn.onmouseout = function () {
-        backBtn.style.background = 'transparent';
-        backBtn.style.color = '#3a7aaa';
-      };
-      backBtn.onclick = function () {
-        document.body.removeChild(modal);
-        backToStart();
-      };
-
-      modalButtons.appendChild(restartBtn);
-      modalButtons.appendChild(backBtn);
-
-      modalContent.appendChild(modalButtons);
-
-      var snowRow = document.createElement('div');
-      snowRow.style.cssText =
-        'display:flex;justify-content:center;gap:14px;margin-top:20px;' +
-        'position:relative;z-index:1;';
-      var snowColors = ['#e3f2fd', '#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#2196f3', '#1e88e5'];
-      for (var i = 0; i < 7; i++) {
-        var dot = document.createElement('div');
-        dot.style.cssText =
-          'width:' + (6 + Math.random() * 4) + 'px;height:' + (6 + Math.random() * 4) + 'px;' +
-          'border-radius:50%;background:' + snowColors[i] + ';' +
-          'animation:snowBounce 1.5s ease-in-out infinite;animation-delay:' + (i * 0.2) + 's;';
-        snowRow.appendChild(dot);
-      }
-      modalContent.appendChild(snowRow);
-
-      modal.appendChild(modalContent);
-      document.body.appendChild(modal);
-    }
-
-    // 上传数据
-    function uploadTrainingData() {
-      try {
-        // [scoring-system] Upload game data + end session.
-        // Session was created in startGame(); use gameSessionId directly.
-        var _uploadAndEnd = function () {
-          // 检测当前环境，自动切换 API 地址
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
-
-          // 计算抑制控制得分
-          const finalScore = calculateInhibitionScore();
-          const accuracy = level > 1 ? ((level - 1) / 10) * 100 : 0;
-
-          if (typeof visionUploader !== 'undefined') {
-            visionUploader.stop();
-          }
-
-          // 上传游戏数据
-          fetch(`${baseUrl}/api/training/game-data`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              session_id: gameSessionId,
-              request_id: Date.now().toString(),
-              timestamp: new Date().toISOString(),
-              event_type: 'game_complete',
-              score: finalScore,
-              accuracy: accuracy,
-              level: level,
-              time: time,
-              game_data: {
-                collision_count: collisionCount,
-                game_type: 'command-adventure',
-              },
-            }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                console.log('游戏数据上传成功');
-
-                // 清除能力评估页面的缓存
-                const cacheKey = `child_data_${childId}`;
-                localStorage.removeItem(cacheKey);
-                console.log('已清除能力评估缓存:', cacheKey);
-
-                // 结束训练会话
-                return fetch(`${baseUrl}/api/training/session/end`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                  },
-                  body: JSON.stringify({
-                    session_id: gameSessionId,
-                    final_score: finalScore,
-                    total_accuracy: accuracy,
-                    duration: time,
-                  }),
-                });
-              } else {
-                throw new Error(result.message || '上传游戏数据失败');
-              }
-            })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-              }
-              return response.json();
-            })
-            .then((result) => {
-              console.log('会话结束响应数据:', result);
-              if (result.success) {
-                console.log('训练数据上传完成');
-
-                // 保存训练时间到 localStorage，用于今日训练页面显示
-                const today = new Date().toISOString().split('T')[0];
-                const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-                if (!trainingData[today]) {
-                  trainingData[today] = { totalTime: 0 };
-                }
-
-                // 累加游戏时间（秒）
-                trainingData[today].totalTime += time;
-                localStorage.setItem('trainingData', JSON.stringify(trainingData));
-                console.log('训练时间已保存到 localStorage');
-
-                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                var backendScore = null;
-                var backendLevel = null;
-                if (result.data && result.data.summary) {
-                  backendScore = Math.round(result.data.summary.final_score);
-                  backendLevel = result.data.summary.performance_level;
-                }
-              }
-            })
-            .catch((error) => {
-              console.error('上传训练数据失败:', error);
-            });
-        };
-
-        if (gameSessionId) {
-          _uploadAndEnd();
-        } else {
-          // [scoring-system] Fallback: session not ready from startGame().
-          console.warn('Session not ready from startGame, creating inline');
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
-
-          fetch(`${baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: childId,
-              game_type: 'command-adventure',
-              device_id: 'web',
-            }),
-          })
-            .then((r) => r.json())
-            .then((res) => {
-              if (res.success) {
-                gameSessionId = res.data.session_id;
-                // 先上传缓冲的视觉数据，再提交游戏数据
-                var flushDone = Promise.resolve();
-                if (typeof visionUploader !== 'undefined') {
-                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
-                }
-                flushDone.then(function () {
-                  _uploadAndEnd();
-                });
-              }
-            });
-        }
-      } catch (e) {
-        console.error('uploadTrainingData 错误:', e);
-      }
-    }
-
-    function updateUI() {
-      document.getElementById('level').textContent = level;
-      document.getElementById('collisionDisplay').textContent = collisionCount;
-      document.getElementById('time').textContent = time;
-    }
-
-    function restartGame() {
-      startGame();
-    }
-
-    function backToStart() {
-      clearInterval(timeInterval);
-      obstacles.forEach(function (obs) {
-        obs.remove();
-      });
-      obstacles = [];
-      if (goal) goal.remove();
-      goal = null;
-      player.classList.remove('invincible');
-      isInvincible = false;
-      var snowflakes = document.querySelectorAll('.snowflake');
-      for (var i = 0; i < snowflakes.length; i++) {
-        snowflakes[i].remove();
-      }
-      resetPlayerPosition();
-      level = 1;
-      score = 0;
-      time = 0;
-      collisionCount = 0;
-      gameState = 'ready';
-      commandMapping = { up: 'up', down: 'down', left: 'left', right: 'right' };
-      document.getElementById('command').textContent = '使用方向键或按钮控制角色移动到送信点';
-      document.getElementById('startBtn').textContent = '开始游戏';
-      document.getElementById('startBtn').onclick = startGame;
-      updateUI();
-      document.body.style.overflow = 'auto';
-    }
-
-    window.onload = initGame;
-  </script>
-</body>
-
+    </script>
+    <script src="../attention-loader.js"></script>
+    <script>
+      window.onload = initGame;
+    </script>
+  </body>
 </html>
