@@ -1035,8 +1035,6 @@
 
         // 上传数据到后端
         uploadTrainingData(accuracy, incongAcc, finalScore, gameTime);
-
-        showGameOverModal(finalScore, gameTime);
       }
 
       function showGameOverModal(finalScore, gameTime) {
@@ -1311,7 +1309,7 @@
           leafRow.appendChild(leaf);
         }
         modalContent.appendChild(leafRow);
-        
+
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
       }
@@ -1334,7 +1332,7 @@
             if (typeof visionUploader !== 'undefined') {
               visionUploader.stop();
             }
-            
+
           // 上传游戏数据
           fetch(`${baseUrl}/api/training/game-data`, {
             method: 'POST',
@@ -1391,40 +1389,7 @@
                 throw new Error(result.message || '上传游戏数据失败');
               }
             })
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-              })
-              .then((result) => {
-                if (result.success) {
-                  console.log('游戏数据上传成功');
-
-                  // 清除能力评估页面的缓存
-                  const cacheKey = `child_data_${childId}`;
-                  localStorage.removeItem(cacheKey);
-                  console.log('已清除能力评估缓存:', cacheKey);
-
-                  // 结束训练会话
-                  return fetch(`${baseUrl}/api/training/session/end`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                    body: JSON.stringify({
-                      session_id: gameSessionId,
-                      final_score: finalScore,
-                      total_accuracy: parseFloat(accuracy),
-                      duration: gameTime,
-                    }),
-                  });
-                } else {
-                  throw new Error(result.message || '上传游戏数据失败');
-                }
-              })
-              .then((response) => response.json())
+            .then((response) => response.json())
               .then((result) => {
                 console.log('会话结束响应数据:', result);
                 if (result.success) {
@@ -1437,7 +1402,7 @@
                   if (!trainingData[today]) {
                     trainingData[today] = { totalTime: 0 };
                   }
-                  
+
                 // 累加游戏时间（秒）
                 trainingData[today].totalTime += gameTime;
                 localStorage.setItem('trainingData', JSON.stringify(trainingData));
