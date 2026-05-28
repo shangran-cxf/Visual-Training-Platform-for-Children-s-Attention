@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 
 <head>
@@ -708,6 +708,13 @@
       letter-spacing: 0.5px;
     }
 
+    .rec-card-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     .rec-card-tag.selective {
       background: #fce4ec;
       color: #c44a6a;
@@ -785,6 +792,32 @@
       margin-bottom: 12px;
       opacity: 0.5;
       animation: float 3s ease-in-out infinite;
+    }
+
+    .reassess-days {
+      font-size: 12px;
+      color: #ff8c42;
+      background: #fff3e8;
+      border-radius: 12px;
+      padding: 4px 14px;
+      display: inline-block;
+      margin-top: 6px;
+      font-weight: 700;
+    }
+
+    .trend-up {
+      color: #4caf50;
+      font-weight: 700;
+    }
+
+    .trend-down {
+      color: #f44336;
+      font-weight: 700;
+    }
+
+    .trend-flat {
+      color: #999;
+      font-weight: 700;
     }
 
     /* 游戏卡片样式（沿用原代码） */
@@ -1503,8 +1536,9 @@
 
       <!-- 右侧：推荐训练 -->
       <div class="recommend-training-card">
-        <h2 class="recommend-title">推荐训练</h2>
-        <p class="recommend-subtitle">根据历史训练数据推荐</p>
+        <h2 class="recommend-title">训练计划</h2>
+        <p class="recommend-subtitle" id="recommendSubtitle">本周薄弱维度（建议今日攻克）</p>
+        <div class="reassess-days" id="reassessDays" style="display:none"></div>
         <div class="recommend-divider"></div>
         <div class="recommend-items">
         </div>
@@ -1814,27 +1848,45 @@
       ],
     };
 
-    // 从后端获取能力评估数据并推荐薄弱项训练
+    // 从后端获取能力评估数据并推荐薄弱项训练（含历史趋势对比）
     async function recommendGames() {
       const recommendItems = document.querySelector('.recommend-items');
+      const reassessDaysEl = document.getElementById('reassessDays');
+      const recommendSubtitle = document.getElementById('recommendSubtitle');
       if (!recommendItems || !currentChildId) return;
 
-      // 先尝试获取检测数据
       const detectionResult = await ApiUtil.apiGet('/api/get/detection', { child_id: currentChildId });
       let abilities = [];
+      let trends = {};
+      let lastAssessDate = null;
 
       if (detectionResult.success && detectionResult.data && detectionResult.data.length > 0) {
-        // 使用最新的检测数据
         const latest = detectionResult.data[0];
-        abilities = [
-          { type: 'selective', score: (latest.selective_attention || 0) * 100, name: '选择性注意' },
-          { type: 'sustained', score: (latest.sustained_attention || 0) * 100, name: '持续性注意' },
-          { type: 'tracking', score: (latest.visual_tracking || 0) * 100, name: '视觉追踪' },
-          { type: 'memory', score: (latest.working_memory || 0) * 100, name: '工作记忆' },
-          { type: 'inhibitory', score: (latest.inhibitory_control || 0) * 100, name: '抑制控制' },
-        ];
+        const dimKeys = ['selective_attention', 'sustained_attention', 'visual_tracking', 'working_memory', 'inhibitory_control'];
+        const dimTypes = ['selective', 'sustained', 'tracking', 'memory', 'inhibitory'];
+        const dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
+
+        for (let i = 0; i < dimKeys.length; i++) {
+          const score = latest[dimKeys[i]] || 0;
+          abilities.push({ type: dimTypes[i], score: score, name: dimNames[i] });
+        }
+
+        if (detectionResult.data.length >= 2) {
+          const previous = detectionResult.data[1];
+          for (let i = 0; i < dimKeys.length; i++) {
+            const prevScore = previous[dimKeys[i]] || 0;
+            const currScore = latest[dimKeys[i]] || 0;
+            const diff = currScore - prevScore;
+            if (diff > 3) trends[dimTypes[i]] = '↑' + Math.round(Math.abs(diff));
+            else if (diff < -3) trends[dimTypes[i]] = '↓' + Math.round(Math.abs(diff));
+            else trends[dimTypes[i]] = '→';
+          }
+        }
+
+        if (latest.timestamp) {
+          lastAssessDate = new Date(latest.timestamp);
+        }
       } else {
-        // 无检测数据时，使用训练趋势数据推断
         const trendResult = await ApiUtil.apiGet(`/api/training/trend/${currentChildId}`, { days: 30 });
         if (trendResult.success && trendResult.data && trendResult.data.trend) {
           const trend = trendResult.data.trend;
@@ -1848,10 +1900,24 @@
         }
       }
 
+      if (lastAssessDate && reassessDaysEl) {
+        const now = new Date();
+        const diffDays = Math.floor((now - lastAssessDate) / (1000 * 60 * 60 * 24));
+        if (diffDays > 7) {
+          reassessDaysEl.style.display = 'inline-block';
+          reassessDaysEl.textContent = '⏰ 距上次测评已 ' + diffDays + ' 天，建议复测';
+        } else {
+          reassessDaysEl.style.display = 'none';
+        }
+      }
+
       if (abilities.length === 0) {
-        recommendItems.innerHTML = '<div class="recommend-empty"><span class="empty-icon">🎮</span>暂无推荐数据</div>';
+        recommendItems.innerHTML = '<div class="recommend-empty"><span class="empty-icon">📝</span>尚未测评，先去做一次测评定位薄弱项吧～</div>';
+        if (recommendSubtitle) recommendSubtitle.textContent = '建议先完成测评，再定制专属训练计划';
         return;
       }
+
+      if (recommendSubtitle) recommendSubtitle.textContent = '本周薄弱维度（建议今日攻克）';
 
       abilities.sort((a, b) => a.score - b.score);
       const weakest = abilities.slice(0, 2);
@@ -1863,19 +1929,26 @@
         if (game) {
           const icon = gameIconMap[game.name] || '🎯';
           const label = abilityLabelMap[ability.type] || ability.name;
+          const trendText = trends[ability.type] || '';
+          let trendClass = 'trend-flat';
+          if (trendText.startsWith('↑')) trendClass = 'trend-up';
+          else if (trendText.startsWith('↓')) trendClass = 'trend-down';
+
           const recommendItem = document.createElement('div');
           recommendItem.className = 'recommend-item ' + ability.type;
           recommendItem.onclick = () => startGame(game.path, game.name);
-          recommendItem.innerHTML = `
-              <div class="rec-card-inner">
-                <div class="rec-card-left ${ability.type}">${icon}</div>
-                <div class="rec-card-info">
-                  <div class="rec-card-name">${game.name}</div>
-                  <span class="rec-card-tag ${ability.type}">${label}</span>
-                </div>
-                <div class="rec-card-arrow">→</div>
-              </div>
-            `;
+          recommendItem.innerHTML =
+            '<div class="rec-card-inner">' +
+            '<div class="rec-card-left ' + ability.type + '">' + icon + '</div>' +
+            '<div class="rec-card-info">' +
+            '<div class="rec-card-name">' + game.name + '</div>' +
+            '<div class="rec-card-sub">' +
+            '<span class="rec-card-tag ' + ability.type + '">' + label + ' ' + Math.round(ability.score) + '分</span>' +
+            (trendText ? ' <span class="' + trendClass + '" style="font-size:13px">' + trendText + '</span>' : '') +
+            '</div>' +
+            '</div>' +
+            '<div class="rec-card-arrow">→</div>' +
+            '</div>';
           recommendItems.appendChild(recommendItem);
         }
       });
