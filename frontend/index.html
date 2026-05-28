@@ -1311,6 +1311,30 @@
           <input type="password" id="register-confirm-password" placeholder="请再次输入密码" />
         </div>
 
+        <div class="children-section">
+          <h3>
+            <span>儿童信息</span>
+            <button type="button" onclick="addRegisterChild()" class="add-child-btn">+ 添加儿童</button>
+          </h3>
+          <div id="register-children-container">
+            <div class="child-item" data-index="0">
+              <button type="button" class="remove-child" style="display: none" onclick="removeRegisterChild(this)">
+                ×
+              </button>
+              <div class="child-fields">
+                <div class="form-group">
+                  <label>儿童姓名 *</label>
+                  <input type="text" class="child-name" placeholder="请输入儿童姓名" />
+                </div>
+                <div class="form-group">
+                  <label>儿童年龄 *</label>
+                  <input type="number" class="child-age" placeholder="年龄" min="6" max="12" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <button class="btn" onclick="register()">注册</button>
         <p class="login-link">
           已有账号？<a
@@ -1712,9 +1736,68 @@
         });
       }
 
-      function getChildrenData() {
+      // 注册表单里的儿童行操作
+      let registerChildCount = 1;
+
+      function addRegisterChild() {
+        const container = document.getElementById('register-children-container');
+        const childItem = document.createElement('div');
+        childItem.className = 'child-item';
+        childItem.dataset.index = registerChildCount;
+
+        const removeButton = document.createElement('button');
+        removeButton.className = 'remove-child';
+        removeButton.textContent = '×';
+        removeButton.onclick = function () {
+          removeRegisterChild(this);
+        };
+        childItem.appendChild(removeButton);
+
+        const childFields = document.createElement('div');
+        childFields.className = 'child-fields';
+
+        const nameField = document.createElement('div');
+        nameField.className = 'form-group';
+        nameField.innerHTML =
+          '<label>儿童姓名</label><input type="text" class="child-name" placeholder="请输入儿童姓名">';
+        childFields.appendChild(nameField);
+
+        const ageField = document.createElement('div');
+        ageField.className = 'form-group';
+        ageField.innerHTML =
+          '<label>儿童年龄</label><input type="number" class="child-age" placeholder="年龄" min="6" max="12">';
+        childFields.appendChild(ageField);
+
+        childItem.appendChild(childFields);
+        container.appendChild(childItem);
+        registerChildCount++;
+        updateRegisterRemoveButtons();
+      }
+
+      function removeRegisterChild(button) {
+        const childItem = button.parentElement;
+        if (childItem) {
+          childItem.remove();
+          updateRegisterRemoveButtons();
+        }
+      }
+
+      function updateRegisterRemoveButtons() {
+        const container = document.getElementById('register-children-container');
+        if (!container) return;
+        const items = container.querySelectorAll('.child-item');
+        items.forEach(function (item) {
+          const removeBtn = item.querySelector('.remove-child');
+          if (removeBtn) {
+            removeBtn.style.display = items.length > 1 ? 'flex' : 'none';
+          }
+        });
+      }
+
+      function getChildrenData(containerId) {
         const children = [];
-        const items = document.querySelectorAll('.child-item');
+        const container = containerId ? document.getElementById(containerId) : document;
+        const items = container.querySelectorAll('.child-item');
         items.forEach((item) => {
           const name = item.querySelector('.child-name').value.trim();
           const age = item.querySelector('.child-age').value;
@@ -1753,6 +1836,15 @@
           return;
         }
 
+        const children = getChildrenData('register-children-container');
+
+        for (let child of children) {
+          if (child.age < 6 || child.age > 12) {
+            errorMessage.textContent = '儿童年龄必须在6-12岁之间';
+            return;
+          }
+        }
+
         try {
           const response = await fetch(`${baseUrl}/api/register`, {
             method: 'POST',
@@ -1763,29 +1855,33 @@
               username: username,
               password: password,
               email: email,
-              children: [],
+              children: children,
             }),
           });
 
           const result = await response.json();
 
           if (response.ok) {
+            localStorage.removeItem('auth_token');
+            if (result.token) {
+              localStorage.setItem('auth_token', result.token);
+            }
             const userInfo = {
               parent_id: result.parent_id,
               username: username,
               email: email,
               role: 'user',
               mode: 'parent',
-              children: [],
+              children: result.children || [],
             };
             StorageUtil.setItem('userInfo', userInfo);
-            successMessage.textContent = '注册成功！请添加儿童信息...';
+            successMessage.textContent = '注册成功！正在跳转到登录...';
             setTimeout(() => {
               closeRegisterModal();
-              openAddChildModal();
+              openLoginModal();
             }, 1500);
           } else {
-            errorMessage.textContent = result.error || '注册失败';
+            errorMessage.textContent = (result.error && result.error.message) || result.error || '注册失败';
           }
         } catch (error) {
           console.error('注册失败:', error);
@@ -1796,7 +1892,7 @@
       async function addChildren() {
         const baseUrl = getBaseUrl();
 
-        const children = getChildrenData();
+        const children = getChildrenData('children-container');
         const errorMessage = document.getElementById('child-error-message');
         const successMessage = document.getElementById('child-success-message');
 
@@ -1815,6 +1911,12 @@
           }
         }
 
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+          errorMessage.textContent = '认证信息缺失，请重新注册';
+          return;
+        }
+
         try {
           const userInfo = StorageUtil.getItem('userInfo');
           if (!userInfo || !userInfo.parent_id) {
@@ -1822,10 +1924,8 @@
             return;
           }
 
-          // 为每个儿童添加到数据库
-          const token = localStorage.getItem('auth_token');
           for (let child of children) {
-            await fetch(`${baseUrl}/api/children`, {
+            const response = await fetch(`${baseUrl}/api/children`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -1836,6 +1936,13 @@
                 age: child.age,
               }),
             });
+
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+              const errMsg = (result.error && result.error.message) || `添加儿童「${child.name}」失败`;
+              errorMessage.textContent = errMsg;
+              return;
+            }
           }
 
           // 更新本地存储中的儿童信息
@@ -1849,7 +1956,7 @@
           }, 1500);
         } catch (error) {
           console.error('添加儿童信息失败:', error);
-          errorMessage.textContent = '添加失败，请稍后再试';
+          errorMessage.textContent = '网络错误，请稍后再试';
         }
       }
     </script>

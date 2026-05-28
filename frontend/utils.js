@@ -110,6 +110,7 @@ class UserStateUtil {
   static logout() {
     StorageUtil.removeItem('userInfo');
     localStorage.removeItem('currentChildId');
+    localStorage.removeItem('auth_token');
   }
 
   // 获取当前孩子的名字
