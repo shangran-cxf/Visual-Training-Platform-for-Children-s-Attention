@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 
 from flask import Blueprint, request
 from openai import OpenAI
@@ -7,6 +7,7 @@ from openai import OpenAI
 from database import execute_db
 from middleware import require_auth
 from utils.response_utils import error_response, success_response
+from utils.time_utils import now_utc, to_iso_string
 
 from .config import AI_CONFIG, CACHE_CONFIG, PROMPT_TEMPLATES, is_ai_configured
 from .validator import cache_report, get_cached_report_if_unchanged, get_empty_report, is_empty_data
@@ -81,13 +82,13 @@ def get_child_detection_data(child_id):
             "working_memory": row[3],
             "inhibitory_control": row[4],
             "total_score": row[5],
-            "timestamp": row[6],
+            "timestamp": to_iso_string(row[6]),
         }
     return None
 
 
 def get_child_training_trend(child_id, days=30):
-    end_date = datetime.now(UTC)
+    end_date = now_utc()
     start_date = end_date - timedelta(days=days)
 
     query = """
@@ -375,7 +376,7 @@ def generate_current_training_evaluation():
                 "child_id": child_id,
                 "child_name": child_info.get("name"),
                 "evaluation": get_empty_report("current_training"),
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": now_utc().isoformat(),
                 "is_cached": False,
                 "is_empty": True,
             },
@@ -389,7 +390,7 @@ def generate_current_training_evaluation():
                 "child_id": child_id,
                 "child_name": child_info.get("name"),
                 "evaluation": cached_report,
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": now_utc().isoformat(),
                 "is_cached": True,
             },
             "返回缓存报告",
@@ -418,7 +419,7 @@ def generate_current_training_evaluation():
             "child_id": child_id,
             "child_name": child_info.get("name"),
             "evaluation": result,
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": now_utc().isoformat(),
             "is_cached": False,
         },
         "当前训练评价生成成功",
@@ -447,7 +448,7 @@ def generate_history_training_evaluation():
                 "child_id": child_id,
                 "child_name": child_info.get("name"),
                 "evaluation": get_empty_report("history_training"),
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": now_utc().isoformat(),
                 "data_period_days": days,
                 "is_cached": False,
                 "is_empty": True,
@@ -462,7 +463,7 @@ def generate_history_training_evaluation():
                 "child_id": child_id,
                 "child_name": child_info.get("name"),
                 "evaluation": cached_report,
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": now_utc().isoformat(),
                 "data_period_days": days,
                 "is_cached": True,
             },
@@ -496,7 +497,7 @@ def generate_history_training_evaluation():
             "child_id": child_id,
             "child_name": child_info.get("name"),
             "evaluation": result,
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": now_utc().isoformat(),
             "data_period_days": days,
             "is_cached": False,
         },
@@ -532,7 +533,7 @@ def generate_with_custom_prompt():
     if error:
         return error_response(error, "AI_ERROR", 500)
 
-    return success_response({"result": result, "generated_at": datetime.now().isoformat()}, "AI 生成成功")
+    return success_response({"result": result, "generated_at": now_utc().isoformat()}, "AI 生成成功")
 
 
 @ai_bp.route("/api/ai/training-analysis", methods=["POST"])
@@ -556,7 +557,7 @@ def generate_training_analysis():
                 "child_id": child_id,
                 "child_name": child_info.get("name"),
                 "analysis": get_empty_report("training_analysis").get("analysis"),
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": now_utc().isoformat(),
                 "data_summary": {
                     "training_count": 0,
                     "total_time": 0,
@@ -580,7 +581,7 @@ def generate_training_analysis():
                 "child_id": child_id,
                 "child_name": child_info.get("name"),
                 "analysis": cached_report.get("analysis"),
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": now_utc().isoformat(),
                 "data_summary": {
                     "training_count": stats.get("training_count", 0),
                     "total_time": stats.get("total_time", 0),
@@ -668,7 +669,7 @@ def generate_training_analysis():
             "child_id": child_id,
             "child_name": child_info.get("name"),
             "analysis": analysis,
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": now_utc().isoformat(),
             "data_summary": {
                 "training_count": stats.get("training_count", 0),
                 "total_time": stats.get("total_time", 0),

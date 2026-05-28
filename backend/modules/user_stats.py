@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 
 from database import execute_db
 from utils import check_user_exists, error_response, success_response
+from utils.time_utils import to_iso_string
 
 user_stats_bp = Blueprint("user_stats", __name__)
 
@@ -48,7 +49,14 @@ def get_user_posts(parent_id):
     )
 
     posts = [
-        {"id": p[0], "title": p[1], "created_at": p[2], "view_count": p[3], "comment_count": p[4], "like_count": p[5]}
+        {
+            "id": p[0],
+            "title": p[1],
+            "created_at": to_iso_string(p[2]),
+            "view_count": p[3],
+            "comment_count": p[4],
+            "like_count": p[5],
+        }
         for p in result
     ]
 

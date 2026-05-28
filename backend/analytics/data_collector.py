@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 
 from config import (
     BADGES,
@@ -22,6 +22,7 @@ from utils.error_codes import (
     VALIDATION_ERROR,
 )
 from utils.response_utils import error_response, success_response
+from utils.time_utils import beijing_today_str, frontend_ts_to_db, now_utc, parse_db_timestamp, to_iso_string
 
 data_collector_bp = Blueprint("data_collector", __name__)
 
@@ -241,15 +242,10 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
     if duration is not None:
         total_time = int(duration)
     elif session_info:
-        start_time_str = session_info[0][0]
-        # SQLite's CURRENT_TIMESTAMP usually returns 'YYYY-MM-DD HH:MM:SS'
-        if " " in start_time_str:
-            start_time_str = start_time_str.replace(" ", "T")
         try:
-            start_time = datetime.fromisoformat(start_time_str)
-            if start_time.tzinfo is None:
-                start_time = start_time.replace(tzinfo=UTC)
-            total_time = int((datetime.now(UTC) - start_time).total_seconds())
+            start_time = parse_db_timestamp(session_info[0][0])
+            if start_time is not None:
+                total_time = int((now_utc() - start_time).total_seconds())
         except Exception:
             total_time = 0
 
@@ -421,7 +417,7 @@ def upload_game_data():
     data = request.json
     session_id = data.get("session_id")
     request_id = data.get("request_id")
-    timestamp = data.get("timestamp")
+    timestamp = frontend_ts_to_db(data.get("timestamp"))
     event_type = data.get("event_type")
     event_data = data.get("event_data")
     score = data.get("score")
@@ -500,7 +496,7 @@ def upload_game_data():
 
     mark_request_processed(request_id)
 
-    execute_db("UPDATE training_sessions SET last_activity = CURRENT_TIMESTAMP WHERE id = ?", (session_id,))
+    execute_db("UPDATE training_sessions SET last_activity = datetime('now', 'localtime') WHERE id = ?", (session_id,))
 
     return success_response(None, "游戏数据上传成功")
 
@@ -511,7 +507,7 @@ def upload_vision_data():
     data = request.json
     session_id = data.get("session_id")
     request_id = data.get("request_id")
-    timestamp = data.get("timestamp")
+    timestamp = frontend_ts_to_db(data.get("timestamp"))
     attention_score = data.get("attention_score")
     face_detected = data.get("face_detected", 1)
     head_yaw = data.get("head_yaw")
@@ -563,7 +559,7 @@ def upload_vision_data():
 
     mark_request_processed(request_id)
 
-    execute_db("UPDATE training_sessions SET last_activity = CURRENT_TIMESTAMP WHERE id = ?", (session_id,))
+    execute_db("UPDATE training_sessions SET last_activity = datetime('now', 'localtime') WHERE id = ?", (session_id,))
 
     return success_response(None, "视觉数据上传成功")
 
@@ -654,8 +650,8 @@ def end_session():
         execute_db(
             """
             UPDATE training_sessions
-            SET end_time = CURRENT_TIMESTAMP, status = 'completed',
-                duration = ?, last_activity = CURRENT_TIMESTAMP
+            SET end_time = datetime('now', 'localtime'), status = 'completed',
+                duration = ?, last_activity = datetime('now', 'localtime')
             WHERE id = ?
         """,
             (summary["total_time"], session_id),
@@ -697,7 +693,7 @@ def heartbeat():
     if session_info["status"] != "active":
         return error_response("训练会话已结束", SESSION_EXPIRED, 410)
 
-    execute_db("UPDATE training_sessions SET last_activity = CURRENT_TIMESTAMP WHERE id = ?", (session_id,))
+    execute_db("UPDATE training_sessions SET last_activity = datetime('now', 'localtime') WHERE id = ?", (session_id,))
 
     return success_response({"session_id": session_id, "status": "active"}, "心跳更新成功")
 
@@ -736,8 +732,8 @@ def interrupt_session():
     execute_db(
         """
         UPDATE training_sessions
-        SET end_time = CURRENT_TIMESTAMP, status = 'interrupted',
-            last_activity = CURRENT_TIMESTAMP
+        SET end_time = datetime('now', 'localtime'), status = 'interrupted',
+            last_activity = datetime('now', 'localtime')
         WHERE id = ?
     """,
         (session_id,),
@@ -832,8 +828,8 @@ def get_training_history(child_id):
             {
                 "session_id": row[0],
                 "game_type": row[1],
-                "start_time": row[2],
-                "end_time": row[3],
+                "start_time": to_iso_string(row[2]),
+                "end_time": to_iso_string(row[3]),
                 "status": row[4],
                 "attention_type": row[5],
                 "final_score": row[6],
@@ -888,8 +884,8 @@ def get_training_detail(session_id):
         "game_type": session_info[0][2],
         "game_name": game_config.get("name", session_info[0][2]),
         "attention_type": None,
-        "start_time": session_info[0][3],
-        "end_time": session_info[0][4],
+        "start_time": to_iso_string(session_info[0][3]),
+        "end_time": to_iso_string(session_info[0][4]),
         "status": session_info[0][5],
         "details": {},
         "game_data": {},
@@ -968,7 +964,7 @@ def get_training_trend(child_id):
         attention_type = request.args.get("attention_type")
         days = request.args.get("days", 30, type=int)
 
-        end_date = datetime.now(UTC)
+        end_date = now_utc()
         start_date = end_date - timedelta(days=days)
 
         query = """
@@ -1119,7 +1115,7 @@ def get_detection():
 
     data = [
         {
-            "timestamp": row[0],
+            "timestamp": to_iso_string(row[0]),
             "selective_attention": row[1],
             "sustained_attention": row[2],
             "visual_tracking": row[3],
@@ -1183,7 +1179,7 @@ def get_daily_training_summary(child_id):
             "avg_score": round(row[3], 2) if row[3] else 0,
         }
 
-    today_str = datetime.now(UTC).strftime("%Y-%m-%d")
+    today_str = beijing_today_str()
     today_info = daily_data.get(today_str, {"session_count": 0, "total_duration": 0, "avg_score": 0})
 
     return success_response({"daily_data": daily_data, "today": today_info}, "查询成功")

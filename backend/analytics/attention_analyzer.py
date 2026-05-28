@@ -1,13 +1,14 @@
 import json
 import math
 import statistics
-from datetime import UTC, datetime
 
 from config import (
     ENABLE_CROSS_GAME_NORMALIZATION,
     GAME_SCORE_CALIBRATION,
     TIME_DECAY_HALF_LIFE_DAYS,
 )
+
+from utils.time_utils import now_utc, parse_db_timestamp
 
 
 class AttentionAnalyzer:
@@ -44,15 +45,14 @@ class AttentionAnalyzer:
         if not session_date_str:
             return 1.0
         if reference_date is None:
-            reference_date = datetime.now(UTC)
+            reference_date = now_utc()
         try:
             if isinstance(session_date_str, str):
-                session_date_str = session_date_str.replace("Z", "+00:00")
-                session_date = datetime.fromisoformat(session_date_str)
-                if session_date.tzinfo is None:
-                    session_date = session_date.replace(tzinfo=UTC)
+                session_date = parse_db_timestamp(session_date_str)
             else:
                 session_date = session_date_str
+            if session_date is None:
+                return 1.0
             days_ago = (reference_date - session_date).total_seconds() / 86400
             if days_ago < 0:
                 days_ago = 0

@@ -6,6 +6,7 @@ from database import execute_db
 from middleware import generate_token, require_auth
 from utils import build_update_sql, error_response, success_response
 from utils.password_utils import hash_password, is_bcrypt_hash, verify_password
+from utils.time_utils import to_iso_string
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -143,7 +144,7 @@ def query_user():
             "email": row[3],
             "role": row[4],
             "avatar": row[5],
-            "created_at": row[6],
+            "created_at": to_iso_string(row[6]),
         }
     )
 

@@ -1,9 +1,10 @@
 import json
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 
 from config import ATTENTION_DIMENSIONS, BADGES, GAME_TYPES
 
 from database import execute_db
+from utils.time_utils import now_utc
 
 from .attention_analyzer import AttentionAnalyzer
 
@@ -54,7 +55,7 @@ class ReportGenerator:
             "trends": trends,
             "training_history": training_history,
             "dimension_statistics": dimension_stats,
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": now_utc().isoformat(),
         }
 
         strengths_json = json.dumps([ATTENTION_DIMENSIONS.get(s, s) for s in strengths], ensure_ascii=False)
@@ -108,7 +109,7 @@ class ReportGenerator:
         else:
             days = 30
 
-        end_date = datetime.now(UTC)
+        end_date = now_utc()
         start_date = end_date - timedelta(days=days)
 
         sessions = execute_db(
@@ -128,7 +129,7 @@ class ReportGenerator:
                 "child_info": child_info,
                 "period": period,
                 "message": "该时间段内没有训练记录",
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": now_utc().isoformat(),
             }
 
         total_sessions = len(sessions)
@@ -238,7 +239,7 @@ class ReportGenerator:
             "badges_earned": badges_earned,
             "recommended_games": recommended_games,
             "focus_areas": focus_areas,
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": now_utc().isoformat(),
         }
 
         milestones_json = json.dumps(milestones, ensure_ascii=False)

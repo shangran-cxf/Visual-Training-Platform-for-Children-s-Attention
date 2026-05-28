@@ -1,7 +1,9 @@
 import hashlib
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, timedelta
 from typing import Any
+
+from utils.time_utils import now_utc
 
 _report_cache: dict[str, dict[str, Any]] = {}
 
@@ -77,8 +79,11 @@ def get_cached_report_if_unchanged(
     expire_hours = cache_config.get("expire_hours", 24)
     cached_time = cached.get("cached_at")
     if cached_time:
+        # 兼容旧缓存中的 naive datetime
+        if cached_time.tzinfo is None:
+            cached_time = cached_time.replace(tzinfo=UTC)
         expire_time = cached_time + timedelta(hours=expire_hours)
-        if datetime.now() > expire_time:
+        if now_utc() > expire_time:
             del _report_cache[cache_key]
             return None
 
@@ -97,7 +102,7 @@ def cache_report(child_id: int, data: dict[str, Any], report: dict[str, Any], re
     _report_cache[cache_key] = {
         "fingerprint": generate_data_fingerprint(data),
         "report": report,
-        "cached_at": datetime.now(),
+        "cached_at": now_utc(),
     }
 
 

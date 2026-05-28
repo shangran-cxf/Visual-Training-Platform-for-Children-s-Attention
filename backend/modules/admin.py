@@ -4,6 +4,7 @@ from database import execute_db
 from middleware import require_admin
 from utils import build_update_sql, check_user_exists, error_response, is_admin, success_response
 from utils.password_utils import hash_password
+from utils.time_utils import to_iso_string
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -144,7 +145,7 @@ def get_all_training():
             "child_name": r[1],
             "parent_name": r[2],
             "game_type": r[3],
-            "start_time": r[4],
+            "start_time": to_iso_string(r[4]),
             "duration": r[5],
             "score": r[6],
         }

@@ -1,12 +1,12 @@
 import json
 import os
-from datetime import datetime
 
 from config import FRONTEND_DIR
 from flask import Blueprint, jsonify, request
 
 from middleware import require_auth
 from utils.response_utils import error_response
+from utils.time_utils import beijing_now_str
 
 knowledge_bp = Blueprint("knowledge", __name__)
 
@@ -105,7 +105,7 @@ def create_article():
         "title": title,
         "content": content,
         "author": author,
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "date": beijing_now_str(),
         "category": category,
         "tags": tags if isinstance(tags, list) else [],
         "summary": summary,
@@ -154,7 +154,7 @@ def update_article(article_id):
     if "reading_time" in data:
         article["reading_time"] = data["reading_time"]
 
-    article["date"] = datetime.now().strftime("%Y-%m-%d")
+    article["date"] = beijing_now_str()
 
     articles[article_index] = article
     save_articles(articles)

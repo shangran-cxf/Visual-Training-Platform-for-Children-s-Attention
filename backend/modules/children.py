@@ -3,6 +3,7 @@ from flask import Blueprint, request
 from database import execute_db
 from middleware import require_auth
 from utils import build_update_sql, error_response, success_response
+from utils.time_utils import to_iso_string
 
 children_bp = Blueprint("children", __name__)
 
@@ -134,6 +135,6 @@ def get_child_recent_training(child_id):
         (child_id, limit),
     )
 
-    training_records = [{"game_type": r[0], "score": r[1], "level": r[2], "date": r[3]} for r in result]
+    training_records = [{"game_type": r[0], "score": r[1], "level": r[2], "date": to_iso_string(r[3])} for r in result]
 
     return success_response(training_records)

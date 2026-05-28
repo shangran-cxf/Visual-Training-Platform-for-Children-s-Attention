@@ -8,7 +8,8 @@ from flask import Blueprint, jsonify, request
 
 from database import execute_db
 from middleware import require_auth
-from utils import build_update_sql, error_response, is_admin, success_response
+from utils import error_response, is_admin, success_response
+from utils.time_utils import to_iso_string
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ def get_posts():
             "id": p[0],
             "title": p[1],
             "content": p[2],
-            "created_at": p[3],
+            "created_at": to_iso_string(p[3]),
             "view_count": p[4],
             "parent_id": p[5],
             "author_name": p[6],
@@ -143,7 +144,7 @@ def search_posts():
             "id": p[0],
             "title": p[1],
             "content": p[2],
-            "created_at": p[3],
+            "created_at": to_iso_string(p[3]),
             "view_count": p[4],
             "parent_id": p[5],
             "category_id": p[6],
@@ -217,7 +218,7 @@ def get_post(post_id):
         "id": p[0],
         "title": p[1],
         "content": p[2],
-        "created_at": p[3],
+        "created_at": to_iso_string(p[3]),
         "view_count": p[4],
         "parent_id": p[5],
         "category_id": p[6],
@@ -288,9 +289,15 @@ def update_post(post_id):
             update_data["category_id"] = category_id
 
         if update_data:
-            update_data["updated_at"] = "CURRENT_TIMESTAMP"
-            sql, params = build_update_sql("forum_posts", update_data, "id = ?")
-            execute_db(sql, params + (post_id,))
+            # updated_at 是 SQL 表达式，不能走参数化查询
+            set_parts = []
+            params = []
+            for key, value in update_data.items():
+                set_parts.append(f"{key} = ?")
+                params.append(value)
+            set_parts.append("updated_at = datetime('now', 'localtime')")
+            sql = f"UPDATE forum_posts SET {', '.join(set_parts)} WHERE id = ?"
+            execute_db(sql, tuple(params) + (post_id,))
 
         return success_response(None, "更新成功")
     except Exception as e:
@@ -436,7 +443,7 @@ def get_comments():
         comment = {
             "id": c[0],
             "content": c[1],
-            "created_at": c[2],
+            "created_at": to_iso_string(c[2]),
             "parent_id": c[3],
             "author_name": c[4],
             "like_count": c[5],
@@ -607,7 +614,7 @@ def get_favorites():
             "id": f[0],
             "title": f[1],
             "content": f[2],
-            "created_at": f[3],
+            "created_at": to_iso_string(f[3]),
             "view_count": f[4],
             "parent_id": f[5],
             "author_name": f[6],

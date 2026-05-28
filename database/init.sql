@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS parents (
     level INTEGER DEFAULT 1,
     experience INTEGER DEFAULT 0,
     is_banned INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT (datetime('now', 'localtime'))
 );
 
 -- 孩子信息表
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS children (
     parent_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     age INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (parent_id) REFERENCES parents (id)
 );
 
@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS forum_posts (
     category_id INTEGER,
     is_pinned INTEGER DEFAULT 0,
     is_essential INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
+    updated_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     view_count INTEGER DEFAULT 0,
     FOREIGN KEY (parent_id) REFERENCES parents (id)
 );
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS forum_comments (
     post_id INTEGER NOT NULL,
     parent_id INTEGER NOT NULL,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (post_id) REFERENCES forum_posts (id),
     FOREIGN KEY (parent_id) REFERENCES parents (id)
 );
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS forum_votes (
     comment_id INTEGER,
     parent_id INTEGER NOT NULL,
     vote_type INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (post_id) REFERENCES forum_posts (id),
     FOREIGN KEY (comment_id) REFERENCES forum_comments (id),
     FOREIGN KEY (parent_id) REFERENCES parents (id)
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS forum_votes (
 CREATE TABLE IF NOT EXISTS detection_data (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     child_id INTEGER NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    timestamp TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     selective_attention REAL,
     sustained_attention REAL,
     visual_tracking REAL,
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS user_badges (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     child_id INTEGER NOT NULL,
     badge_id INTEGER NOT NULL,
-    earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    earned_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (child_id) REFERENCES children (id)
 );
 
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS favorites (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent_id INTEGER NOT NULL,
     post_id INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (parent_id) REFERENCES parents (id),
     FOREIGN KEY (post_id) REFERENCES forum_posts (id),
     UNIQUE(parent_id, post_id)
@@ -107,11 +107,11 @@ CREATE TABLE IF NOT EXISTS training_sessions (
     attention_type TEXT,
     session_token TEXT NOT NULL,
     device_id TEXT,
-    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    start_time TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     end_time TIMESTAMP,
     duration INTEGER DEFAULT 0,
     status TEXT DEFAULT 'active',
-    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_activity TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (child_id) REFERENCES children (id)
 );
 
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS training_sessions (
 CREATE TABLE IF NOT EXISTS game_raw_data (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    timestamp TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     event_type TEXT NOT NULL,
     event_data TEXT,
     score INTEGER,
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS game_raw_data (
 CREATE TABLE IF NOT EXISTS vision_raw_data (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    timestamp TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     attention_score REAL,
     face_detected INTEGER DEFAULT 0,
     head_yaw REAL,
@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS session_summaries (
     order_score REAL DEFAULT 0,
     stable_act_score REAL DEFAULT 0,
     game_data TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (session_id) REFERENCES training_sessions (id),
     FOREIGN KEY (child_id) REFERENCES children (id)
 );
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS child_reports (
     report_type TEXT NOT NULL,
     period_start TIMESTAMP,
     period_end TIMESTAMP,
-    report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    report_date TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     selective_attention_score REAL,
     sustained_attention_score REAL,
     visual_tracking_score REAL,
@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS child_reports (
     milestones_achieved TEXT,
     recommended_games TEXT,
     focus_areas TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (child_id) REFERENCES children (id)
 );
 
@@ -237,7 +237,7 @@ CREATE TABLE IF NOT EXISTS child_reports (
 CREATE TABLE IF NOT EXISTS processed_requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     request_id TEXT NOT NULL UNIQUE,
-    processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    processed_at TIMESTAMP DEFAULT (datetime('now', 'localtime'))
 );
 
 -- 插入默认管理员账号（密码: 123456，应用启动时由 init_db() 使用 bcrypt 加密）

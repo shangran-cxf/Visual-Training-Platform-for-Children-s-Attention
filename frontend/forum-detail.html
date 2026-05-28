@@ -788,7 +788,7 @@
         document.getElementById('author-avatar').textContent = initial;
         document.getElementById('author-name').textContent = data.author_name || '用户';
         document.getElementById('author-level').textContent = `Lv.${data.author_level || 1}`;
-        document.getElementById('post-time').textContent = data.created_at;
+        document.getElementById('post-time').textContent = TimeUtil.format(data.created_at);
         document.getElementById('post-title').textContent = data.title;
         document.getElementById('post-content').textContent = data.content;
 
@@ -884,7 +884,7 @@
                         <div class="comment-header">
                             <div class="comment-avatar">${escapeHtml(initial)}</div>
                             <span class="comment-author">${safeCommentAuthor}</span>
-                            <span class="comment-time">${escapeHtml(comment.created_at)}</span>
+                            <span class="comment-time">${TimeUtil.format(comment.created_at)}</span>
                         </div>
                         <div class="comment-content">${escapeHtml(comment.content)}</div>
                         <div class="comment-actions">

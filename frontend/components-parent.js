@@ -681,7 +681,7 @@ const ParentComponents = {
 
       if (usernameElement) usernameElement.textContent = data.username || userInfo.username || '-';
       if (emailElement) emailElement.textContent = data.email || '-';
-      if (createdElement && data.created_at) createdElement.textContent = data.created_at.split(' ')[0];
+      if (createdElement && data.created_at) createdElement.textContent = TimeUtil.formatDate(data.created_at);
 
       // 填充编辑表单
       const editUsername = document.getElementById('edit-username');

@@ -1566,8 +1566,8 @@
         const result = await ApiUtil.apiGet(`/api/training/daily-summary/${currentChildId}`, params);
         if (result.success && result.data) {
           dailyTrainingData = result.data.daily_data || {};
-          // 使用本地日期查找今日数据，避免 UTC 时区偏差
-          const localToday = new Date().toISOString().split('T')[0];
+          // 使用北京日期查找今日数据
+          const localToday = TimeUtil.todayStr();
           todayTrainingInfo = dailyTrainingData[localToday] || { session_count: 0, total_duration: 0, avg_score: 0 };
         }
       }
