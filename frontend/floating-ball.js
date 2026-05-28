@@ -1224,7 +1224,6 @@
               currentProblem = 'distracted';
               currentMessage = '👀 看这里！';
               if (currentTipType !== currentProblem) {
-                sessionDistractionCount++;
               }
             } else {
               currentProblem = null;
