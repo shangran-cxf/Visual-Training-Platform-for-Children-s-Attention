@@ -457,6 +457,8 @@
         <p>文献依据：《中华养生保健》2023 舒尔特方格研究</p>
       </div>
     </div>
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script src="../utils.js"></script>
     <script>
       let currentDifficulty = 3;
@@ -1031,6 +1033,10 @@
               sessionId = result.data.session_id;
               console.log('训练会话创建成功:', sessionId);
 
+              if (typeof visionUploader !== 'undefined') {
+                visionUploader.start(sessionId);
+              }
+
               // 上传游戏数据
               return fetch(`${baseUrl}/api/training/game-data`, {
                 method: 'POST',
@@ -1072,6 +1078,10 @@
               localStorage.removeItem(cacheKey);
               console.log('已清除能力评估缓存:', cacheKey);
 
+              if (typeof visionUploader !== 'undefined') {
+                visionUploader.stop();
+              }
+
               // 结束训练会话
               return fetch(`${baseUrl}/api/training/session/end`, {
                 method: 'POST',
@@ -1101,6 +1111,14 @@
             if (result.success) {
               console.log('训练会话结束成功:', result.data);
 
+              // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+              var backendScore = null;
+              var backendLevel = null;
+              if (result.data && result.data.summary) {
+                backendScore = result.data.summary.final_score;
+                backendLevel = result.data.summary.performance_level;
+              }
+
               // 保存训练时间到 localStorage，用于今日训练页面显示
               const today = new Date().toISOString().split('T')[0];
               const trainingTimeData = JSON.parse(localStorage.getItem('trainingData') || '{}');
@@ -1115,6 +1133,8 @@
               console.log('训练时间已保存到 localStorage');
 
               // 训练后迭代优化
+              trainingData.backendScore = backendScore;
+              trainingData.backendLevel = backendLevel;
               postTrainingOptimization(trainingData);
             } else {
               throw new Error(result.message || '结束会话失败');
@@ -1183,7 +1203,11 @@
         };
 
         // 只显示评分，不显示其他提示
-        showPostTrainingModal('训练完成', `你的评分为：${finalScore}分`, false, scoreDetails);
+        // 使用后端评分（如有），否则使用前端计算的评分
+        var displayScore = trainingData.backendScore != null ? trainingData.backendScore : finalScore;
+        var scoreMsg = '你的评分为：' + displayScore + '分';
+        if (trainingData.backendLevel) scoreMsg += ' (' + trainingData.backendLevel + ')';
+        showPostTrainingModal('训练完成', scoreMsg, false, scoreDetails);
 
         // 保存历史表现数据
         const historicalData = StorageUtil.getItem('historical_performance') || [];

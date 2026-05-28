@@ -403,6 +403,8 @@
       </div>
     </div>
 
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script src="../utils.js"></script>
     <script>
       // 游戏变量
@@ -683,11 +685,11 @@
       function calculateWorkingMemoryScore() {
         // 计算各项指标
         const acc = totalPairs > 0 ? matchedPairs / totalPairs : 0;
-        
+
         // 时间评分：使用指数衰减，超时120秒扣到0分
         const timeOvertime = time - 60;
         const speed = Math.max(0, 1 / (1 + timeOvertime / 90));
-        
+
         // 顺序保持能力：根据翻牌尝试次数计算
         // 最优情况下，每对牌只需翻一次（2张），所以期望尝试次数等于总对数
         const expectedAttempts = totalPairs;
@@ -754,7 +756,7 @@
           showAlert(
             '恭喜你成为海洋守护小天使!',
             `
-                    <p>得分：${finalScore}</p>
+                    <p>得分：<span id="cardMatchScore">${finalScore}</span></p>
                     <p>用时：${time}秒</p>
                     <p style="margin-top: 20px;">你成功帮助所有海洋生物找到了它们的伙伴！</p>
                     <p>继续加油，保护海洋环境！</p>
@@ -832,6 +834,10 @@
                 sessionId = result.data.session_id;
                 console.log('训练会话创建成功:', sessionId);
 
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.start(sessionId);
+                }
+
                 // 上传游戏数据
                 return fetch(`${baseUrl}/api/training/game-data`, {
                   method: 'POST',
@@ -867,6 +873,10 @@
                 const cacheKey = `child_data_${childId}`;
                 localStorage.removeItem(cacheKey);
                 console.log('已清除能力评估缓存:', cacheKey);
+
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.stop();
+                }
 
                 // 结束训练会话
                 return fetch(`${baseUrl}/api/training/session/end`, {
@@ -904,6 +914,20 @@
                 trainingData[today].totalTime += time;
                 localStorage.setItem('trainingData', JSON.stringify(trainingData));
                 console.log('训练时间已保存到 localStorage');
+
+                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                var backendScore = null;
+                var backendLevel = null;
+                if (result.data && result.data.summary) {
+                  backendScore = result.data.summary.final_score;
+                  backendLevel = result.data.summary.performance_level;
+                }
+                if (backendScore !== null) {
+                  var scoreEl = document.getElementById('cardMatchScore');
+                  if (scoreEl) {
+                    scoreEl.textContent = backendScore + '分 (' + (backendLevel || '') + ')';
+                  }
+                }
               }
             })
             .catch((error) => {

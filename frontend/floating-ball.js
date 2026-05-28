@@ -1087,6 +1087,19 @@
             }
           }
 
+          // Expose real-time vision data for the scoring pipeline
+          window.__visionBridge__ = {
+            headYaw: detectionData.headYaw,
+            headPitch: detectionData.headPitch,
+            faceArea: detectionData.faceArea,
+            blinkRate: detectionData.blinkRate,
+            blinkCount: totalBlinks,
+            attentionScore: detectionData.attentionScore,
+            focusDuration: detectionData.focusDuration,
+            isFaceDetected: detectionData.isFaceDetected,
+            timestamp: Date.now(),
+          };
+
           updateBallScore();
           if (isPanelOpen) updatePanelData();
         } catch (error) {

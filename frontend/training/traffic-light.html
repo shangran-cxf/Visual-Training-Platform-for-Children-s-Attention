@@ -528,6 +528,8 @@
       </div>
     </div>
 
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script>
       // ========================
       // 游戏数据 & 研究参数 (基于Stroop范式，抑制控制训练)
@@ -988,7 +990,7 @@
             <div class="end-panel">
                 <h3>🎉 训练完成 🎉</h3>
                 <p>🪙 获得金币: ${gameState.coins}</p>
-                <p>⭐ 总分: ${finalScore}</p>
+                <p>⭐ 总分: <span id="finalScoreText">${finalScore}</span></p>
                 <p>🎯 总正确率: ${accuracy}%</p>
                 <p>🧠 抑制控制(不一致试次)正确率: ${incongAcc}%</p>
                 <div class="end-buttons">
@@ -1037,6 +1039,10 @@
                 sessionId = result.data.session_id;
                 console.log('训练会话创建成功:', sessionId);
 
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.start(sessionId);
+                }
+
                 // 上传游戏数据
                 return fetch(`${baseUrl}/api/training/game-data`, {
                   method: 'POST',
@@ -1078,6 +1084,10 @@
                 localStorage.removeItem(cacheKey);
                 console.log('已清除能力评估缓存:', cacheKey);
 
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.stop();
+                }
+
                 // 结束训练会话
                 return fetch(`${baseUrl}/api/training/session/end`, {
                   method: 'POST',
@@ -1115,6 +1125,20 @@
                 trainingData[today].totalTime += gameTime;
                 localStorage.setItem('trainingData', JSON.stringify(trainingData));
                 console.log('训练时间已保存到 localStorage');
+
+                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                var backendScore = null;
+                var backendLevel = null;
+                if (result.data && result.data.summary) {
+                  backendScore = result.data.summary.final_score;
+                  backendLevel = result.data.summary.performance_level;
+                }
+                if (backendScore !== null) {
+                  var scoreEl = document.getElementById('finalScoreText');
+                  if (scoreEl) {
+                    scoreEl.textContent = backendScore + '分 (' + (backendLevel || '') + ')';
+                  }
+                }
               }
             })
             .catch((error) => {
