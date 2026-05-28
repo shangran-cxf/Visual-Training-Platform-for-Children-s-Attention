@@ -410,13 +410,22 @@ const ParentComponents = {
                 body {
                     flex-direction: column;
                     padding: 12px;
+                    padding-bottom: 100px;
                 }
 
                 .sidebar {
+                    position: fixed;
+                    top: auto;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
                     width: 100%;
+                    height: auto;
                     flex-direction: row;
                     padding: 12px;
                     gap: 10px;
+                    border-radius: 24px 24px 0 0;
+                    z-index: 100;
                 }
 
                 .main-content {
