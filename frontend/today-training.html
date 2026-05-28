@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
 
 <head>
@@ -805,6 +805,93 @@
       font-weight: 700;
     }
 
+    .ability-bars {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-evenly;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ability-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ability-bar-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: #6b4d2a;
+      width: 80px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .ability-bar-track {
+      flex: 1;
+      height: 14px;
+      background: #f0e8d8;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .ability-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    .ability-bar-fill.sel {
+      background: #e8c4b8;
+    }
+
+    .ability-bar-fill.sus {
+      background: #b0cfe8;
+    }
+
+    .ability-bar-fill.tra {
+      background: #c8d8a8;
+    }
+
+    .ability-bar-fill.mem {
+      background: #c8c8e0;
+    }
+
+    .ability-bar-fill.inh {
+      background: #e8ccd0;
+    }
+
+    .ability-bar-score {
+      font-size: 14px;
+      font-weight: 700;
+      color: #8b6914;
+      width: 38px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .ability-bar-row.weak-row .ability-bar-fill {
+      animation: barPulse 2.5s ease-in-out infinite;
+    }
+
+    .ability-bar-row.weak-row .ability-bar-label {
+      color: #c06020;
+    }
+
+    @keyframes barPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+    }
+
     .trend-up {
       color: #4caf50;
       font-weight: 700;
@@ -1540,8 +1627,8 @@
         <p class="recommend-subtitle" id="recommendSubtitle">本周薄弱维度（建议今日攻克）</p>
         <div class="reassess-days" id="reassessDays" style="display:none"></div>
         <div class="recommend-divider"></div>
-        <div class="recommend-items">
-        </div>
+        <div class="recommend-items"></div>
+        <div class="ability-bars" id="abilityBars"></div>
       </div>
     </div>
   </main>
@@ -1920,6 +2007,7 @@
       if (recommendSubtitle) recommendSubtitle.textContent = '本周薄弱维度（建议今日攻克）';
 
       abilities.sort((a, b) => a.score - b.score);
+      const allAbilities = abilities.slice();
       const weakest = abilities.slice(0, 2);
 
       recommendItems.innerHTML = '';
@@ -1942,16 +2030,41 @@
             '<div class="rec-card-left ' + ability.type + '">' + icon + '</div>' +
             '<div class="rec-card-info">' +
             '<div class="rec-card-name">' + game.name + '</div>' +
-            '<div class="rec-card-sub">' +
-            '<span class="rec-card-tag ' + ability.type + '">' + label + ' ' + Math.round(ability.score) + '分</span>' +
-            (trendText ? ' <span class="' + trendClass + '" style="font-size:13px">' + trendText + '</span>' : '') +
             '</div>' +
-            '</div>' +
-            '<div class="rec-card-arrow">→</div>' +
             '</div>';
           recommendItems.appendChild(recommendItem);
         }
       });
+
+      renderAbilityBars(allAbilities, weakest);
+    }
+
+    function renderAbilityBars(allAbilities, weakAbilities) {
+      var barsEl = document.getElementById('abilityBars');
+      if (!barsEl) return;
+
+      var dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
+      var dotClasses = ['sel', 'sus', 'tra', 'mem', 'inh'];
+      var weakTypes = weakAbilities.map(function (a) { return a.type; });
+
+      var html = '';
+      for (var i = 0; i < allAbilities.length; i++) {
+        var ab = allAbilities[i];
+        var isWeak = weakTypes.indexOf(ab.type) >= 0;
+        var rowClass = isWeak ? 'ability-bar-row weak-row' : 'ability-bar-row';
+        var scoreClamped = Math.max(0, Math.min(100, Math.round(ab.score)));
+
+        html +=
+          '<div class="' + rowClass + '">' +
+          '<span class="ability-bar-label">' + dimNames[i] + '</span>' +
+          '<div class="ability-bar-track">' +
+          '<div class="ability-bar-fill ' + dotClasses[i] + '" style="width:' + scoreClamped + '%"></div>' +
+          '</div>' +
+          '<span class="ability-bar-score">' + scoreClamped + '分</span>' +
+          '</div>';
+      }
+
+      barsEl.innerHTML = html;
     }
 
     // 开始游戏

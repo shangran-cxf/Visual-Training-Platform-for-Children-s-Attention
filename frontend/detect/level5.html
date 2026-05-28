@@ -592,6 +592,9 @@
     function uploadAllDetectionResults() {
       if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) return;
 
+      if (sessionStorage.getItem('detect_uploaded_level5')) return;
+      sessionStorage.setItem('detect_uploaded_level5', '1');
+
       var dimensionKeys = [
         'selective_attention',
         'sustained_attention',

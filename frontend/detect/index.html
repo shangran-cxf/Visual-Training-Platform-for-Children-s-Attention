@@ -430,37 +430,6 @@
       position: relative;
     }
 
-    .level-card.completed::after {
-      content: '✓';
-      position: absolute;
-      top: 15px;
-      right: 20px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #4caf50;
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
-    }
-
-    .btn-start.completed-btn {
-      background: #4caf50 !important;
-      color: white !important;
-      font-size: 14px;
-      pointer-events: auto;
-    }
-
-    .btn-start.replay-btn {
-      background: white !important;
-      color: inherit !important;
-      font-size: 14px;
-    }
-
     .level-score-badge {
       display: block;
       font-size: 14px;
@@ -605,7 +574,7 @@
       left: 0;
       right: 0;
       height: 5px;
-      background: linear-gradient(90deg, #fcceb4, #abd7fb, #d2e0aa, #d5d6f2, #ffd1dc);
+      background: #fab70d;
       border-radius: 36px 36px 0 0;
     }
 
@@ -707,7 +676,7 @@
 
     .training-modal .report-header h2 {
       font-size: 28px;
-      color: #51915f;
+      color: #ff7518;
       font-weight: 800;
       margin: 0;
       line-height: 1.2;
@@ -838,7 +807,7 @@
     }
 
     .training-modal .growth-msg .msg-text b {
-      color: #ff8c42;
+      color: #ffa500;
     }
 
     .training-modal .modal-actions {
@@ -859,12 +828,12 @@
     }
 
     .training-modal .modal-btn.primary-btn {
-      background: #ff8c42;
+      background: #ffa500;
       color: #fff;
     }
 
     .training-modal .modal-btn.primary-btn:hover {
-      background: #f5782e;
+      background: #ffa500;
       transform: translateY(-1px);
     }
 
@@ -1459,7 +1428,7 @@
 
     <div class="training-bubble-wrapper">
       <button class="training-bubble" id="trainingBubble" onclick="showTrainingModal()">
-        我的成长小报<span class="badge" id="trainingBadge" style="display:none">0</span>
+        成长小报<span class="badge" id="trainingBadge" style="display:none">0</span>
         <div class="c-button__blobs">
           <div></div>
           <div></div>
@@ -1547,8 +1516,8 @@
       <table class="growth-table" id="growthTable"></table>
       <div class="growth-msg" id="growthMsg"></div>
       <div class="modal-actions">
-        <button class="modal-btn primary-btn" onclick="window.location.href='../training/index.html'">&#x1F3AE;
-          去训练提升</button>
+        <button class="modal-btn primary-btn" onclick="window.location.href='../child-home.html'">
+          训练提升</button>
         <button class="modal-btn secondary-btn" onclick="closeTrainingModal()">继续挑战</button>
       </div>
     </div>
@@ -1597,18 +1566,6 @@
         console.log('[Detect] level' + (i + 1) + ' data:', levelData);
         if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
           completedCount++;
-          var card = cards[i];
-          if (card) {
-            card.classList.add('completed');
-            var btn = card.querySelector('.btn-start');
-            if (btn) {
-              btn.textContent = '得分: ' + levelData[dimensionKeys[i]];
-              btn.className = 'btn-start completed-btn';
-              btn.onclick = function (level) {
-                return function () { startLevel(level); };
-              }(i + 1);
-            }
-          }
         }
       }
 
@@ -1619,80 +1576,6 @@
           badge.textContent = completedCount;
         }
       }
-
-      if (completedCount === 5) {
-        uploadDetectionToBackend();
-      }
-    }
-
-    function uploadDetectionToBackend() {
-      if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) return;
-
-      var dimensionKeys = [
-        'selective_attention',
-        'sustained_attention',
-        'visual_tracking',
-        'working_memory',
-        'inhibitory_control',
-      ];
-      var scores = {};
-      var allComplete = true;
-
-      for (var i = 0; i < 5; i++) {
-        var levelData = null;
-        try {
-          levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
-        } catch (e) { }
-
-        if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
-          scores[dimensionKeys[i]] = levelData[dimensionKeys[i]];
-        } else {
-          allComplete = false;
-          break;
-        }
-      }
-
-      if (!allComplete) return;
-
-      var totalScore = Math.round(
-        (scores.selective_attention +
-          scores.sustained_attention +
-          scores.visual_tracking +
-          scores.working_memory +
-          scores.inhibitory_control) /
-        5
-      );
-
-      var childId = UserStateUtil.getCurrentChildId();
-      var baseUrl = getBaseUrl();
-
-      fetch(baseUrl + '/api/upload/detection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
-        },
-        body: JSON.stringify({
-          child_id: childId,
-          selective_attention: scores.selective_attention,
-          sustained_attention: scores.sustained_attention,
-          visual_tracking: scores.visual_tracking,
-          working_memory: scores.working_memory,
-          inhibitory_control: scores.inhibitory_control,
-          total_score: totalScore,
-        }),
-      })
-        .then(function (res) {
-          return res.json();
-        })
-        .then(function (result) {
-          if (result.success) {
-            console.log('[Detect] ✅ 测评数据已持久化到后端 detection_data 表');
-          }
-        })
-        .catch(function (err) {
-          console.error('[Detect] 上传测评数据失败:', err);
-        });
     }
 
     function loadDetectionFromBackend(callback) {
@@ -1770,7 +1653,7 @@
     function showTrainingModal() {
       var overlay = document.getElementById('trainingModalOverlay');
       var dimensionKeys = ['selective_attention', 'sustained_attention', 'visual_tracking', 'working_memory', 'inhibitory_control'];
-      var kidNames = ['火眼金睛', '专注耐力', '追踪高手', '记忆达人', '自控大师'];
+      var kidNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
       var dotClasses = ['sel', 'sus', 'tra', 'mem', 'inh'];
       var scores = [];
 
@@ -1801,7 +1684,21 @@
         .then(function (result) {
           var previous = null;
           if (result.success && result.data && result.data.length >= 2) {
-            previous = result.data[1];
+            var latest = result.data[0];
+            for (var k = 1; k < result.data.length; k++) {
+              var candidate = result.data[k];
+              var isSame = true;
+              for (var d = 0; d < dimensionKeys.length; d++) {
+                if (candidate[dimensionKeys[d]] !== latest[dimensionKeys[d]]) {
+                  isSame = false;
+                  break;
+                }
+              }
+              if (!isSame) {
+                previous = candidate;
+                break;
+              }
+            }
           }
           renderGrowthCompare(scores, previous, dimensionKeys, dotClasses);
           if (overlay) overlay.classList.add('show');
