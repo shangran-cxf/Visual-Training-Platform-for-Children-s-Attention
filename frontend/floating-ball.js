@@ -424,6 +424,35 @@
       element.style.cursor = 'grabbing';
       e.preventDefault();
     });
+
+    element.addEventListener(
+      'touchstart',
+      (e) => {
+        if (e.target !== element && !element.contains(e.target)) return;
+        if (e.touches.length !== 1) return; // 只处理单指
+
+        activeDragElement = type;
+        var touch = e.touches[0];
+        dragStartX = touch.clientX;
+        dragStartY = touch.clientY;
+
+        dragStartLeft = parseFloat(floatingBall.style.left) || window.innerWidth - 70;
+        dragStartTop = parseFloat(floatingBall.style.top) || 100;
+
+        if (panel && isPanelOpen) {
+          dragStartPanelLeft = parseFloat(panel.style.left) || window.innerWidth - 296;
+          dragStartPanelTop = parseFloat(panel.style.top) || 100;
+        }
+
+        if (currentCloud) {
+          dragStartCloudLeft = parseFloat(currentCloud.style.left) || window.innerWidth - 160;
+          dragStartCloudTop = parseFloat(currentCloud.style.top) || 35;
+        }
+
+        e.preventDefault(); // 防止页面滚动
+      },
+      { passive: false },
+    );
   }
 
   document.addEventListener('mousemove', (e) => {
@@ -470,10 +499,63 @@
     }
   });
 
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!activeDragElement) return;
+      if (e.touches.length !== 1) return;
+
+      var touch = e.touches[0];
+      var deltaX = touch.clientX - dragStartX;
+      var deltaY = touch.clientY - dragStartY;
+
+      var newLeft = dragStartLeft + deltaX;
+      var newTop = dragStartTop + deltaY;
+
+      newLeft = Math.max(0, Math.min(window.innerWidth - 50, newLeft));
+      newTop = Math.max(0, Math.min(window.innerHeight - 50, newTop));
+
+      floatingBall.style.left = newLeft + 'px';
+      floatingBall.style.top = newTop + 'px';
+      floatingBall.style.right = 'auto';
+      floatingBall.style.bottom = 'auto';
+
+      if (panel && isPanelOpen) {
+        var pnl = dragStartPanelLeft + deltaX;
+        var pnt = dragStartPanelTop + deltaY;
+        pnl = Math.max(0, Math.min(window.innerWidth - 284, pnl));
+        pnt = Math.max(0, Math.min(window.innerHeight - 430, pnt));
+        panel.style.left = pnl + 'px';
+        panel.style.top = pnt + 'px';
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+      }
+
+      if (currentCloud) {
+        var cl = dragStartCloudLeft + deltaX;
+        var ct = dragStartCloudTop + deltaY;
+        cl = Math.max(0, Math.min(window.innerWidth - 150, cl));
+        ct = Math.max(0, Math.min(window.innerHeight - 100, ct));
+        currentCloud.style.left = cl + 'px';
+        currentCloud.style.top = ct + 'px';
+        currentCloud.style.right = 'auto';
+        currentCloud.style.bottom = 'auto';
+      }
+    },
+    { passive: false },
+  );
+
   document.addEventListener('mouseup', () => {
     if (activeDragElement) {
       activeDragElement = null;
       if (floatingBall) floatingBall.style.cursor = 'move';
+    }
+  });
+
+  document.addEventListener('touchend', () => {
+    if (activeDragElement) {
+      activeDragElement = null;
+      if (floatingBall) floatingBall.style.cursor = '';
     }
   });
 
