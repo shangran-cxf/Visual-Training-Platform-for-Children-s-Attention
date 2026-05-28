@@ -62,10 +62,6 @@
   // 专注计时变量
   let focusStartTime = null;
   let totalFocusDuration = 0;
-  let currentBlinkRate = 0;
-  let smoothBlinkRate = 0;
-  let eyeClosedCounter = 0;
-
   // 当前显示的云朵
   let currentCloud = null;
   let currentTipType = null;
@@ -1223,8 +1219,6 @@
             } else if (Math.abs(yaw) > 25 || Math.abs(pitch) > 20) {
               currentProblem = 'distracted';
               currentMessage = '👀 看这里！';
-              if (currentTipType !== currentProblem) {
-              }
             } else {
               currentProblem = null;
             }
@@ -1275,11 +1269,4 @@
     }
     detect();
   }
-
-  // 移除 beforeunload 事件，避免点击下一关时显示会话报告
-  // window.addEventListener('beforeunload', () => {
-  //     if (sessionIsActive) {
-  //         endSession();
-  //     }
-  // });
 })();
