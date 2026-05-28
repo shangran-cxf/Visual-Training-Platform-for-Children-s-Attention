@@ -444,6 +444,9 @@
 
     </div>
 
+    <script src="../../floating-ball.js"></script>
+    <script src="../../api/vision-uploader.js"></script>
+    <script src="../utils.js"></script>
     <script>
       const COLORS = [
         { name: '红', code: '#E34234', emoji: '🔴', rgbLight: 'radial-gradient(circle at 35% 35%, #ff7b6b, #c0311a)' },
@@ -473,10 +476,15 @@
       let timeLeft = gameDuration;
       let countdownTimer = null;
 
-      const baseSpeed = 1000;
-      const minSpeed = 600;
-      const baseMatchRate = 0.5;
-      const minMatchRate = 0.25;
+      // [scoring-system] Session created at game start so vision data
+      // covers the full gameplay period.
+      let gameSessionId = null;
+
+      // 自适应难度参数
+      const baseSpeed = 1000; // 基础切换间隔
+      const minSpeed = 600; // 速度上限
+      const baseMatchRate = 0.5; // 基础一致概率
+      const minMatchRate = 0.25; // 最低一致概率
       let currentSpeed = baseSpeed;
       let currentMatchRate = baseMatchRate;
 
@@ -550,6 +558,39 @@
 
         startSwitching();
         startCountdown();
+
+        // [scoring-system] Create new session on reset.
+        if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+          const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+          const _userInfo = UserStateUtil.getUserInfo();
+          const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
+
+          fetch(`${_baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: _childId,
+              game_type: 'inhibitory',
+              device_id: 'web',
+            }),
+          })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                gameSessionId = result.data.session_id;
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.start(gameSessionId);
+                }
+              }
+            })
+            .catch((error) => {
+              console.error('创建训练会话失败:', error);
+            });
+        }
       }
 
       function startSwitching() {
@@ -616,8 +657,14 @@
         }
 
         const inhibitionScore = calculateInhibitionScore();
-        
-        feedbackDiv.innerHTML = '🎉 游戏结束！训练完成！';
+        feedbackDiv.innerHTML =
+          '🎉 游戏结束！最终得分：' +
+          score +
+          '分 🎉<br>综合评分：' +
+          inhibitionScore +
+          '分<br>评价：' +
+          evaluation +
+          '<br><br><button class="btn" style="background-color:#ff9800;margin-top:10px" onclick="window.location.href=\'../training/traffic-light.html\'">🎯 针对性训练</button><br><span style="font-size:14px;color:#666">点击重置可重新挑战</span>';
 
         const data = {
           inhibition_control: inhibitionScore,
@@ -627,12 +674,109 @@
         try {
           if (typeof StorageUtil !== 'undefined') {
             StorageUtil.setItem('level5_data', data);
+            var det = StorageUtil.getItem('detection_data') || {};
+            det.inhibitory_control = inhibitionScore;
+            det.timestamp = new Date().toISOString();
+            StorageUtil.setItem('detection_data', det);
           }
         } catch (error) {
           console.log('StorageUtil not available');
         }
 
+        uploadAllDetectionResults();
+
+        // 上传训练数据
         uploadTrainingData(inhibitionScore, score, clickCount);
+      }
+
+      function uploadAllDetectionResults() {
+        if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) return;
+
+        if (sessionStorage.getItem('detect_uploaded_level5')) return;
+        sessionStorage.setItem('detect_uploaded_level5', '1');
+
+        var dimensionKeys = [
+          'selective_attention',
+          'sustained_attention',
+          'visual_tracking',
+          'working_memory',
+          'inhibitory_control',
+        ];
+        var scores = {};
+        var allComplete = true;
+
+        for (var i = 0; i < 5; i++) {
+          var levelData = null;
+          try {
+            levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
+          } catch (e) {}
+
+          if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
+            scores[dimensionKeys[i]] = levelData[dimensionKeys[i]];
+          } else {
+            allComplete = false;
+            break;
+          }
+        }
+
+        if (!allComplete) return;
+
+        var totalScore = Math.round(
+          (scores.selective_attention +
+            scores.sustained_attention +
+            scores.visual_tracking +
+            scores.working_memory +
+            scores.inhibitory_control) /
+            5,
+        );
+
+        var childId = UserStateUtil.getCurrentChildId();
+        var baseUrl =
+          typeof getBaseUrl !== 'undefined'
+            ? getBaseUrl()
+            : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+              ? 'http://localhost:5000'
+              : window.location.origin;
+
+        fetch(baseUrl + '/api/upload/detection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
+          },
+          body: JSON.stringify({
+            child_id: childId,
+            selective_attention: scores.selective_attention,
+            sustained_attention: scores.sustained_attention,
+            visual_tracking: scores.visual_tracking,
+            working_memory: scores.working_memory,
+            inhibitory_control: scores.inhibitory_control,
+            total_score: totalScore,
+          }),
+        })
+          .then(function (res) {
+            return res.json();
+          })
+          .then(function (result) {
+            if (result.success) {
+              console.log('[Level5] ✅ 测评数据已持久化到后端');
+            }
+          })
+          .catch(function (err) {
+            console.error('[Level5] 上传测评数据失败:', err);
+          });
+      }
+
+      function getFocusEvaluation(score) {
+        if (score >= 76) {
+          return '专注力极强，抑制控制优秀';
+        } else if (score >= 51) {
+          return '专注力良好，有一定自控力';
+        } else if (score >= 26) {
+          return '专注力一般，需要多训练';
+        } else {
+          return '容易冲动，抑制能力较弱，建议坚持练习';
+        }
       }
 
       function updateDifficulty() {
@@ -699,28 +843,42 @@
           if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-
             const childId = UserStateUtil.getCurrentChildId();
-            let sessionId = null;
 
-            fetch(`${baseUrl}/api/training/session/start`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-              },
-              body: JSON.stringify({
-                child_id: childId,
-                game_type: 'inhibitory',
-                device_id: 'web',
-              }),
-            })
-              .then((response) => response.json())
-              .then((result) => {
-                if (result.success) {
-                  sessionId = result.data.session_id;
-                  console.log('训练会话创建成功:', sessionId);
+            // [scoring-system] Use session from initGame/resetGame.
+            var sessionReady = Promise.resolve();
+            if (!gameSessionId) {
+              console.warn('Session not ready, creating inline');
+              sessionReady = fetch(`${baseUrl}/api/training/session/start`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                },
+                body: JSON.stringify({
+                  child_id: childId,
+                  game_type: 'inhibitory',
+                  device_id: 'web',
+                }),
+              })
+                .then(function (response) {
+                  return response.json();
+                })
+                .then(function (result) {
+                  if (result.success) {
+                    gameSessionId = result.data.session_id;
+                  }
+                });
+            }
 
+            sessionReady
+              .then(function () {
+                // 先上传缓冲的视觉数据，再提交游戏数据
+                var flushDone = Promise.resolve();
+                if (typeof visionUploader !== 'undefined' && gameSessionId) {
+                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
+                }
+                return flushDone.then(function () {
                   return fetch(`${baseUrl}/api/training/game-data`, {
                     method: 'POST',
                     headers: {
@@ -728,7 +886,7 @@
                       Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
                     },
                     body: JSON.stringify({
-                      session_id: sessionId,
+                      session_id: gameSessionId,
                       request_id: Date.now().toString(),
                       timestamp: new Date().toISOString(),
                       event_type: 'game_complete',
@@ -742,12 +900,12 @@
                       total_step: clickCount,
                     }),
                   });
-                } else {
-                  throw new Error(result.message || '创建会话失败');
-                }
+                });
               })
-              .then((response) => response.json())
-              .then((result) => {
+              .then(function (response) {
+                return response.json();
+              })
+              .then(function (result) {
                 if (result.success) {
                   console.log('游戏数据上传成功');
 
@@ -758,7 +916,7 @@
                       Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
                     },
                     body: JSON.stringify({
-                      session_id: sessionId,
+                      session_id: gameSessionId,
                       final_score: score,
                       total_accuracy: (rawScore / clickCount) * 100 || 0,
                     }),
@@ -767,18 +925,19 @@
                   throw new Error(result.message || '上传游戏数据失败');
                 }
               })
-              .then((response) => response.json())
-              .then((result) => {
+              .then(function (response) {
+                return response.json();
+              })
+              .then(function (result) {
                 console.log('会话结束响应数据:', result);
                 if (result.success) {
                   console.log('训练数据上传完成');
-
-                  const cacheKey = `child_data_${childId}`;
+                  var cacheKey = 'child_data_' + childId;
                   localStorage.removeItem(cacheKey);
                   console.log('已清除能力评估缓存:', cacheKey);
                 }
               })
-              .catch((error) => {
+              .catch(function (error) {
                 console.error('上传训练数据失败:', error);
               });
           }
@@ -804,8 +963,43 @@
         updatePromptUI(currentPromptColorObj);
         startSwitching();
         startCountdown();
-        feedbackDiv.innerHTML = '🧸 游戏开始！颜色一致才能点击加分~';
-      });
+        feedbackDiv.innerHTML = '🧸 游戏开始！记得颜色一致才能点击加分哟~';
+
+        // [scoring-system] Create training session at game start.
+        if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
+          const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+          const _userInfo = UserStateUtil.getUserInfo();
+          const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
+
+          fetch(`${_baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: _childId,
+              game_type: 'inhibitory',
+              device_id: 'web',
+            }),
+          })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                gameSessionId = result.data.session_id;
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.start(gameSessionId);
+                }
+              }
+            })
+            .catch((error) => {
+              console.error('创建训练会话失败:', error);
+            });
+        }
+      }
+
+      initGame();
 
       window.addEventListener('beforeunload', () => {
         if (switchTimer) clearInterval(switchTimer);

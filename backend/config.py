@@ -105,6 +105,187 @@ DEFAULT_GAME_DATA = {
     "mean_rt": 1000,
 }
 
+# ──────────────────────────────────────────────
+# Per-game, per-difficulty sub-score weight overrides
+# Key format: "game_type:difficulty"
+# When an entry exists, it replaces SCORING_WEIGHTS[attention_type].
+# When absent, fallback to type-level weights.
+# Weight design: low difficulty → accuracy/speed (fundamentals);
+#                high difficulty → precision/impulse/order (advanced sub-skills).
+# ──────────────────────────────────────────────
+GAME_DIFFICULTY_WEIGHTS = {
+    # ── Selective Attention ──
+    "schulte:3": {"accuracy": 0.40, "precision": 0.20, "speed": 0.20, "head_stable": 0.10, "blink_stable": 0.10},
+    "schulte:5": {"accuracy": 0.30, "precision": 0.25, "speed": 0.25, "head_stable": 0.10, "blink_stable": 0.10},
+    "schulte:7": {"accuracy": 0.25, "precision": 0.30, "speed": 0.25, "head_stable": 0.10, "blink_stable": 0.10},
+    "find-numbers:1": {"accuracy": 0.35, "precision": 0.25, "speed": 0.20, "head_stable": 0.10, "blink_stable": 0.10},
+    "find-numbers:2": {"accuracy": 0.30, "precision": 0.25, "speed": 0.25, "head_stable": 0.10, "blink_stable": 0.10},
+    "find-numbers:3": {"accuracy": 0.25, "precision": 0.25, "speed": 0.30, "head_stable": 0.10, "blink_stable": 0.10},
+    # ── Sustained Attention ──
+    "magic-maze:easy": {
+        "stable_act": 0.35,
+        "no_fatigue": 0.25,
+        "speed": 0.20,
+        "head_stable": 0.10,
+        "blink_stable": 0.10,
+    },
+    "magic-maze:medium": {
+        "stable_act": 0.25,
+        "no_fatigue": 0.30,
+        "speed": 0.25,
+        "head_stable": 0.10,
+        "blink_stable": 0.10,
+    },
+    "magic-maze:hard": {
+        "stable_act": 0.20,
+        "no_fatigue": 0.35,
+        "speed": 0.25,
+        "head_stable": 0.10,
+        "blink_stable": 0.10,
+    },
+    # ── Tracking ──
+    "sun-tracking:easy": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.08},
+    "sun-tracking:medium": {
+        "accuracy": 0.30,
+        "rt_score": 0.30,
+        "speed": 0.20,
+        "head_stable": 0.12,
+        "face_stable": 0.08,
+    },
+    "sun-tracking:hard": {"accuracy": 0.25, "rt_score": 0.35, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.08},
+    "animal-searching:easy": {
+        "accuracy": 0.40,
+        "rt_score": 0.20,
+        "speed": 0.20,
+        "head_stable": 0.12,
+        "face_stable": 0.08,
+    },
+    "animal-searching:medium": {
+        "accuracy": 0.30,
+        "rt_score": 0.30,
+        "speed": 0.20,
+        "head_stable": 0.12,
+        "face_stable": 0.08,
+    },
+    "animal-searching:hard": {
+        "accuracy": 0.25,
+        "rt_score": 0.35,
+        "speed": 0.20,
+        "head_stable": 0.12,
+        "face_stable": 0.08,
+    },
+    # ── Working Memory ──
+    "card-matching:easy": {"accuracy": 0.45, "order": 0.15, "speed": 0.20, "head_stable": 0.12, "blink_stable": 0.08},
+    "card-matching:medium": {"accuracy": 0.35, "order": 0.25, "speed": 0.20, "head_stable": 0.12, "blink_stable": 0.08},
+    "card-matching:hard": {"accuracy": 0.30, "order": 0.30, "speed": 0.20, "head_stable": 0.12, "blink_stable": 0.08},
+    "reverse-memory:easy": {"accuracy": 0.40, "order": 0.20, "speed": 0.20, "head_stable": 0.12, "blink_stable": 0.08},
+    "reverse-memory:medium": {
+        "accuracy": 0.30,
+        "order": 0.30,
+        "speed": 0.20,
+        "head_stable": 0.12,
+        "blink_stable": 0.08,
+    },
+    "reverse-memory:hard": {"accuracy": 0.25, "order": 0.35, "speed": 0.20, "head_stable": 0.12, "blink_stable": 0.08},
+    # ── Inhibitory Control ──
+    "traffic-light:easy": {
+        "impulse": 0.45,
+        "accuracy": 0.25,
+        "head_stable": 0.15,
+        "face_stable": 0.08,
+        "blink_stable": 0.07,
+    },
+    "traffic-light:medium": {
+        "impulse": 0.35,
+        "accuracy": 0.35,
+        "head_stable": 0.15,
+        "face_stable": 0.08,
+        "blink_stable": 0.07,
+    },
+    "traffic-light:hard": {
+        "impulse": 0.30,
+        "accuracy": 0.40,
+        "head_stable": 0.15,
+        "face_stable": 0.08,
+        "blink_stable": 0.07,
+    },
+    "command-adventure:easy": {
+        "impulse": 0.45,
+        "accuracy": 0.25,
+        "head_stable": 0.15,
+        "face_stable": 0.08,
+        "blink_stable": 0.07,
+    },
+    "command-adventure:medium": {
+        "impulse": 0.35,
+        "accuracy": 0.35,
+        "head_stable": 0.15,
+        "face_stable": 0.08,
+        "blink_stable": 0.07,
+    },
+    "command-adventure:hard": {
+        "impulse": 0.30,
+        "accuracy": 0.40,
+        "head_stable": 0.15,
+        "face_stable": 0.08,
+        "blink_stable": 0.07,
+    },
+}
+
+# Difficulty multiplier: harder difficulties receive a score bonus
+DIFFICULTY_MULTIPLIERS = {
+    "easy": 0.95,
+    "medium": 1.00,
+    "hard": 1.05,
+    1: 0.95,
+    2: 1.00,
+    3: 1.05,
+    5: 1.03,
+    7: 1.06,
+}
+
+# How each game's score distributes across attention dimensions (sum = 1.0)
+GAME_DIMENSION_CONTRIBUTIONS = {
+    "schulte": {"selective_attention": 0.60, "sustained_attention": 0.40},
+    "find-numbers": {"selective_attention": 0.50, "visual_tracking": 0.50},
+    "card-matching": {"working_memory": 0.60, "sustained_attention": 0.40},
+    "reverse-memory": {"working_memory": 1.00},
+    "traffic-light": {"inhibitory_control": 0.60, "sustained_attention": 0.40},
+    "command-adventure": {"inhibitory_control": 1.00},
+    "magic-maze": {"visual_tracking": 0.50, "sustained_attention": 0.50},
+    "sun-tracking": {"visual_tracking": 1.00},
+    "animal-searching": {"selective_attention": 0.50, "visual_tracking": 0.50},
+    "water-plants": {"sustained_attention": 0.60, "inhibitory_control": 0.40},
+    "level1": {"selective_attention": 1.00},
+    "level2": {"sustained_attention": 1.00},
+    "level3": {"visual_tracking": 1.00},
+    "level4": {"working_memory": 1.00},
+    "level5": {"inhibitory_control": 1.00},
+}
+
+# Cross-game score calibration (mean, std_dev) for z-score normalization
+# Initial estimates — should be recalibrated from production data periodically
+GAME_SCORE_CALIBRATION = {
+    "schulte": {"mean": 65, "std": 18},
+    "find-numbers": {"mean": 62, "std": 20},
+    "magic-maze": {"mean": 58, "std": 22},
+    "water-plants": {"mean": 70, "std": 15},
+    "sun-tracking": {"mean": 60, "std": 20},
+    "animal-searching": {"mean": 55, "std": 25},
+    "card-matching": {"mean": 50, "std": 25},
+    "reverse-memory": {"mean": 45, "std": 28},
+    "traffic-light": {"mean": 55, "std": 25},
+    "command-adventure": {"mean": 50, "std": 28},
+    "level1": {"mean": 65, "std": 18},
+    "level2": {"mean": 60, "std": 22},
+    "level3": {"mean": 60, "std": 20},
+    "level4": {"mean": 50, "std": 25},
+    "level5": {"mean": 55, "std": 25},
+}
+
+TIME_DECAY_HALF_LIFE_DAYS = 30
+ENABLE_CROSS_GAME_NORMALIZATION = True
+
 CATEGORIES = [
     {"id": 1, "name": "育儿经验", "description": "分享育儿心得和经验", "icon": "👶", "sort_order": 1},
     {"id": 2, "name": "注意力训练", "description": "讨论注意力训练方法和技巧", "icon": "🎯", "sort_order": 2},
