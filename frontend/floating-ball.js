@@ -1,6 +1,7 @@
 /**
  * 可移动小球 + 专注力检测面板 + 卡通云朵提示
  * EAR算法版：使用眼睛纵横比检测眨眼，更准确稳定
+ * 改进特性：多级窗口频率计算 + 自适应平滑 + 实时变化检测
  */
 
 (function () {
@@ -28,25 +29,35 @@
   const RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380];
 
   let earValue = 1.0; // 当前EAR值
-  let eyeClosedCounter = 0; // 闭眼连续帧计数
+  let isEyeClosed = false; // 当前眼睛状态
   let totalBlinks = 0; // 总眨眼次数
   let blinkTimes = []; // 眨眼时间戳
-  let currentBlinkRate = 0; // 当前眨眼频率（次/分）
-  let smoothBlinkRate = 0; // 平滑后的眨眼频率
+  
+  // 多级窗口配置
+  const WINDOWS = [
+    { name: 'short', duration: 4000 },   // 4秒快速窗口
+    { name: 'medium', duration: 8000 },   // 8秒平衡窗口
+    { name: 'long', duration: 30000 },    // 30秒稳定窗口
+  ];
+  
+  let blinkRateHistory = []; // 频率历史记录
+  const HISTORY_SIZE = 20;   // 历史记录长度
 
-  // EAR阈值（调整为更严格的值：0.20）
+  // EAR阈值
   const EAR_THRESHOLD = 0.2;
-  // 最小闭眼帧数（增加到3帧以减少误检）
-  const MIN_CLOSED_FRAMES = 3;
-  // 统计窗口（延长到15秒以获得更稳定的结果）
-  const BLINK_WINDOW = 15000;
+  const EAR_RECOVER_THRESHOLD = 0.28;
+  const MIN_BLINK_INTERVAL = 200; // 最小眨眼间隔(ms)
 
   // 眨眼基线相关
   let baselineBlinkRate = null;
   let baselineSamples = [];
   let isBaselineCollecting = true;
   let baselineStartTime = null;
-  const BASELINE_DURATION = 30000;
+  const BASELINE_DURATION = 5000; // 缩短到5秒
+  
+  // 眨眼状态（用于显示）
+  let blinkTrend = 'up'; // up, down
+  let blinkChangeIntensity = 0; // 0-1，变化强度
 
   // 专注计时变量
   let focusStartTime = null;
@@ -117,26 +128,116 @@
     return (A + B) / (2.0 * C);
   }
 
-  // 记录眨眼
-  function recordBlink() {
+  // 多级窗口自适应融合眨眼频率计算
+  function calculateBlinkRate() {
     const now = Date.now();
-    totalBlinks++;
-    blinkTimes.push(now);
 
-    // 清理超过10秒的旧记录
-    while (blinkTimes.length > 0 && blinkTimes[0] < now - BLINK_WINDOW) {
-      blinkTimes.shift();
+    // 计算各级窗口频率
+    const shortWindow = 4000;  // 4秒
+    const mediumWindow = 8000; // 8秒
+    const longWindow = 30000;  // 30秒
+
+    const shortBlinks = blinkTimes.filter(t => t >= now - shortWindow);
+    const mediumBlinks = blinkTimes.filter(t => t >= now - mediumWindow);
+    const longBlinks = blinkTimes.filter(t => t >= now - longWindow);
+
+    const shortRate = shortBlinks.length > 0 ? (shortBlinks.length / shortWindow) * 1000 * 60 : 0;
+    const mediumRate = mediumBlinks.length > 0 ? (mediumBlinks.length / mediumWindow) * 1000 * 60 : 0;
+    const longRate = longBlinks.length > 0 ? (longBlinks.length / longWindow) * 1000 * 60 : 0;
+
+    // 计算变化强度（用于自适应融合）
+    let changeIntensity = 0;
+    if (blinkRateHistory.length >= 3) {
+      const recent = blinkRateHistory.slice(-3);
+      const diffs = [Math.abs(recent[1] - recent[0]), Math.abs(recent[2] - recent[1])];
+      const avgDiff = (diffs[0] + diffs[1]) / 2;
+      changeIntensity = Math.min(1, avgDiff / 5); // 归一化到0-1
     }
 
-    // 计算当前频率（次/分钟）
-    const currentRate = (blinkTimes.length / (BLINK_WINDOW / 1000)) * 60;
-    // 更平滑的指数平滑（增加权重）
-    smoothBlinkRate = smoothBlinkRate === 0 ? currentRate : smoothBlinkRate * 0.8 + currentRate * 0.2;
-    currentBlinkRate = smoothBlinkRate;
+    // 自适应融合权重
+    // 变化大时偏向短窗口（快响应），变化小时偏向长窗口（稳定）
+    let shortWeight, longWeight;
+    if (changeIntensity > 0.5) {
+      // 剧烈变化：短窗口60%，长窗口30%
+      shortWeight = 0.6;
+      longWeight = 0.3;
+    } else if (changeIntensity > 0.2) {
+      // 中等变化：短窗口40%，长窗口40%
+      shortWeight = 0.4;
+      longWeight = 0.4;
+    } else {
+      // 小变化：短窗口20%，长窗口70%
+      shortWeight = 0.2;
+      longWeight = 0.7;
+    }
+    const mediumWeight = 1 - shortWeight - longWeight;
 
-    // // console.log(`👁️ 眨眼检测！总次数：${totalBlinks}, 频率：${currentBlinkRate.toFixed(0)} 次/分`);
+    // 融合三个窗口的频率
+    let fusedRate = shortRate * shortWeight + mediumRate * mediumWeight + longRate * longWeight;
 
-    return currentBlinkRate;
+    // 获取当前频率
+    let currentBlinkRate = detectionData.blinkRate || 0;
+
+    // 使用平滑滤波进一步稳定输出
+    if (currentBlinkRate === 0) {
+      currentBlinkRate = fusedRate;
+    } else {
+      currentBlinkRate = currentBlinkRate * 0.8 + fusedRate * 0.2;
+    }
+
+    // 更新历史用于趋势检测
+    blinkRateHistory.push(currentBlinkRate);
+    if (blinkRateHistory.length > HISTORY_SIZE) {
+      blinkRateHistory.shift();
+    }
+
+    // 检测趋势和变化强度
+    detectTrend();
+    detectChangeIntensity();
+
+    // 返回整数，至少显示1
+    const result = Math.round(currentBlinkRate);
+    return result > 0 ? result : 1;
+  }
+
+  // 计算方差
+  function calculateVariance(data) {
+    if (data.length < 2) return 0;
+    const mean = data.reduce((a, b) => a + b, 0) / data.length;
+    return data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
+  }
+
+  // 检测趋势
+  function detectTrend() {
+    if (blinkRateHistory.length < 3) {
+      return; // 不更新趋势，保持之前的状态
+    }
+    
+    const recent = blinkRateHistory.slice(-3);
+    const diffs = [recent[1] - recent[0], recent[2] - recent[1]];
+    const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+    
+    // 只有明显变化才更新趋势
+    if (avgDiff > 0.3) {
+      blinkTrend = 'up';
+    } else if (avgDiff < -0.3) {
+      blinkTrend = 'down';
+    }
+    // 小变化不更新趋势，保持之前的状态
+  }
+
+  // 检测变化强度
+  function detectChangeIntensity() {
+    if (blinkRateHistory.length < 5) {
+      blinkChangeIntensity = 0;
+      return;
+    }
+    
+    const recent = blinkRateHistory.slice(-5);
+    const maxDiff = Math.max(...recent) - Math.min(...recent);
+    const avg = recent.reduce((a, b) => a + b, 0) / recent.length;
+    
+    blinkChangeIntensity = Math.min(1.0, maxDiff / (avg + 0.1));
   }
 
   // 更新EAR值并检测眨眼
@@ -149,16 +250,35 @@
       const rightEAR = calculateEAR(landmarks, RIGHT_EYE_INDICES, frameWidth, frameHeight);
       earValue = (leftEAR + rightEAR) / 2;
 
-      // 判断是否闭眼
-      if (earValue < EAR_THRESHOLD) {
-        eyeClosedCounter++;
-      } else {
-        // 如果之前有连续闭眼帧，说明完成了一次眨眼
-        if (eyeClosedCounter >= MIN_CLOSED_FRAMES) {
-          recordBlink();
+      const now = Date.now();
+      const currentIsClosed = earValue < EAR_THRESHOLD;
+      
+      // 检测闭眼->睁眼的转换（完成一次眨眼）
+      if (isEyeClosed && !currentIsClosed) {
+        isEyeClosed = false;
+        
+        // 检查最小间隔，过滤快速连续眨眼
+        if (blinkTimes.length === 0 || now - blinkTimes[blinkTimes.length - 1] >= MIN_BLINK_INTERVAL) {
+          totalBlinks++;
+          blinkTimes.push(now);
+          console.log(`👁️ 眨眼检测！总次数：${totalBlinks}, EAR: ${earValue.toFixed(3)}`);
         }
-        eyeClosedCounter = 0;
       }
+      
+      // 更新闭眼状态
+      if (currentIsClosed) {
+        isEyeClosed = true;
+      }
+      
+      // 清理旧记录
+      const oldestAllowed = now - WINDOWS[WINDOWS.length - 1].duration;
+      while (blinkTimes.length > 0 && blinkTimes[0] < oldestAllowed) {
+        blinkTimes.shift();
+      }
+      
+      // 调试：输出EAR值
+      // console.log(`EAR: ${earValue.toFixed(3)}, 闭眼: ${currentIsClosed}`);
+      
     } catch (err) {
       console.warn('EAR计算失败:', err);
     }
@@ -166,39 +286,21 @@
 
   // 更新眨眼频率和状态（每帧调用）
   function updateBlinkRate() {
-    const now = Date.now();
-    while (blinkTimes.length > 0 && blinkTimes[0] < now - BLINK_WINDOW) {
-      blinkTimes.shift();
-    }
-    const currentRate = (blinkTimes.length / (BLINK_WINDOW / 1000)) * 60;
-    // 与recordBlink函数保持一致的平滑算法
-    smoothBlinkRate = smoothBlinkRate === 0 ? currentRate : smoothBlinkRate * 0.8 + currentRate * 0.2;
-    currentBlinkRate = smoothBlinkRate;
+    // 计算眨眼频率
+    const currentRate = calculateBlinkRate();
+    detectionData.blinkRate = currentRate;
 
-    // 收集基线数据
-    if (isBaselineCollecting && baselineStartTime) {
-      if (Date.now() - baselineStartTime < BASELINE_DURATION) {
-        const lastSample = baselineSamples.length > 0 ? baselineSamples[baselineSamples.length - 1].time : 0;
-        if (Date.now() - lastSample > 3000 && currentBlinkRate > 0.1) {
-          baselineSamples.push({
-            time: Date.now(),
-            rate: currentBlinkRate,
-          });
-        }
-      } else if (isBaselineCollecting) {
+    // 快速建立基线：直接使用默认值，跳过长收集阶段
+    if (isBaselineCollecting) {
+      // 短暂等待1秒后就直接开始
+      if (Date.now() - baselineStartTime > 1000) {
         isBaselineCollecting = false;
-        if (baselineSamples.length > 0) {
-          const sum = baselineSamples.reduce((a, b) => a + b.rate, 0);
-          baselineBlinkRate = sum / baselineSamples.length;
-          // console.log(`📊 眨眼基线已建立: ${baselineBlinkRate.toFixed(1)} 次/分`);
-        } else {
-          baselineBlinkRate = 12;
-          // console.log(`📊 眨眼基线使用默认值: ${baselineBlinkRate} 次/分`);
-        }
+        baselineBlinkRate = 12; // 默认眨眼频率12次/分
+        // console.log(`📊 眨眼基线快速建立: ${baselineBlinkRate} 次/分`);
       }
     }
 
-    return currentBlinkRate;
+    return currentRate;
   }
 
   // 获取眨眼状态描述
@@ -210,7 +312,7 @@
       return { text: '正常', color: '#4CAF50', advice: '状态良好' };
     }
 
-    const ratio = currentBlinkRate / baselineBlinkRate;
+    const ratio = detectionData.blinkRate / baselineBlinkRate;
 
     if (ratio > 1.5) {
       return { text: '偏高', color: '#FF9800', advice: '可能有点疲劳了' };
@@ -845,14 +947,36 @@
     }
     panel.querySelector('#panel-distance').textContent = distanceText;
 
+    // 眨眼频率正常范围阈值
+    const BLINK_RATE_MIN = 5;  // 低于此值显示红色
+    const BLINK_RATE_MAX = 70; // 高于此值显示红色
+
     // 眨眼频率显示
     const blinkStatus = getBlinkStatus();
     if (isBaselineCollecting) {
       panel.querySelector('#panel-blink-rate').innerHTML = `收集中...`;
     } else {
+      // 获取趋势箭头（只有↑和↓）
+      const arrow = blinkTrend === 'up' ? '↑' : '↓';
+
+      // 整数显示
+      const displayRate = Math.round(detectionData.blinkRate);
+
+      // 根据阈值确定颜色：低于min或高于max显示红色
+      let displayColor;
+      if (displayRate < BLINK_RATE_MIN || displayRate > BLINK_RATE_MAX) {
+        displayColor = '#FF6B6B'; // 红色 - 异常
+      } else if (blinkChangeIntensity > 0.5) {
+        displayColor = '#FF6B6B'; // 红色 - 剧烈变化
+      } else if (blinkChangeIntensity > 0.3) {
+        displayColor = '#FFC107'; // 黄色 - 中等变化
+      } else {
+        displayColor = blinkStatus.color; // 正常状态颜色
+      }
+
       panel.querySelector('#panel-blink-rate').innerHTML =
-        `<span style="color: ${blinkStatus.color}">${currentBlinkRate.toFixed(0)}次/分</span>
-                 <span style="font-size: 10px; color: #888;"> (${blinkStatus.text})</span>`;
+        `<span style="color: ${displayColor}; font-weight: bold; font-size: 16px;">${displayRate}${arrow}</span>
+         <span style="font-size: 11px; color: #888; margin-left: 3px;">次/分</span>`;
     }
 
     const minutes = Math.floor(detectionData.focusDuration / 60);
@@ -1036,7 +1160,7 @@
               headYaw: yaw,
               headPitch: pitch,
               faceArea: faceArea,
-              blinkRate: currentBlinkRate,
+              blinkRate: detectionData.blinkRate,
               focusDuration: currentFocusDuration,
             };
 
