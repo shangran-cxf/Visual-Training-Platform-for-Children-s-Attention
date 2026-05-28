@@ -236,14 +236,14 @@
         }
       }
 
-      /* 自定义弹窗样式 */
+      /* 自定义弹窗样式 - 海洋主题 */
       .custom-alert {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.6);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -259,55 +259,173 @@
       }
 
       .alert-content {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border-radius: 20px;
-        padding: 30px;
-        box-shadow: 0 10px 30px rgba(0, 172, 237, 0.3);
-        max-width: 400px;
+        background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 40%, #90caf9 100%);
+        border-radius: 24px;
+        padding: 35px 40px;
+        box-shadow: 0 8px 32px rgba(2, 136, 209, 0.25);
+        max-width: 480px;
         width: 90%;
         text-align: center;
-        border: 3px solid #b3e5fc;
+        border: 3px solid rgba(33, 150, 243, 0.3);
         position: relative;
         transform: scale(0.8);
         transition: transform 0.3s ease;
+        overflow: hidden;
+      }
+
+      .alert-content::before {
+        content: '🐠';
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        animation: swim 3s ease-in-out infinite;
+      }
+
+      .alert-content::after {
+        content: '🐟';
+        position: absolute;
+        bottom: 15px;
+        left: 25px;
+        font-size: 24px;
+        animation: swim 2.5s ease-in-out infinite reverse;
+      }
+
+      @keyframes swim {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        50% { transform: translateX(10px) translateY(-5px); }
       }
 
       .custom-alert.show .alert-content {
         transform: scale(1);
+        animation: modalSlideIn 0.4s ease-out;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          transform: translateY(-30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
       }
 
       .alert-content h3 {
-        color: #3756b3;
-        font-size: 1.8em;
-        margin-bottom: 20px;
+        color: #1565c0;
+        font-size: 26px;
+        margin-bottom: 24px;
         font-family: 'Comic Sans MS', cursive, sans-serif;
       }
 
-      .alert-content p {
-        color: #0288d1;
-        font-size: 1.2em;
-        margin-bottom: 15px;
-        line-height: 1.4;
-        font-family: 'Comic Sans MS', cursive, sans-serif;
+      .alert-content .bubble-decoration {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        animation: bubbleRise 4s ease-in infinite;
       }
 
-      .alert-button {
-        background: linear-gradient(135deg, #4fc3f7, #29b6f6);
-        color: white;
+      .alert-content .bubble-decoration:nth-child(1) {
+        width: 12px;
+        height: 12px;
+        top: 20px;
+        left: 30px;
+        animation-delay: 0s;
+      }
+
+      .alert-content .bubble-decoration:nth-child(2) {
+        width: 8px;
+        height: 8px;
+        top: 40px;
+        left: 50px;
+        animation-delay: 1s;
+      }
+
+      .alert-content .bubble-decoration:nth-child(3) {
+        width: 10px;
+        height: 10px;
+        bottom: 60px;
+        right: 40px;
+        animation-delay: 2s;
+      }
+
+      @keyframes bubbleRise {
+        0% { transform: translateY(0) scale(1); opacity: 0.6; }
+        50% { opacity: 0.8; }
+        100% { transform: translateY(-60px) scale(0.5); opacity: 0; }
+      }
+
+      .alert-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      .alert-stat-item {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+      }
+
+      .alert-stat-item .stat-label {
+        font-size: 14px;
+        color: #64b5f6;
+        margin-bottom: 6px;
+      }
+
+      .alert-stat-item .stat-value {
+        font-size: 26px;
+        font-weight: bold;
+        color: #1976d2;
+      }
+
+      .alert-content .message-text {
+        color: #1565c0;
+        font-size: 15px;
+        margin-bottom: 10px;
+        line-height: 1.5;
+        font-family: 'Microsoft YaHei', sans-serif;
+      }
+
+      .alert-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .alert-btn {
+        padding: 12px 28px;
         border: none;
-        padding: 12px 24px;
         border-radius: 25px;
         font-size: 16px;
+        font-weight: bold;
         cursor: pointer;
         transition: all 0.3s;
-        margin-top: 20px;
-        box-shadow: 0 4px 10px rgba(0, 172, 237, 0.3);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
       }
 
-      .alert-button:hover {
-        background: linear-gradient(135deg, #29b6f6, #0288d1);
+      .alert-btn.restart {
+        background-color: #42a5f5;
+        color: white;
+      }
+
+      .alert-btn.restart:hover {
+        background-color: #1e88e5;
         transform: scale(1.05);
-        box-shadow: 0 6px 15px rgba(0, 172, 237, 0.4);
+      }
+
+      .alert-btn.back {
+        background-color: #78909c;
+        color: white;
+      }
+
+      .alert-btn.back:hover {
+        background-color: #546e7a;
+        transform: scale(1.05);
       }
     </style>
   </head>
@@ -397,9 +515,16 @@
     <!-- 自定义弹窗 -->
     <div class="custom-alert" id="customAlert">
       <div class="alert-content">
+        <div class="bubble-decoration"></div>
+        <div class="bubble-decoration"></div>
+        <div class="bubble-decoration"></div>
         <h3 id="alertTitle"></h3>
-        <div id="alertMessage"></div>
-        <button class="alert-button" onclick="closeAlert()">确定</button>
+        <div id="alertMessage" class="alert-stats-grid"></div>
+        <div id="alertText" class="message-text"></div>
+        <div class="alert-buttons">
+          <button class="alert-btn restart" id="restartBtn" onclick="restartFromAlert()">🔄 再来一局</button>
+          <button class="alert-btn back" onclick="backToStartFromAlert()">🏠 返回开始</button>
+        </div>
       </div>
     </div>
 
@@ -418,13 +543,15 @@
       let flipAttempts = 0; // 记录翻牌尝试次数，用于计算顺序保持能力
 
       // 显示自定义弹窗
-      function showAlert(title, message) {
+      function showAlert(title, stats, message) {
         const alertElement = document.getElementById('customAlert');
         const titleElement = document.getElementById('alertTitle');
         const messageElement = document.getElementById('alertMessage');
+        const textElement = document.getElementById('alertText');
 
         titleElement.textContent = title;
-        messageElement.innerHTML = message;
+        messageElement.innerHTML = stats;
+        textElement.innerHTML = message;
         alertElement.classList.add('show');
       }
 
@@ -432,6 +559,55 @@
       function closeAlert() {
         const alertElement = document.getElementById('customAlert');
         alertElement.classList.remove('show');
+      }
+
+      // 从弹窗重新开始游戏
+      function restartFromAlert() {
+        closeAlert();
+        setTimeout(() => {
+          startGame();
+        }, 300);
+      }
+
+      // 从弹窗返回开始界面
+      function backToStartFromAlert() {
+        closeAlert();
+        resetGame();
+      }
+
+      // 重置游戏回到开始界面
+      function resetGame() {
+        gameState = 'ready';
+        clearInterval(timeInterval);
+        
+        // 重置游戏变量
+        cards = [];
+        flippedCards = [];
+        matchedPairs = 0;
+        score = 0;
+        time = 0;
+        flipAttempts = 0;
+        
+        // 更新UI显示
+        document.getElementById('matches').textContent = `0/${totalPairs * 2}`;
+        document.getElementById('score').textContent = '0';
+        document.getElementById('timer').textContent = '0';
+        document.getElementById('cardsContainer').innerHTML = '';
+        
+        // 显示开始界面
+        const gameContainer = document.getElementById('gameContainer');
+        const startPanel = document.getElementById('startPanel');
+        if (startPanel) {
+          startPanel.style.display = 'flex';
+        }
+        if (gameContainer) {
+          gameContainer.style.display = 'none';
+        }
+        
+        // 移除所有卡牌的翻转状态
+        document.querySelectorAll('.card').forEach(card => {
+          card.classList.remove('flipped');
+        });
       }
 
       // 海洋生物卡牌图案
@@ -752,24 +928,37 @@
         // 显示游戏结束信息
         if (matchedPairs === totalPairs) {
           showAlert(
-            '恭喜你成为海洋守护小天使!',
+            '🎉 恭喜你成为海洋守护小天使!',
             `
-                    <p>得分：${finalScore}</p>
-                    <p>用时：${time}秒</p>
-                    <p style="margin-top: 20px;">你成功帮助所有海洋生物找到了它们的伙伴！</p>
-                    <p>继续加油，保护海洋环境！</p>
-                `,
+              <div class="alert-stat-item">
+                <div class="stat-label">🏆 得分</div>
+                <div class="stat-value">${finalScore}</div>
+              </div>
+              <div class="alert-stat-item">
+                <div class="stat-label">⏱️ 用时</div>
+                <div class="stat-value">${time}秒</div>
+              </div>
+            `,
+            '你成功帮助所有海洋生物找到了它们的伙伴！<br>继续加油，保护海洋环境！🌊',
           );
         } else {
           showAlert(
-            '游戏结束！',
+            '🌟 游戏结束',
             `
-                    <p>得分：${finalScore}</p>
-                    <p>配对数：${matchedPairs * 2}/${totalPairs * 2}</p>
-                    <p>用时：${time}秒</p>
-                    <p style="margin-top: 20px;">别灰心，再试一次吧！</p>
-                    <p>你一定能帮助所有海洋生物找到伙伴的！</p>
-                `,
+              <div class="alert-stat-item">
+                <div class="stat-label">🏆 得分</div>
+                <div class="stat-value">${finalScore}</div>
+              </div>
+              <div class="alert-stat-item">
+                <div class="stat-label">🔗 配对数</div>
+                <div class="stat-value">${matchedPairs * 2}/${totalPairs * 2}</div>
+              </div>
+              <div class="alert-stat-item">
+                <div class="stat-label">⏱️ 用时</div>
+                <div class="stat-value">${time}秒</div>
+              </div>
+            `,
+            '别灰心，再试一次吧！<br>你一定能帮助所有海洋生物找到伙伴的！🐠',
           );
         }
 
