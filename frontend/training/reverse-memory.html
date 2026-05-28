@@ -744,8 +744,7 @@
         console.log('StorageUtil 未定义，跳过');
       }
 
-      showGameOverModal(finalScore);
-      uploadTrainingData();
+      uploadTrainingData(finalScore);
     }
 
     function showGameOverModal(finalScore) {
@@ -1031,7 +1030,7 @@
       document.body.appendChild(modal);
     }
 
-    function uploadTrainingData() {
+    function uploadTrainingData(frontendScore) {
       try {
         // [scoring-system] Upload game data + end session.
         // Session was created in startGame(); use gameSessionId directly.
@@ -1124,16 +1123,16 @@
                 console.log('训练时间已保存到 localStorage');
 
                 // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                var backendScore = null;
-                var backendLevel = null;
-                if (result.data && result.data.summary) {
-                  backendScore = Math.round(result.data.summary.final_score);
-                  backendLevel = result.data.summary.performance_level;
+                var displayScore = frontendScore;
+                if (result.data && result.data.summary && result.data.summary.final_score) {
+                  displayScore = Math.round(result.data.summary.final_score);
                 }
+                showGameOverModal(displayScore);
               }
             })
             .catch((error) => {
               console.error('上传训练数据失败:', error);
+              showGameOverModal(frontendScore);
             });
         };
 
@@ -1179,6 +1178,7 @@
         }
       } catch (e) {
         console.error('uploadTrainingData 错误:', e);
+        showGameOverModal(frontendScore);
       }
     }
 
