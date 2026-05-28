@@ -1,13 +1,12 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    
     <meta charset="UTF-8" />
-    
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    
+
     <title>红绿灯抑制训练营</title>
-    
+
     <style>
       * {
         user-select: none;
@@ -30,7 +29,12 @@
       }
 
       .game-container {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 249, 232, 0.72) 50%, rgba(255, 245, 220, 0.7) 100%);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.75) 0%,
+          rgba(255, 249, 232, 0.72) 50%,
+          rgba(255, 245, 220, 0.7) 100%
+        );
         border-radius: 28px;
         box-shadow:
           0 8px 25px rgba(0, 0, 0, 0.08),
@@ -126,7 +130,7 @@
         height: 72px;
         border-radius: 50%;
         background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
-        box-shadow: 
+        box-shadow:
           0 0 15px rgba(0, 0, 0, 0.35),
           inset 0 -4px 12px rgba(0, 0, 0, 0.25),
           inset 0 4px 12px rgba(255, 255, 255, 0.08);
@@ -143,7 +147,7 @@
 
       .bulb.lit-red {
         background: radial-gradient(circle at 35% 35%, #ff8a7d, #ff4757);
-        box-shadow: 
+        box-shadow:
           0 0 25px rgba(255, 71, 87, 0.65),
           0 0 50px rgba(255, 71, 87, 0.35),
           0 0 75px rgba(255, 71, 87, 0.15),
@@ -153,7 +157,7 @@
 
       .bulb.lit-green {
         background: radial-gradient(circle at 35% 35%, #7ed695, #2ed573);
-        box-shadow: 
+        box-shadow:
           0 0 25px rgba(46, 213, 115, 0.65),
           0 0 50px rgba(46, 213, 115, 0.35),
           0 0 75px rgba(46, 213, 115, 0.15),
@@ -163,7 +167,7 @@
 
       .bulb.lit-yellow {
         background: radial-gradient(circle at 35% 35%, #ffe88a, #ffa502);
-        box-shadow: 
+        box-shadow:
           0 0 25px rgba(255, 165, 2, 0.65),
           0 0 50px rgba(255, 165, 2, 0.35),
           0 0 75px rgba(255, 165, 2, 0.15),
@@ -258,7 +262,9 @@
         background: rgba(255, 255, 255, 0.3);
         border-radius: 50%;
         transform: translate(-50%, -50%);
-        transition: width 0.3s, height 0.3s;
+        transition:
+          width 0.3s,
+          height 0.3s;
       }
 
       .action-btn:active::after {
@@ -396,39 +402,24 @@
       </button>
     </div>
     <div class="game-container">
-      
       <h1>🚦 专注小特工 🚦</h1>
 
-      
       <div class="difficulty-panel">
-         
         <div class="sub">🚦 仔细观察：当红绿灯颜色与提示文字颜色一致时，点击按钮得分！</div>
-      
       </div>
 
-      
       <div class="traffic-scene">
-         
         <div class="light-box">
-           
           <div class="bulb" id="lightBulb">⚫</div>
-        
         </div>
-        
+
         <div class="prompt-area">
-           
-          <div class="prompt-card">
-             📢 提示颜色： <span id="promptWord" class="prompt-text">红</span> 
-          </div>
-        
+          <div class="prompt-card">📢 提示颜色： <span id="promptWord" class="prompt-text">红</span></div>
         </div>
-      
       </div>
 
-      
       <button id="clickBtn" class="action-btn">🎯 正确加分</button>
 
-      
       <div class="score-board">
         <div class="score-item">
           <span>🏆 当前得分</span>
@@ -441,7 +432,6 @@
       </div>
 
       <div class="feedback" id="feedbackMsg">🧸 点击按钮，匹配颜色得1分！</div>
-
     </div>
 
     <script src="../../floating-ball.js"></script>
