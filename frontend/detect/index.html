@@ -1,4 +1,4 @@
-﻿﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -449,6 +449,444 @@
       .btn-start:hover {
         transform: scale(1.1);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      .level-card.completed {
+        position: relative;
+      }
+
+      .level-score-badge {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        opacity: 0.8;
+        margin-top: 4px;
+      }
+
+      .training-bubble-wrapper {
+        position: relative;
+        height: 0;
+        z-index: 20;
+        margin-left: 10px;
+        padding-right: 40px;
+      }
+
+      .training-bubble {
+        position: absolute;
+        top: -105px;
+        right: 20px;
+        color: #f99406;
+        font-weight: 700;
+        font-size: 17px;
+        text-decoration: none;
+        padding: 0.7em 1em;
+        cursor: pointer;
+        display: inline-block;
+        vertical-align: middle;
+        z-index: 1;
+        text-transform: none;
+        letter-spacing: 1px;
+        border: 4px solid #f99406;
+        border-radius: 30px;
+        background: transparent;
+        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive;
+        transition: all 700ms ease;
+        box-shadow: none;
+      }
+
+      .training-bubble:hover {
+        color: #fff;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .training-bubble:active {
+        transform: none;
+        box-shadow: none;
+      }
+
+      .training-bubble .c-button__blobs {
+        filter: url(#goo);
+        overflow: hidden;
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        bottom: -4px;
+        right: -4px;
+        border-radius: 30px;
+        z-index: -1;
+      }
+
+      .training-bubble .c-button__blobs div {
+        background-color: #f99406;
+        width: 34%;
+        height: 100%;
+        border-radius: 100%;
+        position: absolute;
+        transform: scale(1.4) translateY(125%) translateZ(0);
+        transition: all 700ms ease;
+      }
+
+      .training-bubble .c-button__blobs div:nth-child(1) {
+        left: -5%;
+      }
+
+      .training-bubble .c-button__blobs div:nth-child(2) {
+        left: 30%;
+        transition-delay: 60ms;
+      }
+
+      .training-bubble .c-button__blobs div:nth-child(3) {
+        left: 66%;
+        transition-delay: 25ms;
+      }
+
+      .training-bubble:hover .c-button__blobs div {
+        transform: scale(1.4) translateY(0) translateZ(0);
+      }
+
+      .training-bubble .badge {
+        display: inline-block;
+        background: rgba(255, 140, 66, 0.2);
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        line-height: 26px;
+        text-align: center;
+        font-size: 13px;
+        margin-left: 6px;
+        vertical-align: middle;
+        font-weight: 800;
+        transition: background 700ms ease;
+      }
+
+      .training-bubble:hover .badge {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      .training-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 244, 162, 0.55);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .training-modal-overlay.show {
+        display: flex;
+      }
+
+      .training-modal {
+        background: #fffef9;
+        border-radius: 36px;
+        padding: 32px 40px 28px;
+        width: 92%;
+        max-width: 680px;
+        position: relative;
+        animation: modalPop 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+        box-shadow:
+          0 2px 30px rgba(0, 0, 0, 0.08),
+          0 0 0 1px rgba(0, 0, 0, 0.04);
+        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive;
+        overflow: hidden;
+      }
+
+      .training-modal::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: #fab70d;
+        border-radius: 36px 36px 0 0;
+      }
+
+      .training-modal .modal-decor {
+        position: absolute;
+        pointer-events: none;
+        font-size: 22px;
+        opacity: 0.35;
+      }
+
+      .training-modal .modal-decor.d1 {
+        top: 14px;
+        left: 18px;
+        animation: floatStar 3s ease-in-out infinite;
+      }
+
+      .training-modal .modal-decor.d2 {
+        top: 10px;
+        right: 50px;
+        font-size: 16px;
+        animation: floatStar 2.5s ease-in-out 0.6s infinite;
+      }
+
+      .training-modal .modal-decor.d3 {
+        bottom: 70px;
+        left: 14px;
+        font-size: 14px;
+        animation: floatStar 3.5s ease-in-out 1s infinite;
+      }
+
+      .training-modal .modal-decor.d4 {
+        bottom: 60px;
+        right: 18px;
+        animation: floatStar 2.8s ease-in-out 0.3s infinite;
+      }
+
+      @keyframes floatStar {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+
+        50% {
+          transform: translateY(-6px) rotate(10deg);
+        }
+      }
+
+      @keyframes modalPop {
+        from {
+          transform: scale(0.85) translateY(20px);
+          opacity: 0;
+        }
+
+        to {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .training-modal .modal-close {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #f5f0e8;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        color: #aaa;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: inherit;
+        z-index: 2;
+      }
+
+      .training-modal .modal-close:hover {
+        background: #e8e0d5;
+        color: #666;
+      }
+
+      .training-modal .report-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 20px;
+        padding-bottom: 18px;
+        border-bottom: 2px dashed #f0e8d8;
+      }
+
+      .training-modal .report-header .report-emoji {
+        font-size: 48px;
+        line-height: 1;
+      }
+
+      .training-modal .report-header h2 {
+        font-size: 28px;
+        color: #ff7518;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      .training-modal .report-header .report-date {
+        font-size: 13px;
+        color: #b0a890;
+        margin-top: 2px;
+      }
+
+      .training-modal .growth-table {
+        width: 100%;
+        margin-bottom: 18px;
+        border-collapse: separate;
+        border-spacing: 0 6px;
+      }
+
+      .training-modal .growth-table th {
+        font-size: 12px;
+        color: #b0a890;
+        font-weight: 600;
+        padding: 4px 8px;
+        text-align: center;
+      }
+
+      .training-modal .growth-table th:first-child {
+        text-align: left;
+        padding-left: 12px;
+      }
+
+      .training-modal .growth-table td {
+        font-size: 14px;
+        font-weight: 700;
+        color: #5a4020;
+        padding: 10px 8px;
+        text-align: center;
+        background: #faf7ef;
+        border-radius: 0;
+        transition: background 0.2s;
+      }
+
+      .training-modal .growth-table tr td:first-child {
+        border-radius: 14px 0 0 14px;
+        text-align: left;
+        padding-left: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .training-modal .growth-table tr td:last-child {
+        border-radius: 0 14px 14px 0;
+      }
+
+      .training-modal .growth-table .row-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+      }
+
+      .row-dot.sel {
+        background: #fcceb4;
+      }
+
+      .row-dot.sus {
+        background: #abd7fb;
+      }
+
+      .row-dot.tra {
+        background: #d2e0aa;
+      }
+
+      .row-dot.mem {
+        background: #d5d6f2;
+      }
+
+      .row-dot.inh {
+        background: #ffd1dc;
+      }
+
+      .training-modal .growth-table .arrow-cell {
+        font-size: 13px;
+        min-width: 40px;
+      }
+
+      .arrow-cell .arr {
+        font-weight: 800;
+      }
+
+      .arrow-cell .arr.up {
+        color: #4caf50;
+      }
+
+      .arrow-cell .arr.down {
+        color: #f44336;
+      }
+
+      .arrow-cell .arr.flat {
+        color: #ccc;
+      }
+
+      .arrow-cell .new-tag {
+        font-size: 10px;
+        color: #fff;
+        background: #ffb74d;
+        border-radius: 8px;
+        padding: 1px 7px;
+        font-weight: 600;
+      }
+
+      .training-modal .growth-msg {
+        background: #fef9ed;
+        border-radius: 20px;
+        padding: 14px 22px;
+        margin-bottom: 20px;
+        text-align: center;
+        border: 2px dashed #f0e0c0;
+      }
+
+      .training-modal .growth-msg .msg-text {
+        font-size: 14px;
+        color: #7a6a4a;
+        line-height: 1.7;
+        margin: 0;
+      }
+
+      .training-modal .growth-msg .msg-text b {
+        color: #ffa500;
+      }
+
+      .training-modal .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .training-modal .modal-btn {
+        border: none;
+        padding: 12px 30px;
+        border-radius: 28px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s ease;
+      }
+
+      .training-modal .modal-btn.primary-btn {
+        background: #ffa500;
+        color: #fff;
+      }
+
+      .training-modal .modal-btn.primary-btn:hover {
+        background: #ffa500;
+        transform: translateY(-1px);
+      }
+
+      .training-modal .modal-btn.secondary-btn {
+        background: #f2eee6;
+        color: #8a7a60;
+      }
+
+      .training-modal .modal-btn.secondary-btn:hover {
+        background: #e8e2d6;
+      }
+
+      .training-modal .empty-state {
+        padding: 40px 20px;
+        text-align: center;
+        color: #bbb;
+      }
+
+      .training-modal .empty-state .empty-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+      }
+
+      .training-modal .empty-state p {
+        font-size: 14px;
+        color: #aaa;
+        margin: 0;
       }
 
       /* 浮动装饰 */
@@ -1013,6 +1451,17 @@
         </div>
       </div>
 
+      <div class="training-bubble-wrapper">
+        <button class="training-bubble" id="trainingBubble" onclick="showTrainingModal()">
+          成长小报<span class="badge" id="trainingBadge" style="display: none">0</span>
+          <div class="c-button__blobs">
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </button>
+      </div>
+
       <div class="comprehensive-container">
         <!-- 注意力小侦探标志 -->
         <div class="detective-logo">注意力<br />小侦探</div>
@@ -1075,6 +1524,29 @@
       </div>
     </main>
 
+    <div class="training-modal-overlay" id="trainingModalOverlay">
+      <div class="training-modal" id="trainingModal">
+        <button class="modal-close" onclick="closeTrainingModal()">&#x2715;</button>
+        <span class="modal-decor d1">&#x2B50;</span>
+        <span class="modal-decor d2">&#x2728;</span>
+        <span class="modal-decor d3">&#x1F31F;</span>
+        <span class="modal-decor d4">&#x2728;</span>
+        <div class="report-header">
+          <span class="report-emoji">&#x1F4F0;</span>
+          <div>
+            <h2>成长小报</h2>
+            <div class="report-date" id="reportDate"></div>
+          </div>
+        </div>
+        <table class="growth-table" id="growthTable"></table>
+        <div class="growth-msg" id="growthMsg"></div>
+        <div class="modal-actions">
+          <button class="modal-btn primary-btn" onclick="window.location.href = '../child-home.html'">训练提升</button>
+          <button class="modal-btn secondary-btn" onclick="closeTrainingModal()">继续挑战</button>
+        </div>
+      </div>
+    </div>
+
     <script src="../utils.js"></script>
     <script>
       function initPage() {
@@ -1094,10 +1566,276 @@
         window.location.href = `level${level}.html`;
       }
 
+      function updateLevelStatus() {
+        console.log('[Detect] updateLevelStatus 开始执行');
+        var dimensionKeys = [
+          'selective_attention',
+          'sustained_attention',
+          'visual_tracking',
+          'working_memory',
+          'inhibitory_control',
+        ];
+        var completedCount = 0;
+        var cards = document.querySelectorAll('.levels-container .level-card');
+
+        for (var i = 0; i < 5; i++) {
+          var levelKey = 'level' + (i + 1) + '_data';
+          var levelData = null;
+          try {
+            if (typeof StorageUtil !== 'undefined') {
+              levelData = StorageUtil.getItem(levelKey);
+            }
+          } catch (e) {}
+
+          console.log('[Detect] level' + (i + 1) + ' data:', levelData);
+          if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
+            completedCount++;
+          }
+        }
+
+        if (completedCount >= 1) {
+          var badge = document.getElementById('trainingBadge');
+          if (badge) {
+            badge.style.display = 'inline-block';
+            badge.textContent = completedCount;
+          }
+        }
+      }
+
+      function loadDetectionFromBackend(callback) {
+        if (typeof StorageUtil === 'undefined') {
+          if (callback) callback();
+          return;
+        }
+
+        var hasLocalData = false;
+        var dimensionKeys = [
+          'selective_attention',
+          'sustained_attention',
+          'visual_tracking',
+          'working_memory',
+          'inhibitory_control',
+        ];
+
+        for (var i = 0; i < 5; i++) {
+          var levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
+          if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
+            hasLocalData = true;
+            break;
+          }
+        }
+
+        if (hasLocalData) {
+          if (callback) callback();
+          return;
+        }
+
+        if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) {
+          if (callback) callback();
+          return;
+        }
+
+        var childId = UserStateUtil.getCurrentChildId();
+        var baseUrl = getBaseUrl();
+
+        fetch(baseUrl + '/api/get/detection?child_id=' + childId, {
+          headers: {
+            Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
+          },
+        })
+          .then(function (res) {
+            return res.json();
+          })
+          .then(function (result) {
+            if (result.success && result.data && result.data.length > 0) {
+              var latest = result.data[0];
+              var levelNames = [
+                'selective_attention',
+                'sustained_attention',
+                'visual_tracking',
+                'working_memory',
+                'inhibitory_control',
+              ];
+              for (var j = 0; j < levelNames.length; j++) {
+                var key = levelNames[j];
+                if (latest[key] !== undefined && latest[key] !== null) {
+                  var levelData = {};
+                  levelData[key] = latest[key];
+                  StorageUtil.setItem('level' + (j + 1) + '_data', levelData);
+                }
+              }
+              if (latest.selective_attention !== undefined) {
+                StorageUtil.setItem('detection_data', latest);
+              }
+              console.log('[Detect] 已从后端恢复测评数据');
+            }
+            if (callback) callback();
+          })
+          .catch(function () {
+            if (callback) callback();
+          });
+      }
+
+      function showTrainingModal() {
+        var overlay = document.getElementById('trainingModalOverlay');
+        var dimensionKeys = [
+          'selective_attention',
+          'sustained_attention',
+          'visual_tracking',
+          'working_memory',
+          'inhibitory_control',
+        ];
+        var kidNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
+        var dotClasses = ['sel', 'sus', 'tra', 'mem', 'inh'];
+        var scores = [];
+
+        for (var i = 0; i < 5; i++) {
+          var levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
+          if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
+            scores.push({
+              name: kidNames[i],
+              score: levelData[dimensionKeys[i]],
+              key: dimensionKeys[i],
+              dot: dotClasses[i],
+            });
+          }
+        }
+
+        var today = new Date();
+        document.getElementById('reportDate').textContent =
+          today.getFullYear() + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
+
+        if (scores.length === 0) {
+          document.getElementById('growthTable').innerHTML =
+            '<tr><td colspan="4"><div class="empty-state"><span class="empty-icon">&#x1F4DD;</span><p>还没有完成任何挑战哦，先去试试吧～</p></div></td></tr>';
+          document.getElementById('growthMsg').innerHTML = '';
+          if (overlay) overlay.classList.add('show');
+          return;
+        }
+
+        var childId = UserStateUtil.getCurrentChildId();
+        var baseUrl = getBaseUrl();
+
+        fetch(baseUrl + '/api/get/detection?child_id=' + childId, {
+          headers: { Authorization: 'Bearer ' + localStorage.getItem('auth_token') },
+        })
+          .then(function (res) {
+            return res.json();
+          })
+          .then(function (result) {
+            var previous = null;
+            if (result.success && result.data && result.data.length >= 2) {
+              var latest = result.data[0];
+              for (var k = 1; k < result.data.length; k++) {
+                var candidate = result.data[k];
+                var isSame = true;
+                for (var d = 0; d < dimensionKeys.length; d++) {
+                  if (candidate[dimensionKeys[d]] !== latest[dimensionKeys[d]]) {
+                    isSame = false;
+                    break;
+                  }
+                }
+                if (!isSame) {
+                  previous = candidate;
+                  break;
+                }
+              }
+            }
+            renderGrowthCompare(scores, previous, dimensionKeys, dotClasses);
+            if (overlay) overlay.classList.add('show');
+          })
+          .catch(function () {
+            renderGrowthCompare(scores, null, dimensionKeys, dotClasses);
+            if (overlay) overlay.classList.add('show');
+          });
+      }
+
+      function renderGrowthCompare(scores, previous, keys, dots) {
+        var improvedCount = 0;
+        var declinedCount = 0;
+
+        var thead = '<thead><tr><th>能力</th><th>本次</th><th>变化</th><th>上次</th></tr></thead>';
+        var tbody = '<tbody>';
+
+        for (var i = 0; i < scores.length; i++) {
+          var curr = scores[i].score;
+          var prev = null;
+          if (previous && previous[keys[i]] !== undefined && previous[keys[i]] !== null) {
+            prev = previous[keys[i]];
+          }
+
+          var arrowHtml = '';
+          var prevHtml = prev !== null ? prev + '分' : '<span style="color:#ccc">—</span>';
+
+          if (prev !== null) {
+            var diff = curr - prev;
+            if (diff > 3) {
+              arrowHtml = '<span class="arr up">&#x2191;' + Math.round(Math.abs(diff)) + '</span>';
+              improvedCount++;
+            } else if (diff < -3) {
+              arrowHtml = '<span class="arr down">&#x2193;' + Math.round(Math.abs(diff)) + '</span>';
+              declinedCount++;
+            } else {
+              arrowHtml = '<span class="arr flat">&#x2194;0</span>';
+            }
+          } else {
+            arrowHtml = '<span class="new-tag">首次</span>';
+          }
+
+          tbody +=
+            '<tr><td><span class="row-dot ' +
+            dots[i] +
+            '"></span>' +
+            scores[i].name +
+            '</td>' +
+            '<td>' +
+            curr +
+            '分</td>' +
+            '<td class="arrow-cell">' +
+            arrowHtml +
+            '</td>' +
+            '<td>' +
+            prevHtml +
+            '</td></tr>';
+        }
+        tbody += '</tbody>';
+
+        document.getElementById('growthTable').innerHTML = thead + tbody;
+
+        var msg = '';
+        if (previous === null) {
+          msg =
+            '&#x1F389; <b>这是你的第一次挑战！</b> 太厉害了，勇敢迈出第一步就是最棒的！继续加油，下次来看看进步了多少～';
+        } else if (improvedCount >= 3) {
+          msg =
+            '&#x1F680; <b>进步小火箭！</b> 你有 ' +
+            improvedCount +
+            ' 项能力都进步啦，像坐上小火箭一样越飞越高！坚持训练的你超厉害！';
+        } else if (improvedCount > declinedCount) {
+          msg = '&#x1F44D; <b>越来越棒了！</b> 大部分能力都在悄悄进步呢，你真的越来越棒了，继续加油～';
+        } else if (declinedCount > improvedCount) {
+          msg =
+            '&#x1F308; <b>没关系，再来一次！</b> 这次有点小退步，但没关系！就像爬山会滑一小步，只要继续走就能到山顶！';
+        } else {
+          msg = '&#x2728; <b>稳稳的小达人！</b> 表现很稳定，就像一棵小树苗在茁壮成长，保持下去会越来越出色～';
+        }
+
+        document.getElementById('growthMsg').innerHTML = '<p class="msg-text">' + msg + '</p>';
+      }
+
+      function closeTrainingModal() {
+        var overlay = document.getElementById('trainingModalOverlay');
+        if (overlay) overlay.classList.remove('show');
+      }
+
       // 鼠标悬停自动滚动功能和箭头显示/隐藏逻辑
-      document.addEventListener('DOMContentLoaded', function () {
+      function initDetectPage() {
+        console.log('[Detect] DOM 就绪，开始初始化');
         initPage();
-        const levelsContainer = document.getElementById('levelsContainer');
+        loadDetectionFromBackend(function () {
+          updateLevelStatus();
+        });
+        var levelsContainer = document.getElementById('levelsContainer');
         const leftArrow = document.getElementById('leftArrow');
         const rightArrow = document.getElementById('rightArrow');
         let scrollInterval;
@@ -1172,7 +1910,37 @@
 
         // 初始检查
         checkScrollStatus();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDetectPage);
+      } else {
+        initDetectPage();
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        var overlay = document.getElementById('trainingModalOverlay');
+        if (overlay) {
+          overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeTrainingModal();
+          });
+        }
       });
     </script>
   </body>
+
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="display: block; height: 0; width: 0">
+    <defs>
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"></feGaussianBlur>
+        <feColorMatrix
+          in="blur"
+          mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"
+          result="goo"
+        ></feColorMatrix>
+        <feBlend in="SourceGraphic" in2="goo"></feBlend>
+      </filter>
+    </defs>
+  </svg>
 </html>
