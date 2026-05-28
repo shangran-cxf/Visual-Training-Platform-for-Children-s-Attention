@@ -2065,6 +2065,12 @@
 
       // 开始游戏
       function startGame(gamePath, gameName) {
+        sessionStorage.setItem(
+          'returnState',
+          JSON.stringify({
+            from: 'today-training',
+          }),
+        );
         window.location.href = `training/${gamePath}`;
       }
 
