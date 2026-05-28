@@ -418,21 +418,6 @@
         const falseAlarmRate = 100 - hitRate;
         const score = calculateSustainedAttentionScore();
 
-        // 显示反馈
-        const feedbackDiv = document.getElementById('feedback');
-        feedbackDiv.innerHTML = `
-                <h3>关卡完成！</h3>
-                <p>小偷识别击中率：<span id="final-hit-rate">${hitRate}%</span></p>
-                <p>路人/警察误点虚报率：<span id="final-false-alarm">${falseAlarmRate}%</span></p>
-                <p>连续正确识别次数：<span id="final-consecutive-correct">${maxConsecutiveCorrect}</span></p>
-                <p>综合评分：<span id="score">${score}</span>分</p>
-                <button class="btn" id="next-level-btn">下一关</button>
-            `;
-        feedbackDiv.style.display = 'block';
-
-        // 绑定下一关按钮的点击事件
-        document.getElementById('next-level-btn').addEventListener('click', nextLevel);
-
         // 保存数据
         const data = {
           sustained_attention: score,

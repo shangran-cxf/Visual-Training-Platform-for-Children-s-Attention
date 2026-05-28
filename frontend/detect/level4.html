@@ -484,25 +484,6 @@
           reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) : 0;
         const score = calculateWorkingMemoryScore();
 
-        // 显示反馈
-        document.getElementById('accuracy').textContent = `${accuracyRate}%`;
-        document.getElementById('sequence-errors').textContent = sequenceErrors;
-        document.getElementById('reaction-time').textContent = avgReactionTime;
-
-        // 添加错误次数和正确轮数显示
-        const feedbackDiv = document.getElementById('feedback');
-        feedbackDiv.innerHTML = `
-                <h3>关卡完成！</h3>
-                <p>线索匹配正确率：<span id="accuracy">${accuracyRate}%</span></p>
-                <p>线索顺序错误次数：<span id="sequence-errors">${sequenceErrors}</span></p>
-                <p>点击错误次数：<span id="click-errors">${clickErrors}</span></p>
-                <p>正确轮数：<span id="correct-rounds">${accuracy}</span></p>
-                <p>操作反应时间：<span id="reaction-time">${avgReactionTime}</span>ms</p>
-                <p>综合评分：<span id="score">${score}</span>分</p>
-                <button class="btn" onclick="nextLevel()">下一关</button>
-            `;
-        feedbackDiv.style.display = 'block';
-
         // 保存数据
         const data = {
           working_memory: score,

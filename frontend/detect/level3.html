@@ -64,7 +64,8 @@
         left: 50%;
         transform: translate(-50%, -50%);
         cursor: pointer;
-        transition: transform 0.1s ease;
+        transition: left 0.15s ease-out, top 0.15s ease-out;
+        will-change: left, top;
       }
 
       .suspect img {
@@ -79,9 +80,23 @@
         z-index: 10;
       }
 
-      .click-effect img {
-        width: 90px;
-        height: auto;
+      .click-effect .ripple {
+        width: 20px;
+        height: 20px;
+        background: radial-gradient(circle, rgba(255, 100, 100, 0.8) 0%, rgba(255, 50, 50, 0.4) 50%, transparent 70%);
+        border-radius: 50%;
+        animation: ripple-expand 0.6s ease-out forwards;
+      }
+
+      @keyframes ripple-expand {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(5);
+          opacity: 0;
+        }
       }
 
       .target {
@@ -264,13 +279,10 @@
 
         if (currentPositionIndex < positions.length) {
           const pos = positions[currentPositionIndex];
-          // 使用requestAnimationFrame实现更流畅的动画
-          requestAnimationFrame(() => {
-            suspect.style.left = `${pos.x}px`;
-            suspect.style.top = `${pos.y}px`;
-          });
+          suspect.style.left = `${pos.x}px`;
+          suspect.style.top = `${pos.y}px`;
           currentPositionIndex++;
-          lastMoveTime = Date.now();
+          lastMoveTime = performance.now();
         } else {
           endGame();
         }
@@ -293,32 +305,34 @@
         const clickX = e.clientX - rect.left;
         const clickY = e.clientY - rect.top;
 
-        // 添加点击效果
+        // 添加点击效果（使用CSS动画）
         const clickEffect = document.createElement('div');
         clickEffect.className = 'click-effect';
-        clickEffect.innerHTML = '<img src="../images/click.png" alt="点击效果">';
+        clickEffect.innerHTML = '<div class="ripple"></div>';
         clickEffect.style.left = `${clickX}px`;
         clickEffect.style.top = `${clickY}px`;
         gameArea.appendChild(clickEffect);
 
-        // 1秒后移除点击效果
+        // 0.6秒后移除点击效果
         setTimeout(() => {
           if (clickEffect.parentNode) {
             clickEffect.parentNode.removeChild(clickEffect);
           }
-        }, 1000);
+        }, 600);
 
         const suspectRect = suspect.getBoundingClientRect();
         const suspectX = suspectRect.left - rect.left + suspectRect.width / 2;
         const suspectY = suspectRect.top - rect.top + suspectRect.height / 2;
 
         // 计算距离
-        const distance = Math.sqrt(Math.pow(clickX - suspectX, 2) + Math.pow(clickY - suspectY, 2));
+        const dx = clickX - suspectX;
+        const dy = clickY - suspectY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
         accuracySum += distance;
         accuracyCount++;
 
-        // 计算滞后时间
-        const lagTime = Date.now() - lastMoveTime;
+        // 计算滞后时间（使用更高精度的时间）
+        const lagTime = performance.now() - lastMoveTime;
         lagTimes.push(lagTime);
 
         // 检查是否脱靶
@@ -326,8 +340,8 @@
           offTargetCount++;
         }
 
-        // 更新统计信息
-        updateStats();
+        // 异步更新统计信息，不阻塞点击响应
+        requestAnimationFrame(updateStats);
       }
 
       // 更新统计信息
@@ -355,8 +369,8 @@
 
         isGameStarted = true;
         isPaused = false;
-        startTime = Date.now();
-        lastMoveTime = Date.now(); // 初始化lastMoveTime，修复滞后时间显示错误
+        startTime = performance.now();
+        lastMoveTime = performance.now();
 
         // 添加点击事件
         gameArea.addEventListener('click', handleClick);
@@ -408,18 +422,6 @@
         const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
         const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
         const score = calculateTrackingScore();
-
-        // 显示反馈
-        const feedbackDiv = document.getElementById('feedback');
-        feedbackDiv.innerHTML = `
-                <h3>关卡完成！</h3>
-                <p>追踪精准度：<span id="final-accuracy">${avgAccuracy}</span>px</p>
-                <p>追踪脱靶次数：<span id="final-off-target">${offTargetCount}</span></p>
-                <p>追踪滞后时间：<span id="final-lag-time">${avgLagTime}</span>ms</p>
-                <p>综合评分：<span id="score">${score}</span>分</p>
-                <button class="btn" onclick="nextLevel()">下一关</button>
-            `;
-        feedbackDiv.style.display = 'block';
 
         // 保存数据
         const data = {

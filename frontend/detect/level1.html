@@ -531,22 +531,6 @@
         const accuracy = Math.round((correctTargets / targetClues.length) * 100);
         const score = calculateSelectiveAttentionScore(totalTime);
 
-        // 显示反馈
-        document.getElementById('accuracy').textContent = `${accuracy}%`;
-        document.getElementById('time').textContent = totalTime;
-        document.getElementById('errors').textContent = errorCount;
-        // 添加评分显示
-        const feedbackDiv = document.getElementById('feedback');
-        feedbackDiv.innerHTML = `
-                <h3>关卡完成！</h3>
-                <p>正确率：<span id="accuracy">${accuracy}%</span></p>
-                <p>完成时间：<span id="time">${totalTime}</span>s</p>
-                <p>误点次数：<span id="errors">${errorCount}</span></p>
-                <p>综合评分：<span id="score">${score}</span>分</p>
-                <button class="btn" onclick="nextLevel()">下一关</button>
-            `;
-        feedbackDiv.style.display = 'block';
-
         // 保存数据
         const data = {
           selective_attention: score,
