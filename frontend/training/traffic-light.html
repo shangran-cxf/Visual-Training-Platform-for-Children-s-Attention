@@ -1038,7 +1038,6 @@
       // 上传数据到后端
       uploadTrainingData(accuracy, incongAcc, finalScore, gameTime);
 
-      showGameOverModal(finalScore, gameTime);
     }
 
     function showGameOverModal(finalScore, gameTime) {
@@ -1357,6 +1356,7 @@
               error: gameState.totalCount - gameState.correctCount,
               total_target: gameState.totalCount,
               total_step: gameState.totalCount,
+              total_trial: gameState.totalCount,
             }),
           })
             .then((response) => {
@@ -1412,16 +1412,16 @@
                 console.log('训练时间已保存到 localStorage');
 
                 // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                var backendScore = null;
-                var backendLevel = null;
-                if (result.data && result.data.summary) {
-                  backendScore = Math.round(result.data.summary.final_score);
-                  backendLevel = result.data.summary.performance_level;
+                var displayScore = finalScore;
+                if (result.data && result.data.summary && result.data.summary.final_score) {
+                  displayScore = Math.round(result.data.summary.final_score);
                 }
+                showGameOverModal(displayScore, gameTime);
               }
             })
             .catch((error) => {
               console.error('上传训练数据失败:', error);
+              showGameOverModal(finalScore, gameTime);
             });
         };
 
