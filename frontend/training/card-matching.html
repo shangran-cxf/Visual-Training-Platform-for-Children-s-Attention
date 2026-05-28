@@ -705,6 +705,7 @@
         return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
+<<<<<<< Updated upstream
       function endGame() {
         gameState = 'gameOver';
         clearInterval(timeInterval);
@@ -717,6 +718,10 @@
         } catch (e) {
           console.log('GameTimeUtil 未定义，跳过');
         }
+=======
+      // 上传数据到后端
+      uploadTrainingData(finalScore);
+>>>>>>> Stashed changes
 
         if (typeof MedalUtil !== 'undefined') {
           MedalUtil.recordGameProgress('game8', currentDifficulty);
@@ -735,6 +740,7 @@
           timestamp: new Date().toISOString(),
         };
 
+<<<<<<< Updated upstream
         // 保存到本地存储
         try {
           if (typeof StorageUtil !== 'undefined') {
@@ -798,6 +804,13 @@
 
       function uploadTrainingData() {
         try {
+=======
+    function uploadTrainingData(frontendScore) {
+      try {
+        // [scoring-system] Upload game data + end session.
+        // Session was created in startGame(); use gameSessionId directly.
+        const _uploadAndEnd = () => {
+>>>>>>> Stashed changes
           const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
           const childId =
             typeof UserStateUtil !== 'undefined'
@@ -904,14 +917,37 @@
                 trainingData[today].totalTime += time;
                 localStorage.setItem('trainingData', JSON.stringify(trainingData));
                 console.log('训练时间已保存到 localStorage');
+<<<<<<< Updated upstream
+=======
+
+                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                var displayScore = frontendScore;
+                if (result.data && result.data.summary && result.data.summary.final_score) {
+                  displayScore = Math.round(result.data.summary.final_score);
+                }
+                showGameOverModal(displayScore);
+                if (displayScore !== null) {
+                  var scoreEl = document.getElementById('cardMatchScore');
+                  if (scoreEl) {
+                    scoreEl.textContent = displayScore + '分';
+                  }
+                }
+>>>>>>> Stashed changes
               }
             })
             .catch((error) => {
               console.error('上传训练数据失败:', error);
+              showGameOverModal(frontendScore);
             });
         } catch (e) {
           console.error('uploadTrainingData 错误:', e);
         }
+<<<<<<< Updated upstream
+=======
+      } catch (e) {
+        console.error('uploadTrainingData 错误:', e);
+        showGameOverModal(frontendScore);
+>>>>>>> Stashed changes
       }
 
       // 页面加载时初始化游戏
