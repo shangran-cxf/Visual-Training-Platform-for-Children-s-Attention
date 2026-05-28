@@ -62,18 +62,9 @@
   // 专注计时变量
   let focusStartTime = null;
   let totalFocusDuration = 0;
-
-  // 提醒状态变量
-  let wasDistracted = false;
-  let wasTooClose = false;
-  let wasTooFar = false;
-  let lastTipTime = 0;
-
-  // 当前提示显示状态
-  let isDistractedTipShowing = false;
-  let isTooCloseTipShowing = false;
-  let isTooFarTipShowing = false;
-  let isNoFaceTipShowing = false;
+  let currentBlinkRate = 0;
+  let smoothBlinkRate = 0;
+  let eyeClosedCounter = 0;
 
   // 当前显示的云朵
   let currentCloud = null;
@@ -84,14 +75,6 @@
   let floatingBall = null;
   let panel = null;
   let panelUpdateInterval = null;
-
-  // 会话统计变量
-  let sessionStartTime = null;
-  let sessionEndTime = null;
-  let sessionAttentionScores = [];
-  let sessionDistractionCount = 0;
-  let sessionBlinkRates = [];
-  let sessionIsActive = false;
 
   // ========== 拖拽联动变量 ==========
   let activeDragElement = null;
@@ -198,13 +181,6 @@
     // 返回整数，至少显示1
     const result = Math.round(currentBlinkRate);
     return result > 0 ? result : 1;
-  }
-
-  // 计算方差
-  function calculateVariance(data) {
-    if (data.length < 2) return 0;
-    const mean = data.reduce((a, b) => a + b, 0) / data.length;
-    return data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
   }
 
   // 检测趋势
@@ -324,143 +300,6 @@
     }
   }
 
-  // ========== 会话统计 ==========
-  function startSession() {
-    sessionStartTime = Date.now();
-    sessionAttentionScores = [];
-    sessionDistractionCount = 0;
-    sessionBlinkRates = [];
-    sessionIsActive = true;
-    console.log('📊 游戏会话开始');
-  }
-
-  function endSession() {
-    if (!sessionIsActive) return;
-
-    sessionEndTime = Date.now();
-    sessionIsActive = false;
-
-    const duration = (sessionEndTime - sessionStartTime) / 1000;
-    const avgAttention =
-      sessionAttentionScores.length > 0
-        ? sessionAttentionScores.reduce((a, b) => a + b, 0) / sessionAttentionScores.length
-        : 0;
-    const maxAttention = sessionAttentionScores.length > 0 ? Math.max(...sessionAttentionScores) : 0;
-    const minAttention = sessionAttentionScores.length > 0 ? Math.min(...sessionAttentionScores) : 0;
-    const avgBlinkRate =
-      sessionBlinkRates.length > 0 ? sessionBlinkRates.reduce((a, b) => a + b, 0) / sessionBlinkRates.length : 0;
-
-    let attentionLevel = '一般';
-    if (avgAttention >= 80) attentionLevel = '优秀';
-    else if (avgAttention >= 60) attentionLevel = '良好';
-    else if (avgAttention >= 40) attentionLevel = '一般';
-    else attentionLevel = '需提升';
-
-    const report = {
-      timestamp: new Date().toISOString(),
-      duration: Math.floor(duration),
-      avgAttention: Math.round(avgAttention),
-      maxAttention: maxAttention,
-      minAttention: minAttention,
-      distractionCount: sessionDistractionCount,
-      avgBlinkRate: avgBlinkRate.toFixed(0),
-      blinkBaseline: baselineBlinkRate ? baselineBlinkRate.toFixed(0) : '未建立',
-      attentionLevel: attentionLevel,
-      totalFrames: sessionAttentionScores.length,
-    };
-
-    console.log('📊 ========== 游戏会话报告 ==========');
-    console.log(`游戏时长: ${report.duration} 秒`);
-    console.log(`平均专注度: ${report.avgAttention} 分 (${report.attentionLevel})`);
-    console.log(`最高专注度: ${report.maxAttention} 分`);
-    console.log(`最低专注度: ${report.minAttention} 分`);
-    console.log(`分心次数: ${report.distractionCount} 次`);
-    console.log(`平均眨眼频率: ${report.avgBlinkRate} 次/分`);
-    console.log(`眨眼基线: ${report.blinkBaseline} 次/分`);
-    console.log(`总帧数: ${report.totalFrames} 帧`);
-    console.log('====================================');
-
-    const history = JSON.parse(localStorage.getItem('game_session_history') || '[]');
-    history.push(report);
-    if (history.length > 20) history.shift();
-    localStorage.setItem('game_session_history', JSON.stringify(history));
-
-    showSessionReport(report);
-
-    return report;
-  }
-
-  function showSessionReport(report) {
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 20000;
-            animation: fadeIn 0.3s ease;
-        `;
-
-    let levelColor = '#FF9800';
-    if (report.attentionLevel === '优秀') levelColor = '#4CAF50';
-    else if (report.attentionLevel === '良好') levelColor = '#8BC34A';
-    else if (report.attentionLevel === '需提升') levelColor = '#F44336';
-
-    modal.innerHTML = `
-            <div style="
-                background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-                border-radius: 20px;
-                padding: 30px;
-                width: 90%;
-                max-width: 400px;
-                text-align: center;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                border: 4px solid ${levelColor};
-                animation: bounceIn 0.4s ease;
-            ">
-                <h2 style="color: ${levelColor}; margin-bottom: 20px;">📊 训练报告</h2>
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 48px; font-weight: bold; color: ${levelColor};">
-                        ${report.avgAttention}
-                    </div>
-                    <div style="color: #666;">平均专注度</div>
-                    <div style="margin-top: 10px; padding: 5px 15px; background: ${levelColor}20; border-radius: 20px; display: inline-block;">
-                        ${report.attentionLevel}
-                    </div>
-                </div>
-                <div style="text-align: left; border-top: 1px solid #eee; padding-top: 15px;">
-                    <p>⏱️ 训练时长: <strong>${report.duration}</strong> 秒</p>
-                    <p>🎯 最高专注度: <strong>${report.maxAttention}</strong> 分</p>
-                    <p>📉 最低专注度: <strong>${report.minAttention}</strong> 分</p>
-                    <p>⚠️ 分心次数: <strong>${report.distractionCount}</strong> 次</p>
-                    <p>👁️ 平均眨眼: <strong>${report.avgBlinkRate}</strong> 次/分</p>
-                    <p>📊 眨眼基线: <strong>${report.blinkBaseline}</strong> 次/分</p>
-                </div>
-                <div style="margin-top: 20px;">
-                    <button id="close-report-btn" style="
-                        background: linear-gradient(90deg, #ffffffff, #ffffffff);
-                        color: white;
-                        border: none;
-                        padding: 12px 30px;
-                        border-radius: 30px;
-                        font-size: 16px;
-                        cursor: pointer;
-                    ">关闭</button>
-                </div>
-            </div>
-        `;
-
-    document.body.appendChild(modal);
-    document.getElementById('close-report-btn').addEventListener('click', () => {
-      modal.remove();
-    });
-  }
-
   // ========== 初始化 ==========
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
@@ -469,12 +308,9 @@
   }
 
   async function init() {
-    startSession();
     createFloatingBall();
     await startCamera();
     startDetection();
-    // 自动打开面板，直观展示数据
-    setTimeout(openPanel, 1000);
   }
 
   // ========== 云朵提示 ==========
@@ -1296,9 +1132,6 @@
     baselineSamples = [];
     blinkTimes = [];
     totalBlinks = 0;
-    currentBlinkRate = 0;
-    smoothBlinkRate = 0;
-    eyeClosedCounter = 0;
     console.log('📊 开始收集眨眼基线数据（30秒）...');
 
     function detect() {
@@ -1376,11 +1209,6 @@
               blinkRate: detectionData.blinkRate,
               focusDuration: currentFocusDuration,
             };
-
-            if (sessionIsActive) {
-              sessionAttentionScores.push(detectionData.attentionScore);
-              sessionBlinkRates.push(detectionData.blinkRate);
-            }
 
             let currentProblem = null;
             let currentMessage = '';
