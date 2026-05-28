@@ -1053,6 +1053,7 @@
           }
 
           // 上传游戏数据
+          // 上传游戏数据
           fetch(`${baseUrl}/api/training/game-data`, {
             method: 'POST',
             headers: {
@@ -1075,12 +1076,8 @@
               total_click: currentDifficulty * currentDifficulty,
             }),
           })
-            .then((response) => {
-              console.log('游戏数据上传响应状态:', response.status);
-              return response.json();
-            })
+            .then((response) => response.json())
             .then((result) => {
-              console.log('游戏数据上传响应数据:', result);
               if (result.success) {
                 console.log('游戏数据上传成功');
 
@@ -1109,14 +1106,11 @@
                 throw new Error(result.message || '上传游戏数据失败');
               }
             })
-            .then((response) => {
-              console.log('会话结束响应状态:', response.status);
-              return response.json();
-            })
+            .then((response) => response.json())
             .then((result) => {
               console.log('会话结束响应数据:', result);
               if (result.success) {
-                console.log('训练会话结束成功:', result.data);
+                console.log('训练数据上传完成');
 
                 // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
                 var backendScore = null;
@@ -1181,10 +1175,14 @@
             .then((res) => {
               if (res.success) {
                 gameSessionId = res.data.session_id;
+                // 先上传缓冲的视觉数据，再提交游戏数据
+                var flushDone = Promise.resolve();
                 if (typeof visionUploader !== 'undefined') {
-                  visionUploader.start(gameSessionId);
+                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
                 }
-                _uploadAndEnd();
+                flushDone.then(function () {
+                  _uploadAndEnd();
+                });
               }
             });
         }
@@ -1206,22 +1204,6 @@
         const timeScore = Math.round(Math.max(0, Math.min(1, timeFactor)) * 20);
 
         const finalScore = Math.max(0, Math.min(100, accuracyScore + errorScore + timeScore));
-
-        // 调试信息
-        console.log('=== 小火箭游戏评分调试信息 ===');
-        console.log('原始数据:', {
-          accuracy: accuracy,
-          error_count: error_count,
-          completion_time: completion_time,
-          difficulty: currentDifficulty,
-        });
-        console.log('计算过程:', {
-          accuracyScore: accuracyScore,
-          errorScore: errorScore,
-          timeThreshold: timeThreshold,
-          timeScore: timeScore,
-          finalScore: finalScore,
-        });
 
         // 准备得分明细数据
         const scoreDetails = {

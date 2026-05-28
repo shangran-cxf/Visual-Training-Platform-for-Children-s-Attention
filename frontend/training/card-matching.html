@@ -978,10 +978,14 @@
               .then((res) => {
                 if (res.success) {
                   gameSessionId = res.data.session_id;
+                  // 先上传缓冲的视觉数据，再提交游戏数据
+                  var flushDone = Promise.resolve();
                   if (typeof visionUploader !== 'undefined') {
-                    visionUploader.start(gameSessionId);
+                    flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
                   }
-                  _uploadAndEnd();
+                  flushDone.then(function () {
+                    _uploadAndEnd();
+                  });
                 }
               });
           }

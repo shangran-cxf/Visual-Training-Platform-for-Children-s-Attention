@@ -8,22 +8,24 @@
  *
  * Usage:
  *   visionUploader.start(sessionId)   // flushes buffer + begins live upload
- *   visionUploader.stop()             // stops upload
+ *   visionUploader.stop()             // stops live upload (keeps sessionId for in-flight flushes)
  */
 (function () {
-  let intervalId = null;
-  let sessionId = null;
-  let lastBlinkCount = 0;
-  const UPLOAD_INTERVAL_MS = 500;
-  const MAX_BUFFER_FRAMES = 600; // 5 minutes at 2 Hz
+  var intervalId = null;
+  var sessionId = null;
+  var lastBlinkCount = 0;
+  var UPLOAD_INTERVAL_MS = 500;
+  var MAX_BUFFER_FRAMES = 600; // 5 minutes at 2 Hz
 
   // ── Frame buffer: collects from page-load, flushed on start() ──
-  let frameBuffer = [];
-  let collectIntervalId = null;
+  var frameBuffer = [];
+  var collectIntervalId = null;
+  var framesCollected = 0;
+
+  console.log('[vision-uploader] 初始化，开始缓冲帧数据...');
 
   function getBaseUrl() {
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    return isLocal ? 'http://localhost:5000' : window.location.origin;
+    return window.location.origin;
   }
 
   function getAuthHeaders() {
@@ -63,6 +65,7 @@
     var frame = sampleFrame();
     if (frame) {
       frameBuffer.push(frame);
+      framesCollected++;
       if (frameBuffer.length > MAX_BUFFER_FRAMES) {
         frameBuffer.shift();
       }
@@ -73,55 +76,63 @@
   collectIntervalId = setInterval(collectFrame, UPLOAD_INTERVAL_MS);
 
   // ── Upload a single frame ──
-  async function uploadOneFrame(frame, blinkDelta) {
-    try {
-      await fetch(getBaseUrl() + '/api/training/vision-data', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          session_id: sessionId,
-          request_id: generateUUID(),
-          timestamp: frame.timestamp || new Date().toISOString(),
-          attention_score: frame.attention_score,
-          face_detected: frame.face_detected,
-          head_yaw: frame.head_yaw,
-          head_pitch: frame.head_pitch,
-          face_area: frame.face_area,
-          face_distance: frame.face_distance,
-          blink_rate: frame.blink_rate,
-          blink_count: blinkDelta || 0,
-          focus_duration: frame.focus_duration,
-        }),
-      });
-    } catch (e) {
-      // Silently ignore upload errors
-    }
+  function uploadOneFrame(frame, blinkDelta, sid) {
+    // 用传入的 sid，不读外层的 sessionId（避免 stop() 竞态）
+    var effectiveSid = sid || sessionId;
+    if (!effectiveSid) return Promise.resolve();
+    return fetch(getBaseUrl() + '/api/training/vision-data', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        session_id: effectiveSid,
+        request_id: generateUUID(),
+        timestamp: frame.timestamp || new Date().toISOString(),
+        attention_score: frame.attention_score,
+        face_detected: frame.face_detected,
+        head_yaw: frame.head_yaw,
+        head_pitch: frame.head_pitch,
+        face_area: frame.face_area,
+        face_distance: frame.face_distance,
+        blink_rate: frame.blink_rate,
+        blink_count: blinkDelta || 0,
+        focus_duration: frame.focus_duration,
+      }),
+    }).catch(function () {
+      // 静默忽略上传错误
+    });
   }
 
   // ── Flush buffered frames with computed blink deltas ──
-  async function flushAndStart() {
+  function flushAndStart(sid) {
     var buffered = frameBuffer.slice();
     frameBuffer = [];
+    var count = buffered.length;
+
+    console.log('[vision-uploader] 开始上传 ' + count + ' 帧缓冲数据 (session: ' + sid + ')');
 
     var prevBlinkTotal = 0;
+    var chain = Promise.resolve();
     for (var i = 0; i < buffered.length; i++) {
       var frame = buffered[i];
       var blinkTotal = frame.blink_total || 0;
       var blinkDelta = 0;
       if (i === 0) {
-        // First frame: delta from last known count before this session
         blinkDelta = Math.max(0, blinkTotal - lastBlinkCount);
       } else {
         blinkDelta = Math.max(0, blinkTotal - prevBlinkTotal);
       }
       prevBlinkTotal = blinkTotal;
-      await uploadOneFrame(frame, blinkDelta);
+      chain = chain.then(function () {
+        return uploadOneFrame(frame, blinkDelta, sid);
+      });
     }
 
     // Update lastBlinkCount to the final buffered value
     if (buffered.length > 0) {
       lastBlinkCount = buffered[buffered.length - 1].blink_total || lastBlinkCount;
     }
+
+    return chain;
   }
 
   // ── Live upload (called by setInterval after start) ──
@@ -131,26 +142,33 @@
     var blinkTotal = frame.blink_total || 0;
     var blinkDelta = Math.max(0, blinkTotal - lastBlinkCount);
     lastBlinkCount = blinkTotal;
-    uploadOneFrame(frame, blinkDelta);
+    // 用闭包中的 sessionId（stop() 不再清它）
+    uploadOneFrame(frame, blinkDelta, sessionId);
   }
 
   // ── Public API ──
   window.visionUploader = {
+    // 返回 Promise，resolve 时所有缓冲帧已上传完毕
     start: function (sid) {
       sessionId = sid;
+      console.log(
+        '[vision-uploader] start() — session=' + sid + ', 缓冲帧=' + frameBuffer.length + ', 已采集=' + framesCollected,
+      );
       // Flush all frames collected during gameplay
-      flushAndStart();
+      var flushPromise = flushAndStart(sid);
       // Then begin live upload
       if (intervalId) clearInterval(intervalId);
       intervalId = setInterval(liveUploadFrame, UPLOAD_INTERVAL_MS);
+      return flushPromise;
     },
 
     stop: function () {
+      console.log('[vision-uploader] stop() — 缓冲帧=' + frameBuffer.length + ', 已采集=' + framesCollected);
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
       }
-      sessionId = null;
+      // 不清 sessionId，保证正在飞的 flushAndStart 请求不丢失
     },
   };
 })();

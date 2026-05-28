@@ -882,8 +882,6 @@
         const totalTime = Math.floor((Date.now() - startTime) / 1000);
         missedCount = totalTargets - correctCount;
 
-        console.log('游戏结束！总时间:', totalTime, '正确:', correctCount, '总目标:', totalTargets);
-
         // 上传数据到后端（异步，不阻塞）
         try {
           uploadTrainingData(totalTime);
@@ -1093,10 +1091,14 @@
               .then((res) => {
                 if (res.success) {
                   gameSessionId = res.data.session_id;
+                  // 先上传缓冲的视觉数据，再提交游戏数据
+                  var flushDone = Promise.resolve();
                   if (typeof visionUploader !== 'undefined') {
-                    visionUploader.start(gameSessionId);
+                    flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
                   }
-                  _uploadAndEnd();
+                  flushDone.then(function () {
+                    _uploadAndEnd();
+                  });
                 }
               });
           }
