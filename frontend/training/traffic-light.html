@@ -1144,7 +1144,7 @@
                   var backendScore = null;
                   var backendLevel = null;
                   if (result.data && result.data.summary) {
-                    backendScore = result.data.summary.final_score;
+                    backendScore = Math.round(result.data.summary.final_score);
                     backendLevel = result.data.summary.performance_level;
                   }
                   if (backendScore !== null) {
