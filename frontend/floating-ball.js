@@ -32,16 +32,16 @@
   let isEyeClosed = false; // 当前眼睛状态
   let totalBlinks = 0; // 总眨眼次数
   let blinkTimes = []; // 眨眼时间戳
-  
+
   // 多级窗口配置
   const WINDOWS = [
-    { name: 'short', duration: 4000 },   // 4秒快速窗口
-    { name: 'medium', duration: 8000 },   // 8秒平衡窗口
-    { name: 'long', duration: 30000 },    // 30秒稳定窗口
+    { name: 'short', duration: 4000 }, // 4秒快速窗口
+    { name: 'medium', duration: 8000 }, // 8秒平衡窗口
+    { name: 'long', duration: 30000 }, // 30秒稳定窗口
   ];
-  
+
   let blinkRateHistory = []; // 频率历史记录
-  const HISTORY_SIZE = 20;   // 历史记录长度
+  const HISTORY_SIZE = 20; // 历史记录长度
 
   // EAR阈值
   const EAR_THRESHOLD = 0.2;
@@ -54,7 +54,7 @@
   let isBaselineCollecting = true;
   let baselineStartTime = null;
   const BASELINE_DURATION = 5000; // 缩短到5秒
-  
+
   // 眨眼状态（用于显示）
   let blinkTrend = 'up'; // up, down
   let blinkChangeIntensity = 0; // 0-1，变化强度
@@ -62,19 +62,6 @@
   // 专注计时变量
   let focusStartTime = null;
   let totalFocusDuration = 0;
-
-  // 提醒状态变量
-  let wasDistracted = false;
-  let wasTooClose = false;
-  let wasTooFar = false;
-  let lastTipTime = 0;
-
-  // 当前提示显示状态
-  let isDistractedTipShowing = false;
-  let isTooCloseTipShowing = false;
-  let isTooFarTipShowing = false;
-  let isNoFaceTipShowing = false;
-
   // 当前显示的云朵
   let currentCloud = null;
   let currentTipType = null;
@@ -84,14 +71,7 @@
   let floatingBall = null;
   let panel = null;
   let panelUpdateInterval = null;
-
-  // 会话统计变量
-  let sessionStartTime = null;
-  let sessionEndTime = null;
-  let sessionAttentionScores = [];
-  let sessionDistractionCount = 0;
-  let sessionBlinkRates = [];
-  let sessionIsActive = false;
+  let panelCloseTimer = null;
 
   // ========== 拖拽联动变量 ==========
   let activeDragElement = null;
@@ -103,6 +83,7 @@
     dragStartPanelTop = 0;
   let dragStartCloudLeft = 0,
     dragStartCloudTop = 0;
+  let hasDragged = false;
 
   // ========== 统一距离判断函数 ==========
   function getDistanceStatus(faceArea) {
@@ -133,13 +114,13 @@
     const now = Date.now();
 
     // 计算各级窗口频率
-    const shortWindow = 4000;  // 4秒
+    const shortWindow = 4000; // 4秒
     const mediumWindow = 8000; // 8秒
-    const longWindow = 30000;  // 30秒
+    const longWindow = 30000; // 30秒
 
-    const shortBlinks = blinkTimes.filter(t => t >= now - shortWindow);
-    const mediumBlinks = blinkTimes.filter(t => t >= now - mediumWindow);
-    const longBlinks = blinkTimes.filter(t => t >= now - longWindow);
+    const shortBlinks = blinkTimes.filter((t) => t >= now - shortWindow);
+    const mediumBlinks = blinkTimes.filter((t) => t >= now - mediumWindow);
+    const longBlinks = blinkTimes.filter((t) => t >= now - longWindow);
 
     const shortRate = shortBlinks.length > 0 ? (shortBlinks.length / shortWindow) * 1000 * 60 : 0;
     const mediumRate = mediumBlinks.length > 0 ? (mediumBlinks.length / mediumWindow) * 1000 * 60 : 0;
@@ -200,23 +181,16 @@
     return result > 0 ? result : 1;
   }
 
-  // 计算方差
-  function calculateVariance(data) {
-    if (data.length < 2) return 0;
-    const mean = data.reduce((a, b) => a + b, 0) / data.length;
-    return data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
-  }
-
   // 检测趋势
   function detectTrend() {
     if (blinkRateHistory.length < 3) {
       return; // 不更新趋势，保持之前的状态
     }
-    
+
     const recent = blinkRateHistory.slice(-3);
     const diffs = [recent[1] - recent[0], recent[2] - recent[1]];
     const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;
-    
+
     // 只有明显变化才更新趋势
     if (avgDiff > 0.3) {
       blinkTrend = 'up';
@@ -232,11 +206,11 @@
       blinkChangeIntensity = 0;
       return;
     }
-    
+
     const recent = blinkRateHistory.slice(-5);
     const maxDiff = Math.max(...recent) - Math.min(...recent);
     const avg = recent.reduce((a, b) => a + b, 0) / recent.length;
-    
+
     blinkChangeIntensity = Math.min(1.0, maxDiff / (avg + 0.1));
   }
 
@@ -252,11 +226,11 @@
 
       const now = Date.now();
       const currentIsClosed = earValue < EAR_THRESHOLD;
-      
+
       // 检测闭眼->睁眼的转换（完成一次眨眼）
       if (isEyeClosed && !currentIsClosed) {
         isEyeClosed = false;
-        
+
         // 检查最小间隔，过滤快速连续眨眼
         if (blinkTimes.length === 0 || now - blinkTimes[blinkTimes.length - 1] >= MIN_BLINK_INTERVAL) {
           totalBlinks++;
@@ -264,21 +238,20 @@
           console.log(`👁️ 眨眼检测！总次数：${totalBlinks}, EAR: ${earValue.toFixed(3)}`);
         }
       }
-      
+
       // 更新闭眼状态
       if (currentIsClosed) {
         isEyeClosed = true;
       }
-      
+
       // 清理旧记录
       const oldestAllowed = now - WINDOWS[WINDOWS.length - 1].duration;
       while (blinkTimes.length > 0 && blinkTimes[0] < oldestAllowed) {
         blinkTimes.shift();
       }
-      
+
       // 调试：输出EAR值
       // console.log(`EAR: ${earValue.toFixed(3)}, 闭眼: ${currentIsClosed}`);
-      
     } catch (err) {
       console.warn('EAR计算失败:', err);
     }
@@ -325,143 +298,6 @@
     }
   }
 
-  // ========== 会话统计 ==========
-  function startSession() {
-    sessionStartTime = Date.now();
-    sessionAttentionScores = [];
-    sessionDistractionCount = 0;
-    sessionBlinkRates = [];
-    sessionIsActive = true;
-    console.log('📊 游戏会话开始');
-  }
-
-  function endSession() {
-    if (!sessionIsActive) return;
-
-    sessionEndTime = Date.now();
-    sessionIsActive = false;
-
-    const duration = (sessionEndTime - sessionStartTime) / 1000;
-    const avgAttention =
-      sessionAttentionScores.length > 0
-        ? sessionAttentionScores.reduce((a, b) => a + b, 0) / sessionAttentionScores.length
-        : 0;
-    const maxAttention = sessionAttentionScores.length > 0 ? Math.max(...sessionAttentionScores) : 0;
-    const minAttention = sessionAttentionScores.length > 0 ? Math.min(...sessionAttentionScores) : 0;
-    const avgBlinkRate =
-      sessionBlinkRates.length > 0 ? sessionBlinkRates.reduce((a, b) => a + b, 0) / sessionBlinkRates.length : 0;
-
-    let attentionLevel = '一般';
-    if (avgAttention >= 80) attentionLevel = '优秀';
-    else if (avgAttention >= 60) attentionLevel = '良好';
-    else if (avgAttention >= 40) attentionLevel = '一般';
-    else attentionLevel = '需提升';
-
-    const report = {
-      timestamp: new Date().toISOString(),
-      duration: Math.floor(duration),
-      avgAttention: Math.round(avgAttention),
-      maxAttention: maxAttention,
-      minAttention: minAttention,
-      distractionCount: sessionDistractionCount,
-      avgBlinkRate: avgBlinkRate.toFixed(0),
-      blinkBaseline: baselineBlinkRate ? baselineBlinkRate.toFixed(0) : '未建立',
-      attentionLevel: attentionLevel,
-      totalFrames: sessionAttentionScores.length,
-    };
-
-    console.log('📊 ========== 游戏会话报告 ==========');
-    console.log(`游戏时长: ${report.duration} 秒`);
-    console.log(`平均专注度: ${report.avgAttention} 分 (${report.attentionLevel})`);
-    console.log(`最高专注度: ${report.maxAttention} 分`);
-    console.log(`最低专注度: ${report.minAttention} 分`);
-    console.log(`分心次数: ${report.distractionCount} 次`);
-    console.log(`平均眨眼频率: ${report.avgBlinkRate} 次/分`);
-    console.log(`眨眼基线: ${report.blinkBaseline} 次/分`);
-    console.log(`总帧数: ${report.totalFrames} 帧`);
-    console.log('====================================');
-
-    const history = JSON.parse(localStorage.getItem('game_session_history') || '[]');
-    history.push(report);
-    if (history.length > 20) history.shift();
-    localStorage.setItem('game_session_history', JSON.stringify(history));
-
-    showSessionReport(report);
-
-    return report;
-  }
-
-  function showSessionReport(report) {
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 20000;
-            animation: fadeIn 0.3s ease;
-        `;
-
-    let levelColor = '#FF9800';
-    if (report.attentionLevel === '优秀') levelColor = '#4CAF50';
-    else if (report.attentionLevel === '良好') levelColor = '#8BC34A';
-    else if (report.attentionLevel === '需提升') levelColor = '#F44336';
-
-    modal.innerHTML = `
-            <div style="
-                background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-                border-radius: 20px;
-                padding: 30px;
-                width: 90%;
-                max-width: 400px;
-                text-align: center;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                border: 4px solid ${levelColor};
-                animation: bounceIn 0.4s ease;
-            ">
-                <h2 style="color: ${levelColor}; margin-bottom: 20px;">📊 训练报告</h2>
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 48px; font-weight: bold; color: ${levelColor};">
-                        ${report.avgAttention}
-                    </div>
-                    <div style="color: #666;">平均专注度</div>
-                    <div style="margin-top: 10px; padding: 5px 15px; background: ${levelColor}20; border-radius: 20px; display: inline-block;">
-                        ${report.attentionLevel}
-                    </div>
-                </div>
-                <div style="text-align: left; border-top: 1px solid #eee; padding-top: 15px;">
-                    <p>⏱️ 训练时长: <strong>${report.duration}</strong> 秒</p>
-                    <p>🎯 最高专注度: <strong>${report.maxAttention}</strong> 分</p>
-                    <p>📉 最低专注度: <strong>${report.minAttention}</strong> 分</p>
-                    <p>⚠️ 分心次数: <strong>${report.distractionCount}</strong> 次</p>
-                    <p>👁️ 平均眨眼: <strong>${report.avgBlinkRate}</strong> 次/分</p>
-                    <p>📊 眨眼基线: <strong>${report.blinkBaseline}</strong> 次/分</p>
-                </div>
-                <div style="margin-top: 20px;">
-                    <button id="close-report-btn" style="
-                        background: linear-gradient(90deg, #ffffffff, #ffffffff);
-                        color: white;
-                        border: none;
-                        padding: 12px 30px;
-                        border-radius: 30px;
-                        font-size: 16px;
-                        cursor: pointer;
-                    ">关闭</button>
-                </div>
-            </div>
-        `;
-
-    document.body.appendChild(modal);
-    document.getElementById('close-report-btn').addEventListener('click', () => {
-      modal.remove();
-    });
-  }
-
   // ========== 初始化 ==========
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
@@ -470,12 +306,9 @@
   }
 
   async function init() {
-    startSession();
     createFloatingBall();
     await startCamera();
     startDetection();
-    // 自动打开面板，直观展示数据
-    setTimeout(openPanel, 1000);
   }
 
   // ========== 云朵提示 ==========
@@ -492,52 +325,25 @@
     cloud.innerHTML = `
             <div style="
                 position: relative;
-                background: white;
-                border-radius: 30px;
+                background: #fff;
+                border-radius: 14px;
                 padding: 10px 18px;
-                min-width: 130px;
-                max-width: 220px;
                 text-align: center;
-                font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                font-size: 14px;
-                font-weight: normal;
-                color: #5a4a2a;
-                box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-                border: 2px solid #ffe0b5;
-                background: linear-gradient(135deg, #fff9e8, #fff5e0);
-                animation: cloudFloat 0.3s ease-out;
+                font-family: system-ui, -apple-system, sans-serif;
+                font-size: 13px;
+                color: #555;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                animation: cloudFloatIn 0.3s ease-out;
             ">
-                <span style="display: block;">${message}</span>
+                ${message}
                 <div style="
                     position: absolute;
-                    bottom: -12px;
-                    left: 15px;
-                    width: 25px;
-                    height: 25px;
-                    background: white;
-                    border-radius: 50%;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-                    border: 2px solid #ffe0b5;
-                "></div>
-                <div style="
-                    position: absolute;
-                    bottom: -20px;
-                    left: 38px;
-                    width: 18px;
-                    height: 18px;
-                    background: white;
-                    border-radius: 50%;
-                    border: 2px solid #ffe0b5;
-                "></div>
-                <div style="
-                    position: absolute;
-                    bottom: -16px;
-                    left: 58px;
-                    width: 22px;
-                    height: 22px;
-                    background: white;
-                    border-radius: 50%;
-                    border: 2px solid #ffe0b5;
+                    bottom: -7px;
+                    left: 24px;
+                    width: 14px;
+                    height: 7px;
+                    background: #fff;
+                    clip-path: polygon(0 0, 100% 0, 50% 100%);
                 "></div>
             </div>
         `;
@@ -547,26 +353,25 @@
       const newStyle = document.createElement('style');
       newStyle.id = 'cloud-style';
       newStyle.textContent = `
-                @keyframes cloudFloat {
-                    0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+                @keyframes cloudFloatIn {
+                    0% { opacity: 0; transform: translateY(8px) scale(0.95); }
                     100% { opacity: 1; transform: translateY(0) scale(1); }
                 }
                 @keyframes cloudPulse {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.02); }
-                    100% { transform: scale(1); }
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.04); }
                 }
             `;
       document.head.appendChild(newStyle);
     }
 
     const ballRect = floatingBall.getBoundingClientRect();
-    let top = ballRect.top - 65;
-    let left = ballRect.left + ballRect.width / 2 - 70;
+    let top = ballRect.top - 52;
+    let left = ballRect.left + ballRect.width / 2 - 60;
 
     if (top < 10) top = ballRect.bottom + 10;
     if (left < 10) left = 10;
-    if (left + 150 > window.innerWidth) left = window.innerWidth - 160;
+    if (left + 140 > window.innerWidth) left = window.innerWidth - 150;
 
     Object.assign(cloud.style, {
       position: 'fixed',
@@ -578,7 +383,7 @@
     });
 
     if (persistent) {
-      cloud.style.animation = 'cloudPulse 1.5s ease-in-out infinite';
+      cloud.style.animation = 'cloudFloatIn 0.3s ease-out, cloudPulse 1.5s ease-in-out 0.3s infinite';
     }
 
     document.body.appendChild(cloud);
@@ -602,30 +407,68 @@
       if (e.target !== element && !element.contains(e.target)) return;
 
       activeDragElement = type;
+      hasDragged = false;
       dragStartX = e.clientX;
       dragStartY = e.clientY;
 
-      dragStartLeft = parseFloat(floatingBall.style.left) || window.innerWidth - 70;
-      dragStartTop = parseFloat(floatingBall.style.top) || 100;
+      var ballRect = floatingBall.getBoundingClientRect();
+      dragStartLeft = ballRect.left;
+      dragStartTop = ballRect.top;
 
       if (panel && isPanelOpen) {
-        dragStartPanelLeft = parseFloat(panel.style.left) || window.innerWidth - 330;
-        dragStartPanelTop = parseFloat(panel.style.top) || 100;
+        var panelRect = panel.getBoundingClientRect();
+        dragStartPanelLeft = panelRect.left;
+        dragStartPanelTop = panelRect.top;
       }
 
       if (currentCloud) {
-        dragStartCloudLeft = parseFloat(currentCloud.style.left) || window.innerWidth - 160;
-        dragStartCloudTop = parseFloat(currentCloud.style.top) || 35;
+        var cloudRect = currentCloud.getBoundingClientRect();
+        dragStartCloudLeft = cloudRect.left;
+        dragStartCloudTop = cloudRect.top;
       }
 
       element.style.cursor = 'grabbing';
       e.preventDefault();
     });
+
+    element.addEventListener(
+      'touchstart',
+      (e) => {
+        if (e.target !== element && !element.contains(e.target)) return;
+        if (e.touches.length !== 1) return; // 只处理单指
+
+        activeDragElement = type;
+        hasDragged = false;
+        var touch = e.touches[0];
+        dragStartX = touch.clientX;
+        dragStartY = touch.clientY;
+
+        var ballRect = floatingBall.getBoundingClientRect();
+        dragStartLeft = ballRect.left;
+        dragStartTop = ballRect.top;
+
+        if (panel && isPanelOpen) {
+          var panelRect = panel.getBoundingClientRect();
+          dragStartPanelLeft = panelRect.left;
+          dragStartPanelTop = panelRect.top;
+        }
+
+        if (currentCloud) {
+          var cloudRect = currentCloud.getBoundingClientRect();
+          dragStartCloudLeft = cloudRect.left;
+          dragStartCloudTop = cloudRect.top;
+        }
+
+        e.preventDefault(); // 防止页面滚动
+      },
+      { passive: false },
+    );
   }
 
   document.addEventListener('mousemove', (e) => {
     if (!activeDragElement) return;
 
+    hasDragged = true;
     const deltaX = e.clientX - dragStartX;
     const deltaY = e.clientY - dragStartY;
 
@@ -644,8 +487,8 @@
       let panelNewLeft = dragStartPanelLeft + deltaX;
       let panelNewTop = dragStartPanelTop + deltaY;
 
-      panelNewLeft = Math.max(0, Math.min(window.innerWidth - 320, panelNewLeft));
-      panelNewTop = Math.max(0, Math.min(window.innerHeight - 400, panelNewTop));
+      panelNewLeft = Math.max(0, Math.min(window.innerWidth - 284, panelNewLeft));
+      panelNewTop = Math.max(0, Math.min(window.innerHeight - 430, panelNewTop));
 
       panel.style.left = panelNewLeft + 'px';
       panel.style.top = panelNewTop + 'px';
@@ -667,6 +510,53 @@
     }
   });
 
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!activeDragElement) return;
+      if (e.touches.length !== 1) return;
+
+      hasDragged = true;
+      var touch = e.touches[0];
+      var deltaX = touch.clientX - dragStartX;
+      var deltaY = touch.clientY - dragStartY;
+
+      var newLeft = dragStartLeft + deltaX;
+      var newTop = dragStartTop + deltaY;
+
+      newLeft = Math.max(0, Math.min(window.innerWidth - 50, newLeft));
+      newTop = Math.max(0, Math.min(window.innerHeight - 50, newTop));
+
+      floatingBall.style.left = newLeft + 'px';
+      floatingBall.style.top = newTop + 'px';
+      floatingBall.style.right = 'auto';
+      floatingBall.style.bottom = 'auto';
+
+      if (panel && isPanelOpen) {
+        var panelNewLeft = dragStartPanelLeft + deltaX;
+        var panelNewTop = dragStartPanelTop + deltaY;
+        panelNewLeft = Math.max(0, Math.min(window.innerWidth - 284, panelNewLeft));
+        panelNewTop = Math.max(0, Math.min(window.innerHeight - 430, panelNewTop));
+        panel.style.left = panelNewLeft + 'px';
+        panel.style.top = panelNewTop + 'px';
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+      }
+
+      if (currentCloud) {
+        var cloudNewLeft = dragStartCloudLeft + deltaX;
+        var cloudNewTop = dragStartCloudTop + deltaY;
+        cloudNewLeft = Math.max(0, Math.min(window.innerWidth - 150, cloudNewLeft));
+        cloudNewTop = Math.max(0, Math.min(window.innerHeight - 100, cloudNewTop));
+        currentCloud.style.left = cloudNewLeft + 'px';
+        currentCloud.style.top = cloudNewTop + 'px';
+        currentCloud.style.right = 'auto';
+        currentCloud.style.bottom = 'auto';
+      }
+    },
+    { passive: false },
+  );
+
   document.addEventListener('mouseup', () => {
     if (activeDragElement) {
       activeDragElement = null;
@@ -674,86 +564,254 @@
     }
   });
 
+  document.addEventListener('touchend', (e) => {
+    if (activeDragElement && e.touches.length === 0) {
+      activeDragElement = null;
+      if (floatingBall) floatingBall.style.cursor = '';
+    }
+  });
+
+  document.addEventListener('touchcancel', () => {
+    if (activeDragElement) {
+      activeDragElement = null;
+      if (floatingBall) floatingBall.style.cursor = '';
+    }
+  });
+
   // ========== 小球创建 ==========
   function createFloatingBall() {
+    // Load rounded display font
+    if (!document.getElementById('creature-font')) {
+      var fontLink = document.createElement('link');
+      fontLink.id = 'creature-font';
+      fontLink.rel = 'stylesheet';
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap';
+      document.head.appendChild(fontLink);
+    }
+
     floatingBall = document.createElement('div');
     floatingBall.id = 'floating-attention-ball';
     floatingBall.innerHTML = `
-            <div id="ball-container" style="
-                width: 100px;
-                height: 100px;
+            <div id="ball-wrapper" style="
+                position: relative;
+                width: 82px;
+                height: 82px;
+                cursor: pointer;
                 display: flex;
-                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                cursor: move;
-                transition: all 0.3s ease;
-                position: relative;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #4caf50, #81c784);
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             ">
-                <div class="loader" style="
-                    display: inline-flex;
-                    gap: 10px;
-                    z-index: 1;
-                    margin-bottom: 5px;
-                "></div>
-                <div id="ball-face" style="
-                    position: relative;
-                    width: 40px;
-                    height: 20px;
-                    z-index: 1;
-                ">
-                    <div id="ball-mouth" style="
-                        position: absolute;
-                        bottom: 0;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        width: 20px;
-                        height: 10px;
-                        border-radius: 0 0 10px 10px;
-                        border: 2px solid white;
-                        border-top: none;
-                    "></div>
-                </div>
-                <div id="ball-score" style="
+                <div id="ball-light-pool" style="
                     position: absolute;
-                    top: 10px;
+                    bottom: -1px;
                     left: 50%;
                     transform: translateX(-50%);
-                    color: white;
-                    font-size: 16px;
-                    font-weight: bold;
-                    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-                    z-index: 2;
-                ">0</div>
+                    width: 38px;
+                    height: 10px;
+                    background: radial-gradient(ellipse at center, rgba(255,184,128,0.45) 0%, transparent 70%);
+                    border-radius: 50%;
+                    animation: lightPoolPulse 2.2s ease-in-out infinite;
+                    pointer-events: none;
+                    transition: background 0.5s ease;
+                "></div>
+                <div class="creature-sparkle" style="
+                    position: absolute;
+                    width: 3px; height: 3px;
+                    background: #FFD54F;
+                    border-radius: 50%;
+                    top: 50%; left: 50%;
+                    animation: sparkle1 3s ease-in-out infinite;
+                    pointer-events: none;
+                    box-shadow: 0 0 4px #FFD54F;
+                "></div>
+                <div class="creature-sparkle" style="
+                    position: absolute;
+                    width: 2.5px; height: 2.5px;
+                    background: #FFFFFF;
+                    border-radius: 50%;
+                    top: 50%; left: 50%;
+                    animation: sparkle2 3.4s ease-in-out 0.5s infinite;
+                    pointer-events: none;
+                    box-shadow: 0 0 3px #FFFFFF;
+                "></div>
+                <div class="creature-sparkle" style="
+                    position: absolute;
+                    width: 3.5px; height: 3.5px;
+                    background: #FFECB3;
+                    border-radius: 50%;
+                    top: 50%; left: 50%;
+                    animation: sparkle3 2.8s ease-in-out 1.2s infinite;
+                    pointer-events: none;
+                    box-shadow: 0 0 5px #FFECB3;
+                "></div>
+                <div class="creature-sparkle" style="
+                    position: absolute;
+                    width: 2px; height: 2px;
+                    background: #FFD54F;
+                    border-radius: 50%;
+                    top: 50%; left: 50%;
+                    animation: sparkle4 3.6s ease-in-out 0.8s infinite;
+                    pointer-events: none;
+                    box-shadow: 0 0 3px #FFD54F;
+                "></div>
+                <div id="ball-body" style="
+                    width: 68px;
+                    height: 68px;
+                    border-radius: 46% 50% 48% 52% / 48% 50% 52% 46%;
+                    background: radial-gradient(circle at 38% 30%, #FFF5F0 0%, #FFE0D0 18%, #F0B8A0 50%, #D89078 100%);
+                    box-shadow:
+                        0 6px 24px rgba(200,140,110,0.30),
+                        inset 0 -8px 16px rgba(180,120,100,0.15);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                    transition: background 0.6s ease, box-shadow 0.6s ease, border-radius 0.6s ease;
+                    animation: creatureFloat 3s ease-in-out infinite, creatureBreathe 4s ease-in-out infinite;
+                ">
+                    <div id="ball-highlight" style="
+                        position: absolute;
+                        top: 8px;
+                        left: 12px;
+                        width: 22px;
+                        height: 11px;
+                        background: rgba(255,255,255,0.45);
+                        border-radius: 50%;
+                        transform: rotate(-20deg);
+                        pointer-events: none;
+                    "></div>
+                    <div id="ball-score-text" style="
+                        font-family: 'Fredoka', system-ui, sans-serif;
+                        font-size: 17px;
+                        font-weight: 700;
+                        color: rgba(255,255,255,0.92);
+                        text-shadow: 0 1px 2px rgba(0,0,0,0.08);
+                        line-height: 1;
+                        margin-bottom: 0px;
+                        z-index: 1;
+                        letter-spacing: -0.5px;
+                    ">0</div>
+                    <div id="ball-face" style="display: flex; flex-direction: column; align-items: center; z-index: 1;">
+                        <div id="ball-eyes" style="
+                            display: flex; gap: 13px; margin-bottom: 3px;
+                            animation: creatureBlink 4.5s ease-in-out infinite;
+                        ">
+                            <div class="creature-eye" style="
+                                width: 12px; height: 13px; background: #fff;
+                                border-radius: 50%; position: relative; overflow: hidden;
+                                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                            ">
+                                <div class="eye-iris" style="
+                                    width: 8px; height: 9px; background: #4A3728;
+                                    border-radius: 50%; position: absolute;
+                                    bottom: 0; left: 50%; transform: translateX(-50%);
+                                ">
+                                    <div class="eye-shine" style="
+                                        width: 3px; height: 3px; background: #fff;
+                                        border-radius: 50%; position: absolute;
+                                        top: 1px; right: 1px;
+                                    "></div>
+                                    <div style="
+                                        width: 1.5px; height: 1.5px; background: #fff;
+                                        border-radius: 50%; position: absolute;
+                                        bottom: 1px; left: 1px;
+                                    "></div>
+                                </div>
+                            </div>
+                            <div class="creature-eye" style="
+                                width: 12px; height: 13px; background: #fff;
+                                border-radius: 50%; position: relative; overflow: hidden;
+                                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                            ">
+                                <div class="eye-iris" style="
+                                    width: 8px; height: 9px; background: #4A3728;
+                                    border-radius: 50%; position: absolute;
+                                    bottom: 0; left: 50%; transform: translateX(-50%);
+                                ">
+                                    <div class="eye-shine" style="
+                                        width: 3px; height: 3px; background: #fff;
+                                        border-radius: 50%; position: absolute;
+                                        top: 1px; right: 1px;
+                                    "></div>
+                                    <div style="
+                                        width: 1.5px; height: 1.5px; background: #fff;
+                                        border-radius: 50%; position: absolute;
+                                        bottom: 1px; left: 1px;
+                                    "></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="ball-blush" style="display: flex; gap: 20px; margin-bottom: 1px;">
+                            <div class="blush-dot" style="
+                                width: 7px; height: 4px; background: rgba(255,160,140,0.50);
+                                border-radius: 50%; filter: blur(1.5px);
+                            "></div>
+                            <div class="blush-dot" style="
+                                width: 7px; height: 4px; background: rgba(255,160,140,0.50);
+                                border-radius: 50%; filter: blur(1.5px);
+                            "></div>
+                        </div>
+                        <div id="ball-mouth" style="
+                            width: 10px; height: 5px;
+                            border-radius: 0 0 5px 5px;
+                            border: 1.5px solid rgba(74,55,40,0.45);
+                            border-top: none;
+                            transition: all 0.4s ease;
+                        "></div>
+                    </div>
+                </div>
             </div>
         `;
 
-    // 添加动画样式
-    const style = document.createElement('style');
+    var style = document.createElement('style');
+    style.id = 'creature-animations';
     style.textContent = `
-            .loader:before,
-            .loader:after {
-                content: "";
-                height: 20px;
-                aspect-ratio: 1;
-                border-radius: 50%;
-                background: radial-gradient(farthest-side,#000 95%,#0000) 35% 35%/6px 6px no-repeat #fff;
-                transform: scaleX(var(--s,1)) rotate(0deg);
-                animation: l6 1s infinite linear;
+            @keyframes creatureFloat {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-3px); }
             }
-            
-            .loader:after {
-                --s: -1;
-                animation-delay: -0.1s;
-            }
-            
-            @keyframes l6 {
-                100% {
-                    transform: scaleX(var(--s,1)) rotate(360deg);
+            @keyframes creatureBreathe {
+                0%, 100% {
+                    transform: scale(1);
+                    border-radius: 46% 50% 48% 52% / 48% 50% 52% 46%;
                 }
+                50% {
+                    transform: scale(1.04);
+                    border-radius: 50% 46% 52% 48% / 52% 48% 46% 50%;
+                }
+            }
+            @keyframes lightPoolPulse {
+                0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.65; }
+                50% { transform: translateX(-50%) scale(1.35); opacity: 0.35; }
+            }
+            @keyframes creatureBlink {
+                0%, 44%, 48%, 100% { transform: scaleY(1); }
+                46% { transform: scaleY(0.06); }
+            }
+            @keyframes sparkle1 {
+                0%, 100% { transform: translate(0, 0) scale(0); opacity: 0; }
+                25% { transform: translate(22px, -28px) scale(1); opacity: 1; }
+                55% { transform: translate(36px, -16px) scale(0.5); opacity: 0.5; }
+                75% { transform: translate(42px, -30px) scale(0); opacity: 0; }
+            }
+            @keyframes sparkle2 {
+                0%, 100% { transform: translate(0, 0) scale(0); opacity: 0; }
+                20% { transform: translate(-20px, -24px) scale(1); opacity: 0.9; }
+                50% { transform: translate(-34px, -10px) scale(0.4); opacity: 0.3; }
+                70% { transform: translate(-38px, -26px) scale(0); opacity: 0; }
+            }
+            @keyframes sparkle3 {
+                0%, 100% { transform: translate(0, 0) scale(0); opacity: 0; }
+                30% { transform: translate(26px, 12px) scale(0.9); opacity: 0.8; }
+                60% { transform: translate(38px, -8px) scale(0.3); opacity: 0.2; }
+                80% { transform: translate(44px, 16px) scale(0); opacity: 0; }
+            }
+            @keyframes sparkle4 {
+                0%, 100% { transform: translate(0, 0) scale(0); opacity: 0; }
+                22% { transform: translate(-24px, 14px) scale(0.7); opacity: 0.7; }
+                48% { transform: translate(-36px, -14px) scale(1); opacity: 0.9; }
+                68% { transform: translate(-42px, 18px) scale(0); opacity: 0; }
             }
         `;
     document.head.appendChild(style);
@@ -761,13 +819,17 @@
     Object.assign(floatingBall.style, {
       position: 'fixed',
       top: '100px',
-      right: '20px',
+      right: '24px',
       zIndex: '9998',
       cursor: 'move',
       userSelect: 'none',
     });
 
     floatingBall.addEventListener('click', (e) => {
+      if (hasDragged) {
+        hasDragged = false;
+        return;
+      }
       e.stopPropagation();
       togglePanel();
     });
@@ -782,86 +844,119 @@
     panel.id = 'attention-panel';
     panel.innerHTML = `
             <div style="
-                background: rgba(30, 30, 40, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                width: 320px;
-                color: white;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                border: 1px solid rgba(255,255,255,0.2);
+                background: #FFFFFF;
+                border-radius: 16px;
+                width: 284px;
+                box-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06);
                 overflow: hidden;
+                font-family: system-ui, -apple-system, sans-serif;
+                border: 1px solid rgba(0,0,0,0.06);
             ">
-                <div style="
-                    padding: 15px 20px;
-                    background: linear-gradient(135deg, #4caf50, #81c784);
+                <div id="panel-header-bg" style="
+                    padding: 14px 18px;
+                    background: linear-gradient(135deg, #D89078, #C07860);
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     cursor: move;
-                " id="panel-header">
-                    <span style="font-weight: bold;">🔍 专注力检测</span>
+                    transition: background 0.5s ease;
+                ">
+                    <span style="font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 0.5px;">专注力检测</span>
                     <button id="close-panel" style="
-                        background: none;
+                        background: rgba(255,255,255,0.18);
                         border: none;
-                        color: white;
-                        font-size: 20px;
+                        color: #fff;
+                        font-size: 13px;
                         cursor: pointer;
-                        width: 30px;
-                        height: 30px;
+                        width: 24px;
+                        height: 24px;
                         border-radius: 50%;
                         display: flex;
                         align-items: center;
                         justify-content: center;
+                        line-height: 1;
+                        transition: background 0.2s;
                     ">✕</button>
                 </div>
-                
-                <div style="padding: 20px;">
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span>🎯 专注度</span>
-                            <span id="panel-score">0分</span>
+
+                <div style="padding: 16px 18px 18px;">
+                    <div style="text-align: center; margin-bottom: 14px;">
+                        <div id="panel-gauge" style="
+                            width: 84px;
+                            height: 84px;
+                            border-radius: 50%;
+                            margin: 0 auto 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: background 0.5s ease;
+                            background: #D89078;
+                            box-shadow: 0 0 0 4px rgba(216,144,120,0.15);
+                        ">
+                            <div style="text-align: center;">
+                                <div id="panel-score-big" style="
+                                    font-family: 'Fredoka', system-ui, sans-serif;
+                                    font-size: 28px;
+                                    font-weight: 700;
+                                    color: #fff;
+                                    line-height: 1;
+                                    letter-spacing: -1px;
+                                ">--</div>
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.75); margin-top: 2px;">专注度</div>
+                            </div>
                         </div>
-                        <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 8px; overflow: hidden;">
-                            <div id="panel-score-bar" style="width: 0%; height: 100%; background: #4caf50; border-radius: 10px; transition: width 0.3s;"></div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <div style="
+                            display: flex; justify-content: space-between; align-items: center;
+                            padding: 8px 12px; background: #FAFAFA; border-radius: 8px;
+                        ">
+                            <span style="color: #999; font-size: 11px;">人脸</span>
+                            <span id="panel-face-status" style="font-size: 11px; font-weight: 500;">--</span>
+                        </div>
+                        <div style="
+                            display: flex; justify-content: space-between; align-items: center;
+                            padding: 8px 12px; background: #FAFAFA; border-radius: 8px;
+                        ">
+                            <span style="color: #999; font-size: 11px;">头部转动</span>
+                            <span id="panel-head-angle" style="font-size: 11px; font-weight: 500;">--</span>
+                        </div>
+                        <div style="
+                            display: flex; justify-content: space-between; align-items: center;
+                            padding: 8px 12px; background: #FAFAFA; border-radius: 8px;
+                        ">
+                            <span style="color: #999; font-size: 11px;">屏幕距离</span>
+                            <span id="panel-distance" style="font-size: 11px; font-weight: 500;">--</span>
+                        </div>
+                        <div style="
+                            display: flex; justify-content: space-between; align-items: center;
+                            padding: 8px 12px; background: #FAFAFA; border-radius: 8px;
+                        ">
+                            <span style="color: #999; font-size: 11px;">眨眼频率</span>
+                            <span id="panel-blink-rate" style="font-size: 11px; font-weight: 500;">--</span>
+                        </div>
+                        <div style="
+                            display: flex; justify-content: space-between; align-items: center;
+                            padding: 8px 12px; background: #FAFAFA; border-radius: 8px;
+                        ">
+                            <span style="color: #999; font-size: 11px;">专注时长</span>
+                            <span id="panel-focus-time" style="font-size: 11px; font-weight: 500;">--</span>
                         </div>
                     </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <span>👤 人脸状态</span>
-                        <span id="panel-face-status">--</span>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <span>📐 头部转角</span>
-                        <span id="panel-head-angle">0°</span>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <span>📏 屏幕距离</span>
-                        <span id="panel-distance">--</span>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <span>👁️ 眨眼频率</span>
-                        <span id="panel-blink-rate">--次/分</span>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <span>⏱️ 持续专注</span>
-                        <span id="panel-focus-time">00:00</span>
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button id="panel-close-btn" style="
-                            flex: 1;
-                            background: rgba(255,255,255,0.2);
-                            border: none;
-                            color: white;
-                            padding: 8px;
-                            border-radius: 10px;
-                            cursor: pointer;
-                        ">🔒 关闭面板</button>
-                    </div>
+
+                    <button id="panel-close-btn" style="
+                        width: 100%;
+                        margin-top: 12px;
+                        background: #F5F5F5;
+                        border: none;
+                        color: #999;
+                        padding: 8px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        transition: background 0.2s;
+                    ">收起面板</button>
                 </div>
             </div>
         `;
@@ -872,6 +967,10 @@
       right: '20px',
       zIndex: '9999',
       display: 'none',
+      opacity: '0',
+      transform: 'translateY(8px)',
+      transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
+      pointerEvents: 'none',
       cursor: 'move',
     });
 
@@ -890,16 +989,22 @@
   function openPanel() {
     if (!panel) createPanel();
 
-    const ballRect = floatingBall.getBoundingClientRect();
-    let panelLeft = ballRect.left - 330;
-    let panelTop = ballRect.top;
+    // 清理关闭动画残留的 transitionend 监听器和超时
+    if (panelCloseTimer) {
+      clearTimeout(panelCloseTimer);
+      panelCloseTimer = null;
+    }
+    // 移除所有残留的 transitionend 监听器（克隆节点方式最可靠）
+    panel.style.transition = 'none';
+    panel.style.opacity = '0';
+    panel.style.transform = 'translateY(8px)';
 
-    if (panelLeft < 10) {
-      panelLeft = ballRect.right + 10;
-    }
-    if (panelTop + 400 > window.innerHeight) {
-      panelTop = window.innerHeight - 420;
-    }
+    var ballRect = floatingBall.getBoundingClientRect();
+    var panelLeft = ballRect.left - 296;
+    var panelTop = ballRect.top;
+
+    if (panelLeft < 10) panelLeft = ballRect.right + 10;
+    if (panelTop + 430 > window.innerHeight) panelTop = window.innerHeight - 440;
     if (panelTop < 10) panelTop = 10;
 
     panel.style.left = panelLeft + 'px';
@@ -908,6 +1013,15 @@
     panel.style.bottom = 'auto';
     panel.style.display = 'block';
 
+    requestAnimationFrame(function () {
+      panel.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
+      requestAnimationFrame(function () {
+        panel.style.opacity = '1';
+        panel.style.transform = 'translateY(0)';
+        panel.style.pointerEvents = 'auto';
+      });
+    });
+
     isPanelOpen = true;
     updatePanelData();
     if (panelUpdateInterval) clearInterval(panelUpdateInterval);
@@ -915,7 +1029,32 @@
   }
 
   function closePanel() {
-    if (panel) panel.style.display = 'none';
+    if (!panel || !isPanelOpen) return;
+
+    // 清理之前的 transitionend 监听器和超时
+    if (panelCloseTimer) {
+      clearTimeout(panelCloseTimer);
+      panelCloseTimer = null;
+    }
+
+    panel.style.opacity = '0';
+    panel.style.transform = 'translateY(8px)';
+    panel.style.pointerEvents = 'none';
+
+    var onTransitionEnd = function () {
+      panel.style.display = 'none';
+      panel.removeEventListener('transitionend', onTransitionEnd);
+      panelCloseTimer = null;
+    };
+    panel.addEventListener('transitionend', onTransitionEnd);
+
+    // 300ms 超时保底，防止 transitionend 不触发
+    panelCloseTimer = setTimeout(function () {
+      panel.style.display = 'none';
+      panel.removeEventListener('transitionend', onTransitionEnd);
+      panelCloseTimer = null;
+    }, 300);
+
     isPanelOpen = false;
     if (panelUpdateInterval) {
       clearInterval(panelUpdateInterval);
@@ -926,96 +1065,151 @@
   function updatePanelData() {
     if (!panel) return;
 
-    panel.querySelector('#panel-score').textContent = detectionData.attentionScore + '分';
-    panel.querySelector('#panel-score-bar').style.width = detectionData.attentionScore + '%';
-    panel.querySelector('#panel-face-status').textContent = detectionData.isFaceDetected ? '✅ 已检测' : '❌ 未检测';
+    var score = detectionData.attentionScore;
 
-    let angleText =
-      detectionData.headYaw > 0
-        ? `右转 ${Math.abs(detectionData.headYaw).toFixed(0)}°`
-        : detectionData.headYaw < 0
-          ? `左转 ${Math.abs(detectionData.headYaw).toFixed(0)}°`
-          : '正对';
-    panel.querySelector('#panel-head-angle').textContent = angleText;
-
-    let distanceText = '--';
-    if (detectionData.isFaceDetected) {
-      const status = getDistanceStatus(detectionData.faceArea);
-      if (status === 'too_close') distanceText = '⚠️ 太近';
-      else if (status === 'too_far') distanceText = '⚠️ 太远';
-      else distanceText = '✅ 适中';
-    }
-    panel.querySelector('#panel-distance').textContent = distanceText;
-
-    // 眨眼频率正常范围阈值
-    const BLINK_RATE_MIN = 5;  // 低于此值显示红色
-    const BLINK_RATE_MAX = 70; // 高于此值显示红色
-
-    // 眨眼频率显示
-    const blinkStatus = getBlinkStatus();
-    if (isBaselineCollecting) {
-      panel.querySelector('#panel-blink-rate').innerHTML = `收集中...`;
+    // Colors by state (match creature palette)
+    var headerGrad, gaugeBg, gaugeShadow;
+    if (score >= 80) {
+      headerGrad = 'linear-gradient(135deg, #D89078, #C07860)';
+      gaugeBg = '#D89078';
+      gaugeShadow = '0 0 0 4px rgba(216,144,120,0.15)';
+    } else if (score >= 60) {
+      headerGrad = 'linear-gradient(135deg, #B8A8D0, #A090C0)';
+      gaugeBg = '#B8A8D0';
+      gaugeShadow = '0 0 0 4px rgba(184,168,208,0.15)';
     } else {
-      // 获取趋势箭头（只有↑和↓）
-      const arrow = blinkTrend === 'up' ? '↑' : '↓';
-
-      // 整数显示
-      const displayRate = Math.round(detectionData.blinkRate);
-
-      // 根据阈值确定颜色：低于min或高于max显示红色
-      let displayColor;
-      if (displayRate < BLINK_RATE_MIN || displayRate > BLINK_RATE_MAX) {
-        displayColor = '#FF6B6B'; // 红色 - 异常
-      } else if (blinkChangeIntensity > 0.5) {
-        displayColor = '#FF6B6B'; // 红色 - 剧烈变化
-      } else if (blinkChangeIntensity > 0.3) {
-        displayColor = '#FFC107'; // 黄色 - 中等变化
-      } else {
-        displayColor = blinkStatus.color; // 正常状态颜色
-      }
-
-      panel.querySelector('#panel-blink-rate').innerHTML =
-        `<span style="color: ${displayColor}; font-weight: bold; font-size: 16px;">${displayRate}${arrow}</span>
-         <span style="font-size: 11px; color: #888; margin-left: 3px;">次/分</span>`;
+      headerGrad = 'linear-gradient(135deg, #90A8B8, #7890A0)';
+      gaugeBg = '#90A8B8';
+      gaugeShadow = '0 0 0 4px rgba(144,168,184,0.15)';
     }
 
-    const minutes = Math.floor(detectionData.focusDuration / 60);
-    const seconds = detectionData.focusDuration % 60;
-    panel.querySelector('#panel-focus-time').textContent =
-      `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    var headerEl = panel.querySelector('#panel-header-bg');
+    var gauge = panel.querySelector('#panel-gauge');
+    var scoreBig = panel.querySelector('#panel-score-big');
+
+    if (headerEl) headerEl.style.background = headerGrad;
+    if (gauge) {
+      gauge.style.background = gaugeBg;
+      gauge.style.boxShadow = gaugeShadow;
+    }
+    if (scoreBig) scoreBig.textContent = score;
+
+    // Face status
+    var faceEl = panel.querySelector('#panel-face-status');
+    if (faceEl) {
+      faceEl.textContent = detectionData.isFaceDetected ? '已检测' : '未检测';
+      faceEl.style.color = detectionData.isFaceDetected ? '#4CAF50' : '#EF5350';
+    }
+
+    // Head angle
+    var headEl = panel.querySelector('#panel-head-angle');
+    if (headEl) {
+      if (detectionData.headYaw > 3) headEl.textContent = '右转 ' + Math.abs(detectionData.headYaw).toFixed(0) + '°';
+      else if (detectionData.headYaw < -3)
+        headEl.textContent = '左转 ' + Math.abs(detectionData.headYaw).toFixed(0) + '°';
+      else headEl.textContent = '正对';
+    }
+
+    // Distance
+    var distEl = panel.querySelector('#panel-distance');
+    if (distEl && detectionData.isFaceDetected) {
+      var status = getDistanceStatus(detectionData.faceArea);
+      if (status === 'too_close') {
+        distEl.textContent = '太近';
+        distEl.style.color = '#FF9800';
+      } else if (status === 'too_far') {
+        distEl.textContent = '太远';
+        distEl.style.color = '#2196F3';
+      } else {
+        distEl.textContent = '适中';
+        distEl.style.color = '#4CAF50';
+      }
+    }
+
+    // Blink rate
+    var blinkEl = panel.querySelector('#panel-blink-rate');
+    if (blinkEl) {
+      if (isBaselineCollecting) {
+        blinkEl.innerHTML = '收集中...';
+        blinkEl.style.color = '#999';
+      } else {
+        var rate = Math.round(detectionData.blinkRate);
+        var arrow = blinkTrend === 'up' ? '↑' : '↓';
+        var color = '#4CAF50';
+        if (rate < 5 || rate > 70) color = '#EF5350';
+        else if (blinkChangeIntensity > 0.3) color = '#FF9800';
+        blinkEl.innerHTML = '<span style="color:' + color + ';font-weight:600;">' + rate + arrow + '</span> 次/分';
+      }
+    }
+
+    // Focus time
+    var focusEl = panel.querySelector('#panel-focus-time');
+    if (focusEl) {
+      var min = Math.floor(detectionData.focusDuration / 60);
+      var sec = detectionData.focusDuration % 60;
+      focusEl.textContent = min.toString().padStart(2, '0') + ':' + sec.toString().padStart(2, '0');
+    }
   }
 
   function updateBallScore() {
-    const scoreElement = floatingBall?.querySelector('#ball-score');
-    if (scoreElement) {
-      scoreElement.textContent = detectionData.attentionScore;
-      const ballContainer = floatingBall.querySelector('#ball-container');
-      const ballMouth = floatingBall.querySelector('#ball-mouth');
-      if (ballContainer && ballMouth) {
-        // 确保线条粗细一致
-        ballMouth.style.border = '2px solid white';
+    var score = detectionData.attentionScore;
+    var scoreEl = floatingBall?.querySelector('#ball-score-text');
+    var body = floatingBall?.querySelector('#ball-body');
+    var mouth = floatingBall?.querySelector('#ball-mouth');
+    var lightPool = floatingBall?.querySelector('#ball-light-pool');
+    var sparkles = floatingBall?.querySelectorAll('.creature-sparkle');
 
-        if (detectionData.attentionScore >= 80) {
-          // 绿色小球 - 微笑嘴（弧度更小）
-          ballContainer.style.background = '#81c570';
-          ballMouth.style.borderRadius = '0 0 5px 5px';
-          ballMouth.style.borderTop = 'none';
-          ballMouth.style.height = '8px';
-        } else if (detectionData.attentionScore >= 60) {
-          // 黄色小球 - 平嘴
-          ballContainer.style.background = '#f89418';
-          ballMouth.style.borderRadius = '0';
-          ballMouth.style.borderTop = '2px solid white';
-          ballMouth.style.borderBottom = 'none';
-          ballMouth.style.height = '2px';
-        } else {
-          // 红色小球 - 生气嘴
-          ballContainer.style.background = '#c01e25';
-          ballMouth.style.borderRadius = '5px 5px 0 0';
-          ballMouth.style.borderTop = '2px solid white';
-          ballMouth.style.borderBottom = 'none';
-          ballMouth.style.height = '8px';
-        }
+    if (scoreEl) scoreEl.textContent = score;
+
+    if (body && mouth) {
+      if (score >= 80) {
+        // 专注 — 蜜桃色 + 金色光芒
+        body.style.background =
+          'radial-gradient(circle at 38% 30%, #FFF5F0 0%, #FFE0D0 18%, #F0B8A0 50%, #D89078 100%)';
+        body.style.boxShadow = '0 6px 24px rgba(200,140,110,0.30), inset 0 -8px 16px rgba(180,120,100,0.15)';
+        if (lightPool)
+          lightPool.style.background = 'radial-gradient(ellipse at center, rgba(255,184,128,0.45) 0%, transparent 70%)';
+        mouth.style.borderRadius = '0 0 5px 5px';
+        mouth.style.border = '1.5px solid rgba(74,55,40,0.45)';
+        mouth.style.borderTop = 'none';
+        mouth.style.height = '5px';
+        mouth.style.width = '10px';
+        if (sparkles)
+          sparkles.forEach(function (s) {
+            s.style.opacity = '1';
+          });
+      } else if (score >= 60) {
+        // 一般 — 薰衣草色
+        body.style.background =
+          'radial-gradient(circle at 38% 30%, #F8F6FF 0%, #E8E0F8 18%, #C8B8E0 50%, #A898C0 100%)';
+        body.style.boxShadow = '0 6px 24px rgba(160,140,200,0.28), inset 0 -8px 16px rgba(140,120,180,0.12)';
+        if (lightPool)
+          lightPool.style.background = 'radial-gradient(ellipse at center, rgba(180,160,220,0.38) 0%, transparent 70%)';
+        mouth.style.borderRadius = '0';
+        mouth.style.border = 'none';
+        mouth.style.borderTop = '1.5px solid rgba(74,55,40,0.40)';
+        mouth.style.height = '0px';
+        mouth.style.width = '8px';
+        if (sparkles)
+          sparkles.forEach(function (s) {
+            s.style.opacity = '0.45';
+          });
+      } else {
+        // 分心 — 鼠尾草蓝
+        body.style.background =
+          'radial-gradient(circle at 38% 30%, #F0F5F5 0%, #D8E8E8 18%, #B0C8D0 50%, #90A8B8 100%)';
+        body.style.boxShadow = '0 6px 24px rgba(130,160,180,0.25), inset 0 -8px 16px rgba(110,140,160,0.10)';
+        if (lightPool)
+          lightPool.style.background = 'radial-gradient(ellipse at center, rgba(150,180,200,0.32) 0%, transparent 70%)';
+        mouth.style.borderRadius = '5px 5px 0 0';
+        mouth.style.border = '1.5px solid rgba(74,55,40,0.40)';
+        mouth.style.borderBottom = 'none';
+        mouth.style.height = '5px';
+        mouth.style.width = '10px';
+        if (sparkles)
+          sparkles.forEach(function (s) {
+            s.style.opacity = '0';
+          });
       }
     }
   }
@@ -1083,9 +1277,6 @@
     baselineSamples = [];
     blinkTimes = [];
     totalBlinks = 0;
-    currentBlinkRate = 0;
-    smoothBlinkRate = 0;
-    eyeClosedCounter = 0;
     console.log('📊 开始收集眨眼基线数据（30秒）...');
 
     function detect() {
@@ -1164,11 +1355,6 @@
               focusDuration: currentFocusDuration,
             };
 
-            if (sessionIsActive) {
-              sessionAttentionScores.push(detectionData.attentionScore);
-              sessionBlinkRates.push(detectionData.blinkRate);
-            }
-
             let currentProblem = null;
             let currentMessage = '';
 
@@ -1182,9 +1368,6 @@
             } else if (Math.abs(yaw) > 25 || Math.abs(pitch) > 20) {
               currentProblem = 'distracted';
               currentMessage = '👀 看这里！';
-              if (currentTipType !== currentProblem) {
-                sessionDistractionCount++;
-              }
             } else {
               currentProblem = null;
             }
@@ -1235,11 +1418,4 @@
     }
     detect();
   }
-
-  // 移除 beforeunload 事件，避免点击下一关时显示会话报告
-  // window.addEventListener('beforeunload', () => {
-  //     if (sessionIsActive) {
-  //         endSession();
-  //     }
-  // });
 })();
