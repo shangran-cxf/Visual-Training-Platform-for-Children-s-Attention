@@ -83,6 +83,7 @@
     dragStartPanelTop = 0;
   let dragStartCloudLeft = 0,
     dragStartCloudTop = 0;
+  let hasDragged = false;
 
   // ========== 统一距离判断函数 ==========
   function getDistanceStatus(faceArea) {
@@ -406,20 +407,24 @@
       if (e.target !== element && !element.contains(e.target)) return;
 
       activeDragElement = type;
+      hasDragged = false;
       dragStartX = e.clientX;
       dragStartY = e.clientY;
 
-      dragStartLeft = parseFloat(floatingBall.style.left) || window.innerWidth - 70;
-      dragStartTop = parseFloat(floatingBall.style.top) || 100;
+      var ballRect = floatingBall.getBoundingClientRect();
+      dragStartLeft = ballRect.left;
+      dragStartTop = ballRect.top;
 
       if (panel && isPanelOpen) {
-        dragStartPanelLeft = parseFloat(panel.style.left) || window.innerWidth - 296;
-        dragStartPanelTop = parseFloat(panel.style.top) || 100;
+        var panelRect = panel.getBoundingClientRect();
+        dragStartPanelLeft = panelRect.left;
+        dragStartPanelTop = panelRect.top;
       }
 
       if (currentCloud) {
-        dragStartCloudLeft = parseFloat(currentCloud.style.left) || window.innerWidth - 160;
-        dragStartCloudTop = parseFloat(currentCloud.style.top) || 35;
+        var cloudRect = currentCloud.getBoundingClientRect();
+        dragStartCloudLeft = cloudRect.left;
+        dragStartCloudTop = cloudRect.top;
       }
 
       element.style.cursor = 'grabbing';
@@ -433,21 +438,25 @@
         if (e.touches.length !== 1) return; // 只处理单指
 
         activeDragElement = type;
+        hasDragged = false;
         var touch = e.touches[0];
         dragStartX = touch.clientX;
         dragStartY = touch.clientY;
 
-        dragStartLeft = parseFloat(floatingBall.style.left) || window.innerWidth - 70;
-        dragStartTop = parseFloat(floatingBall.style.top) || 100;
+        var ballRect = floatingBall.getBoundingClientRect();
+        dragStartLeft = ballRect.left;
+        dragStartTop = ballRect.top;
 
         if (panel && isPanelOpen) {
-          dragStartPanelLeft = parseFloat(panel.style.left) || window.innerWidth - 296;
-          dragStartPanelTop = parseFloat(panel.style.top) || 100;
+          var panelRect = panel.getBoundingClientRect();
+          dragStartPanelLeft = panelRect.left;
+          dragStartPanelTop = panelRect.top;
         }
 
         if (currentCloud) {
-          dragStartCloudLeft = parseFloat(currentCloud.style.left) || window.innerWidth - 160;
-          dragStartCloudTop = parseFloat(currentCloud.style.top) || 35;
+          var cloudRect = currentCloud.getBoundingClientRect();
+          dragStartCloudLeft = cloudRect.left;
+          dragStartCloudTop = cloudRect.top;
         }
 
         e.preventDefault(); // 防止页面滚动
@@ -459,6 +468,7 @@
   document.addEventListener('mousemove', (e) => {
     if (!activeDragElement) return;
 
+    hasDragged = true;
     const deltaX = e.clientX - dragStartX;
     const deltaY = e.clientY - dragStartY;
 
@@ -506,6 +516,7 @@
       if (!activeDragElement) return;
       if (e.touches.length !== 1) return;
 
+      hasDragged = true;
       var touch = e.touches[0];
       var deltaX = touch.clientX - dragStartX;
       var deltaY = touch.clientY - dragStartY;
@@ -815,6 +826,10 @@
     });
 
     floatingBall.addEventListener('click', (e) => {
+      if (hasDragged) {
+        hasDragged = false;
+        return;
+      }
       e.stopPropagation();
       togglePanel();
     });
