@@ -747,29 +747,30 @@
         }
 
         showGameOverModal(finalScore);
-        uploadTrainingData();
+        uploadTrainingData(finalScore);
       }
 
-      function showGameOverModal(finalScore) {
-        const elapsed = 30 - time;
 
-        const scoreDetails = {
-          time: {
-            name: '用时',
-            score: elapsed + 's',
-            color: '#e65100',
-          },
-          level: {
-            name: '完成关卡',
-            score: level,
-            color: '#2e7d32',
-          },
-          errors: {
-            name: '错误次数',
-            score: errors,
-            color: '#c62828',
-          },
-        };
+    function showGameOverModal(finalScore) {
+      const elapsed = 30 - time;
+
+      const scoreDetails = {
+        time: {
+          name: '用时',
+          score: elapsed + 's',
+          color: '#e65100',
+        },
+        level: {
+          name: '完成关卡',
+          score: level,
+          color: '#2e7d32',
+        },
+        errors: {
+          name: '错误次数',
+          score: errors,
+          color: '#c62828',
+        },
+      };
 
         const message = '你的评分为：' + finalScore + '分';
 
@@ -1033,6 +1034,29 @@
         document.body.appendChild(modal);
       }
 
+    function uploadTrainingData(frontendScore) {
+      try {
+        // [scoring-system] Upload game data + end session.
+        // Session was created in startGame(); use gameSessionId directly.
+        const _uploadAndEnd = () => {
+          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+          const childId =
+            typeof UserStateUtil !== 'undefined'
+              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+              : 1;
+
+          // 计算工作记忆得分
+          const finalScore = calculateWorkingMemoryScore();
+          const accuracy = score > 0 ? (score / 10 / (level + errors)) * 100 : 0;
+
+          // 检测环境，设置API地址
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+          if (typeof visionUploader !== 'undefined') {
+            visionUploader.stop();
+          }
+
       function uploadTrainingData() {
         try {
           // [scoring-system] Upload game data + end session.
@@ -1106,6 +1130,7 @@
                   throw new Error(result.message || '上传游戏数据失败');
                 }
               })
+            
               .then((response) => response.json())
               .then((result) => {
                 console.log('会话结束响应数据:', result);
@@ -1119,70 +1144,66 @@
                   if (!trainingData[today]) {
                     trainingData[today] = { totalTime: 0 };
                   }
+                  
+                // 累加游戏时间（秒）
+                trainingData[today].totalTime += time;
+                localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                console.log('训练时间已保存到 localStorage');
 
-                  // 累加游戏时间（秒）
-                  trainingData[today].totalTime += time;
-                  localStorage.setItem('trainingData', JSON.stringify(trainingData));
-                  console.log('训练时间已保存到 localStorage');
-
-                  // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                  var backendScore = null;
-                  var backendLevel = null;
-                  if (result.data && result.data.summary) {
-                    backendScore = Math.round(result.data.summary.final_score);
-                    backendLevel = result.data.summary.performance_level;
-                  }
+                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                var displayScore = frontendScore;
+                if (result.data && result.data.summary && result.data.summary.final_score) {
+                  displayScore = Math.round(result.data.summary.final_score);
                 }
-              })
-              .catch((error) => {
-                console.error('上传训练数据失败:', error);
-              });
-          };
-
-          if (gameSessionId) {
-            _uploadAndEnd();
-          } else {
-            // [scoring-system] Fallback: session not ready from startGame().
-            console.warn('Session not ready from startGame, creating inline');
-            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-            const childId =
-              typeof UserStateUtil !== 'undefined'
-                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-                : 1;
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-
-            fetch(`${baseUrl}/api/training/session/start`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-              },
-              body: JSON.stringify({
-                child_id: childId,
-                game_type: 'reverse-memory',
-                device_id: 'web',
-              }),
+                showGameOverModal(displayScore);
+              }
             })
-              .then((r) => r.json())
-              .then((res) => {
-                if (res.success) {
-                  gameSessionId = res.data.session_id;
-                  // 先上传缓冲的视觉数据，再提交游戏数据
-                  var flushDone = Promise.resolve();
-                  if (typeof visionUploader !== 'undefined') {
-                    flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
-                  }
-                  flushDone.then(function () {
-                    _uploadAndEnd();
-                  });
+            .catch((error) => {
+              console.error('上传训练数据失败:', error);
+              showGameOverModal(frontendScore);
+            });
+        };
+
+        if (gameSessionId) {
+          _uploadAndEnd();
+        } else {
+          // [scoring-system] Fallback: session not ready from startGame().
+          console.warn('Session not ready from startGame, creating inline');
+          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+          const childId =
+            typeof UserStateUtil !== 'undefined'
+              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+              : 1;
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+          fetch(`${baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: childId,
+              game_type: 'reverse-memory',
+              device_id: 'web',
+            }),
+          })
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success) {
+                gameSessionId = res.data.session_id;
+                // 先上传缓冲的视觉数据，再提交游戏数据
+                var flushDone = Promise.resolve();
+                if (typeof visionUploader !== 'undefined') {
+                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
                 }
               });
           }
         } catch (e) {
           console.error('uploadTrainingData 错误:', e);
+            showGameOverModal(frontendScore);
         }
-      }
 
       function restartGame() {
         startGame();
