@@ -457,6 +457,8 @@
         <p>文献依据：《中华养生保健》2023 舒尔特方格研究</p>
       </div>
     </div>
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script src="../utils.js"></script>
     <script>
       let currentDifficulty = 3;
@@ -468,6 +470,10 @@
       let errorCount = 0;
       let timeInterval;
       let focusLevel = 70; // 模拟专注度，实际应从前端采集
+
+      // [scoring-system] Session created in startGame() so vision data
+      // covers the full gameplay period, not just the end-of-game API window.
+      let gameSessionId = null;
       let 采集间隔 = 10000; // 每10秒采集一次数据
       let 采集次数 = 0;
       let 连续不达标次数 = 0;
@@ -933,6 +939,38 @@
 
         // 启动动态调整
         setInterval(dynamicAdjustment, 采集间隔);
+
+        // [scoring-system] Create training session at game start so that
+        // vision data captured during gameplay is associated with this session.
+        const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+        const _userInfo = UserStateUtil.getUserInfo();
+        const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
+
+        fetch(`${_baseUrl}/api/training/session/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+          body: JSON.stringify({
+            child_id: _childId,
+            game_type: 'schulte',
+            device_id: 'web',
+          }),
+        })
+          .then((r) => r.json())
+          .then((res) => {
+            if (res.success) {
+              gameSessionId = res.data.session_id;
+              if (typeof visionUploader !== 'undefined') {
+                visionUploader.start(gameSessionId);
+              }
+            }
+          })
+          .catch((err) => {
+            console.warn('Failed to create session at game start:', err);
+          });
       }
 
       // 重置游戏
@@ -998,133 +1036,156 @@
         };
         StorageUtil.setItem('training_schulte', trainingData);
 
-        // 上传数据到后端
-        const userInfo = UserStateUtil.getUserInfo();
-        const parentId = userInfo?.parent_id || userInfo?.userId || userInfo?.id || 1;
-        const childId = UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1;
-        let sessionId = null;
+        // [scoring-system] Upload game data + end session.
+        // Session was created in startGame(); use gameSessionId directly.
+        // Fallback: if startGame's session-start hasn't resolved yet (very
+        // fast game or network delay), create the session inline.
+        const _uploadAndEnd = () => {
+          // 上传数据到后端
+          const userInfo = UserStateUtil.getUserInfo();
+          const childId = UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1;
+          // 检测环境，设置API地址
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-        // 检测环境，设置API地址
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+          if (typeof visionUploader !== 'undefined') {
+            visionUploader.stop();
+          }
 
-        // 开始训练会话
-        fetch(`${baseUrl}/api/training/session/start`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-          body: JSON.stringify({
-            child_id: childId,
-            game_type: 'schulte',
-            device_id: 'web',
-          }),
-        })
-          .then((response) => {
-            console.log('会话创建响应状态:', response.status);
-            return response.json();
+          // 上传游戏数据
+          // 上传游戏数据
+          fetch(`${baseUrl}/api/training/game-data`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              session_id: gameSessionId,
+              request_id: Date.now().toString(),
+              timestamp: new Date().toISOString(),
+              event_type: 'game_complete',
+              score: Math.round(accuracy * 0.6 + (100 - errorCount * 10) * 0.2 + Math.max(0, 60 - totalTime) * 0.2),
+              accuracy: accuracy,
+              level: currentDifficulty,
+              time: totalTime,
+              correct: currentDifficulty * currentDifficulty - errorCount,
+              error: errorCount,
+              total_target: currentDifficulty * currentDifficulty,
+              total_step: currentDifficulty * currentDifficulty,
+              total_click: currentDifficulty * currentDifficulty,
+            }),
           })
-          .then((result) => {
-            console.log('会话创建响应数据:', result);
-            if (result.success) {
-              sessionId = result.data.session_id;
-              console.log('训练会话创建成功:', sessionId);
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                console.log('游戏数据上传成功');
 
-              // 上传游戏数据
-              return fetch(`${baseUrl}/api/training/game-data`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-                body: JSON.stringify({
-                  session_id: sessionId,
-                  request_id: Date.now().toString(),
-                  timestamp: new Date().toISOString(),
-                  event_type: 'game_complete',
-                  score: Math.round(accuracy * 0.6 + (100 - errorCount * 10) * 0.2 + Math.max(0, 60 - totalTime) * 0.2),
-                  accuracy: accuracy,
-                  level: currentDifficulty,
-                  time: totalTime,
-                  correct: currentDifficulty * currentDifficulty - errorCount,
-                  error: errorCount,
-                  total_target: currentDifficulty * currentDifficulty,
-                  total_step: currentDifficulty * currentDifficulty,
-                  total_click: currentDifficulty * currentDifficulty,
-                }),
-              });
-            } else {
-              throw new Error(result.message || '创建会话失败');
-            }
-          })
-          .then((response) => {
-            console.log('游戏数据上传响应状态:', response.status);
-            return response.json();
-          })
-          .then((result) => {
-            console.log('游戏数据上传响应数据:', result);
-            if (result.success) {
-              console.log('游戏数据上传成功');
+                // 清除能力评估页面的缓存，确保下次打开时显示最新数据
+                const cacheKey = `child_data_${childId}`;
+                localStorage.removeItem(cacheKey);
+                console.log('已清除能力评估缓存:', cacheKey);
 
-              // 清除能力评估页面的缓存，确保下次打开时显示最新数据
-              const cacheKey = `child_data_${childId}`;
-              localStorage.removeItem(cacheKey);
-              console.log('已清除能力评估缓存:', cacheKey);
-
-              // 结束训练会话
-              return fetch(`${baseUrl}/api/training/session/end`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-                body: JSON.stringify({
-                  session_id: sessionId,
-                  final_score: Math.round(
-                    accuracy * 0.6 + (100 - errorCount * 10) * 0.2 + Math.max(0, 60 - totalTime) * 0.2,
-                  ),
-                  total_accuracy: accuracy,
-                  duration: totalTime,
-                }),
-              });
-            } else {
-              throw new Error(result.message || '上传游戏数据失败');
-            }
-          })
-          .then((response) => {
-            console.log('会话结束响应状态:', response.status);
-            return response.json();
-          })
-          .then((result) => {
-            console.log('会话结束响应数据:', result);
-            if (result.success) {
-              console.log('训练会话结束成功:', result.data);
-
-              // 保存训练时间到 localStorage，用于今日训练页面显示
-              const today = new Date().toISOString().split('T')[0];
-              const trainingTimeData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-              if (!trainingTimeData[today]) {
-                trainingTimeData[today] = { totalTime: 0 };
+                // 结束训练会话
+                return fetch(`${baseUrl}/api/training/session/end`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                  },
+                  body: JSON.stringify({
+                    session_id: gameSessionId,
+                    final_score: Math.round(
+                      accuracy * 0.6 + (100 - errorCount * 10) * 0.2 + Math.max(0, 60 - totalTime) * 0.2,
+                    ),
+                    total_accuracy: accuracy,
+                    duration: totalTime,
+                  }),
+                });
+              } else {
+                throw new Error(result.message || '上传游戏数据失败');
               }
+            })
+            .then((response) => response.json())
+            .then((result) => {
+              console.log('会话结束响应数据:', result);
+              if (result.success) {
+                console.log('训练数据上传完成');
 
-              // 累加游戏时间（秒）
-              trainingTimeData[today].totalTime += totalTime;
-              localStorage.setItem('trainingData', JSON.stringify(trainingTimeData));
-              console.log('训练时间已保存到 localStorage');
+                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                var backendScore = null;
+                var backendLevel = null;
+                if (result.data && result.data.summary) {
+                  backendScore = Math.round(result.data.summary.final_score);
+                  backendLevel = result.data.summary.performance_level;
+                }
 
-              // 训练后迭代优化
+                // 保存训练时间到 localStorage，用于今日训练页面显示
+                const today = new Date().toISOString().split('T')[0];
+                const trainingTimeData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                if (!trainingTimeData[today]) {
+                  trainingTimeData[today] = { totalTime: 0 };
+                }
+
+                // 累加游戏时间（秒）
+                trainingTimeData[today].totalTime += totalTime;
+                localStorage.setItem('trainingData', JSON.stringify(trainingTimeData));
+                console.log('训练时间已保存到 localStorage');
+
+                // 训练后迭代优化
+                trainingData.backendScore = backendScore;
+                trainingData.backendLevel = backendLevel;
+                postTrainingOptimization(trainingData);
+              } else {
+                throw new Error(result.message || '结束会话失败');
+              }
+            })
+            .catch((error) => {
+              console.error('训练数据上传失败:', error);
+              // 即使上传失败，也显示训练完成
               postTrainingOptimization(trainingData);
-            } else {
-              throw new Error(result.message || '结束会话失败');
-            }
+            });
+        };
+
+        if (gameSessionId) {
+          _uploadAndEnd();
+        } else {
+          // [scoring-system] Fallback: session not ready from startGame().
+          // Create session inline so the game still records properly.
+          console.warn('Session not ready from startGame, creating inline');
+          const userInfo = UserStateUtil.getUserInfo();
+          const childId = UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1;
+          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+          fetch(`${baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: childId,
+              game_type: 'schulte',
+              device_id: 'web',
+            }),
           })
-          .catch((error) => {
-            console.error('训练数据上传失败:', error);
-            // 即使上传失败，也显示训练完成
-            postTrainingOptimization(trainingData);
-          });
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success) {
+                gameSessionId = res.data.session_id;
+                // 先上传缓冲的视觉数据，再提交游戏数据
+                var flushDone = Promise.resolve();
+                if (typeof visionUploader !== 'undefined') {
+                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
+                }
+                flushDone.then(function () {
+                  _uploadAndEnd();
+                });
+              }
+            });
+        }
       }
 
       // 训练后迭代优化
@@ -1143,22 +1204,6 @@
         const timeScore = Math.round(Math.max(0, Math.min(1, timeFactor)) * 20);
 
         const finalScore = Math.max(0, Math.min(100, accuracyScore + errorScore + timeScore));
-
-        // 调试信息
-        console.log('=== 小火箭游戏评分调试信息 ===');
-        console.log('原始数据:', {
-          accuracy: accuracy,
-          error_count: error_count,
-          completion_time: completion_time,
-          difficulty: currentDifficulty,
-        });
-        console.log('计算过程:', {
-          accuracyScore: accuracyScore,
-          errorScore: errorScore,
-          timeThreshold: timeThreshold,
-          timeScore: timeScore,
-          finalScore: finalScore,
-        });
 
         // 准备得分明细数据
         const scoreDetails = {
@@ -1183,7 +1228,11 @@
         };
 
         // 只显示评分，不显示其他提示
-        showPostTrainingModal('训练完成', `你的评分为：${finalScore}分`, false, scoreDetails);
+        // 使用后端评分（如有），否则使用前端计算的评分
+        var displayScore = trainingData.backendScore != null ? trainingData.backendScore : finalScore;
+        var scoreMsg = '你的评分为：' + displayScore + '分';
+        if (trainingData.backendLevel) scoreMsg += ' (' + trainingData.backendLevel + ')';
+        showPostTrainingModal('训练完成', scoreMsg, false, scoreDetails);
 
         // 保存历史表现数据
         const historicalData = StorageUtil.getItem('historical_performance') || [];
