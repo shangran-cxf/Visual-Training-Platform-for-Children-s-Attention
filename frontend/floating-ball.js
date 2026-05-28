@@ -521,23 +521,23 @@
       floatingBall.style.bottom = 'auto';
 
       if (panel && isPanelOpen) {
-        var pnl = dragStartPanelLeft + deltaX;
-        var pnt = dragStartPanelTop + deltaY;
-        pnl = Math.max(0, Math.min(window.innerWidth - 284, pnl));
-        pnt = Math.max(0, Math.min(window.innerHeight - 430, pnt));
-        panel.style.left = pnl + 'px';
-        panel.style.top = pnt + 'px';
+        var panelNewLeft = dragStartPanelLeft + deltaX;
+        var panelNewTop = dragStartPanelTop + deltaY;
+        panelNewLeft = Math.max(0, Math.min(window.innerWidth - 284, panelNewLeft));
+        panelNewTop = Math.max(0, Math.min(window.innerHeight - 430, panelNewTop));
+        panel.style.left = panelNewLeft + 'px';
+        panel.style.top = panelNewTop + 'px';
         panel.style.right = 'auto';
         panel.style.bottom = 'auto';
       }
 
       if (currentCloud) {
-        var cl = dragStartCloudLeft + deltaX;
-        var ct = dragStartCloudTop + deltaY;
-        cl = Math.max(0, Math.min(window.innerWidth - 150, cl));
-        ct = Math.max(0, Math.min(window.innerHeight - 100, ct));
-        currentCloud.style.left = cl + 'px';
-        currentCloud.style.top = ct + 'px';
+        var cloudNewLeft = dragStartCloudLeft + deltaX;
+        var cloudNewTop = dragStartCloudTop + deltaY;
+        cloudNewLeft = Math.max(0, Math.min(window.innerWidth - 150, cloudNewLeft));
+        cloudNewTop = Math.max(0, Math.min(window.innerHeight - 100, cloudNewTop));
+        currentCloud.style.left = cloudNewLeft + 'px';
+        currentCloud.style.top = cloudNewTop + 'px';
         currentCloud.style.right = 'auto';
         currentCloud.style.bottom = 'auto';
       }
@@ -552,7 +552,14 @@
     }
   });
 
-  document.addEventListener('touchend', () => {
+  document.addEventListener('touchend', (e) => {
+    if (activeDragElement && e.touches.length === 0) {
+      activeDragElement = null;
+      if (floatingBall) floatingBall.style.cursor = '';
+    }
+  });
+
+  document.addEventListener('touchcancel', () => {
     if (activeDragElement) {
       activeDragElement = null;
       if (floatingBall) floatingBall.style.cursor = '';
