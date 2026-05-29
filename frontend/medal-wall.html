@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 
 <head>
@@ -337,9 +337,13 @@
       gap: 0;
       padding: 0 24px;
       height: calc(100vh - 48px);
-      overflow: hidden;
-      max-width: 1400px;
-      margin: 0 auto;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .main-content::-webkit-scrollbar {
+      display: none;
     }
 
     /* 标题区 */
@@ -753,7 +757,6 @@
       }
 
       .main-content {
-        max-width: 100%;
         height: auto;
         overflow-y: visible;
       }

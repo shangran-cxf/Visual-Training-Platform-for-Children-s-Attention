@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -194,9 +194,9 @@
         gap: 12px;
         padding: 0 24px;
         height: calc(100vh - 48px);
-        overflow: hidden;
-        max-width: 1400px;
-        margin: 0 auto;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
       }
 
       .main-content::-webkit-scrollbar {
@@ -1322,7 +1322,6 @@
         }
 
         .main-content {
-          max-width: 100%;
           height: auto;
           overflow-y: visible;
         }
@@ -2066,27 +2065,6 @@
           }
         });
 
-        // 开始游戏
-        function startGame(gamePath, gameName) {
-          sessionStorage.setItem(
-            'returnState',
-            JSON.stringify({
-              from: 'today-training',
-            }),
-          );
-          window.location.href = `training/${gamePath}`;
-        }
-
-        // 键盘导航支持
-        document.querySelectorAll('.nav-item, .recommend-item').forEach((el) => {
-          el.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              el.click();
-            }
-          });
-        });
-
         renderAbilityBars(allAbilities, weakest);
       }
 
@@ -2130,20 +2108,15 @@
         barsEl.innerHTML = html;
       }
 
-      // 开始游戏
       function startGame(gamePath, gameName) {
+        sessionStorage.setItem(
+          'returnState',
+          JSON.stringify({
+            from: 'today-training',
+          }),
+        );
         window.location.href = `training/${gamePath}`;
       }
-
-      // 键盘导航支持
-      document.querySelectorAll('.nav-item, .recommend-item').forEach((el) => {
-        el.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            el.click();
-          }
-        });
-      });
 
       // 页面加载初始化
       window.addEventListener('DOMContentLoaded', async () => {
@@ -2154,6 +2127,15 @@
         await initCalendar();
         updateTodayDisplay();
         await recommendGames();
+
+        document.querySelectorAll('.nav-item, .recommend-item').forEach((el) => {
+          el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              el.click();
+            }
+          });
+        });
 
         document.getElementById('prev-month').addEventListener('click', prevMonth);
         document.getElementById('next-month').addEventListener('click', nextMonth);
