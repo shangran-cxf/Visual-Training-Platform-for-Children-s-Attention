@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>垃圾小卫士</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://storage.googleapis.com" />
     <style>
       * {
         margin: 0;
@@ -23,7 +27,7 @@
 
       body {
         font-family: 'Arial', sans-serif;
-        background-image: url('../images/ground8.png');
+        background-image: url('../images/ground8.webp');
         background-size: cover;
         background-position: center;
         color: #333;
@@ -67,7 +71,7 @@
       }
 
       .game-area {
-        background-image: url('../images/ground7.png');
+        background-image: url('../images/ground7.webp');
         background-size: cover;
         background-position: center;
         border-radius: 15px;
@@ -592,15 +596,15 @@
         totalTargets = 0;
 
         // 确保图片路径正确，只使用存在的图片
-        const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+        const garbageImages = ['garbage1.webp', 'garbage2.webp', 'garbage3.webp', 'garbage4.webp'];
         const nonTargetImages = [
-          'flower1.png',
-          'flower2.png',
-          'flower3.png',
-          'stone1.png',
-          'stone2.png',
-          'grass1.png',
-          'grass2.png',
+          'flower1.webp',
+          'flower2.webp',
+          'flower3.webp',
+          'stone1.webp',
+          'stone2.webp',
+          'grass1.webp',
+          'grass2.webp',
         ];
 
         for (let i = 0; i < size; i++) {
@@ -684,7 +688,7 @@
           const target = Math.floor(Math.random() * 9) + 1;
           targetNumbers = [target];
           // 简单模式：使用一个垃圾图片
-          const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+          const garbageImages = ['garbage1.webp', 'garbage2.webp', 'garbage3.webp', 'garbage4.webp'];
           const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
           currentGarbageImages = [randomGarbage];
           document.getElementById('target-info').innerHTML =
@@ -695,7 +699,7 @@
           while (t2 === t1) t2 = Math.floor(Math.random() * 9) + 1;
           targetNumbers = [t1, t2];
           // 中等模式：使用两个垃圾图片
-          const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+          const garbageImages = ['garbage1.webp', 'garbage2.webp', 'garbage3.webp', 'garbage4.webp'];
           const randomGarbage1 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
           let randomGarbage2 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
           while (randomGarbage2 === randomGarbage1) {
@@ -705,7 +709,7 @@
           document.getElementById('target-info').innerHTML =
             `目标：圈出所有垃圾 <img src="../images/${randomGarbage1}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;"> 和 <img src="../images/${randomGarbage2}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
         } else {
-          const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+          const garbageImages = ['garbage1.webp', 'garbage2.webp', 'garbage3.webp', 'garbage4.webp'];
           const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
           currentGarbageImages = [randomGarbage];
           targetNumbers = [];
