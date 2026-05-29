@@ -228,13 +228,14 @@
         margin-bottom: -30px;
       }
 
-      /* 今日训练主布局：双栏容器 */
+      /* 今日训练主布局：双栏容器，垂直居中适配不同屏幕 */
       .today-training-container {
         display: grid;
         grid-template-columns: 1fr 0.5fr;
         gap: 30px;
         flex: 1;
         min-height: 0;
+        align-items: center;
       }
 
       /* 左侧：我的训练卡片 */
@@ -247,8 +248,9 @@
         display: flex;
         flex-direction: column;
         gap: 14px;
-        align-self: end;
-        max-height: 85%;
+        align-self: center;
+        min-height: 60vh;
+        max-height: calc(100vh - 160px);
         scrollbar-width: none;
         -ms-overflow-style: none;
       }
@@ -606,6 +608,9 @@
         gap: 10px;
         border: 2px solid rgba(220, 190, 100, 0.3);
         position: relative;
+        min-height: 60vh;
+        max-height: calc(100vh - 160px);
+        overflow-y: auto;
         scrollbar-width: none;
         -ms-overflow-style: none;
       }
