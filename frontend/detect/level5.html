@@ -320,6 +320,124 @@
         padding: 4px 10px;
       }
 
+      /* 完成弹窗 */
+      .feedback-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 20000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .feedback-overlay.show {
+        display: flex;
+      }
+      .feedback-card {
+        background: #fffef7;
+        border-radius: 36px;
+        width: 88%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.12),
+          0 6px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        animation: popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+      }
+      @keyframes popBounce {
+        from {
+          transform: translateY(60px) scale(0.85);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+      .fb-top {
+        background: linear-gradient(135deg, #ffd1dc, #ffb8c6);
+        padding: 32px 20px 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .fb-top::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+      }
+      .fb-top::after {
+        content: '';
+        position: absolute;
+        bottom: -25px;
+        left: -15px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 50%;
+      }
+      .fb-emoji {
+        font-size: 56px;
+        display: block;
+        position: relative;
+        z-index: 1;
+        animation: floatEmoji 2s ease-in-out infinite;
+      }
+      @keyframes floatEmoji {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      .fb-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin: 8px 0 0;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .fb-body {
+        padding: 20px 24px 8px;
+      }
+      .fb-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 18px;
+        margin-bottom: 8px;
+        background: #faf6ee;
+        border-radius: 16px;
+        font-size: 15px;
+      }
+      .fb-stat .fb-label {
+        color: #999;
+        font-weight: 600;
+      }
+      .fb-stat .fb-value {
+        font-weight: 800;
+        color: #555;
+        font-size: 19px;
+      }
+      .fb-status {
+        padding: 6px 24px 4px;
+        font-size: 13px;
+        color: #bbb;
+        font-weight: 500;
+      }
+
       footer {
         font-size: 0.6rem;
         margin-top: 6px;
@@ -376,31 +494,45 @@
   </head>
 
   <body>
-    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
-      <button
-        onclick="window.location.href = 'index.html'"
-        style="
-          background: linear-gradient(135deg, #4caf50, #81c784);
-          color: white;
-          border: none;
-          border-radius: 50%;
-          width: 60px;
-          height: 60px;
-          font-size: 24px;
-          cursor: pointer;
-          box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          animation: bounce 2s ease-in-out infinite alternate;
-        "
-        onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
-        onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
-      >
-        ←
-      </button>
-    </div>
+    <!-- 返回按钮 -->
+    <button
+      onclick="window.location.href = 'index.html'"
+      style="
+        position: absolute;
+        top: 22px;
+        left: 22px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1.5px solid rgba(255, 255, 255, 0.6);
+        border-radius: 30px;
+        padding: 10px 22px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #777;
+        cursor: pointer;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.25s ease;
+        font-family: inherit;
+        letter-spacing: 0.5px;
+      "
+      onmouseover="
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)';
+        this.style.color = '#555';
+      "
+      onmouseout="
+        this.style.transform = '';
+        this.style.boxShadow = '0 2px 14px rgba(0,0,0,0.06)';
+        this.style.color = '#777';
+      "
+    >
+      ← 返回
+    </button>
     <div class="game-container">
       <h1>🚦 专注小特工 🚦</h1>
 
@@ -432,6 +564,18 @@
       </div>
 
       <div class="feedback" id="feedbackMsg">🧸 点击按钮，匹配颜色得1分！</div>
+    </div>
+
+    <!-- 完成弹窗 -->
+    <div class="feedback-overlay" id="feedbackOverlay">
+      <div class="feedback-card">
+        <div class="fb-top">
+          <span class="fb-emoji">🎉</span>
+          <p class="fb-title">训练完成！</p>
+        </div>
+        <div class="fb-body" id="fbStats"></div>
+        <p class="fb-status" id="fbStatus"></p>
+      </div>
     </div>
 
     <script src="../../floating-ball.js"></script>
@@ -624,14 +768,19 @@
 
         const inhibitionScore = calculateInhibitionScore();
         const evaluation = getFocusEvaluation(inhibitionScore);
-        feedbackDiv.innerHTML =
-          '🎉 游戏结束！最终得分：' +
+
+        // 显示完成弹窗
+        document.getElementById('fbStats').innerHTML =
+          '<div class="fb-stat"><span class="fb-label">🏆 最终得分</span><span class="fb-value">' +
           score +
-          '分 🎉<br>综合评分：' +
+          '分</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">📊 综合评分</span><span class="fb-value">' +
           inhibitionScore +
-          '分<br>评价：' +
+          '分</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">💬 评价</span><span class="fb-value" style="font-size:15px">' +
           evaluation +
-          '<br><span style="font-size:14px;color:#666">正在上传数据，即将返回综合训练页面...</span>';
+          '</span></div>';
+        document.getElementById('feedbackOverlay').classList.add('show');
 
         const data = {
           inhibition_control: inhibitionScore,
@@ -670,19 +819,9 @@
           console.error('保存游戏数据到 localStorage 失败:', e);
         }
 
-        // 更新反馈为"上传中"，然后批量上传
-        feedbackDiv.innerHTML =
-          feedbackDiv.innerHTML +
-          '<br><span id="uploadStatus" style="color:#ff9800;font-size:14px">正在上传数据...</span>';
-
         // 批量上传全部5关数据
         uploadAllComprehensiveData(function () {
-          // 上传完成后更新文案，等2秒再跳转
-          var statusEl = document.getElementById('uploadStatus');
-          if (statusEl) {
-            statusEl.textContent = '上传完成，即将返回综合训练页面...';
-            statusEl.style.color = '#4caf50';
-          }
+          // 上传完成后等2秒再跳转
           setTimeout(function () {
             window.location.href = 'index.html?showReport=1';
           }, 2000);

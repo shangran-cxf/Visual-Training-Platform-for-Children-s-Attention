@@ -178,83 +178,182 @@
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
       }
 
-      .feedback {
+      /* 完成弹窗 */
+      .feedback-overlay {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(255, 255, 255, 0.95);
-        padding: 50px 60px;
-        border-radius: 20px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-        text-align: center;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 20000;
         display: none;
-        z-index: 9999;
-        min-width: 400px;
-        border: 3px solid #4caf50;
+        align-items: center;
+        justify-content: center;
       }
-
-      .feedback h3 {
-        color: #4caf50;
-        margin-bottom: 25px;
-        font-size: 32px;
+      .feedback-overlay.show {
+        display: flex;
       }
-
-      .feedback p {
-        font-size: 20px;
-        margin-bottom: 15px;
-        color: #333;
+      .feedback-card {
+        background: #fffef7;
+        border-radius: 36px;
+        width: 88%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.12),
+          0 6px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        animation: popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
       }
-
-      .feedback .btn {
-        margin-top: 20px;
-        padding: 15px 40px;
-        font-size: 20px;
-        border-radius: 30px;
+      @keyframes popBounce {
+        from {
+          transform: translateY(60px) scale(0.85);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+      .fb-top {
+        background: linear-gradient(135deg, #fcceb4, #ffb088);
+        padding: 32px 20px 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .fb-top::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+      }
+      .fb-top::after {
+        content: '';
+        position: absolute;
+        bottom: -25px;
+        left: -15px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 50%;
+      }
+      .fb-emoji {
+        font-size: 56px;
+        display: block;
+        position: relative;
+        z-index: 1;
+        animation: floatEmoji 2s ease-in-out infinite;
+      }
+      @keyframes floatEmoji {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      .fb-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin: 8px 0 0;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .fb-body {
+        padding: 20px 24px 8px;
+      }
+      .fb-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 18px;
+        margin-bottom: 8px;
+        background: #faf6ee;
+        border-radius: 16px;
+        font-size: 15px;
+      }
+      .fb-stat .fb-label {
+        color: #999;
+        font-weight: 600;
+      }
+      .fb-stat .fb-value {
+        font-weight: 800;
+        color: #555;
+        font-size: 19px;
+      }
+      .fb-status {
+        padding: 6px 24px 4px;
+        font-size: 13px;
+        color: #bbb;
+        font-weight: 500;
       }
     </style>
   </head>
 
   <body>
     <div class="container">
-      <!-- 可爱的返回按钮 -->
-      <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
-        <button
-          onclick="window.location.href = 'index.html'"
-          style="
-            background: linear-gradient(135deg, #4caf50, #81c784);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: bounce 2s ease-in-out infinite alternate;
-          "
-          onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
-          onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
-        >
-          ←
-        </button>
-      </div>
+      <!-- 返回按钮 -->
+      <button
+        onclick="window.location.href = 'index.html'"
+        style="
+          position: absolute;
+          top: 22px;
+          left: 22px;
+          z-index: 1000;
+          background: rgba(255, 255, 255, 0.78);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1.5px solid rgba(255, 255, 255, 0.6);
+          border-radius: 30px;
+          padding: 10px 22px;
+          font-size: 15px;
+          font-weight: 700;
+          color: #777;
+          cursor: pointer;
+          box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transition: all 0.25s ease;
+          font-family: inherit;
+          letter-spacing: 0.5px;
+        "
+        onmouseover="
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)';
+          this.style.color = '#555';
+        "
+        onmouseout="
+          this.style.transform = '';
+          this.style.boxShadow = '0 2px 14px rgba(0,0,0,0.06)';
+          this.style.color = '#777';
+        "
+      >
+        ← 返回
+      </button>
       <div class="header">
         <h1>关卡1：线索筛选站</h1>
         <p>请快速点击选出所有目标线索：<span id="target-clue-display">⭐</span></p>
       </div>
       <div class="game-area">
         <div class="timer">时间：0s</div>
-        <div class="feedback" id="feedback">
-          <h3>关卡完成！</h3>
-          <p>正确率：<span id="accuracy">0%</span></p>
-          <p>完成时间：<span id="time">0</span>s</p>
-          <p>误点次数：<span id="errors">0</span></p>
-          <button class="btn" onclick="nextLevel()">下一关</button>
+        <div class="feedback-overlay" id="feedbackOverlay">
+          <div class="feedback-card">
+            <div class="fb-top">
+              <span class="fb-emoji">🎉</span>
+              <p class="fb-title">正在前往下一关</p>
+            </div>
+            <div class="fb-body" id="fbStats"></div>
+            <p class="fb-status" id="fbStatus"></p>
+          </div>
         </div>
       </div>
     </div>
@@ -279,7 +378,7 @@
       function generateClues() {
         const gameArea = document.querySelector('.game-area');
         gameArea.innerHTML =
-          '<div class="timer">时间：0s</div><div class="feedback" id="feedback"><h3>关卡完成！</h3><p>正确率：<span id="accuracy">0%</span></p><p>完成时间：<span id="time">0</span>s</p><p>误点次数：<span id="errors">0</span></p><button class="btn" onclick="nextLevel()">下一关</button></div>';
+          '<div class="timer">时间：0s</div><div class="feedback-overlay" id="feedbackOverlay"><div class="feedback-card"><div class="fb-top"><span class="fb-emoji">🎉</span><p class="fb-title">正在前往下一关</p></div><div class="fb-body" id="fbStats"></div><p class="fb-status" id="fbStatus"></p></div></div>';
 
         clues = [];
         targetClues = [];
@@ -612,17 +711,17 @@
         }
 
         // 显示完成弹窗
-        var fb = document.getElementById('feedback');
-        document.getElementById('accuracy').textContent = accuracy + '%';
-        document.getElementById('time').textContent = totalTime;
-        document.getElementById('errors').textContent = errorCount;
-        fb.querySelector('h3').textContent = '关卡完成！';
-        fb.querySelector('.btn').style.display = 'none';
-        fb.style.display = 'block';
-        fb.insertAdjacentHTML(
-          'beforeend',
-          '<p style="color:#999;font-size:14px;margin-top:8px">数据已保存，即将进入下一关...</p>',
-        );
+        document.getElementById('fbStats').innerHTML =
+          '<div class="fb-stat"><span class="fb-label">✅ 正确率</span><span class="fb-value">' +
+          accuracy +
+          '%</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">⏱️ 完成时间</span><span class="fb-value">' +
+          totalTime +
+          's</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">❌ 误点次数</span><span class="fb-value">' +
+          errorCount +
+          '</span></div>';
+        document.getElementById('feedbackOverlay').classList.add('show');
 
         // 2秒后跳转
         setTimeout(function () {
