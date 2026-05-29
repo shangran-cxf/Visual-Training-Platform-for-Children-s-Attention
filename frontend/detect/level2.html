@@ -1,288 +1,304 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>关卡2：监控摄像头 - 注意力全能小侦探</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
 
-      body {
-        font-family: 'Arial', sans-serif;
-        background-color: #000;
-        color: #333;
-        overflow: hidden;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>关卡2：监控摄像头 - 注意力全能小侦探</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      .container {
-        max-width: 100vw;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #000;
+      color: #333;
+      overflow: hidden;
+    }
 
-      .header {
-        text-align: center;
-        margin-bottom: 30px;
-      }
+    .container {
+      max-width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-      .header h1 {
-        color: white;
-        font-size: 2em;
-        margin-bottom: 10px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
 
-      .header p {
-        font-size: 1.1em;
-        color: white;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-      }
+    .header h1 {
+      color: white;
+      font-size: 2em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
 
-      .game-area {
-        width: 800px;
-        height: 500px;
-        background-color: #000;
-        border-radius: 15px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        position: relative;
-        overflow: hidden;
-      }
+    .header p {
+      font-size: 1.1em;
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
 
-      .monitor {
-        width: 100%;
-        height: 100%;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-      }
+    .game-area {
+      width: 800px;
+      height: 500px;
+      background-color: #000;
+      border-radius: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
 
-      .monitor video {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        z-index: 0;
-      }
+    .monitor {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-      .monitor-content {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+    .monitor video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
 
-      .character {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+    .monitor-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .character {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .character img {
+      width: 200px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .character.visible {
+      opacity: 1;
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #45a049;
+    }
+
+    .btn-secondary {
+      background-color: #999;
+    }
+
+    .btn-secondary:hover {
+      background-color: #777;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      width: 800px;
+      margin-bottom: 10px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 18px;
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 10px 18px;
+      border-radius: 25px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* 完成弹窗 */
+    .feedback-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 20000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feedback-overlay.show {
+      display: flex;
+    }
+
+    .feedback-card {
+      background: #fffef7;
+      border-radius: 36px;
+      width: 88%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.12),
+        0 6px 20px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+      animation: popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    @keyframes popBounce {
+      from {
+        transform: translateY(60px) scale(0.85);
         opacity: 0;
-        transition: opacity 0.5s ease;
       }
 
-      .character img {
-        width: 200px;
-        height: auto;
-        object-fit: contain;
-      }
-
-      .character.visible {
+      to {
+        transform: translateY(0) scale(1);
         opacity: 1;
       }
+    }
 
-      .controls {
-        margin-top: 20px;
-        display: flex;
-        gap: 10px;
-      }
+    .fb-top {
+      background: linear-gradient(135deg, #abd7fb, #8cc8f0);
+      padding: 32px 20px 20px;
+      position: relative;
+      overflow: hidden;
+    }
 
-      .btn {
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
+    .fb-top::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -20px;
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 50%;
+    }
 
-      .btn:hover {
-        background-color: #45a049;
-      }
+    .fb-top::after {
+      content: '';
+      position: absolute;
+      bottom: -25px;
+      left: -15px;
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 50%;
+    }
 
-      .btn-secondary {
-        background-color: #999;
-      }
+    .fb-emoji {
+      font-size: 56px;
+      display: block;
+      position: relative;
+      z-index: 1;
+      animation: floatEmoji 2s ease-in-out infinite;
+    }
 
-      .btn-secondary:hover {
-        background-color: #777;
-      }
+    @keyframes floatEmoji {
 
-      .status-bar {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        width: 800px;
-        margin-bottom: 10px;
-      }
-
-      .stats {
-        display: flex;
-        gap: 18px;
-        background-color: rgba(255, 255, 255, 0.85);
-        padding: 10px 18px;
-        border-radius: 25px;
-        font-size: 14px;
-        color: #555;
+      0%,
+      100% {
+        transform: translateY(0);
       }
 
-      /* 完成弹窗 */
-      .feedback-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.35);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        z-index: 20000;
-        display: none;
-        align-items: center;
-        justify-content: center;
+      50% {
+        transform: translateY(-8px);
       }
-      .feedback-overlay.show {
-        display: flex;
-      }
-      .feedback-card {
-        background: #fffef7;
-        border-radius: 36px;
-        width: 88%;
-        max-width: 400px;
-        text-align: center;
-        box-shadow:
-          0 24px 60px rgba(0, 0, 0, 0.12),
-          0 6px 20px rgba(0, 0, 0, 0.06);
-        overflow: hidden;
-        animation: popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        position: relative;
-      }
-      @keyframes popBounce {
-        from {
-          transform: translateY(60px) scale(0.85);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0) scale(1);
-          opacity: 1;
-        }
-      }
-      .fb-top {
-        background: linear-gradient(135deg, #abd7fb, #8cc8f0);
-        padding: 32px 20px 20px;
-        position: relative;
-        overflow: hidden;
-      }
-      .fb-top::before {
-        content: '';
-        position: absolute;
-        top: -30px;
-        right: -20px;
-        width: 80px;
-        height: 80px;
-        background: rgba(255, 255, 255, 0.18);
-        border-radius: 50%;
-      }
-      .fb-top::after {
-        content: '';
-        position: absolute;
-        bottom: -25px;
-        left: -15px;
-        width: 60px;
-        height: 60px;
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 50%;
-      }
-      .fb-emoji {
-        font-size: 56px;
-        display: block;
-        position: relative;
-        z-index: 1;
-        animation: floatEmoji 2s ease-in-out infinite;
-      }
-      @keyframes floatEmoji {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-8px);
-        }
-      }
-      .fb-title {
-        font-size: 26px;
-        font-weight: 800;
-        color: #fff;
-        margin: 8px 0 0;
-        position: relative;
-        z-index: 1;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      .fb-body {
-        padding: 20px 24px 8px;
-      }
-      .fb-stat {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 18px;
-        margin-bottom: 8px;
-        background: #faf6ee;
-        border-radius: 16px;
-        font-size: 15px;
-      }
-      .fb-stat .fb-label {
-        color: #999;
-        font-weight: 600;
-      }
-      .fb-stat .fb-value {
-        font-weight: 800;
-        color: #555;
-        font-size: 19px;
-      }
-      .fb-status {
-        padding: 6px 24px 4px;
-        font-size: 13px;
-        color: #bbb;
-        font-weight: 500;
-      }
-    </style>
-  </head>
+    }
 
-  <body>
-    <div class="container">
-      <!-- 返回按钮 -->
-      <button
-        onclick="window.location.href = 'index.html'"
-        style="
+    .fb-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      margin: 8px 0 0;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .fb-body {
+      padding: 20px 24px 8px;
+    }
+
+    .fb-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      margin-bottom: 8px;
+      background: #faf6ee;
+      border-radius: 16px;
+      font-size: 15px;
+    }
+
+    .fb-stat .fb-label {
+      color: #999;
+      font-weight: 600;
+    }
+
+    .fb-stat .fb-value {
+      font-weight: 800;
+      color: #555;
+      font-size: 19px;
+    }
+
+    .fb-status {
+      padding: 6px 24px 4px;
+      font-size: 13px;
+      color: #bbb;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- 返回按钮 -->
+    <button onclick="window.location.href = 'index.html'" style="
           position: absolute;
           top: 22px;
           left: 22px;
@@ -304,360 +320,406 @@
           transition: all 0.25s ease;
           font-family: inherit;
           letter-spacing: 0.5px;
-        "
-        onmouseover="
+        " onmouseover="
           this.style.transform = 'translateY(-2px)';
           this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)';
           this.style.color = '#555';
-        "
-        onmouseout="
+        " onmouseout="
           this.style.transform = '';
           this.style.boxShadow = '0 2px 14px rgba(0,0,0,0.06)';
           this.style.color = '#777';
-        "
-      >
-        ← 返回
-      </button>
-      <div class="header">
-        <h1>关卡2：监控摄像头</h1>
-        <p>请在小偷出现时点击屏幕，其他角色出现时不要点击</p>
+        ">
+      ← 返回
+    </button>
+    <div class="header">
+      <h1>关卡2：监控摄像头</h1>
+      <p>请在小偷出现时点击屏幕，其他角色出现时不要点击</p>
+    </div>
+    <div class="status-bar">
+      <div class="stats">
+        <span>🎯 击中率：<span id="hit-rate">0%</span></span>
+        <span>🔥 连续正确：<span id="consecutive-correct">0</span>次</span>
       </div>
-      <div class="status-bar">
-        <div class="stats">
-          <span>🎯 击中率：<span id="hit-rate">0%</span></span>
-          <span>🔥 连续正确：<span id="consecutive-correct">0</span>次</span>
+    </div>
+    <div class="game-area">
+      <div class="monitor" id="monitor">
+        <video src="../images/monitor.mov" autoplay loop muted></video>
+        <div class="monitor-content">
+          <div class="character" id="character"></div>
         </div>
       </div>
-      <div class="game-area">
-        <div class="monitor" id="monitor">
-          <video src="../images/monitor.mov" autoplay loop muted></video>
-          <div class="monitor-content">
-            <div class="character" id="character"></div>
+      <div class="feedback-overlay" id="feedbackOverlay">
+        <div class="feedback-card">
+          <div class="fb-top">
+            <span class="fb-emoji">🎉</span>
+            <p class="fb-title">正在前往下一关</p>
           </div>
-        </div>
-        <div class="feedback-overlay" id="feedbackOverlay">
-          <div class="feedback-card">
-            <div class="fb-top">
-              <span class="fb-emoji">🎉</span>
-              <p class="fb-title">正在前往下一关</p>
-            </div>
-            <div class="fb-body" id="fbStats"></div>
-            <p class="fb-status" id="fbStatus"></p>
-          </div>
+          <div class="fb-body" id="fbStats"></div>
+          <p class="fb-status" id="fbStatus"></p>
         </div>
       </div>
     </div>
-    <script src="../floating-ball.js"></script>
-    <script src="../api/vision-uploader.js"></script>
-    <script src="../utils.js"></script>
-    <script>
-      let characters = [];
-      let currentIndex = 0;
-      let isGameStarted = false;
-      let isPaused = false;
-      let hitCount = 0;
-      let falseAlarmCount = 0;
-      let missCount = 0;
-      let totalThieves = 0;
-      let totalNonThieves = 0;
-      let consecutiveCorrect = 0;
-      let maxConsecutiveCorrect = 0;
-      let currentCharacterClicked = false; // 跟踪当前角色是否已经被点击过
-      let lateErrors = 0; // 后半段错误数（用于疲劳度计算）
-      let gameInterval;
-      let videoElement; // 视频元素引用
+  </div>
+  <script src="../floating-ball.js"></script>
+  <script src="../api/vision-uploader.js"></script>
+  <script src="../utils.js"></script>
+  <script>
+    let characters = [];
+    let currentIndex = 0;
+    let isGameStarted = false;
+    let isPaused = false;
+    let hitCount = 0;
+    let falseAlarmCount = 0;
+    let missCount = 0;
+    let totalThieves = 0;
+    let totalNonThieves = 0;
+    let consecutiveCorrect = 0;
+    let maxConsecutiveCorrect = 0;
+    let currentCharacterClicked = false; // 跟踪当前角色是否已经被点击过
+    let lateErrors = 0; // 后半段错误数（用于疲劳度计算）
+    let gameInterval;
+    let videoElement; // 视频元素引用
 
-      // 点击音效
-      var soundCtx = null;
-      function getSoundCtx() {
-        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
-        return soundCtx;
-      }
-      function playCorrectSound() {
-        var ctx = getSoundCtx();
-        if (ctx.state === 'suspended') ctx.resume();
-        var now = ctx.currentTime;
-        var harmonics = [
-          { f: 523.25, g: 0.18 },
-          { f: 1046.5, g: 0.09 },
-          { f: 1569.8, g: 0.04 },
-          { f: 2093.0, g: 0.02 },
-        ];
-        for (var i = 0; i < harmonics.length; i++) {
-          var osc = ctx.createOscillator(),
-            gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(harmonics[i].f, now);
-          gain.gain.setValueAtTime(0.001, now);
-          gain.gain.linearRampToValueAtTime(harmonics[i].g, now + 0.01);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.6);
-        }
-      }
-      function playWrongSound() {
-        var ctx = getSoundCtx();
-        if (ctx.state === 'suspended') ctx.resume();
-        var now = ctx.currentTime;
-        var freqs = [180, 191];
-        for (var i = 0; i < freqs.length; i++) {
-          var osc = ctx.createOscillator(),
-            gain = ctx.createGain();
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(freqs[i], now);
-          gain.gain.setValueAtTime(0.001, now);
-          gain.gain.linearRampToValueAtTime(0.06, now + 0.01);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now);
-          osc.stop(now + 0.35);
-        }
-      }
+    // 点击音效
+    var soundCtx = null;
+    function getSoundCtx() {
+      if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return soundCtx;
+    }
+    function playCorrectSound() {
+      var ctx = getSoundCtx();
+      if (ctx.state === 'suspended') ctx.resume();
+      var now = ctx.currentTime;
+      var duration = 0.35;
 
-      // [scoring-system] Session created at level start so vision data
-      // covers the full gameplay period.
-      let gameSessionId = null;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.linearRampToValueAtTime(520, now + 0.08);
+      osc.frequency.linearRampToValueAtTime(340, now + 0.25);
+      osc.frequency.linearRampToValueAtTime(280, now + duration);
 
-      // 角色类型：小偷、男孩、女孩、警察
-      const characterTypes = [
-        { type: 'thief', image: '../images/thief.png', isTarget: true },
-        { type: 'boy', image: '../images/boy.png', isTarget: false },
-        { type: 'girl', image: '../images/girl.png', isTarget: false },
-        { type: 'policeman', image: '../images/policeman.png', isTarget: false },
-      ];
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.02);
+      gain.gain.setValueAtTime(0.10, now + 0.10);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-      // 生成角色序列
-      function generateCharacters() {
-        characters = [];
-        // 生成20个角色，其中约30%是小偷
-        for (let i = 0; i < 20; i++) {
-          const isThief = Math.random() < 0.3;
-          if (isThief) {
-            characters.push(characterTypes[0]); // 小偷
-          } else {
-            const randomNonThief = Math.floor(Math.random() * 3) + 1; // 1-3，对应男孩、女孩、警察
-            characters.push(characterTypes[randomNonThief]);
-          }
-        }
-      }
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration);
 
-      // 显示角色
-      function showCharacter() {
-        if (!isGameStarted || isPaused || currentIndex >= characters.length) return;
+      var osc2 = ctx.createOscillator();
+      var gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(760, now);
+      osc2.frequency.linearRampToValueAtTime(900, now + 0.08);
+      osc2.frequency.linearRampToValueAtTime(600, now + duration);
 
-        const character = characters[currentIndex];
-        const characterElement = document.getElementById('character');
+      gain2.gain.setValueAtTime(0.001, now);
+      gain2.gain.linearRampToValueAtTime(0.05, now + 0.02);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-        // 重置当前角色点击状态
-        currentCharacterClicked = false;
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + duration);
 
-        // 显示角色在正中心
-        characterElement.innerHTML = `<img src="${character.image}" alt="${character.type}">`;
-        characterElement.style.position = 'absolute';
-        characterElement.style.top = '50%';
-        characterElement.style.left = '50%';
-        characterElement.style.transform = 'translate(-50%, -50%)'; // 居中变换
-        characterElement.style.opacity = '1'; // 直接设置不透明度，确保显示
+      var osc3 = ctx.createOscillator();
+      var gain3 = ctx.createGain();
+      osc3.type = 'triangle';
+      osc3.frequency.setValueAtTime(190, now);
+      osc3.frequency.linearRampToValueAtTime(260, now + 0.08);
+      osc3.frequency.linearRampToValueAtTime(160, now + duration);
 
-        // 1秒后隐藏角色
-        setTimeout(() => {
-          // 如果是小偷且没有被点击，算漏点
-          if (character.isTarget && !currentCharacterClicked) {
-            missCount++;
-            consecutiveCorrect = 0;
-            if (currentIndex >= characters.length / 2) lateErrors++;
-            updateStats();
-          }
+      gain3.gain.setValueAtTime(0.001, now);
+      gain3.gain.linearRampToValueAtTime(0.08, now + 0.02);
+      gain3.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-          characterElement.style.opacity = '0';
-          currentIndex++;
+      osc3.connect(gain3);
+      gain3.connect(ctx.destination);
+      osc3.start(now);
+      osc3.stop(now + duration);
+    }
+    function playWrongSound() {
+      var ctx = getSoundCtx();
+      if (ctx.state === 'suspended') ctx.resume();
+      var now = ctx.currentTime;
 
-          // 检查是否完成所有角色
-          if (currentIndex >= characters.length) {
-            endGame();
-          } else {
-            // 短暂停顿后显示下一个角色
-            setTimeout(showCharacter, 300);
-          }
-        }, 1000);
-      }
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(350, now);
+      osc.frequency.linearRampToValueAtTime(220, now + 0.28);
 
-      // 点击处理
-      function handleClick() {
-        if (!isGameStarted || isPaused || currentIndex >= characters.length || currentCharacterClicked) return;
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.08, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
 
-        // 标记当前角色已经被点击
-        currentCharacterClicked = true;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.32);
 
-        const character = characters[currentIndex];
-        if (character.isTarget) {
-          // 正确击中
-          playCorrectSound();
-          hitCount++;
-          consecutiveCorrect++;
-          if (consecutiveCorrect > maxConsecutiveCorrect) {
-            maxConsecutiveCorrect = consecutiveCorrect;
-          }
+      var osc2 = ctx.createOscillator();
+      var gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(175, now);
+      osc2.frequency.linearRampToValueAtTime(130, now + 0.28);
+
+      gain2.gain.setValueAtTime(0.001, now);
+      gain2.gain.linearRampToValueAtTime(0.05, now + 0.04);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 0.32);
+    }
+
+    // [scoring-system] Session created at level start so vision data
+    // covers the full gameplay period.
+    let gameSessionId = null;
+
+    // 角色类型：小偷、男孩、女孩、警察
+    const characterTypes = [
+      { type: 'thief', image: '../images/thief.png', isTarget: true },
+      { type: 'boy', image: '../images/boy.png', isTarget: false },
+      { type: 'girl', image: '../images/girl.png', isTarget: false },
+      { type: 'policeman', image: '../images/policeman.png', isTarget: false },
+    ];
+
+    // 生成角色序列
+    function generateCharacters() {
+      characters = [];
+      // 生成20个角色，其中约30%是小偷
+      for (let i = 0; i < 20; i++) {
+        const isThief = Math.random() < 0.3;
+        if (isThief) {
+          characters.push(characterTypes[0]); // 小偷
         } else {
-          // 误点
-          playWrongSound();
-          falseAlarmCount++;
-          if (currentIndex >= characters.length / 2) lateErrors++;
+          const randomNonThief = Math.floor(Math.random() * 3) + 1; // 1-3，对应男孩、女孩、警察
+          characters.push(characterTypes[randomNonThief]);
+        }
+      }
+    }
+
+    // 显示角色
+    function showCharacter() {
+      if (!isGameStarted || isPaused || currentIndex >= characters.length) return;
+
+      const character = characters[currentIndex];
+      const characterElement = document.getElementById('character');
+
+      // 重置当前角色点击状态
+      currentCharacterClicked = false;
+
+      // 显示角色在正中心
+      characterElement.innerHTML = `<img src="${character.image}" alt="${character.type}">`;
+      characterElement.style.position = 'absolute';
+      characterElement.style.top = '50%';
+      characterElement.style.left = '50%';
+      characterElement.style.transform = 'translate(-50%, -50%)'; // 居中变换
+      characterElement.style.opacity = '1'; // 直接设置不透明度，确保显示
+
+      // 1秒后隐藏角色
+      setTimeout(() => {
+        // 如果是小偷且没有被点击，算漏点
+        if (character.isTarget && !currentCharacterClicked) {
+          missCount++;
           consecutiveCorrect = 0;
+          if (currentIndex >= characters.length / 2) lateErrors++;
+          updateStats();
         }
 
-        updateStats();
-      }
+        characterElement.style.opacity = '0';
+        currentIndex++;
 
-      // 更新统计信息
-      function updateStats() {
-        var totalClicks = hitCount + falseAlarmCount + missCount;
-        var hitRate = totalClicks > 0 ? Math.round((hitCount / totalClicks) * 100) : 0;
+        // 检查是否完成所有角色
+        if (currentIndex >= characters.length) {
+          endGame();
+        } else {
+          // 短暂停顿后显示下一个角色
+          setTimeout(showCharacter, 300);
+        }
+      }, 1000);
+    }
 
-        document.getElementById('hit-rate').textContent = `${hitRate}%`;
-        document.getElementById('consecutive-correct').textContent = consecutiveCorrect;
-      }
+    // 点击处理
+    function handleClick() {
+      if (!isGameStarted || isPaused || currentIndex >= characters.length || currentCharacterClicked) return;
 
-      // 开始游戏
-      function startGame() {
-        if (isGameStarted) return;
+      // 标记当前角色已经被点击
+      currentCharacterClicked = true;
 
-        // 重置游戏状态
-        generateCharacters();
-        currentIndex = 0;
-        hitCount = 0;
-        falseAlarmCount = 0;
-        missCount = 0;
-        lateErrors = 0;
-        totalThieves = characters.filter((c) => c.isTarget).length;
-        totalNonThieves = characters.filter((c) => !c.isTarget).length;
+      const character = characters[currentIndex];
+      if (character.isTarget) {
+        // 正确击中
+        playCorrectSound();
+        hitCount++;
+        consecutiveCorrect++;
+        if (consecutiveCorrect > maxConsecutiveCorrect) {
+          maxConsecutiveCorrect = consecutiveCorrect;
+        }
+      } else {
+        // 误点
+        playWrongSound();
+        falseAlarmCount++;
+        if (currentIndex >= characters.length / 2) lateErrors++;
         consecutiveCorrect = 0;
-        maxConsecutiveCorrect = 0;
+      }
 
-        isGameStarted = true;
-        isPaused = false;
+      updateStats();
+    }
 
-        // 开始播放视频
-        if (videoElement) {
-          videoElement.play();
+    // 更新统计信息
+    function updateStats() {
+      var totalClicks = hitCount + falseAlarmCount + missCount;
+      var hitRate = totalClicks > 0 ? Math.round((hitCount / totalClicks) * 100) : 0;
+
+      document.getElementById('hit-rate').textContent = `${hitRate}%`;
+      document.getElementById('consecutive-correct').textContent = consecutiveCorrect;
+    }
+
+    // 开始游戏
+    function startGame() {
+      if (isGameStarted) return;
+
+      // 重置游戏状态
+      generateCharacters();
+      currentIndex = 0;
+      hitCount = 0;
+      falseAlarmCount = 0;
+      missCount = 0;
+      lateErrors = 0;
+      totalThieves = characters.filter((c) => c.isTarget).length;
+      totalNonThieves = characters.filter((c) => !c.isTarget).length;
+      consecutiveCorrect = 0;
+      maxConsecutiveCorrect = 0;
+
+      isGameStarted = true;
+      isPaused = false;
+
+      // 开始播放视频
+      if (videoElement) {
+        videoElement.play();
+      }
+
+      // 添加点击事件
+      document.getElementById('monitor').addEventListener('click', handleClick);
+
+      // 开始显示角色
+      showCharacter();
+
+      // [scoring-system] 综合训练共享会话：复用 level1 创建的会话
+      var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
+      if (_sharedSessionId) {
+        gameSessionId = _sharedSessionId;
+        if (typeof visionUploader !== 'undefined') {
+          visionUploader.start(gameSessionId);
         }
+      }
+    }
 
-        // 添加点击事件
-        document.getElementById('monitor').addEventListener('click', handleClick);
+    // 暂停游戏
+    function pauseGame() {
+      if (!isGameStarted) return;
 
-        // 开始显示角色
+      isPaused = !isPaused;
+      if (!isPaused && currentIndex < characters.length) {
         showCharacter();
+      }
+    }
 
-        // [scoring-system] 综合训练共享会话：复用 level1 创建的会话
-        var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
-        if (_sharedSessionId) {
-          gameSessionId = _sharedSessionId;
-          if (typeof visionUploader !== 'undefined') {
-            visionUploader.start(gameSessionId);
-          }
+    // 结束游戏
+    function endGame() {
+      isGameStarted = false;
+
+      // 统计游戏使用时间
+      try {
+        if (typeof GameTimeUtil !== 'undefined') {
+          GameTimeUtil.endGame('level2');
         }
+      } catch (error) {
+        console.log('GameTimeUtil not available');
       }
 
-      // 暂停游戏
-      function pauseGame() {
-        if (!isGameStarted) return;
-
-        isPaused = !isPaused;
-        if (!isPaused && currentIndex < characters.length) {
-          showCharacter();
-        }
+      // 暂停视频
+      if (videoElement) {
+        videoElement.pause();
       }
 
-      // 结束游戏
-      function endGame() {
-        isGameStarted = false;
+      // 移除点击事件
+      document.getElementById('monitor').removeEventListener('click', handleClick);
 
-        // 统计游戏使用时间
-        try {
-          if (typeof GameTimeUtil !== 'undefined') {
-            GameTimeUtil.endGame('level2');
-          }
-        } catch (error) {
-          console.log('GameTimeUtil not available');
-        }
+      const totalCharacters = characters.length;
+      var totalActions = hitCount + falseAlarmCount + missCount;
+      var hitRate = totalActions > 0 ? Math.round((hitCount / totalActions) * 100) : 0;
+      var totalErrors = falseAlarmCount + missCount;
+      var lateErrorRatio = totalErrors > 0 ? lateErrors / totalErrors : 0;
 
-        // 暂停视频
-        if (videoElement) {
-          videoElement.pause();
-        }
-
-        // 移除点击事件
-        document.getElementById('monitor').removeEventListener('click', handleClick);
-
-        const totalCharacters = characters.length;
-        var totalActions = hitCount + falseAlarmCount + missCount;
-        var hitRate = totalActions > 0 ? Math.round((hitCount / totalActions) * 100) : 0;
-        var totalErrors = falseAlarmCount + missCount;
-        var lateErrorRatio = totalErrors > 0 ? lateErrors / totalErrors : 0;
-
-        try {
-          if (typeof StorageUtil !== 'undefined') {
-            StorageUtil.setItem('level2_data', {
-              hit_rate: hitRate,
-              max_consecutive_correct: maxConsecutiveCorrect,
-            });
-          }
-        } catch (error) {
-          console.log('StorageUtil not available');
-        }
-
-        // 追加原始游戏数据到综合训练数组（后端评分）
-        try {
-          var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
-          gameDataList.push({
-            level: 2,
-            time: Math.round(totalCharacters * 1.3),
-            correct: hitCount,
-            error: falseAlarmCount,
-            leave: missCount,
-            total_step: totalCharacters,
-            late_error_ratio: lateErrorRatio,
-            event_type: 'game_complete',
-            timestamp: new Date().toISOString(),
+      try {
+        if (typeof StorageUtil !== 'undefined') {
+          StorageUtil.setItem('level2_data', {
+            hit_rate: hitRate,
+            max_consecutive_correct: maxConsecutiveCorrect,
           });
-          localStorage.setItem('comprehensive_game_data', JSON.stringify(gameDataList));
-        } catch (e) {
-          console.error('保存游戏数据到 localStorage 失败:', e);
         }
-
-        // 显示完成弹窗
-        document.getElementById('fbStats').innerHTML =
-          '<div class="fb-stat"><span class="fb-label">🎯 击中率</span><span class="fb-value">' +
-          hitRate +
-          '%</span></div>' +
-          '<div class="fb-stat"><span class="fb-label">🔥 连续正确</span><span class="fb-value">' +
-          maxConsecutiveCorrect +
-          '次</span></div>';
-        document.getElementById('feedbackOverlay').classList.add('show');
-
-        // 2秒后跳转
-        setTimeout(function () {
-          window.location.href = 'level3.html';
-        }, 2000);
+      } catch (error) {
+        console.log('StorageUtil not available');
       }
 
-      // 下一关
-      function nextLevel() {
+      // 追加原始游戏数据到综合训练数组（后端评分）
+      try {
+        var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
+        gameDataList.push({
+          level: 2,
+          time: Math.round(totalCharacters * 1.3),
+          correct: hitCount,
+          error: falseAlarmCount,
+          leave: missCount,
+          total_step: totalCharacters,
+          late_error_ratio: lateErrorRatio,
+          event_type: 'game_complete',
+          timestamp: new Date().toISOString(),
+        });
+        localStorage.setItem('comprehensive_game_data', JSON.stringify(gameDataList));
+      } catch (e) {
+        console.error('保存游戏数据到 localStorage 失败:', e);
+      }
+
+      // 显示完成弹窗
+      document.getElementById('fbStats').innerHTML =
+        '<div class="fb-stat"><span class="fb-label">🎯 击中率</span><span class="fb-value">' +
+        hitRate +
+        '%</span></div>' +
+        '<div class="fb-stat"><span class="fb-label">🔥 连续正确</span><span class="fb-value">' +
+        maxConsecutiveCorrect +
+        '次</span></div>';
+      document.getElementById('feedbackOverlay').classList.add('show');
+
+      // 2秒后跳转
+      setTimeout(function () {
         window.location.href = 'level3.html';
-      }
+      }, 2000);
+    }
 
-      // 页面加载完成后获取视频元素引用并自动开始游戏
-      window.onload = function () {
-        videoElement = document.querySelector('.monitor video');
-        if (videoElement) {
-          videoElement.pause(); // 初始状态暂停视频
-        }
-        startGame();
-      };
-    </script>
-    <script src="../attention-loader.js"></script>
-  </body>
+    // 下一关
+    function nextLevel() {
+      window.location.href = 'level3.html';
+    }
+
+    // 页面加载完成后获取视频元素引用并自动开始游戏
+    window.onload = function () {
+      videoElement = document.querySelector('.monitor video');
+      if (videoElement) {
+        videoElement.pause(); // 初始状态暂停视频
+      }
+      startGame();
+    };
+  </script>
+  <script src="../attention-loader.js"></script>
+</body>
+
 </html>
