@@ -73,6 +73,8 @@
       .suspect img {
         width: 120px;
         height: auto;
+        user-select: none;
+        -webkit-user-drag: none;
       }
 
       .click-effect {
@@ -142,25 +144,31 @@
         background-color: #777;
       }
 
-      .stats {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 10px;
-        border-radius: 5px;
-        font-size: 14px;
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 800px;
+        margin-bottom: 10px;
       }
 
       .timer {
-        position: absolute;
-        top: 10px;
-        left: 20px;
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 10px;
-        border-radius: 5px;
-        font-size: 14px;
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 10px 18px;
+        border-radius: 25px;
+        font-size: 15px;
         font-weight: bold;
+        color: #555;
+      }
+
+      .stats {
+        display: flex;
+        gap: 18px;
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 10px 18px;
+        border-radius: 25px;
+        font-size: 14px;
+        color: #555;
       }
 
       /* 完成弹窗 */
@@ -328,14 +336,16 @@
         <h1>关卡3：追踪嫌疑人</h1>
         <p>请跟随嫌疑人的移动，尽可能准确地点击嫌疑人</p>
       </div>
-      <div class="game-area" id="game-area">
-        <div class="timer">时间：0s</div>
-        <div class="suspect" id="suspect"><img src="../images/thief.png" alt="嫌疑人" /></div>
+      <div class="status-bar">
+        <div class="timer">⏱ 时间：0s</div>
         <div class="stats">
-          <div>精准度：<span id="accuracy">0</span>px</div>
-          <div>脱靶次数：<span id="off-target">0</span></div>
-          <div>滞后时间：<span id="lag-time">0</span>ms</div>
+          <span>🎯 命中率：<span id="accuracy">0</span>%</span>
+          <span>❌ 点偏：<span id="off-target">0</span>次</span>
+          <span>⚡ 反应：<span id="lag-time">0</span>s</span>
         </div>
+      </div>
+      <div class="game-area" id="game-area">
+        <div class="suspect" id="suspect"><img src="../images/thief.png" alt="嫌疑人" draggable="false" /></div>
         <div class="feedback-overlay" id="feedbackOverlay">
           <div class="feedback-card">
             <div class="fb-top">
@@ -368,6 +378,7 @@
       let lagTimes = [];
       let lastMoveTime = 0;
       let gameInterval;
+      let clickCountedThisStep = false;
 
       // [scoring-system] Session created at level start so vision data
       // covers the full gameplay period.
@@ -406,6 +417,7 @@
           suspect.style.top = `${pos.y}px`;
           currentPositionIndex++;
           lastMoveTime = performance.now();
+          clickCountedThisStep = false;
         } else {
           endGame();
         }
@@ -415,7 +427,7 @@
       function updateTimer() {
         if (!isGameStarted || isPaused) return;
 
-        const currentTime = Math.floor((Date.now() - startTime) / 1000);
+        const currentTime = Math.floor((performance.now() - startTime) / 1000);
         document.querySelector('.timer').textContent = `时间：${currentTime}s`;
         requestAnimationFrame(updateTimer);
       }
@@ -424,57 +436,63 @@
       function handleClick(e) {
         if (!isGameStarted || isPaused) return;
 
-        const rect = gameArea.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
+        var rect = gameArea.getBoundingClientRect();
+        var clickX = e.clientX - rect.left;
+        var clickY = e.clientY - rect.top;
 
-        // 添加点击效果（使用CSS动画）
-        const clickEffect = document.createElement('div');
+        // 点击特效始终显示（视觉反馈）
+        var clickEffect = document.createElement('div');
         clickEffect.className = 'click-effect';
         clickEffect.innerHTML = '<div class="ripple"></div>';
-        clickEffect.style.left = `${clickX}px`;
-        clickEffect.style.top = `${clickY}px`;
+        clickEffect.style.left = clickX + 'px';
+        clickEffect.style.top = clickY + 'px';
         gameArea.appendChild(clickEffect);
 
-        // 0.6秒后移除点击效果
-        setTimeout(() => {
+        setTimeout(function () {
           if (clickEffect.parentNode) {
             clickEffect.parentNode.removeChild(clickEffect);
           }
         }, 600);
 
-        const suspectRect = suspect.getBoundingClientRect();
-        const suspectX = suspectRect.left - rect.left + suspectRect.width / 2;
-        const suspectY = suspectRect.top - rect.top + suspectRect.height / 2;
+        // 每次移动只判定一次
+        if (clickCountedThisStep) return;
+        clickCountedThisStep = true;
 
-        // 计算距离
-        const dx = clickX - suspectX;
-        const dy = clickY - suspectY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        var suspectRect = suspect.getBoundingClientRect();
+        var suspectX = suspectRect.left - rect.left + suspectRect.width / 2;
+        var suspectY = suspectRect.top - rect.top + suspectRect.height / 2;
+
+        var dx = clickX - suspectX;
+        var dy = clickY - suspectY;
+        var distance = Math.sqrt(dx * dx + dy * dy);
         accuracySum += distance;
         accuracyCount++;
 
-        // 计算滞后时间（使用更高精度的时间）
-        const lagTime = performance.now() - lastMoveTime;
+        var lagTime = performance.now() - lastMoveTime;
         lagTimes.push(lagTime);
 
-        // 检查是否脱靶
         if (distance > 60) {
           offTargetCount++;
         }
 
-        // 异步更新统计信息，不阻塞点击响应
         requestAnimationFrame(updateStats);
       }
 
       // 更新统计信息
       function updateStats() {
-        const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
-        const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
+        var hitRate = accuracyCount > 0 ? Math.round(((accuracyCount - offTargetCount) / accuracyCount) * 100) : 0;
+        var avgLagTime =
+          lagTimes.length > 0
+            ? Math.round(
+                lagTimes.reduce(function (a, b) {
+                  return a + b;
+                }, 0) / lagTimes.length,
+              )
+            : 0;
 
-        document.getElementById('accuracy').textContent = avgAccuracy;
+        document.getElementById('accuracy').textContent = hitRate;
         document.getElementById('off-target').textContent = offTargetCount;
-        document.getElementById('lag-time').textContent = avgLagTime;
+        document.getElementById('lag-time').textContent = (avgLagTime / 1000).toFixed(1);
       }
 
       // 开始游戏
@@ -573,16 +591,17 @@
         }
 
         // 显示完成弹窗
+        var hitRate = accuracyCount > 0 ? Math.round(((accuracyCount - offTargetCount) / accuracyCount) * 100) : 0;
         document.getElementById('fbStats').innerHTML =
-          '<div class="fb-stat"><span class="fb-label">🎯 追踪精准度</span><span class="fb-value">' +
-          avgAccuracy +
-          'px</span></div>' +
-          '<div class="fb-stat"><span class="fb-label">❌ 脱靶次数</span><span class="fb-value">' +
+          '<div class="fb-stat"><span class="fb-label">🎯 命中率</span><span class="fb-value">' +
+          hitRate +
+          '%</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">❌ 点偏</span><span class="fb-value">' +
           offTargetCount +
           '次</span></div>' +
-          '<div class="fb-stat"><span class="fb-label">⏱️ 滞后时间</span><span class="fb-value">' +
-          avgLagTime +
-          'ms</span></div>';
+          '<div class="fb-stat"><span class="fb-label">⚡ 反应速度</span><span class="fb-value">' +
+          (avgLagTime / 1000).toFixed(1) +
+          's</span></div>';
         document.getElementById('feedbackOverlay').classList.add('show');
 
         // 2秒后跳转
