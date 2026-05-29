@@ -476,31 +476,19 @@
       // 选择线索
       function selectClue(clue) {
         if (!isGameStarted || isPaused) return;
+        if (clue.classList.contains('selected')) return;
 
-        if (clue.classList.contains('selected')) {
-          // 取消选择
-          clue.classList.remove('selected');
-          const index = selectedClues.indexOf(clue.dataset.index);
-          if (index > -1) {
-            selectedClues.splice(index, 1);
-          }
+        clue.classList.add('selected');
+        selectedClues.push(clue.dataset.index);
+
+        if (clue.dataset.type === 'distractor') {
+          errorCount++;
+          clue.classList.add('distractor');
+          showFeedbackEffect(clue, '❌', '#f44336');
         } else {
-          // 选择
-          clue.classList.add('selected');
-          selectedClues.push(clue.dataset.index);
-
-          // 记录误点并添加错误标记
-          if (clue.dataset.type === 'distractor') {
-            errorCount++;
-            clue.classList.add('distractor');
-            showFeedbackEffect(clue, '❌', '#f44336');
-          } else {
-            // 正确选择，显示金色星星
-            showFeedbackEffect(clue, '⭐', '#FFD700');
-          }
+          showFeedbackEffect(clue, '⭐', '#FFD700');
         }
 
-        // 检查是否完成
         checkCompletion();
       }
 
