@@ -749,27 +749,26 @@
         uploadTrainingData(finalScore);
       }
 
+      function showGameOverModal(finalScore) {
+        const elapsed = 30 - time;
 
-    function showGameOverModal(finalScore) {
-      const elapsed = 30 - time;
-
-      const scoreDetails = {
-        time: {
-          name: '用时',
-          score: elapsed + 's',
-          color: '#e65100',
-        },
-        level: {
-          name: '完成关卡',
-          score: level,
-          color: '#2e7d32',
-        },
-        errors: {
-          name: '错误次数',
-          score: errors,
-          color: '#c62828',
-        },
-      };
+        const scoreDetails = {
+          time: {
+            name: '用时',
+            score: elapsed + 's',
+            color: '#e65100',
+          },
+          level: {
+            name: '完成关卡',
+            score: level,
+            color: '#2e7d32',
+          },
+          errors: {
+            name: '错误次数',
+            score: errors,
+            color: '#c62828',
+          },
+        };
 
         const message = '你的评分为：' + finalScore + '分';
 
@@ -1033,156 +1032,156 @@
         document.body.appendChild(modal);
       }
 
-    function uploadTrainingData(frontendScore) {
-      try {
-        // [scoring-system] Upload game data + end session.
-        // Session was created in startGame(); use gameSessionId directly.
-        const _uploadAndEnd = () => {
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
+      function uploadTrainingData(frontendScore) {
+        try {
+          // [scoring-system] Upload game data + end session.
+          // Session was created in startGame(); use gameSessionId directly.
+          const _uploadAndEnd = () => {
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
 
-          // 计算工作记忆得分
-          const finalScore = calculateWorkingMemoryScore();
-          const accuracy = score > 0 ? (score / 10 / (level + errors)) * 100 : 0;
+            // 计算工作记忆得分
+            const finalScore = calculateWorkingMemoryScore();
+            const accuracy = score > 0 ? (score / 10 / (level + errors)) * 100 : 0;
 
-          // 检测环境，设置API地址
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            // 检测环境，设置API地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-          if (typeof visionUploader !== 'undefined') {
-            visionUploader.stop();
+            if (typeof visionUploader !== 'undefined') {
+              visionUploader.stop();
+            }
+
+            // 上传游戏数据
+            fetch(`${baseUrl}/api/training/game-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                session_id: gameSessionId,
+                request_id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                event_type: 'game_complete',
+                score: finalScore,
+                accuracy: accuracy,
+                level: level,
+                time: 30 - time,
+                correct: score,
+                error: errors,
+                total_target: level,
+                total_step: level,
+              }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
+
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
+
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: gameSessionId,
+                      final_score: finalScore,
+                      total_accuracy: accuracy,
+                      duration: 30 - time,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
+                }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
+
+                  // 保存训练时间到 localStorage，用于今日训练页面显示
+                  const today = new Date().toISOString().split('T')[0];
+                  const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                  if (!trainingData[today]) {
+                    trainingData[today] = { totalTime: 0 };
+                  }
+
+                  // 累加游戏时间（秒）
+                  trainingData[today].totalTime += 30 - time;
+                  localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                  console.log('训练时间已保存到 localStorage');
+
+                  // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                  var displayScore = frontendScore;
+                  if (result.data && result.data.summary && result.data.summary.final_score) {
+                    displayScore = Math.round(result.data.summary.final_score);
+                  }
+                  showGameOverModal(displayScore);
+                }
+              })
+              .catch((error) => {
+                console.error('上传训练数据失败:', error);
+                showGameOverModal(frontendScore);
+              });
+          };
+
+          if (gameSessionId) {
+            _uploadAndEnd();
+          } else {
+            // [scoring-system] Fallback: session not ready from startGame().
+            console.warn('Session not ready from startGame, creating inline');
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+
+            fetch(`${baseUrl}/api/training/session/start`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                child_id: childId,
+                game_type: 'reverse-memory',
+                device_id: 'web',
+              }),
+            })
+              .then((r) => r.json())
+              .then((res) => {
+                if (res.success) {
+                  gameSessionId = res.data.session_id;
+                  var flushDone = Promise.resolve();
+                  if (typeof visionUploader !== 'undefined') {
+                    flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
+                  }
+                  flushDone.then(function () {
+                    _uploadAndEnd();
+                  });
+                }
+              });
           }
-
-          // 上传游戏数据
-          fetch(`${baseUrl}/api/training/game-data`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              session_id: gameSessionId,
-              request_id: Date.now().toString(),
-              timestamp: new Date().toISOString(),
-              event_type: 'game_complete',
-              score: finalScore,
-              accuracy: accuracy,
-              level: level,
-              time: 30 - time,
-              correct: score,
-              error: errors,
-              total_target: level,
-              total_step: level,
-            }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                console.log('游戏数据上传成功');
-
-                // 清除能力评估页面的缓存
-                const cacheKey = `child_data_${childId}`;
-                localStorage.removeItem(cacheKey);
-                console.log('已清除能力评估缓存:', cacheKey);
-
-                // 结束训练会话
-                return fetch(`${baseUrl}/api/training/session/end`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                  },
-                  body: JSON.stringify({
-                    session_id: gameSessionId,
-                    final_score: finalScore,
-                    total_accuracy: accuracy,
-                    duration: 30 - time,
-                  }),
-                });
-              } else {
-                throw new Error(result.message || '上传游戏数据失败');
-              }
-            })
-            .then((response) => response.json())
-            .then((result) => {
-              console.log('会话结束响应数据:', result);
-              if (result.success) {
-                console.log('训练数据上传完成');
-
-                // 保存训练时间到 localStorage，用于今日训练页面显示
-                const today = new Date().toISOString().split('T')[0];
-                const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-                if (!trainingData[today]) {
-                  trainingData[today] = { totalTime: 0 };
-                }
-
-                // 累加游戏时间（秒）
-                trainingData[today].totalTime += (30 - time);
-                localStorage.setItem('trainingData', JSON.stringify(trainingData));
-                console.log('训练时间已保存到 localStorage');
-
-                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                var displayScore = frontendScore;
-                if (result.data && result.data.summary && result.data.summary.final_score) {
-                  displayScore = Math.round(result.data.summary.final_score);
-                }
-                showGameOverModal(displayScore);
-              }
-            })
-            .catch((error) => {
-              console.error('上传训练数据失败:', error);
-              showGameOverModal(frontendScore);
-            });
-        };
-
-        if (gameSessionId) {
-          _uploadAndEnd();
-        } else {
-          // [scoring-system] Fallback: session not ready from startGame().
-          console.warn('Session not ready from startGame, creating inline');
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-
-          fetch(`${baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: childId,
-              game_type: 'reverse-memory',
-              device_id: 'web',
-            }),
-          })
-            .then((r) => r.json())
-            .then((res) => {
-              if (res.success) {
-                gameSessionId = res.data.session_id;
-                var flushDone = Promise.resolve();
-                if (typeof visionUploader !== 'undefined') {
-                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
-                }
-                flushDone.then(function () {
-                  _uploadAndEnd();
-                });
-              }
-            });
+        } catch (e) {
+          console.error('uploadTrainingData 错误:', e);
+          showGameOverModal(frontendScore);
         }
-      } catch (e) {
-        console.error('uploadTrainingData 错误:', e);
-        showGameOverModal(frontendScore);
       }
-    }
 
       function restartGame() {
         startGame();
