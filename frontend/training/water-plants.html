@@ -53,6 +53,7 @@
       }
 
       .game-area {
+        width: 25%;
         background-image: url('../images/ground4.webp');
         background-size: cover;
         background-position: center;
@@ -76,6 +77,7 @@
       }
 
       .stat-item {
+        flex: 1;
         background-color: rgba(255, 255, 255, 0.5);
         padding: 10px 15px;
         border-radius: 10px;
@@ -420,10 +422,6 @@
             <div class="stat-label">中断次数</div>
             <div class="stat-value" id="interrupt-count">0</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-label">误触次数</div>
-            <div class="stat-value" id="mistouch-count">0</div>
-          </div>
         </div>
 
         <div class="progress-container">
@@ -459,7 +457,6 @@
       let progress = 0;
       let wateringTime = 0;
       let interruptCount = 0;
-      let mistouchCount = 0;
       let startTime = 0;
       let lastWateringStart = 0;
       let gameInterval;
@@ -551,7 +548,6 @@
         progress = 0;
         wateringTime = 0;
         interruptCount = 0;
-        mistouchCount = 0;
         totalWateringDuration = 0;
         wateringStartTime = 0;
         isMouseOverCan = false;
@@ -753,7 +749,6 @@
       function updateStats() {
         document.getElementById('watering-time').textContent = wateringTime;
         document.getElementById('interrupt-count').textContent = interruptCount;
-        document.getElementById('mistouch-count').textContent = mistouchCount;
       }
 
       function updatePlantStage() {
@@ -792,7 +787,6 @@
         // 计算各项指标
         const totalTime = 20;
         const acc = Math.max(0, 1 - interruptCount / 10); // 中断次数越少，得分越高
-        const consistency = Math.max(0, 1 - mistouchCount / 10); // 误触次数越少，得分越高
         // 放宽时间评分：使用更平滑的曲线，超时60秒才扣到0分
         const timeOvertime = wateringTime - totalTime;
         const speed = Math.max(0, 1 / (1 + timeOvertime / 45)); // 使用指数衰减，45秒后降到约50%
@@ -803,16 +797,19 @@
         const blinkStable = 0.8; // 眨眼稳定性
 
         // 计算最终得分
-        const scoreValue =
-          (acc * 0.4 + consistency * 0.3 + speed * 0.15 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) *
-          100;
+        const scoreValue = (acc * 0.7 + speed * 0.15 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) * 100;
 
         return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
       function winGame() {
         isGameStarted = false;
+        isWatering = false;
         clearInterval(progressInterval);
+        clearInterval(waterEffectInterval);
+        stopWaterSound();
+        // 清除所有水滴特效
+        document.querySelectorAll('.water-effect').forEach((drop) => drop.remove());
         playBloomCelebration();
 
         feedback.textContent = '恭喜！植物成功开花！';
@@ -846,11 +843,6 @@
             name: '中断次数',
             score: interruptCount,
             color: '#ff8f00',
-          },
-          mistouches: {
-            name: '误触次数',
-            score: mistouchCount,
-            color: '#7b1fa2',
           },
         };
 
@@ -962,7 +954,7 @@
         const statsGrid = document.createElement('div');
         statsGrid.style.cssText = `
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
         margin-bottom: 24px;
         position: relative;
@@ -1150,7 +1142,7 @@
                 level: 1,
                 time: wateringTime,
                 correct: 1,
-                error: interruptCount + mistouchCount,
+                error: interruptCount,
                 total_target: 1,
                 total_step: 1,
               }),
