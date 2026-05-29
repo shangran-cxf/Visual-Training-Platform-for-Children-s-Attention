@@ -25,7 +25,12 @@
 
       /* 卡通主卡片 */
       .game-container {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 249, 232, 0.92) 50%, rgba(255, 245, 220, 0.9) 100%);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.95) 0%,
+          rgba(255, 249, 232, 0.92) 50%,
+          rgba(255, 245, 220, 0.9) 100%
+        );
         border-radius: 28px;
         box-shadow:
           0 12px 30px rgba(0, 0, 0, 0.1),
@@ -147,7 +152,7 @@
         height: 78px;
         border-radius: 50%;
         background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
-        box-shadow: 
+        box-shadow:
           0 0 20px rgba(0, 0, 0, 0.4),
           inset 0 -5px 15px rgba(0, 0, 0, 0.3),
           inset 0 5px 15px rgba(255, 255, 255, 0.1);
@@ -164,7 +169,7 @@
 
       .bulb.lit-red {
         background: radial-gradient(circle at 35% 35%, #ff8a7d, #ff4757);
-        box-shadow: 
+        box-shadow:
           0 0 30px rgba(255, 71, 87, 0.7),
           0 0 60px rgba(255, 71, 87, 0.4),
           0 0 90px rgba(255, 71, 87, 0.2),
@@ -174,7 +179,7 @@
 
       .bulb.lit-green {
         background: radial-gradient(circle at 35% 35%, #7ed695, #2ed573);
-        box-shadow: 
+        box-shadow:
           0 0 30px rgba(46, 213, 115, 0.7),
           0 0 60px rgba(46, 213, 115, 0.4),
           0 0 90px rgba(46, 213, 115, 0.2),
@@ -184,7 +189,7 @@
 
       .bulb.lit-yellow {
         background: radial-gradient(circle at 35% 35%, #ffe88a, #ffa502);
-        box-shadow: 
+        box-shadow:
           0 0 30px rgba(255, 165, 2, 0.7),
           0 0 60px rgba(255, 165, 2, 0.4),
           0 0 90px rgba(255, 165, 2, 0.2),
@@ -356,15 +361,18 @@
       }
 
       @keyframes lightBlink {
-        0%, 33% { 
+        0%,
+        33% {
           background: radial-gradient(circle at 35% 35%, #ff6b5e, #b32d1a);
           box-shadow: 0 0 15px rgba(255, 107, 94, 0.6);
         }
-        34%, 66% { 
+        34%,
+        66% {
           background: radial-gradient(circle at 35% 35%, #ffe174, #d4a017);
           box-shadow: 0 0 15px rgba(255, 225, 116, 0.6);
         }
-        67%, 100% { 
+        67%,
+        100% {
           background: radial-gradient(circle at 35% 35%, #6fdc8c, #2c6e2c);
           box-shadow: 0 0 15px rgba(111, 220, 140, 0.6);
         }
@@ -499,8 +507,15 @@
       }
 
       @keyframes starTwinkle {
-        0%, 100% { opacity: 0.5; transform: scale(0.9); }
-        50% { opacity: 1; transform: scale(1.1); }
+        0%,
+        100% {
+          opacity: 0.5;
+          transform: scale(0.9);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.1);
+        }
       }
 
       @media (max-width: 480px) {
@@ -621,6 +636,51 @@
 
       const POINTS_PER_CLICK = 5;
 
+      // 红绿灯音效
+      var soundCtx = null;
+      function getSCtx() {
+        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (soundCtx.state === 'suspended') soundCtx.resume();
+        return soundCtx;
+      }
+      function playTrafficDing() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var harmonics = [
+          { f: 880, g: 0.14 },
+          { f: 1320, g: 0.07 },
+          { f: 1760, g: 0.04 },
+        ];
+        for (var i = 0; i < harmonics.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(harmonics[i].f, now);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(harmonics[i].g, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      }
+      function playTrafficBuzz() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var osc = ctx.createOscillator(),
+          gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(120, now);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.06, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+
       function getRandomColor() {
         const randomIndex = Math.floor(Math.random() * COLORS.length);
         return { ...COLORS[randomIndex] };
@@ -712,8 +772,7 @@
         }
       }
 
-      function updateScoreUI() {
-      }
+      function updateScoreUI() {}
 
       function handleClickToAdd() {
         if (!gameActive) {
@@ -733,6 +792,7 @@
         const isMatch = currentLightColorObj.name === currentPromptColorObj.name;
 
         if (isMatch) {
+          playTrafficDing();
           correctCount++;
           if (score + POINTS_PER_CLICK <= maxScore) {
             score += POINTS_PER_CLICK;
@@ -753,6 +813,7 @@
             }
           }
         } else {
+          playTrafficBuzz();
           wrongCount++;
           feedbackDiv.innerHTML = '颜色不一样，不能加分哦！再观察一下';
           const btn = clickBtn;
@@ -770,12 +831,12 @@
       function showGameOverModal() {
         const totalCount = correctCount + wrongCount;
         const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-        
+
         document.getElementById('finalScore').innerText = score;
         document.getElementById('finalCorrect').innerText = correctCount;
         document.getElementById('finalWrong').innerText = wrongCount;
         document.getElementById('finalAccuracy').innerText = accuracy + '%';
-        
+
         gameOverModal.classList.add('show');
       }
 

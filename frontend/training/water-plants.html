@@ -462,6 +462,67 @@
       let progressInterval;
       let wateringStartTime = 0;
       let totalWateringDuration = 0;
+      let lastPlantStage = 0;
+
+      // 植物浇水音效
+      var soundCtx = null;
+      function getSCtx() {
+        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (soundCtx.state === 'suspended') soundCtx.resume();
+        return soundCtx;
+      }
+      function playWaterDrop() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var osc = ctx.createOscillator(),
+          gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(500, now + 0.1);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.05, now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
+      function playGrowthChime() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var notes = [523.25, 659.25, 783.99];
+        for (var i = 0; i < notes.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[i], now + i * 0.07);
+          gain.gain.setValueAtTime(0.001, now + i * 0.07);
+          gain.gain.linearRampToValueAtTime(0.07, now + i * 0.07 + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.07);
+          osc.stop(now + i * 0.07 + 0.4);
+        }
+      }
+      function playBloomCelebration() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var notes = [523.25, 659.25, 783.99, 1046.5, 1318.5]; // C5-E5-G5-C6-E6
+        for (var i = 0; i < notes.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[i], now + i * 0.1);
+          gain.gain.setValueAtTime(0.001, now + i * 0.1);
+          gain.gain.linearRampToValueAtTime(0.08, now + i * 0.1 + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.1);
+          osc.stop(now + i * 0.1 + 0.6);
+        }
+      }
 
       // [scoring-system] Session created in startGame() so vision data
       // covers the full gameplay period, not just the end-of-game API window.
@@ -670,6 +731,7 @@
         drop.style.top = canRect.bottom - sceneRect.top + 'px';
 
         gameScene.appendChild(drop);
+        playWaterDrop();
 
         // 动画结束后移除水滴
         setTimeout(() => {
@@ -692,6 +754,10 @@
 
       function updatePlantStage() {
         const stage = Math.min(Math.floor(progress / 20), 4);
+        if (stage > lastPlantStage) {
+          lastPlantStage = stage;
+          playGrowthChime();
+        }
         plant.className = 'plant stage-' + stage;
         if (isGameStarted) {
           plant.classList.add('visible');
@@ -743,6 +809,7 @@
       function winGame() {
         isGameStarted = false;
         clearInterval(progressInterval);
+        playBloomCelebration();
 
         const finalScore = calculateSustainedAttentionScore();
 

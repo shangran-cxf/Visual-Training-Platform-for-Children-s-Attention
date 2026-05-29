@@ -333,6 +333,47 @@
       let gameStartTime = 0;
       let lastFrameTime = 0;
 
+      // 森林主题音效
+      var soundCtx = null;
+      function getSCtx() {
+        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (soundCtx.state === 'suspended') soundCtx.resume();
+        return soundCtx;
+      }
+      function playChirp() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var osc = ctx.createOscillator(),
+          gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(1600, now + 0.05);
+        osc.frequency.exponentialRampToValueAtTime(1000, now + 0.15);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.1, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+      function playThud() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var osc = ctx.createOscillator(),
+          gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.1, now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+
       // [scoring-system] Session created in startGame() so vision data
       // covers the full gameplay period, not just the end-of-game API window.
       let gameSessionId = null;
@@ -626,8 +667,13 @@
           if (mx >= o.x && mx <= o.x + o.size && my >= o.y && my <= o.y + o.size) {
             o.selected = true;
             o.animation = 1; // 开始动画
-            if (o.isTarget) score++;
-            else errors++;
+            if (o.isTarget) {
+              score++;
+              playChirp();
+            } else {
+              errors++;
+              playThud();
+            }
             updateUI();
             // 找到一个物体后立即返回，确保一次只点击一个物体
             break;

@@ -711,6 +711,67 @@
         'sea12.png',
       ];
 
+      // 海底主题音效
+      var soundCtx = null;
+      function getSCtx() {
+        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (soundCtx.state === 'suspended') soundCtx.resume();
+        return soundCtx;
+      }
+      function playBubbleFlip() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var osc = ctx.createOscillator(),
+          gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.06);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.12);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.06, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
+      function playBubbleMatch() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var notes = [523.25, 659.25, 783.99]; // C-E-G ascending
+        for (var i = 0; i < notes.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[i], now + i * 0.07);
+          gain.gain.setValueAtTime(0.001, now + i * 0.07);
+          gain.gain.linearRampToValueAtTime(0.08, now + i * 0.07 + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.07);
+          osc.stop(now + i * 0.07 + 0.3);
+        }
+      }
+      function playBubbleMiss() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var notes = [200, 160];
+        for (var i = 0; i < notes.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[i], now + i * 0.1);
+          gain.gain.setValueAtTime(0.001, now + i * 0.1);
+          gain.gain.linearRampToValueAtTime(0.05, now + i * 0.1 + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.25);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.1);
+          osc.stop(now + i * 0.1 + 0.25);
+        }
+      }
+
       // 初始化游戏
       function initGame() {
         // 绑定难度选择按钮
@@ -792,6 +853,7 @@
         // 翻转卡牌
         card.classList.add('flipped');
         flippedCards.push(cardIndex);
+        playBubbleFlip();
 
         // 检查是否翻转了两张卡牌
         if (flippedCards.length === 2) {
@@ -826,6 +888,7 @@
 
         if (firstCard.symbol === secondCard.symbol) {
           // 匹配成功
+          playBubbleMatch();
           firstCard.matched = true;
           secondCard.matched = true;
           matchedPairs++;
@@ -841,6 +904,7 @@
           }
         } else {
           // 匹配失败，翻回卡牌
+          playBubbleMiss();
           firstCard.element.classList.remove('flipped');
           secondCard.element.classList.remove('flipped');
         }
