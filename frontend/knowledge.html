@@ -1,815 +1,820 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>科普知识 - 儿童注意力训练平台</title>
-    <script src="utils.js"></script>
-    <script src="components-parent.js"></script>
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>科普知识 - 儿童注意力训练平台</title>
+  <script src="utils.js"></script>
+  <script src="components-parent.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f2f0faff;
+      min-height: 100vh;
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+      padding-left: 194px;
+      overflow-x: hidden;
+    }
+
+    /* ====================== */
+    /* 搜索框样式（带特效） */
+    /* ====================== */
+    .search-container {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto 24px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      height: 60px;
+      background: #fff;
+      border: 2px solid #e5e7eb;
+      border-radius: 32px;
+      padding: 0 24px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    /* 点击后特效（图二） */
+    .search-box.active {
+      background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
+      border-color: #8849a7;
+      transform: scale(1.02);
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+    }
+
+    .search-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 14px;
+      color: #9ca3af;
+      transition: color 0.3s ease;
+    }
+
+    .search-box.active .search-icon {
+      color: #8849a7;
+    }
+
+    .search-input {
+      flex: 1;
+      height: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 15px;
+      /* 放大搜索输入字体 */
+    }
+
+    .search-btn {
+      padding: 15px 28px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #9f5cc0, #91a7e1);
+      color: white;
+      border: none;
+      font-weight: 600;
+      font-size: 15px;
+      /* 放大搜索按钮字体 */
+      cursor: pointer;
+      white-space: nowrap;
+      margin-right: -21px;
+    }
+
+    /* 原有页面样式 */
+    .knowledge-header {
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-section {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 15px;
+      /* 放大标签文字 */
+      color: #666;
+      min-width: 90px;
+      font-weight: 500;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      background: #f5f5f5;
+      border: none;
+      border-radius: 24px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .filter-btn:hover {
+      background: #e9e9e9;
+    }
+
+    .filter-btn.active {
+      background: #73408a;
+      color: white;
+    }
+
+    .admin-entry {
+      display: none;
+      margin-left: auto;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #407ac6, #1b4e88);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(15, 43, 74, 0.3);
+    }
+
+    .admin-entry:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #437fc4, #29629f);
+      box-shadow: 0 6px 16px rgba(15, 43, 74, 0.45);
+    }
+
+    .admin-entry.show {
+      display: inline-block;
+    }
+
+    .results-count {
+      display: none;
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 16px;
+      padding: 0 4px;
+    }
+
+    .results-count.show {
+      display: block;
+    }
+
+    .results-count strong {
+      color: #73408a;
+      font-weight: 700;
+    }
+
+    .knowledge-section {
+      padding: 0;
+    }
+
+    /* --- 核心修改：瀑布流布局 --- */
+    .knowledge-articles {
+      /* 采用 column-count 实现经典瀑布流 */
+      column-count: 3;
+      column-gap: 24px;
+    }
+
+    /* 每一列中的卡片 */
+    .knowledge-card {
+      break-inside: avoid;
+      /* 防止卡片被截断 */
+      margin-bottom: 24px;
+      padding: 20px;
+      border-radius: 20px;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .knowledge-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    /* 放大标题字体 */
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .card-title:hover {
+      color: #8849a7;
+    }
+
+    .card-difficulty {
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 14px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .difficulty-easy {
+      background: #e8f5e9;
+      color: #4caf50;
+    }
+
+    .difficulty-medium {
+      background: #fff3e0;
+      color: #ff9800;
+    }
+
+    .difficulty-hard {
+      background: #ffebee;
+      color: #f44336;
+    }
+
+    /* 放大摘要字体 */
+    .card-summary {
+      font-size: 15px;
+      color: #4b5563;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      /* 增加显示行数 */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex-grow: 1;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .card-tag {
+      font-size: 14px;
+      padding: 6px 12px;
+      background: #f5f5f5;
+      color: #666;
+      border-radius: 14px;
+    }
+
+    .card-footer {
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 13px;
+      color: #999;
+      margin-top: auto;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .card-meta span {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .empty-state {
+      column-span: all;
+      text-align: center;
+      padding: 80px 20px;
+      color: #999;
+      font-size: 16px;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state-text {
+      font-size: 16px;
+      color: #999;
+      margin-top: 8px;
+    }
+
+    @keyframes knowledgeModalFadeIn {
+      from {
+        opacity: 0;
       }
 
-      body {
-        background: #f2f0faff;
-        min-height: 100vh;
-        display: flex;
-        gap: 24px;
-        padding: 24px;
-        padding-left: 194px;
-        overflow-x: hidden;
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes knowledgeModalFadeOut {
+      from {
+        opacity: 1;
       }
 
-      /* ====================== */
-      /* 搜索框样式（带特效） */
-      /* ====================== */
-      .search-container {
-        width: 100%;
-        max-width: 700px;
-        margin: 0 auto 24px;
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes knowledgeModalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(28px) scale(0.96);
       }
 
-      .search-box {
-        display: flex;
-        align-items: center;
-        height: 60px;
-        background: #fff;
-        border: 2px solid #e5e7eb;
-        border-radius: 32px;
-        padding: 0 24px;
-        transition: all 0.3s ease;
-        position: relative;
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes knowledgeModalSlideOut {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
 
-      /* 点击后特效（图二） */
-      .search-box.active {
-        background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
-        border-color: #8849a7;
-        transform: scale(1.02);
-        box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+      to {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
       }
+    }
 
-      .search-icon {
-        width: 24px;
-        height: 24px;
-        margin-right: 14px;
-        color: #9ca3af;
-        transition: color 0.3s ease;
-      }
+    #article-detail-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.55);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      padding: 24px;
+      animation: knowledgeModalFadeIn 0.25s ease;
+    }
 
-      .search-box.active .search-icon {
-        color: #8849a7;
-      }
+    #article-detail-modal.closing {
+      animation: knowledgeModalFadeOut 0.2s ease forwards;
+      pointer-events: none;
+    }
 
-      .search-input {
-        flex: 1;
-        height: 100%;
-        border: none;
-        outline: none;
-        background: transparent;
-        font-size: 15px;
-        /* 放大搜索输入字体 */
-      }
+    #article-detail-modal .modal-content {
+      background: white;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 1100px;
+      max-height: calc(100vh - 48px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+      animation: knowledgeModalSlideIn 0.3s ease;
+    }
 
-      .search-btn {
-        padding: 15px 28px;
-        border-radius: 30px;
-        background: linear-gradient(135deg, #9f5cc0, #91a7e1);
-        color: white;
-        border: none;
-        font-weight: 600;
-        font-size: 15px;
-        /* 放大搜索按钮字体 */
-        cursor: pointer;
-        white-space: nowrap;
-        margin-right: -21px;
-      }
+    #article-detail-modal .modal-content.closing {
+      animation: knowledgeModalSlideOut 0.2s ease forwards;
+    }
 
-      /* 原有页面样式 */
-      .knowledge-header {
-        background: white;
-        border-radius: 24px;
-        padding: 28px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-      }
+    #article-detail-modal .modal-scroll {
+      padding: 0 52px 44px;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
 
-      .filter-section {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-      }
+    #article-detail-modal .modal-scroll::-webkit-scrollbar {
+      display: none;
+    }
 
-      .filter-group {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        flex-wrap: wrap;
-      }
-
-      .filter-label {
-        font-size: 15px;
-        /* 放大标签文字 */
-        color: #666;
-        min-width: 90px;
-        font-weight: 500;
-      }
-
-      .filter-btn {
-        padding: 10px 20px;
-        background: #f5f5f5;
-        border: none;
-        border-radius: 24px;
-        font-size: 15px;
-        cursor: pointer;
-        transition: all 0.25s ease;
-      }
-
-      .filter-btn:hover {
-        background: #e9e9e9;
-      }
-
-      .filter-btn.active {
-        background: #73408a;
-        color: white;
-      }
-
-      .admin-entry {
-        display: none;
-        margin-left: auto;
-        padding: 10px 20px;
-        background: linear-gradient(135deg, #ff9800, #f44336);
-        color: white;
-        border: none;
-        border-radius: 25px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
-      }
-
-      .admin-entry:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(244, 67, 54, 0.4);
-      }
-
-      .admin-entry.show {
-        display: inline-block;
-      }
-
-      .results-count {
-        display: none;
-        font-size: 14px;
-        color: #888;
-        margin-bottom: 16px;
-        padding: 0 4px;
-      }
-
-      .results-count.show {
-        display: block;
-      }
-
-      .results-count strong {
-        color: #73408a;
-        font-weight: 700;
-      }
-
-      .knowledge-section {
-        padding: 0;
-      }
-
-      /* --- 核心修改：瀑布流布局 --- */
-      .knowledge-articles {
-        /* 采用 column-count 实现经典瀑布流 */
-        column-count: 3;
-        column-gap: 24px;
-      }
-
-      /* 每一列中的卡片 */
-      .knowledge-card {
-        break-inside: avoid;
-        /* 防止卡片被截断 */
-        margin-bottom: 24px;
-        padding: 20px;
-        border-radius: 20px;
-        background: white;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .knowledge-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-      }
-
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
-      }
-
-      /* 放大标题字体 */
-      .card-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #111827;
-        line-height: 1.5;
-        flex: 1;
-      }
-
-      .card-title:hover {
-        color: #8849a7;
-      }
-
-      .card-difficulty {
-        font-size: 13px;
-        padding: 5px 12px;
-        border-radius: 14px;
-        font-weight: 500;
-        flex-shrink: 0;
-      }
-
-      .difficulty-easy {
-        background: #e8f5e9;
-        color: #4caf50;
-      }
-
-      .difficulty-medium {
-        background: #fff3e0;
-        color: #ff9800;
-      }
-
-      .difficulty-hard {
-        background: #ffebee;
-        color: #f44336;
-      }
-
-      /* 放大摘要字体 */
-      .card-summary {
-        font-size: 15px;
-        color: #4b5563;
-        line-height: 1.7;
-        margin-bottom: 16px;
-        display: -webkit-box;
-        -webkit-line-clamp: 4;
-        /* 增加显示行数 */
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        flex-grow: 1;
-      }
-
-      .card-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 16px;
-      }
-
-      .card-tag {
-        font-size: 14px;
-        padding: 6px 12px;
-        background: #f5f5f5;
-        color: #666;
-        border-radius: 14px;
-      }
-
-      .card-footer {
-        padding-top: 12px;
-        border-top: 1px solid #f0f0f0;
-        font-size: 13px;
-        color: #999;
-        margin-top: auto;
-      }
-
-      .card-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .card-meta span {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-      }
-
-      .empty-state {
-        column-span: all;
-        text-align: center;
-        padding: 80px 20px;
-        color: #999;
-        font-size: 16px;
-      }
-
-      .empty-state-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-      }
-
-      .empty-state-text {
-        font-size: 16px;
-        color: #999;
-        margin-top: 8px;
-      }
-
-      @keyframes knowledgeModalFadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      @keyframes knowledgeModalFadeOut {
-        from {
-          opacity: 1;
-        }
-        to {
-          opacity: 0;
-        }
-      }
-
-      @keyframes knowledgeModalSlideIn {
-        from {
-          opacity: 0;
-          transform: translateY(28px) scale(0.96);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      @keyframes knowledgeModalSlideOut {
-        from {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-        to {
-          opacity: 0;
-          transform: translateY(20px) scale(0.97);
-        }
-      }
-
+    @media (max-width: 768px) {
       #article-detail-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.55);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        padding: 24px;
-        animation: knowledgeModalFadeIn 0.25s ease;
-      }
-
-      #article-detail-modal.closing {
-        animation: knowledgeModalFadeOut 0.2s ease forwards;
-        pointer-events: none;
+        padding: 8px;
       }
 
       #article-detail-modal .modal-content {
-        background: white;
-        border-radius: 24px;
-        width: 100%;
-        max-width: 1100px;
-        max-height: calc(100vh - 48px);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
-        animation: knowledgeModalSlideIn 0.3s ease;
-      }
-
-      #article-detail-modal .modal-content.closing {
-        animation: knowledgeModalSlideOut 0.2s ease forwards;
-      }
-
-      #article-detail-modal .modal-scroll {
-        padding: 0 52px 44px;
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-
-      #article-detail-modal .modal-scroll::-webkit-scrollbar {
-        display: none;
-      }
-
-      @media (max-width: 768px) {
-        #article-detail-modal {
-          padding: 8px;
-        }
-        #article-detail-modal .modal-content {
-          border-radius: 18px;
-          max-height: calc(100vh - 16px);
-        }
-        #article-detail-modal .modal-header-bar {
-          padding: 10px 14px 0;
-        }
-        #article-detail-modal .modal-scroll {
-          padding: 0 18px 24px;
-        }
+        border-radius: 18px;
+        max-height: calc(100vh - 16px);
       }
 
       #article-detail-modal .modal-header-bar {
-        display: flex;
-        justify-content: flex-end;
-        padding: 16px 20px 0;
-        flex-shrink: 0;
+        padding: 10px 14px 0;
       }
 
-      #article-detail-modal .modal-close {
-        background: #f3f4f6;
-        color: #888;
-        border: none;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        font-size: 20px;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        flex-shrink: 0;
+      #article-detail-modal .modal-scroll {
+        padding: 0 18px 24px;
+      }
+    }
+
+    #article-detail-modal .modal-header-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding: 16px 20px 0;
+      flex-shrink: 0;
+    }
+
+    #article-detail-modal .modal-close {
+      background: #f3f4f6;
+      color: #888;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    #article-detail-modal .modal-close:hover {
+      background: linear-gradient(135deg, #9f5cc0, #8849a7);
+      color: white;
+      transform: scale(1.08);
+    }
+
+    .modal-title {
+      font-size: 23px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 18px;
+      line-height: 1.4;
+    }
+
+    .modal-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-meta-item {
+      font-size: 14px;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .modal-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .modal-tag {
+      font-size: 13px;
+      padding: 6px 14px;
+      background: #f5f0fa;
+      color: #73408a;
+      border-radius: 14px;
+      font-weight: 500;
+    }
+
+    .modal-summary {
+      background: linear-gradient(135deg, #faf8fc 0%, #f5f0fa 100%);
+      padding: 18px 22px;
+      border-radius: 14px;
+      margin-bottom: 24px;
+      border-left: 4px solid #73408a;
+    }
+
+    .modal-summary-label {
+      font-weight: 700;
+      color: #73408a;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .modal-summary div:last-child {
+      font-size: 15px;
+      color: #4b5563;
+      line-height: 1.7;
+    }
+
+    .modal-content-text {
+      font-size: 15px;
+      line-height: 1.85;
+      color: #333;
+      max-width: none;
+    }
+
+    .modal-content-text p {
+      margin-bottom: 16px;
+    }
+
+    /* 响应式调整：瀑布流列数自适应 */
+    @media (max-width: 1200px) {
+      .knowledge-articles {
+        column-count: 2;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .knowledge-articles {
+        column-count: 1;
       }
 
-      #article-detail-modal .modal-close:hover {
-        background: linear-gradient(135deg, #9f5cc0, #8849a7);
-        color: white;
-        transform: scale(1.08);
+      .main-content {
+        padding: 15px;
       }
+    }
+  </style>
+</head>
 
-      .modal-title {
-        font-size: 23px;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 18px;
-        line-height: 1.4;
-      }
-
-      .modal-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-bottom: 18px;
-        padding-bottom: 18px;
-        border-bottom: 1px solid #e5e7eb;
-      }
-
-      .modal-meta-item {
-        font-size: 14px;
-        color: #6b7280;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .modal-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 20px;
-      }
-
-      .modal-tag {
-        font-size: 13px;
-        padding: 6px 14px;
-        background: #f5f0fa;
-        color: #73408a;
-        border-radius: 14px;
-        font-weight: 500;
-      }
-
-      .modal-summary {
-        background: linear-gradient(135deg, #faf8fc 0%, #f5f0fa 100%);
-        padding: 18px 22px;
-        border-radius: 14px;
-        margin-bottom: 24px;
-        border-left: 4px solid #73408a;
-      }
-
-      .modal-summary-label {
-        font-weight: 700;
-        color: #73408a;
-        margin-bottom: 8px;
-        font-size: 15px;
-      }
-
-      .modal-summary div:last-child {
-        font-size: 15px;
-        color: #4b5563;
-        line-height: 1.7;
-      }
-
-      .modal-content-text {
-        font-size: 15px;
-        line-height: 1.85;
-        color: #333;
-        max-width: none;
-      }
-
-      .modal-content-text p {
-        margin-bottom: 16px;
-      }
-
-      /* 响应式调整：瀑布流列数自适应 */
-      @media (max-width: 1200px) {
-        .knowledge-articles {
-          column-count: 2;
-        }
-      }
-
-      @media (max-width: 768px) {
-        .knowledge-articles {
-          column-count: 1;
-        }
-
-        .main-content {
-          padding: 15px;
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="sidebar">
-      <div class="user-avatar-sidebar" onclick="ParentComponents.showProfileModal()" data-avatar-updatable="true">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#343559" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-      </div>
-      <div class="divider top-divider"></div>
-      <a href="child-document.html" class="nav-item first-nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-          <polyline points="10 9 9 9 8 9"></polyline>
-        </svg>
-        <span class="nav-label">儿童档案</span>
-      </a>
-      <a href="knowledge.html" class="nav-item active">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-        </svg>
-        <span class="nav-label">科普知识</span>
-      </a>
-      <a href="forum.html" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path
-            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-          ></path>
-        </svg>
-        <span class="nav-label">论坛</span>
-      </a>
-      <a
-        href="#"
-        class="nav-item switch-mode"
-        onclick="
+<body>
+  <div class="sidebar">
+    <div class="user-avatar-sidebar" onclick="ParentComponents.showProfileModal()" data-avatar-updatable="true">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#343559" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    </div>
+    <div class="divider top-divider"></div>
+    <a href="child-document.html" class="nav-item first-nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+        <polyline points="10 9 9 9 8 9"></polyline>
+      </svg>
+      <span class="nav-label">儿童档案</span>
+    </a>
+    <a href="knowledge.html" class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </svg>
+      <span class="nav-label">科普知识</span>
+    </a>
+    <a href="forum.html" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+        </path>
+      </svg>
+      <span class="nav-label">论坛</span>
+    </a>
+    <a href="#" class="nav-item switch-mode" onclick="
           ParentComponents.switchToChildMode();
           return false;
-        "
-      >
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-          <line x1="8" y1="21" x2="16" y2="21"></line>
-          <line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
-        <span class="nav-label">儿童训练</span>
-      </a>
-      <div class="divider"></div>
-      <div class="logout-btn" onclick="ParentComponents.logout()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-      </div>
+        ">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+        <line x1="8" y1="21" x2="16" y2="21"></line>
+        <line x1="12" y1="17" x2="12" y2="21"></line>
+      </svg>
+      <span class="nav-label">儿童训练</span>
+    </a>
+    <div class="divider"></div>
+    <div class="logout-btn" onclick="ParentComponents.logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
     </div>
-    <script>
-      setTimeout(() => {
-        const sidebarAvatar = document.querySelector('.user-avatar-sidebar[data-avatar-updatable="true"]');
-        if (sidebarAvatar) {
-          const userInfo = StorageUtil.getItem('userInfo');
-          if (userInfo && userInfo.avatar) {
-            ParentComponents._setAvatarImg(sidebarAvatar, userInfo.avatar);
-          }
+  </div>
+  <script>
+    setTimeout(() => {
+      const sidebarAvatar = document.querySelector('.user-avatar-sidebar[data-avatar-updatable="true"]');
+      if (sidebarAvatar) {
+        const userInfo = StorageUtil.getItem('userInfo');
+        if (userInfo && userInfo.avatar) {
+          ParentComponents._setAvatarImg(sidebarAvatar, userInfo.avatar);
         }
-      }, 500);
-    </script>
-    <div class="main-content">
-      <div class="knowledge-header">
-        <!-- 搜索框（一定显示） -->
-        <div class="search-container" style="display: flex; align-items: center; gap: 16px">
-          <div class="search-box" id="searchBox" style="flex: 1">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <input type="text" class="search-input" id="searchInput" placeholder="搜索知识文章..." />
-            <button class="search-btn" onclick="doSearch()">搜索</button>
-          </div>
-          <button class="admin-entry" id="admin-entry-btn" onclick="window.location.href = 'knowledge/admin.html'">
-            管理文章
-          </button>
+      }
+    }, 500);
+  </script>
+  <div class="main-content">
+    <div class="knowledge-header">
+      <!-- 搜索框（一定显示） -->
+      <div class="search-container" style="display: flex; align-items: center; gap: 16px">
+        <div class="search-box" id="searchBox" style="flex: 1">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="搜索知识文章..." />
+          <button class="search-btn" onclick="doSearch()">搜索</button>
         </div>
+        <button class="admin-entry" id="admin-entry-btn" onclick="window.location.href = 'knowledge/admin.html'">
+          管理文章
+        </button>
+      </div>
 
-        <div class="filter-section">
-          <div class="filter-group">
-            <label class="filter-label">发布时间：</label>
-            <div class="filter-options" id="date-filter">
-              <button class="filter-btn active" data-value="">全部</button>
-              <button class="filter-btn" data-value="week">最近一周</button>
-              <button class="filter-btn" data-value="month">最近一月</button>
-              <button class="filter-btn" data-value="quarter">最近三月</button>
-            </div>
+      <div class="filter-section">
+        <div class="filter-group">
+          <label class="filter-label">发布时间：</label>
+          <div class="filter-options" id="date-filter">
+            <button class="filter-btn active" data-value="">全部</button>
+            <button class="filter-btn" data-value="week">最近一周</button>
+            <button class="filter-btn" data-value="month">最近一月</button>
+            <button class="filter-btn" data-value="quarter">最近三月</button>
           </div>
-          <div class="filter-group">
-            <label class="filter-label">难度等级：</label>
-            <div class="filter-options" id="difficulty-filter">
-              <button class="filter-btn active" data-value="">全部</button>
-              <button class="filter-btn" data-value="初级">初级</button>
-              <button class="filter-btn" data-value="中级">中级</button>
-              <button class="filter-btn" data-value="高级">高级</button>
-            </div>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">难度等级：</label>
+          <div class="filter-options" id="difficulty-filter">
+            <button class="filter-btn active" data-value="">全部</button>
+            <button class="filter-btn" data-value="初级">初级</button>
+            <button class="filter-btn" data-value="中级">中级</button>
+            <button class="filter-btn" data-value="高级">高级</button>
           </div>
-          <div class="filter-group">
-            <label class="filter-label">阅读时间：</label>
-            <div class="filter-options" id="readtime-filter">
-              <button class="filter-btn active" data-value="">全部</button>
-              <button class="filter-btn" data-value="short">5分钟以内</button>
-              <button class="filter-btn" data-value="medium">5-10分钟</button>
-              <button class="filter-btn" data-value="long">10分钟以上</button>
-            </div>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">阅读时间：</label>
+          <div class="filter-options" id="readtime-filter">
+            <button class="filter-btn active" data-value="">全部</button>
+            <button class="filter-btn" data-value="short">5分钟以内</button>
+            <button class="filter-btn" data-value="medium">5-10分钟</button>
+            <button class="filter-btn" data-value="long">10分钟以上</button>
           </div>
         </div>
       </div>
-
-      <div class="knowledge-section">
-        <div class="results-count" id="results-count"></div>
-        <div class="knowledge-articles" id="knowledge-articles-container"></div>
-      </div>
     </div>
 
-    <!-- 搜索框动画（核心） -->
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const userInfo = ParentComponents.checkAuth();
-        ParentComponents.initPage('knowledge');
-        if (userInfo) {
-          if (userInfo.role === 'admin') {
-            document.getElementById('admin-entry-btn').classList.add('show');
-          }
-          initFilterListeners();
-          loadKnowledgeArticles();
+    <div class="knowledge-section">
+      <div class="results-count" id="results-count"></div>
+      <div class="knowledge-articles" id="knowledge-articles-container"></div>
+    </div>
+  </div>
+
+  <!-- 搜索框动画（核心） -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const userInfo = ParentComponents.checkAuth();
+      ParentComponents.initPage('knowledge');
+      if (userInfo) {
+        if (userInfo.role === 'admin') {
+          document.getElementById('admin-entry-btn').classList.add('show');
         }
-      });
-
-      function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
+        initFilterListeners();
+        loadKnowledgeArticles();
       }
+    });
 
-      let currentDateFilter = '';
-      let currentDifficultyFilter = '';
-      let currentReadtimeFilter = '';
-      let currentKeyword = '';
-      let allArticles = [];
-      let escapeKeyHandler = null;
-      let scrollLockY = 0;
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
 
-      function logout() {
-        ParentComponents.logout();
-      }
-      function switchToChild() {
-        ParentComponents.switchToChildMode();
-      }
-      function checkAuth() {
-        return ParentComponents.checkAuth();
-      }
+    let currentDateFilter = '';
+    let currentDifficultyFilter = '';
+    let currentReadtimeFilter = '';
+    let currentKeyword = '';
+    let allArticles = [];
+    let escapeKeyHandler = null;
+    let scrollLockY = 0;
 
-      async function doSearch() {
-        currentKeyword = document.getElementById('searchInput').value.trim();
-        await loadKnowledgeArticles();
-      }
+    function logout() {
+      ParentComponents.logout();
+    }
+    function switchToChild() {
+      ParentComponents.switchToChildMode();
+    }
+    function checkAuth() {
+      return ParentComponents.checkAuth();
+    }
 
-      async function loadKnowledgeArticles() {
-        const container = document.getElementById('knowledge-articles-container');
-        document.getElementById('results-count').classList.remove('show');
-        container.innerHTML =
-          '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+    async function doSearch() {
+      currentKeyword = document.getElementById('searchInput').value.trim();
+      await loadKnowledgeArticles();
+    }
 
+    async function loadKnowledgeArticles() {
+      const container = document.getElementById('knowledge-articles-container');
+      document.getElementById('results-count').classList.remove('show');
+      container.innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+
+      try {
+        let url = '/api/knowledge/articles';
+        if (currentKeyword) url += `?keyword=${encodeURIComponent(currentKeyword)}`;
+        if (currentDateFilter) url += `&date=${currentDateFilter}`;
+        if (currentDifficultyFilter) url += `&difficulty=${currentDifficultyFilter}`;
+        if (currentReadtimeFilter) url += `&readtime=${currentReadtimeFilter}`;
+
+        const response = await fetch(url);
+        const result = await response.json();
+        const data = result.data || result;
+
+        allArticles = Array.isArray(data) ? data : data.articles || [];
+        applyFiltersAndDisplay();
+      } catch (error) {
+        console.error(error);
         try {
-          let url = '/api/knowledge/articles';
-          if (currentKeyword) url += `?keyword=${encodeURIComponent(currentKeyword)}`;
-          if (currentDateFilter) url += `&date=${currentDateFilter}`;
-          if (currentDifficultyFilter) url += `&difficulty=${currentDifficultyFilter}`;
-          if (currentReadtimeFilter) url += `&readtime=${currentReadtimeFilter}`;
-
-          const response = await fetch(url);
-          const result = await response.json();
-          const data = result.data || result;
-
-          allArticles = Array.isArray(data) ? data : data.articles || [];
+          const localResponse = await fetch('./knowledge/knowledge-data.json');
+          const localData = await localResponse.json();
+          allArticles = Array.isArray(localData) ? localData : localData.articles || [];
           applyFiltersAndDisplay();
-        } catch (error) {
-          console.error(error);
-          try {
-            const localResponse = await fetch('./knowledge/knowledge-data.json');
-            const localData = await localResponse.json();
-            allArticles = Array.isArray(localData) ? localData : localData.articles || [];
-            applyFiltersAndDisplay();
-          } catch (localError) {
-            container.innerHTML =
-              '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">加载失败</div></div>';
-          }
+        } catch (localError) {
+          container.innerHTML =
+            '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">加载失败</div></div>';
         }
       }
+    }
 
-      function filterByDate(a) {
-        if (!currentDateFilter) return true;
-        const d = new Date(a.date);
-        const now = new Date();
-        const days = (now - d) / (1000 * 60 * 60 * 24);
-        if (currentDateFilter === 'week') return days <= 7;
-        if (currentDateFilter === 'month') return days <= 30;
-        if (currentDateFilter === 'quarter') return days <= 90;
-        return true;
-      }
-      function filterByDifficulty(a) {
-        return !currentDifficultyFilter || a.difficulty === currentDifficultyFilter;
-      }
-      function filterByReadtime(a) {
-        if (!currentReadtimeFilter) return true;
-        const t = a.reading_time || a.readTime || 0;
-        if (currentReadtimeFilter === 'short') return t <= 5;
-        if (currentReadtimeFilter === 'medium') return t > 5 && t <= 10;
-        if (currentReadtimeFilter === 'long') return t > 10;
-        return true;
-      }
-      function filterByKeyword(a) {
-        if (!currentKeyword) return true;
-        const k = currentKeyword.toLowerCase();
-        return (
-          a.title?.toLowerCase().includes(k) ||
-          a.summary?.toLowerCase().includes(k) ||
-          a.content?.toLowerCase().includes(k) ||
-          a.tags?.some((t) => t.toLowerCase().includes(k))
-        );
-      }
-      function applyFiltersAndDisplay() {
-        const filtered = allArticles.filter(
-          (a) => filterByDate(a) && filterByDifficulty(a) && filterByReadtime(a) && filterByKeyword(a),
-        );
-        displayKnowledgeArticles(filtered);
-      }
+    function filterByDate(a) {
+      if (!currentDateFilter) return true;
+      const d = new Date(a.date);
+      const now = new Date();
+      const days = (now - d) / (1000 * 60 * 60 * 24);
+      if (currentDateFilter === 'week') return days <= 7;
+      if (currentDateFilter === 'month') return days <= 30;
+      if (currentDateFilter === 'quarter') return days <= 90;
+      return true;
+    }
+    function filterByDifficulty(a) {
+      return !currentDifficultyFilter || a.difficulty === currentDifficultyFilter;
+    }
+    function filterByReadtime(a) {
+      if (!currentReadtimeFilter) return true;
+      const t = a.reading_time || a.readTime || 0;
+      if (currentReadtimeFilter === 'short') return t <= 5;
+      if (currentReadtimeFilter === 'medium') return t > 5 && t <= 10;
+      if (currentReadtimeFilter === 'long') return t > 10;
+      return true;
+    }
+    function filterByKeyword(a) {
+      if (!currentKeyword) return true;
+      const k = currentKeyword.toLowerCase();
+      return (
+        a.title?.toLowerCase().includes(k) ||
+        a.summary?.toLowerCase().includes(k) ||
+        a.content?.toLowerCase().includes(k) ||
+        a.tags?.some((t) => t.toLowerCase().includes(k))
+      );
+    }
+    function applyFiltersAndDisplay() {
+      const filtered = allArticles.filter(
+        (a) => filterByDate(a) && filterByDifficulty(a) && filterByReadtime(a) && filterByKeyword(a),
+      );
+      displayKnowledgeArticles(filtered);
+    }
 
-      function displayKnowledgeArticles(articles) {
-        const c = document.getElementById('knowledge-articles-container');
-        const countEl = document.getElementById('results-count');
-        if (!articles || articles.length === 0) {
-          countEl.classList.remove('show');
-          c.innerHTML =
-            '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无文章</div></div>';
-          return;
-        }
-        articles.sort((a, b) => new Date(b.date) - new Date(a.date));
-        countEl.innerHTML = `共找到 <strong>${articles.length}</strong> 篇文章`;
-        countEl.classList.add('show');
-        let html = '';
-        articles.forEach((a) => {
-          const tags = a.tags ? a.tags.map((t) => `<span class="card-tag">${escapeHtml(t)}</span>`).join('') : '';
-          let diffCls = '';
-          if (a.difficulty === '初级') diffCls = 'difficulty-easy';
-          else if (a.difficulty === '中级') diffCls = 'difficulty-medium';
-          else if (a.difficulty === '高级') diffCls = 'difficulty-hard';
-          const rawSummary =
-            a.summary || (a.content && a.content.length > 120 ? a.content.substring(0, 120) + '...' : a.content || '');
-          const summary = escapeHtml(rawSummary);
-          html += `
+    function displayKnowledgeArticles(articles) {
+      const c = document.getElementById('knowledge-articles-container');
+      const countEl = document.getElementById('results-count');
+      if (!articles || articles.length === 0) {
+        countEl.classList.remove('show');
+        c.innerHTML =
+          '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无文章</div></div>';
+        return;
+      }
+      articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+      countEl.innerHTML = `共找到 <strong>${articles.length}</strong> 篇文章`;
+      countEl.classList.add('show');
+      let html = '';
+      articles.forEach((a) => {
+        const tags = a.tags ? a.tags.map((t) => `<span class="card-tag">${escapeHtml(t)}</span>`).join('') : '';
+        let diffCls = '';
+        if (a.difficulty === '初级') diffCls = 'difficulty-easy';
+        else if (a.difficulty === '中级') diffCls = 'difficulty-medium';
+        else if (a.difficulty === '高级') diffCls = 'difficulty-hard';
+        const rawSummary =
+          a.summary || (a.content && a.content.length > 120 ? a.content.substring(0, 120) + '...' : a.content || '');
+        const summary = escapeHtml(rawSummary);
+        html += `
                 <div class="knowledge-card" onclick="showArticleDetail('${escapeHtml(String(a.id))}')">
                     <div class="card-header">
                         <div class="card-title">${escapeHtml(a.title)}</div>
@@ -826,29 +831,29 @@
                         </div>
                     </div>
                 </div>`;
-        });
-        c.innerHTML = html;
-        window.knowledgeArticlesData = articles;
-      }
+      });
+      c.innerHTML = html;
+      window.knowledgeArticlesData = articles;
+    }
 
-      function formatArticleContent(c) {
-        const normalized = c.replace(/\r\n/g, '\n');
-        const escaped = escapeHtml(normalized);
-        const f = escaped.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
-        return `<p>${f}</p>`;
-      }
-      function showArticleDetail(id) {
-        const a = window.knowledgeArticlesData.find((x) => x.id == id);
-        if (!a) return;
-        const tags = a.tags ? a.tags.map((t) => `<span class="modal-tag">${escapeHtml(t)}</span>`).join('') : '';
-        let diffCls = '';
-        if (a.difficulty === '初级') diffCls = 'difficulty-easy';
-        else if (a.difficulty === '中级') diffCls = 'difficulty-medium';
-        else if (a.difficulty === '高级') diffCls = 'difficulty-hard';
-        const content = formatArticleContent(a.content);
-        const m = document.createElement('div');
-        m.id = 'article-detail-modal';
-        m.innerHTML = `
+    function formatArticleContent(c) {
+      const normalized = c.replace(/\r\n/g, '\n');
+      const escaped = escapeHtml(normalized);
+      const f = escaped.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+      return `<p>${f}</p>`;
+    }
+    function showArticleDetail(id) {
+      const a = window.knowledgeArticlesData.find((x) => x.id == id);
+      if (!a) return;
+      const tags = a.tags ? a.tags.map((t) => `<span class="modal-tag">${escapeHtml(t)}</span>`).join('') : '';
+      let diffCls = '';
+      if (a.difficulty === '初级') diffCls = 'difficulty-easy';
+      else if (a.difficulty === '中级') diffCls = 'difficulty-medium';
+      else if (a.difficulty === '高级') diffCls = 'difficulty-hard';
+      const content = formatArticleContent(a.content);
+      const m = document.createElement('div');
+      m.id = 'article-detail-modal';
+      m.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header-bar">
                   <button class="modal-close" onclick="closeArticleDetail()">×</button>
@@ -867,79 +872,80 @@
                   <div class="modal-content-text">${content}</div>
                 </div>
             </div>`;
-        document.body.appendChild(m);
-        scrollLockY = window.scrollY;
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${scrollLockY}px`;
-        document.body.style.width = '100%';
-        document.body.style.overflowY = 'scroll';
-        m.onclick = (e) => e.target === m && closeArticleDetail();
-        if (escapeKeyHandler) document.removeEventListener('keydown', escapeKeyHandler);
-        escapeKeyHandler = (e) => {
-          if (e.key === 'Escape') closeArticleDetail();
+      document.body.appendChild(m);
+      scrollLockY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollLockY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflowY = 'scroll';
+      m.onclick = (e) => e.target === m && closeArticleDetail();
+      if (escapeKeyHandler) document.removeEventListener('keydown', escapeKeyHandler);
+      escapeKeyHandler = (e) => {
+        if (e.key === 'Escape') closeArticleDetail();
+      };
+      document.addEventListener('keydown', escapeKeyHandler);
+    }
+    function closeArticleDetail() {
+      const m = document.getElementById('article-detail-modal');
+      if (!m || m.classList.contains('closing')) return;
+      if (escapeKeyHandler) document.removeEventListener('keydown', escapeKeyHandler);
+      escapeKeyHandler = null;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflowY = '';
+      window.scrollTo(0, scrollLockY);
+      m.classList.add('closing');
+      const content = m.querySelector('.modal-content');
+      if (content) content.classList.add('closing');
+      m.addEventListener('animationend', () => m.remove(), { once: true });
+    }
+
+    function initFilterListeners() {
+      document.querySelectorAll('#date-filter .filter-btn').forEach((b) => {
+        b.onclick = () => {
+          document.querySelectorAll('#date-filter .filter-btn').forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          currentDateFilter = b.dataset.value;
+          applyFiltersAndDisplay();
         };
-        document.addEventListener('keydown', escapeKeyHandler);
-      }
-      function closeArticleDetail() {
-        const m = document.getElementById('article-detail-modal');
-        if (!m || m.classList.contains('closing')) return;
-        if (escapeKeyHandler) document.removeEventListener('keydown', escapeKeyHandler);
-        escapeKeyHandler = null;
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflowY = '';
-        window.scrollTo(0, scrollLockY);
-        m.classList.add('closing');
-        const content = m.querySelector('.modal-content');
-        if (content) content.classList.add('closing');
-        m.addEventListener('animationend', () => m.remove(), { once: true });
-      }
-
-      function initFilterListeners() {
-        document.querySelectorAll('#date-filter .filter-btn').forEach((b) => {
-          b.onclick = () => {
-            document.querySelectorAll('#date-filter .filter-btn').forEach((x) => x.classList.remove('active'));
-            b.classList.add('active');
-            currentDateFilter = b.dataset.value;
-            applyFiltersAndDisplay();
-          };
-        });
-        document.querySelectorAll('#difficulty-filter .filter-btn').forEach((b) => {
-          b.onclick = () => {
-            document.querySelectorAll('#difficulty-filter .filter-btn').forEach((x) => x.classList.remove('active'));
-            b.classList.add('active');
-            currentDifficultyFilter = b.dataset.value;
-            applyFiltersAndDisplay();
-          };
-        });
-        document.querySelectorAll('#readtime-filter .filter-btn').forEach((b) => {
-          b.onclick = () => {
-            document.querySelectorAll('#readtime-filter .filter-btn').forEach((x) => x.classList.remove('active'));
-            b.classList.add('active');
-            currentReadtimeFilter = b.dataset.value;
-            applyFiltersAndDisplay();
-          };
-        });
-      }
-
-      const searchBox = document.getElementById('searchBox');
-      const searchInput = document.getElementById('searchInput');
-
-      // 点击/聚焦 开启特效
-      searchInput.addEventListener('focus', () => {
-        searchBox.classList.add('active');
       });
-
-      // 失去焦点 关闭特效
-      searchInput.addEventListener('blur', () => {
-        searchBox.classList.remove('active');
+      document.querySelectorAll('#difficulty-filter .filter-btn').forEach((b) => {
+        b.onclick = () => {
+          document.querySelectorAll('#difficulty-filter .filter-btn').forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          currentDifficultyFilter = b.dataset.value;
+          applyFiltersAndDisplay();
+        };
       });
-
-      // 回车键搜索
-      searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') doSearch();
+      document.querySelectorAll('#readtime-filter .filter-btn').forEach((b) => {
+        b.onclick = () => {
+          document.querySelectorAll('#readtime-filter .filter-btn').forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          currentReadtimeFilter = b.dataset.value;
+          applyFiltersAndDisplay();
+        };
       });
-    </script>
-  </body>
+    }
+
+    const searchBox = document.getElementById('searchBox');
+    const searchInput = document.getElementById('searchInput');
+
+    // 点击/聚焦 开启特效
+    searchInput.addEventListener('focus', () => {
+      searchBox.classList.add('active');
+    });
+
+    // 失去焦点 关闭特效
+    searchInput.addEventListener('blur', () => {
+      searchBox.classList.remove('active');
+    });
+
+    // 回车键搜索
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doSearch();
+    });
+  </script>
+</body>
+
 </html>
