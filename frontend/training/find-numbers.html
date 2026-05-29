@@ -573,7 +573,9 @@
           document.getElementById('feedback').textContent = '太棒啦!找到了垃圾!';
           try {
             playCorrectSound();
-          } catch (e) {}
+          } catch (e) {
+            console.error(e);
+          }
           createStarEffect(cellElement);
           if (correctCount === totalTargets) endGame();
         } else {
@@ -583,7 +585,9 @@
           document.getElementById('feedback').textContent = '这不是垃圾哦';
           try {
             playErrorSound();
-          } catch (e) {}
+          } catch (e) {
+            console.error(e);
+          }
         }
       }
 
@@ -692,7 +696,7 @@
           const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
           currentGarbageImages = [randomGarbage];
           document.getElementById('target-info').innerHTML =
-            `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
+            `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" alt="" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
         } else if (currentDifficulty === 2) {
           let t1 = Math.floor(Math.random() * 9) + 1;
           let t2 = Math.floor(Math.random() * 9) + 1;
@@ -707,14 +711,14 @@
           }
           currentGarbageImages = [randomGarbage1, randomGarbage2];
           document.getElementById('target-info').innerHTML =
-            `目标：圈出所有垃圾 <img src="../images/${randomGarbage1}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;"> 和 <img src="../images/${randomGarbage2}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
+            `目标：圈出所有垃圾 <img src="../images/${randomGarbage1}" alt="" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;"> 和 <img src="../images/${randomGarbage2}" alt="" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
         } else {
           const garbageImages = ['garbage1.webp', 'garbage2.webp', 'garbage3.webp', 'garbage4.webp'];
           const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
           currentGarbageImages = [randomGarbage];
           targetNumbers = [];
           document.getElementById('target-info').innerHTML =
-            `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
+            `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" alt="" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
         }
       }
 

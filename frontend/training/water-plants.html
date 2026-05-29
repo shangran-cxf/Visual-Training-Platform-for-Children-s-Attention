@@ -479,7 +479,9 @@
           waterAudio.loop = true;
         }
         waterAudio.currentTime = 0;
-        waterAudio.play().catch(function () {});
+        waterAudio.play().catch(function () {
+          /* 浏览器自动播放策略限制，静默忽略 */
+        });
       }
       function stopWaterSound() {
         if (waterAudio) {
