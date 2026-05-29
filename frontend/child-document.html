@@ -595,7 +595,7 @@
         // 先发起请求（不 await），让后续调用可以并行
         const childDataPromise = fetchChildData(childId);
         // 成长轨迹图独立加载（使用 56 天数据，不与上面互相阻塞）
-        drawGrowthChart(childId).catch(e => console.error('加载成长轨迹失败:', e));
+        drawGrowthChart(childId).catch((e) => console.error('加载成长轨迹失败:', e));
 
         // 等待通用数据就绪
         const childData = await childDataPromise;
@@ -603,7 +603,7 @@
 
         // 基本信息
         if (childData.info) {
-          const $ = id => document.getElementById(id);
+          const $ = (id) => document.getElementById(id);
           const info = childData.info;
           if ($('child-name')) $('child-name').textContent = info.name;
           if ($('child-age')) $('child-age').textContent = info.age;
@@ -619,7 +619,7 @@
         }
 
         // AI 评价（慢接口，不阻塞页面渲染）
-        fetchAndDisplayAIEvaluation(childId, childData).catch(e => console.error('AI评价失败:', e));
+        fetchAndDisplayAIEvaluation(childId, childData).catch((e) => console.error('AI评价失败:', e));
       }
 
       // 从后端获取儿童数据
@@ -706,6 +706,7 @@
             radarData: [0.5, 0.5, 0.5, 0.5, 0.5],
           };
         }
+      }
 
       // 生成数据版本标识（用于检测数据是否更新）
       function generateDataVersion(childData) {
