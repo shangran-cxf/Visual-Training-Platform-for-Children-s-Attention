@@ -55,7 +55,6 @@
       }
 
       /* 勋章墙内容初始隐藏，加载完成后显示 */
-      .medal-showcase,
       .medal-grid-container,
       .title-section,
       .scroll-button {
@@ -63,7 +62,6 @@
         transition: opacity 0.4s ease-in;
       }
 
-      .medal-showcase.loaded,
       .medal-grid-container.loaded,
       .title-section.loaded,
       .scroll-button.loaded {
@@ -369,40 +367,6 @@
         margin-bottom: -30px;
       }
 
-      /* 勋章展示区 */
-      .medal-showcase {
-        display: flex;
-        align-items: center;
-        gap: 30px;
-        margin-bottom: 35px;
-        flex-shrink: 0;
-      }
-
-      .current-medal {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background: rgb(255, 255, 255, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--shadow-card);
-        transition: all 0.3s ease;
-        cursor: pointer;
-      }
-
-      .current-medal img {
-        width: 130px;
-        height: 130px;
-        object-fit: contain;
-      }
-
-      /* 未解锁状态的勋章显示为灰色 */
-      .current-medal.locked img {
-        filter: grayscale(100%);
-        opacity: 0.6;
-      }
-
       /* 获得勋章的动画效果 */
       @keyframes medalUnlock {
         0% {
@@ -460,20 +424,57 @@
         margin: 0;
       }
 
-      .current-medal:hover {
-        transform: scale(1.05);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      .fox-speech-bubble {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        margin-bottom: 24px;
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 20px 28px;
       }
 
-      .medal-desc-box {
-        flex: 1;
-        max-width: 300px;
-        padding: 10px 15px;
-        background: rgb(255, 255, 255, 0.7);
-        border-radius: 8px;
+      .bubble-medal-img {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .bubble-medal-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .bubble-medal-img.locked img {
+        filter: grayscale(100%);
+        opacity: 0.6;
+      }
+
+      .bubble-medal-name {
         font-size: 20px;
         font-weight: 700;
         color: var(--text-dark);
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .fox-speech-bubble::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        right: 24px;
+        left: auto;
+        border: 14px solid transparent;
+        border-top-color: #fff;
       }
 
       /* 勋章网格容器 */
@@ -483,22 +484,32 @@
         flex: 1;
         min-height: 0;
         width: 100%;
-        max-width: 900px;
         padding: 20px;
         display: flex;
         align-items: center;
         position: relative;
-        overflow: hidden;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: #51915f transparent;
+      }
+
+      .medal-grid-container::-webkit-scrollbar {
+        height: 6px;
+      }
+      .medal-grid-container::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .medal-grid-container::-webkit-scrollbar-thumb {
+        background: #51915f;
+        border-radius: 3px;
       }
 
       /* 勋章滚动容器 */
       .medal-scroll-container {
         display: flex;
         gap: 40px;
-        transition: transform 0.5s ease;
         padding: 0 20px;
-        width: max-content;
-        /* 确保容器宽度根据内容自动扩展 */
       }
 
       /* 勋章组 - 竖着排列 */
@@ -766,11 +777,6 @@
           font-size: 28px;
         }
 
-        .medal-showcase {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
         .medal-grid-container {
           grid-template-columns: repeat(2, 1fr);
           padding: 20px;
@@ -970,18 +976,8 @@
         </div>
       </div>
 
-      <!-- 当前勋章展示区 -->
-      <div class="medal-showcase">
-        <div class="current-medal" id="current-medal">
-          <!-- 初始为空，点击勋章后显示 -->
-        </div>
-        <div class="medal-desc-box" id="medal-desc">
-          <!-- 初始为空，点击勋章后显示 -->
-        </div>
-      </div>
-
       <!-- 勋章网格和狐狸勋章 -->
-      <div style="display: flex; align-items: flex-end; gap: 10px; position: relative">
+      <div style="display: flex; align-items: flex-end; gap: 50px; margin-top: 12vh">
         <!-- 局部加载动画 -->
         <div
           id="loading-overlay"
@@ -1111,7 +1107,11 @@
         </div>
 
         <!-- 狐狸勋章 -->
-        <div style="position: absolute; right: 0; bottom: 0; z-index: 10">
+        <div style="position: relative; flex-shrink: 0; z-index: 10; margin-left: auto">
+          <div class="fox-speech-bubble" id="foxSpeechBubble">
+            <div class="bubble-medal-img" id="bubbleMedalImg"></div>
+            <div class="bubble-medal-name" id="bubbleMedalName">点击勋章查看名称</div>
+          </div>
           <img src="images/fox-medal.webp" alt="狐狸勋章" style="height: 450px; object-fit: contain" />
         </div>
       </div>
@@ -1180,11 +1180,9 @@
           const overlay = document.getElementById('loading-overlay');
 
           // 显示勋章墙内容
-          document
-            .querySelectorAll('.medal-showcase, .medal-grid-container, .title-section, .scroll-button')
-            .forEach((el) => {
-              el.classList.add('loaded');
-            });
+          document.querySelectorAll('.medal-grid-container, .title-section, .scroll-button').forEach((el) => {
+            el.classList.add('loaded');
+          });
 
           if (overlay) {
             overlay.classList.add('hidden');
@@ -1392,20 +1390,23 @@
         const medal = medals.find((m) => m.id === medalId);
         if (!item || !medal) return;
 
-        const currentMedal = document.getElementById('current-medal');
-        const medalDesc = document.getElementById('medal-desc');
-        const isUnlocked = Boolean(medal.unlocked);
-
-        // 确保图片已加载
+        // 确保勋章图片已加载
         const img = item.querySelector('img');
         if (img && img.dataset.src && !img.src) {
           img.src = img.dataset.src;
           img.classList.remove('medal-lazy');
         }
 
-        currentMedal.innerHTML = item.innerHTML;
-        currentMedal.classList.toggle('locked', !isUnlocked);
-        medalDesc.textContent = isUnlocked ? medal.name : medal.howto;
+        // 更新对话框
+        const medalImg = document.getElementById('bubbleMedalImg');
+        const medalName = document.getElementById('bubbleMedalName');
+        if (medalImg && img) {
+          medalImg.innerHTML = `<img src="${img.src}" alt="${medal.name}" />`;
+          medalImg.classList.toggle('locked', !medal.unlocked);
+        }
+        if (medalName) {
+          medalName.textContent = medal.name;
+        }
 
         if (medalItems) {
           medalItems.forEach((i) => (i.style.borderColor = 'transparent'));
@@ -1425,31 +1426,26 @@
       }
 
       // 滚动勋章功能
-      let scrollPosition = 0;
-      const scrollStep = 10;
-      let scrollInterval = null;
-      let scrollDirection = 0;
+      const scrollStep = 300;
 
       function scrollMedals(direction) {
-        const scrollContainer = document.getElementById('medal-scroll-container');
-        if (!scrollContainer) return;
+        const container = document.querySelector('.medal-grid-container');
+        if (!container) return;
 
-        const container = scrollContainer.parentElement;
-        const scrollWidth = scrollContainer.offsetWidth;
-        const containerWidth = container.offsetWidth;
-        const maxScroll = Math.max(0, scrollWidth - containerWidth + 40);
-
-        scrollPosition += direction * scrollStep;
-        scrollPosition = Math.max(0, Math.min(scrollPosition, maxScroll));
-
-        scrollContainer.style.transform = `translateX(-${scrollPosition}px)`;
+        container.scrollBy({ left: direction * scrollStep, behavior: 'smooth' });
       }
+
+      let scrollInterval = null;
+      let scrollDirection = 0;
 
       function startScroll(direction) {
         scrollDirection = direction;
         if (scrollInterval) clearInterval(scrollInterval);
         scrollInterval = setInterval(() => {
-          scrollMedals(scrollDirection);
+          const container = document.querySelector('.medal-grid-container');
+          if (container) {
+            container.scrollBy({ left: scrollDirection * 20 });
+          }
         }, 30);
       }
 
