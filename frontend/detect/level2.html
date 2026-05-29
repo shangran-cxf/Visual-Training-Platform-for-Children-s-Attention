@@ -321,7 +321,6 @@
         </div>
         <div class="stats">
           <div>击中率：<span id="hit-rate">0%</span></div>
-          <div>虚报率：<span id="false-alarm">0%</span></div>
           <div>连续正确：<span id="consecutive-correct">0</span></div>
         </div>
         <div class="feedback-overlay" id="feedbackOverlay">
@@ -401,7 +400,7 @@
         characterElement.style.transform = 'translate(-50%, -50%)'; // 居中变换
         characterElement.style.opacity = '1'; // 直接设置不透明度，确保显示
 
-        // 2秒后隐藏角色
+        // 1秒后隐藏角色
         setTimeout(() => {
           // 如果是小偷且没有被点击，算漏点
           if (character.isTarget && !currentCharacterClicked) {
@@ -419,9 +418,9 @@
             endGame();
           } else {
             // 短暂停顿后显示下一个角色
-            setTimeout(showCharacter, 500);
+            setTimeout(showCharacter, 300);
           }
-        }, 2000);
+        }, 1000);
       }
 
       // 点击处理
@@ -451,13 +450,10 @@
 
       // 更新统计信息
       function updateStats() {
-        const totalCharacters = characters.length;
-        let hitRate = totalCharacters > 0 ? Math.round((hitCount / totalCharacters) * 100) : 0;
-        // 确保击中率和虚报率的和为 100%
-        const falseAlarmRate = 100 - hitRate;
+        var totalClicks = hitCount + falseAlarmCount + missCount;
+        var hitRate = totalClicks > 0 ? Math.round((hitCount / totalClicks) * 100) : 0;
 
         document.getElementById('hit-rate').textContent = `${hitRate}%`;
-        document.getElementById('false-alarm').textContent = `${falseAlarmRate}%`;
         document.getElementById('consecutive-correct').textContent = consecutiveCorrect;
       }
 
@@ -533,15 +529,15 @@
         document.getElementById('monitor').removeEventListener('click', handleClick);
 
         const totalCharacters = characters.length;
-        var hitRate = totalCharacters > 0 ? Math.round((hitCount / totalCharacters) * 100) : 0;
-        var falseAlarmRate = 100 - hitRate;
+        var totalActions = hitCount + falseAlarmCount + missCount;
+        var hitRate = totalActions > 0 ? Math.round((hitCount / totalActions) * 100) : 0;
         var totalErrors = falseAlarmCount + missCount;
         var lateErrorRatio = totalErrors > 0 ? lateErrors / totalErrors : 0;
 
         try {
           if (typeof StorageUtil !== 'undefined') {
             StorageUtil.setItem('level2_data', {
-              false_alarm_rate: falseAlarmRate,
+              hit_rate: hitRate,
               max_consecutive_correct: maxConsecutiveCorrect,
             });
           }
@@ -554,7 +550,7 @@
           var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
           gameDataList.push({
             level: 2,
-            time: Math.round(totalCharacters * 2.5),
+            time: Math.round(totalCharacters * 1.3),
             correct: hitCount,
             error: falseAlarmCount,
             leave: missCount,
@@ -572,9 +568,6 @@
         document.getElementById('fbStats').innerHTML =
           '<div class="fb-stat"><span class="fb-label">🎯 击中率</span><span class="fb-value">' +
           hitRate +
-          '%</span></div>' +
-          '<div class="fb-stat"><span class="fb-label">⚠️ 虚报率</span><span class="fb-value">' +
-          falseAlarmRate +
           '%</span></div>' +
           '<div class="fb-stat"><span class="fb-label">🔥 连续正确</span><span class="fb-value">' +
           maxConsecutiveCorrect +
