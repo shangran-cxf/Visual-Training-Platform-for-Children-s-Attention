@@ -539,7 +539,7 @@
     function updateTimer() {
       if (!isGameStarted || isPaused) return;
 
-      const currentTime = Math.floor((performance.now() - startTime) / 1000);
+      const currentTime = Math.floor((Date.now() - startTime) / 1000);
       document.querySelector('.timer').textContent = `时间：${currentTime}s`;
       requestAnimationFrame(updateTimer);
     }
