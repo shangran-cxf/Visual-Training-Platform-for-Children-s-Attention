@@ -832,7 +832,7 @@
         uploadAllComprehensiveData(function () {
           setTimeout(function () {
             window.location.href = 'index.html?showReport=1';
-          }, 2000);
+          }, 1000);
         });
       }
 
@@ -1032,6 +1032,8 @@
           feedbackDiv.innerHTML = '🎮 游戏已经完成啦！';
           return;
         }
+
+        if (currentRoundClicked) return;
 
         clickCount++;
         currentRoundClicked = true;
