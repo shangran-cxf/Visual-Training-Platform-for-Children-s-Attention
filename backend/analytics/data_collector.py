@@ -1009,9 +1009,21 @@ def get_training_trend(child_id):
             if at in trend_data:
                 records_list = trend_data[at]["records"]
                 if records_list:
-                    scores = [r["score"] for r in records_list]
-                    trend_data[at]["avg_score"] = round(sum(scores) / len(scores), 2)
+                    # 查询该维度所有记录的直接平均分（不按日期分组）
+                    avg_query = """
+                        SELECT AVG(ss.overall_score), COUNT(*)
+                        FROM session_summaries ss
+                        JOIN training_sessions s ON CAST(ss.session_id AS INTEGER) = s.id
+                        WHERE s.child_id = ? AND DATE(s.start_time) >= ? AND ss.attention_type = ?
+                    """
+                    avg_result = execute_db(avg_query, (child_id, start_date.strftime("%Y-%m-%d"), at))
+                    if avg_result and avg_result[0][0]:
+                        trend_data[at]["avg_score"] = round(avg_result[0][0], 2)
+                    else:
+                        trend_data[at]["avg_score"] = 0
 
+                    # 计算趋势（使用每日平均分数据）
+                    scores = [r["score"] for r in records_list]
                     if len(scores) >= 2:
                         first_half = sum(scores[: len(scores) // 2]) / (len(scores) // 2) if len(scores) // 2 > 0 else 0
                         second_half = (

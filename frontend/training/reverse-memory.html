@@ -746,7 +746,6 @@
           console.log('StorageUtil 未定义，跳过');
         }
 
-        showGameOverModal(finalScore);
         uploadTrainingData(finalScore);
       }
 
@@ -1057,96 +1056,72 @@
             visionUploader.stop();
           }
 
-      function uploadTrainingData() {
-        try {
-          // [scoring-system] Upload game data + end session.
-          // Session was created in startGame(); use gameSessionId directly.
-          const _uploadAndEnd = () => {
-            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-            const childId =
-              typeof UserStateUtil !== 'undefined'
-                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-                : 1;
+          // 上传游戏数据
+          fetch(`${baseUrl}/api/training/game-data`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              session_id: gameSessionId,
+              request_id: Date.now().toString(),
+              timestamp: new Date().toISOString(),
+              event_type: 'game_complete',
+              score: finalScore,
+              accuracy: accuracy,
+              level: level,
+              time: 30 - time,
+              correct: score,
+              error: errors,
+              total_target: level,
+              total_step: level,
+            }),
+          })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                console.log('游戏数据上传成功');
 
-            // 计算工作记忆得分
-            const finalScore = calculateWorkingMemoryScore();
-            const accuracy = score > 0 ? (score / 10 / (level + errors)) * 100 : 0;
+                // 清除能力评估页面的缓存
+                const cacheKey = `child_data_${childId}`;
+                localStorage.removeItem(cacheKey);
+                console.log('已清除能力评估缓存:', cacheKey);
 
-            // 检测环境，设置API地址
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-
-            if (typeof visionUploader !== 'undefined') {
-              visionUploader.stop();
-            }
-
-            // 上传游戏数据
-            fetch(`${baseUrl}/api/training/game-data`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-              },
-              body: JSON.stringify({
-                session_id: gameSessionId,
-                request_id: Date.now().toString(),
-                timestamp: new Date().toISOString(),
-                event_type: 'game_complete',
-                score: finalScore,
-                accuracy: accuracy,
-                level: level,
-                time: time,
-                correct: score,
-                error: errors,
-                total_target: level,
-                total_step: level,
-              }),
+                // 结束训练会话
+                return fetch(`${baseUrl}/api/training/session/end`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                  },
+                  body: JSON.stringify({
+                    session_id: gameSessionId,
+                    final_score: finalScore,
+                    total_accuracy: accuracy,
+                    duration: 30 - time,
+                  }),
+                });
+              } else {
+                throw new Error(result.message || '上传游戏数据失败');
+              }
             })
-              .then((response) => response.json())
-              .then((result) => {
-                if (result.success) {
-                  console.log('游戏数据上传成功');
+            .then((response) => response.json())
+            .then((result) => {
+              console.log('会话结束响应数据:', result);
+              if (result.success) {
+                console.log('训练数据上传完成');
 
-                  // 清除能力评估页面的缓存
-                  const cacheKey = `child_data_${childId}`;
-                  localStorage.removeItem(cacheKey);
-                  console.log('已清除能力评估缓存:', cacheKey);
+                // 保存训练时间到 localStorage，用于今日训练页面显示
+                const today = new Date().toISOString().split('T')[0];
+                const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
 
-                  // 结束训练会话
-                  return fetch(`${baseUrl}/api/training/session/end`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                    body: JSON.stringify({
-                      session_id: gameSessionId,
-                      final_score: finalScore,
-                      total_accuracy: accuracy,
-                      duration: time,
-                    }),
-                  });
-                } else {
-                  throw new Error(result.message || '上传游戏数据失败');
+                if (!trainingData[today]) {
+                  trainingData[today] = { totalTime: 0 };
                 }
-              })
-            
-              .then((response) => response.json())
-              .then((result) => {
-                console.log('会话结束响应数据:', result);
-                if (result.success) {
-                  console.log('训练数据上传完成');
 
-                  // 保存训练时间到 localStorage，用于今日训练页面显示
-                  const today = new Date().toISOString().split('T')[0];
-                  const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-                  if (!trainingData[today]) {
-                    trainingData[today] = { totalTime: 0 };
-                  }
-                  
                 // 累加游戏时间（秒）
-                trainingData[today].totalTime += time;
+                trainingData[today].totalTime += (30 - time);
                 localStorage.setItem('trainingData', JSON.stringify(trainingData));
                 console.log('训练时间已保存到 localStorage');
 
@@ -1193,17 +1168,21 @@
             .then((res) => {
               if (res.success) {
                 gameSessionId = res.data.session_id;
-                // 先上传缓冲的视觉数据，再提交游戏数据
                 var flushDone = Promise.resolve();
                 if (typeof visionUploader !== 'undefined') {
                   flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
                 }
-              });
-          }
-        } catch (e) {
-          console.error('uploadTrainingData 错误:', e);
-            showGameOverModal(frontendScore);
+                flushDone.then(function () {
+                  _uploadAndEnd();
+                });
+              }
+            });
         }
+      } catch (e) {
+        console.error('uploadTrainingData 错误:', e);
+        showGameOverModal(frontendScore);
+      }
+    }
 
       function restartGame() {
         startGame();
