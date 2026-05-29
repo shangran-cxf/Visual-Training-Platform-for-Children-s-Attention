@@ -1367,7 +1367,7 @@
               currentMessage = '🔍 靠近一点嘛';
             } else if (Math.abs(yaw) > 25 || Math.abs(pitch) > 20) {
               currentProblem = 'distracted';
-              currentMessage = '👀 看这里！';
+              currentMessage = '👀 保持专注哦！';
             } else {
               currentProblem = null;
             }

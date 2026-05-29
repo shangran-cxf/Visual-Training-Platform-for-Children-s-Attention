@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>魔法迷宫冒险</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://storage.googleapis.com" />
     <style>
       * {
         margin: 0;
@@ -13,7 +17,7 @@
 
       body {
         font-family: 'Arial', sans-serif;
-        background-image: url('../images/ground12.png');
+        background-image: url('../images/ground12.webp');
         background-size: cover;
         background-position: center;
         color: white;
@@ -138,7 +142,7 @@
       }
 
       .goal {
-        background-image: url('../images/magic_book.png');
+        background-image: url('../images/magic_book.webp');
         background-size: 200%;
         background-position: center;
         position: relative;
@@ -937,7 +941,7 @@
         wandElement.style.height = `${cellSize * 2}px`;
         wandElement.style.left = `${player.x * cellSize - cellSize / 2}px`;
         wandElement.style.top = `${player.y * cellSize - cellSize / 2}px`;
-        wandElement.style.backgroundImage = 'url(../images/wand.png)';
+        wandElement.style.backgroundImage = 'url(../images/wand.webp)';
         wandElement.style.backgroundSize = 'contain';
         wandElement.style.backgroundPosition = 'center';
         wandElement.style.backgroundRepeat = 'no-repeat';
@@ -1013,7 +1017,7 @@
         shineElement.style.height = `${height}px`;
         shineElement.style.left = `${left}px`;
         shineElement.style.top = `${top}px`;
-        shineElement.style.backgroundImage = 'url(../images/shine.png)';
+        shineElement.style.backgroundImage = 'url(../images/shine.webp)';
         shineElement.style.backgroundSize = 'cover';
         shineElement.style.backgroundPosition = 'center';
         shineElement.style.backgroundRepeat = 'no-repeat';

@@ -3,6 +3,7 @@ import traceback
 
 from config import APP_CONFIG, FRONTEND_DIR
 from flask import Flask, request, send_from_directory
+from flask_compress import Compress
 from flask_cors import CORS
 
 # 打印FRONTEND_DIR路径
@@ -18,6 +19,7 @@ from utils.response_utils import error_response
 
 app = Flask(__name__)
 CORS(app)
+Compress(app)
 
 init_db()
 
