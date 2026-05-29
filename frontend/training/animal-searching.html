@@ -373,6 +373,39 @@
         osc.start(now);
         osc.stop(now + 0.2);
       }
+      function playCountdownTick(pitch) {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var osc = ctx.createOscillator(),
+          gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(pitch, now);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.12, now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      }
+      function scheduleCountdown() {
+        var endTime = moveEndTime;
+        // 在停止前 3/2/1 秒播放渐高音调
+        var ticks = [
+          { offset: -3000, pitch: 600 },
+          { offset: -2000, pitch: 850 },
+          { offset: -1000, pitch: 1200 },
+        ];
+        for (var i = 0; i < ticks.length; i++) {
+          var delay = endTime + ticks[i].offset - Date.now();
+          if (delay < 0) continue;
+          (function (pitch) {
+            setTimeout(function () {
+              if (gameState === 'moving') playCountdownTick(pitch);
+            }, delay);
+          })(ticks[i].pitch);
+        }
+      }
 
       // [scoring-system] Session created in startGame() so vision data
       // covers the full gameplay period, not just the end-of-game API window.
@@ -516,6 +549,7 @@
         setTimeout(() => {
           gameState = 'moving';
           moveEndTime = Date.now() + difficulty.moveTime;
+          scheduleCountdown();
         }, difficulty.highTime);
 
         // [scoring-system] Create training session at game start so that
@@ -707,6 +741,7 @@
           setTimeout(() => {
             gameState = 'moving';
             moveEndTime = Date.now() + difficulty.moveTime;
+            scheduleCountdown();
           }, difficulty.highTime);
         }, 600);
       }

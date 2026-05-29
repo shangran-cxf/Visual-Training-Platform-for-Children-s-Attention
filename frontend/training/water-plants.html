@@ -471,21 +471,20 @@
         if (soundCtx.state === 'suspended') soundCtx.resume();
         return soundCtx;
       }
+      var waterAudio = null;
       function playWaterDrop() {
-        var ctx = getSCtx(),
-          now = ctx.currentTime;
-        var osc = ctx.createOscillator(),
-          gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(500, now + 0.1);
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.05, now + 0.005);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.15);
+        if (!waterAudio) {
+          waterAudio = new Audio('../sounds/dripping-water.mp3');
+          waterAudio.loop = true;
+        }
+        waterAudio.currentTime = 0;
+        waterAudio.play().catch(function () {});
+      }
+      function stopWaterSound() {
+        if (waterAudio) {
+          waterAudio.pause();
+          waterAudio.currentTime = 0;
+        }
       }
       function playGrowthChime() {
         var ctx = getSCtx(),
@@ -689,6 +688,7 @@
           feedback.textContent = '正在浇水...';
 
           // 创建浇水特效
+          playWaterDrop();
           waterEffectInterval = setInterval(createWaterEffect, 100);
         } else {
           feedback.textContent = '请将水壶移到植物上方再浇水';
@@ -712,6 +712,7 @@
         }
 
         clearInterval(waterEffectInterval);
+        stopWaterSound();
         // 清除所有水滴特效
         document.querySelectorAll('.water-effect').forEach((drop) => drop.remove());
       }
@@ -731,7 +732,6 @@
         drop.style.top = canRect.bottom - sceneRect.top + 'px';
 
         gameScene.appendChild(drop);
-        playWaterDrop();
 
         // 动画结束后移除水滴
         setTimeout(() => {
