@@ -571,6 +571,40 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_game_raw_data_session ON game_raw_data(session_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_vision_raw_data_session ON vision_raw_data(session_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_session_summaries_child ON session_summaries(child_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_session_summaries_session ON session_summaries(session_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_training_sessions_child ON training_sessions(child_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_detection_data_child ON detection_data(child_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_forum_posts_category ON forum_posts(category_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_forum_posts_parent ON forum_posts(parent_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_forum_comments_post ON forum_comments(post_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_child_reports_child ON child_reports(child_id)
+    """)
+    conn.execute("""
+    CREATE INDEX IF NOT EXISTS idx_user_badges_child ON user_badges(child_id)
+    """)
+
     # 为管理员插入默认孩子"小A"（需在 children 表创建之后）
     admin_row = cursor.execute("SELECT id FROM parents WHERE username = ?", ("admin",)).fetchone()
     if admin_row:
