@@ -2031,13 +2031,21 @@
           recommendItems.innerHTML =
             '<div class="recommend-empty"><span class="empty-icon">📝</span>尚未测评，先去做一次测评定位薄弱项吧～</div>';
           if (recommendSubtitle) recommendSubtitle.textContent = '建议先完成测评，再定制专属训练计划';
+          var placeholder = [
+            { type: 'selective', score: 0, name: '选择性注意' },
+            { type: 'sustained', score: 0, name: '持续性注意' },
+            { type: 'tracking', score: 0, name: '视觉追踪' },
+            { type: 'memory', score: 0, name: '工作记忆' },
+            { type: 'inhibitory', score: 0, name: '抑制控制' },
+          ];
+          renderAbilityBars(placeholder, []);
           return;
         }
 
         if (recommendSubtitle) recommendSubtitle.textContent = '本周薄弱维度（建议今日攻克）';
 
-        abilities.sort((a, b) => a.score - b.score);
         const allAbilities = abilities.slice();
+        abilities.sort((a, b) => a.score - b.score);
         const weakest = abilities.slice(0, 2);
 
         recommendItems.innerHTML = '';
@@ -2076,8 +2084,7 @@
         var barsEl = document.getElementById('abilityBars');
         if (!barsEl) return;
 
-        var dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
-        var dotClasses = ['sel', 'sus', 'tra', 'mem', 'inh'];
+        var dotClassMap = { selective: 'sel', sustained: 'sus', tracking: 'tra', memory: 'mem', inhibitory: 'inh' };
         var weakTypes = weakAbilities.map(function (a) {
           return a.type;
         });
@@ -2094,11 +2101,11 @@
             rowClass +
             '">' +
             '<span class="ability-bar-label">' +
-            dimNames[i] +
+            ab.name +
             '</span>' +
             '<div class="ability-bar-track">' +
             '<div class="ability-bar-fill ' +
-            dotClasses[i] +
+            (dotClassMap[ab.type] || 'sel') +
             '" style="width:' +
             scoreClamped +
             '%"></div>' +
