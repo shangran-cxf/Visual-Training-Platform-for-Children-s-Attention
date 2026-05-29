@@ -948,7 +948,7 @@
           // [scoring-system] Create training session at game start so that
           // vision data captured during gameplay is associated with this session.
           const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+          const _baseUrl = window.API_BASE_URL;
           const _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
           const _childId =
             (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
@@ -1148,7 +1148,7 @@
 
             // 检测环境，设置API地址
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            const baseUrl = window.API_BASE_URL;
 
             if (typeof visionUploader !== 'undefined') {
               visionUploader.stop();
@@ -1248,7 +1248,7 @@
                 ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
                 : 1;
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            const baseUrl = window.API_BASE_URL;
 
             fetch(`${baseUrl}/api/training/session/start`, {
               method: 'POST',

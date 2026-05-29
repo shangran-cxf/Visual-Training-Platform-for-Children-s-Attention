@@ -912,7 +912,7 @@
         }
 
         var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        var baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+        var baseUrl = window.API_BASE_URL;
         var childId = UserStateUtil.getCurrentChildId();
 
         if (!gameSessionId) {
@@ -1044,12 +1044,7 @@
           var scoreDetails = backendSummary ? backendSummary.score_details || {} : {};
 
           var childId = UserStateUtil.getCurrentChildId();
-          var baseUrl =
-            typeof getBaseUrl !== 'undefined'
-              ? getBaseUrl()
-              : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:5000'
-                : window.location.origin;
+          var baseUrl = window.API_BASE_URL;
 
           // 综合训练后端按 level 分组计分，从 levels 中取每级得分
           var levelScores =

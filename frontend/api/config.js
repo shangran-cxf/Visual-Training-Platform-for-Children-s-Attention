@@ -1,8 +1,5 @@
-// 检测当前环境，自动切换 API 地址
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
 const API_CONFIG = {
-  BASE_URL: isLocal ? 'http://localhost:5000' : window.location.origin,
+  BASE_URL: window.API_BASE_URL || window.location.origin,
   TIMEOUT: 30000,
   CONTENT_TYPE: 'application/json',
   TOKEN_KEY: 'auth_token',

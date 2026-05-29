@@ -193,6 +193,7 @@ class AttentionAnalyzer:
 
             # Resolve dimension contributions
             contributions_raw = session.get("dimension_contributions")
+            contributions = None
             if contributions_raw:
                 if isinstance(contributions_raw, str):
                     try:

@@ -766,7 +766,7 @@
           // [scoring-system] Create training session at game start so that
           // vision data captured during gameplay is associated with this session.
           var _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          var _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
+          var _baseUrl = window.API_BASE_URL;
           var _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
           var _childId =
             (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
@@ -1408,7 +1408,7 @@
           var _uploadAndEnd = function () {
             // 检测当前环境，自动切换 API 地址
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            const baseUrl = window.API_BASE_URL;
 
             const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
             const childId =
@@ -1526,7 +1526,7 @@
             // [scoring-system] Fallback: session not ready from startGame().
             console.warn('Session not ready from startGame, creating inline');
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+            const baseUrl = window.API_BASE_URL;
             const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
             const childId =
               typeof UserStateUtil !== 'undefined'

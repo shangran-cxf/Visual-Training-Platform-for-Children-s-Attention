@@ -74,7 +74,7 @@ class TestCalculateFaceStable:
 class TestCalculateBlinkStable:
     def test_no_blinks(self):
         result = calculate_blink_stable([0, 0, 0])
-        assert result == 1.0
+        assert result == 0.5
 
     def test_high_blink_rate(self):
         result = calculate_blink_stable([20, 25, 30])
@@ -125,7 +125,7 @@ class TestCalculateSustainedScore:
 class TestCalculateTrackingScore:
     def test_perfect_score(self):
         game = {"correct": 10, "error": 0, "time": 0, "total_click": 10, "mean_rt": 0}
-        vision = {"head_stable": 1.0, "face_stable": 1.0}
+        vision = {"head_stable": 1.0, "blink_stable": 1.0, "face_stable": 1.0}
         result = calculate_tracking_score(game, vision)
         assert result["final_score"] == 100
 

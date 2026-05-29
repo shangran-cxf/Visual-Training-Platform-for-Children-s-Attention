@@ -931,7 +931,7 @@ const ParentComponents = {
   switchToChildMode: function () {
     const userInfo = StorageUtil.getItem('userInfo');
     if (!userInfo) {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
       return;
     }
 
@@ -961,7 +961,7 @@ const ParentComponents = {
   checkAuth: function () {
     const userInfo = StorageUtil.getItem('userInfo');
     if (!userInfo) {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
       return null;
     }
     if (userInfo.mode === 'child') {

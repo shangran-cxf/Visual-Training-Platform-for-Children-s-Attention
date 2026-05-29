@@ -7,9 +7,8 @@
     <script src="utils.js"></script>
     <script src="components-parent.js"></script>
     <script>
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       window.API_CONFIG = {
-        BASE_URL: isLocal ? 'http://localhost:5000' : window.location.origin,
+        BASE_URL: window.API_BASE_URL || window.location.origin,
         TIMEOUT: 30000,
         CONTENT_TYPE: 'application/json',
         TOKEN_KEY: 'auth_token',
@@ -730,7 +729,7 @@
       function checkAuth() {
         const userInfo = StorageUtil.getItem('userInfo');
         if (!userInfo) {
-          window.location.href = 'login.html';
+          window.location.href = 'index.html';
           return null;
         }
         return userInfo;

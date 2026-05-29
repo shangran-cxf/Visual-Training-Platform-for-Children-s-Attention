@@ -24,7 +24,7 @@ function handleApiError(response, statusCode) {
     if (code === ERROR_CODES.AUTH_ERROR) {
       removeToken();
       if (typeof window !== 'undefined') {
-        window.location.href = '/login.html';
+        window.location.href = '/index.html';
       }
     }
 

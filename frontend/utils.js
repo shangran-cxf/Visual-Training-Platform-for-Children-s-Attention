@@ -1,3 +1,9 @@
+// API 基础地址，非模块脚本和应用内联脚本通过此全局变量获取
+(function () {
+  var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  window.API_BASE_URL = isLocal ? 'http://localhost:5000' : window.location.origin;
+})();
+
 // 存储工具类
 class StorageUtil {
   // 获取存储项
@@ -562,8 +568,7 @@ class MedalUtil {
 
 // API 配置工具
 function getBaseUrl() {
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  return isLocal ? 'http://localhost:5000' : window.location.origin;
+  return window.API_BASE_URL || window.location.origin;
 }
 
 // 获取训练游戏的返回URL（根据进入游戏前的记录，返回到正确的来源页面）

@@ -433,7 +433,6 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
 
 def check_and_award_badges(child_id, summary):
     earned_badges = []
-    {b["id"]: b for b in BADGES}
 
     training_count_result = execute_db("SELECT COUNT(*) FROM session_summaries WHERE child_id = ?", (child_id,))
     training_count = training_count_result[0][0] + 1 if training_count_result else 1
@@ -1129,7 +1128,6 @@ def get_training_detail(session_id):
     if vision_data:
         head_yaws = [v[1] for v in vision_data if v[1] is not None]
         head_pitchs = [v[2] for v in vision_data if v[2] is not None]
-        [v[3] for v in vision_data if v[3] is not None]
         blink_counts = [v[4] for v in vision_data if v[4] is not None]
 
         import math

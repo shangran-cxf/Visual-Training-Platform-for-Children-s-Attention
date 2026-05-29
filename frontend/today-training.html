@@ -1658,8 +1658,7 @@
       let dailyTrainingData = {};
       let todayTrainingInfo = { session_count: 0, total_duration: 0, avg_score: 0 };
 
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+      const baseUrl = window.API_BASE_URL;
 
       const ApiUtil = {
         async apiGet(url, params = {}) {
@@ -1686,7 +1685,7 @@
       function initPage() {
         // 身份认证只验证登录状态，不验证 mode
         if (!UserStateUtil.isLoggedIn()) {
-          window.location.href = 'login.html';
+          window.location.href = 'index.html';
           return;
         }
         currentChildId = UserStateUtil.getCurrentChildId();
@@ -1979,15 +1978,15 @@
           const dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
 
           for (let i = 0; i < dimKeys.length; i++) {
-            const score = (latest[dimKeys[i]] || 0) * 100;
+            const score = latest[dimKeys[i]] || 0;
             abilities.push({ type: dimTypes[i], score: score, name: dimNames[i] });
           }
 
           if (detectionResult.data.length >= 2) {
             const previous = detectionResult.data[1];
             for (let i = 0; i < dimKeys.length; i++) {
-              const prevScore = (previous[dimKeys[i]] || 0) * 100;
-              const currScore = (latest[dimKeys[i]] || 0) * 100;
+              const prevScore = previous[dimKeys[i]] || 0;
+              const currScore = latest[dimKeys[i]] || 0;
               const diff = currScore - prevScore;
               if (diff > 3) trends[dimTypes[i]] = '↑' + Math.round(Math.abs(diff));
               else if (diff < -3) trends[dimTypes[i]] = '↓' + Math.round(Math.abs(diff));

@@ -1,398 +1,397 @@
 <!doctype html>
 <html lang="zh-CN">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>垃圾小卫士</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      overflow: hidden;
-      width: 100vw;
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Arial', sans-serif;
-      background-image: url('../images/ground8.png');
-      background-size: cover;
-      background-position: center;
-      color: #333;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
-
-    /* 防止所有元素溢出 */
-    * {
-      max-width: 100%;
-    }
-
-    .container {
-      max-width: 100vw;
-      max-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow: hidden;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .header h1 {
-      color: #005403;
-      font-size: 2em;
-      margin-bottom: 10px;
-    }
-
-    .header p {
-      font-size: 1.1em;
-      color: #116500;
-    }
-
-    .game-area {
-      background-image: url('../images/ground7.png');
-      background-size: cover;
-      background-position: center;
-      border-radius: 15px;
-      padding: 30px 30px 10px 30px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      margin-bottom: 30px;
-      text-align: center;
-      border: 2px solid #ffffff;
-      min-height: 600px;
-      max-height: 85vh;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .difficulty-selector {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 30px;
-      justify-content: center;
-      flex-wrap: wrap;
-      max-width: 100%;
-      flex-shrink: 0;
-    }
-
-    .difficulty-btn {
-      padding: 15px 20px;
-      border: 2px solid #b3d9ff;
-      border-radius: 25px;
-      background-color: #e6f2ff;
-      color: #6699cc;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .difficulty-btn:hover {
-      background-color: #cce5ff;
-      color: #4d88cc;
-    }
-
-    .difficulty-btn.active {
-      background-color: #9edfff;
-      color: #ffffff;
-      border-color: #9edfff;
-      box-shadow: 0 2px 8px rgba(51, 153, 255, 0.4);
-    }
-
-    .target-info {
-      margin-bottom: 20px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #146607;
-      flex-shrink: 0;
-    }
-
-    .matrix-container {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-gutter: stable;
-      max-width: 100%;
-      min-height: 0;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-    }
-
-    .matrix {
-      display: grid;
-      gap: 5px;
-      margin: 0 auto;
-    }
-
-    .matrix-cell {
-      width: 60px;
-      height: 60px;
-      background-color: transparent;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      position: relative;
-      box-sizing: border-box;
-    }
-
-    .matrix-cell:hover {
-      background-color: transparent;
-    }
-
-    .matrix-cell.target {
-      background-color: transparent;
-      color: #666;
-      font-family: 'Comic Sans MS', sans-serif;
-    }
-
-    .matrix-cell:not(.target) {
-      color: #4caf50;
-      font-family: 'Comic Sans MS', sans-serif;
-    }
-
-    .matrix-cell.marked {
-      background-color: #d4edda !important;
-      color: #155724 !important;
-      animation: pulse 0.5s ease-in-out;
-    }
-
-    .matrix-cell.marked.error {
-      background-color: #f8d7da !important;
-      color: #721c24 !important;
-      animation: shake 0.5s ease-in-out;
-    }
-
-    @keyframes starEffect {
-      0% {
-        transform: scale(0);
-        opacity: 1;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>垃圾小卫士</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      100% {
-        transform: scale(1);
-        opacity: 0;
-      }
-    }
-
-    .star {
-      position: absolute;
-      color: #ffd700;
-      font-size: 20px;
-      animation: starEffect 0.8s ease-out forwards;
-      pointer-events: none;
-    }
-
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
+      html,
+      body {
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
       }
 
-      50% {
-        transform: scale(1.1);
+      body {
+        font-family: 'Arial', sans-serif;
+        background-image: url('../images/ground8.png');
+        background-size: cover;
+        background-position: center;
+        color: #333;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
       }
 
-      100% {
-        transform: scale(1);
-      }
-    }
-
-    @keyframes shake {
-
-      0%,
-      100% {
-        transform: translateX(0);
+      /* 防止所有元素溢出 */
+      * {
+        max-width: 100%;
       }
 
-      25% {
-        transform: translateX(-5px);
+      .container {
+        max-width: 100vw;
+        max-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: hidden;
       }
 
-      75% {
-        transform: translateX(5px);
-      }
-    }
-
-    .stats {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      font-size: 16px;
-      gap: 15px;
-      flex-wrap: wrap;
-      background-color: rgba(44, 124, 47, 0.5);
-      color: white;
-      font-weight: bold;
-      padding: 10px;
-      border-radius: 5px;
-      max-width: 100%;
-      flex-shrink: 0;
-    }
-
-    .feedback {
-      text-align: center;
-      margin-bottom: 20px;
-      padding: 10px;
-      background-color: rgba(255, 255, 255, 0.8);
-      border-radius: 5px;
-      color: #4caf50;
-      font-weight: bold;
-      flex-shrink: 0;
-      min-height: 42px;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
       }
 
-      to {
-        opacity: 1;
-      }
-    }
-
-    @keyframes cosmosBloom {
-      0% {
-        transform: scale(0.8) translateY(40px);
-        opacity: 0;
+      .header h1 {
+        color: #005403;
+        font-size: 2em;
+        margin-bottom: 10px;
       }
 
-      100% {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes revealUp {
-      0% {
-        transform: translateY(12px);
-        opacity: 0;
+      .header p {
+        font-size: 1.1em;
+        color: #116500;
       }
 
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes orbitFloat {
-      0% {
-        transform: translateY(0) rotate(0deg) scale(1);
-      }
-
-      100% {
-        transform: translateY(-14px) rotate(15deg) scale(1.2);
-      }
-    }
-
-    @keyframes natureBounce {
-
-      0%,
-      100% {
-        transform: translateY(0);
-        opacity: 0.6;
+      .game-area {
+        background-image: url('../images/ground7.png');
+        background-size: cover;
+        background-position: center;
+        border-radius: 15px;
+        padding: 30px 30px 10px 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        text-align: center;
+        border: 2px solid #ffffff;
+        min-height: 600px;
+        max-height: 85vh;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
-      50% {
-        transform: translateY(-8px);
-        opacity: 1;
-      }
-    }
-
-    .controls {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      align-items: center;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    .controls>* {
-      pointer-events: auto;
-    }
-
-    .btn {
-      background-color: #5a4010;
-      color: white;
-      font-weight: bold;
-      border: none;
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      font-size: 20px;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow:
-        0 4px 15px #5a4010,
-        transparent 0.4;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .btn:hover {
-      background-color: #b79173;
-    }
-
-    .btn-secondary {
-      background-color: #999;
-    }
-
-    .btn-secondary:hover {
-      background-color: #777;
-    }
-
-    .literature {
-      font-size: 12px;
-      color: #666;
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 10px;
-      border-radius: 5px;
-      text-align: center;
-    }
-
-    @keyframes bounce {
-      0% {
-        transform: translateY(0);
+      .difficulty-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        justify-content: center;
+        flex-wrap: wrap;
+        max-width: 100%;
+        flex-shrink: 0;
       }
 
-      100% {
-        transform: translateY(-5px);
+      .difficulty-btn {
+        padding: 15px 20px;
+        border: 2px solid #b3d9ff;
+        border-radius: 25px;
+        background-color: #e6f2ff;
+        color: #6699cc;
+        cursor: pointer;
+        transition: all 0.3s ease;
       }
-    }
-  </style>
-</head>
 
-<body>
-  <div class="container">
-    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
-      <button onclick="exitGame()" style="
+      .difficulty-btn:hover {
+        background-color: #cce5ff;
+        color: #4d88cc;
+      }
+
+      .difficulty-btn.active {
+        background-color: #9edfff;
+        color: #ffffff;
+        border-color: #9edfff;
+        box-shadow: 0 2px 8px rgba(51, 153, 255, 0.4);
+      }
+
+      .target-info {
+        margin-bottom: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #146607;
+        flex-shrink: 0;
+      }
+
+      .matrix-container {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-gutter: stable;
+        max-width: 100%;
+        min-height: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+      }
+
+      .matrix {
+        display: grid;
+        gap: 5px;
+        margin: 0 auto;
+      }
+
+      .matrix-cell {
+        width: 60px;
+        height: 60px;
+        background-color: transparent;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        position: relative;
+        box-sizing: border-box;
+      }
+
+      .matrix-cell:hover {
+        background-color: transparent;
+      }
+
+      .matrix-cell.target {
+        background-color: transparent;
+        color: #666;
+        font-family: 'Comic Sans MS', sans-serif;
+      }
+
+      .matrix-cell:not(.target) {
+        color: #4caf50;
+        font-family: 'Comic Sans MS', sans-serif;
+      }
+
+      .matrix-cell.marked {
+        background-color: #d4edda !important;
+        color: #155724 !important;
+        animation: pulse 0.5s ease-in-out;
+      }
+
+      .matrix-cell.marked.error {
+        background-color: #f8d7da !important;
+        color: #721c24 !important;
+        animation: shake 0.5s ease-in-out;
+      }
+
+      @keyframes starEffect {
+        0% {
+          transform: scale(0);
+          opacity: 1;
+        }
+
+        100% {
+          transform: scale(1);
+          opacity: 0;
+        }
+      }
+
+      .star {
+        position: absolute;
+        color: #ffd700;
+        font-size: 20px;
+        animation: starEffect 0.8s ease-out forwards;
+        pointer-events: none;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+
+        50% {
+          transform: scale(1.1);
+        }
+
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+
+        25% {
+          transform: translateX(-5px);
+        }
+
+        75% {
+          transform: translateX(5px);
+        }
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        font-size: 16px;
+        gap: 15px;
+        flex-wrap: wrap;
+        background-color: rgba(44, 124, 47, 0.5);
+        color: white;
+        font-weight: bold;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 100%;
+        flex-shrink: 0;
+      }
+
+      .feedback {
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 10px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 5px;
+        color: #4caf50;
+        font-weight: bold;
+        flex-shrink: 0;
+        min-height: 42px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes cosmosBloom {
+        0% {
+          transform: scale(0.8) translateY(40px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes revealUp {
+        0% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes orbitFloat {
+        0% {
+          transform: translateY(0) rotate(0deg) scale(1);
+        }
+
+        100% {
+          transform: translateY(-14px) rotate(15deg) scale(1.2);
+        }
+      }
+
+      @keyframes natureBounce {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.6;
+        }
+
+        50% {
+          transform: translateY(-8px);
+          opacity: 1;
+        }
+      }
+
+      .controls {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .controls > * {
+        pointer-events: auto;
+      }
+
+      .btn {
+        background-color: #5a4010;
+        color: white;
+        font-weight: bold;
+        border: none;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow:
+          0 4px 15px #5a4010,
+          transparent 0.4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn:hover {
+        background-color: #b79173;
+      }
+
+      .btn-secondary {
+        background-color: #999;
+      }
+
+      .btn-secondary:hover {
+        background-color: #777;
+      }
+
+      .literature {
+        font-size: 12px;
+        color: #666;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 5px;
+        text-align: center;
+      }
+
+      @keyframes bounce {
+        0% {
+          transform: translateY(0);
+        }
+
+        100% {
+          transform: translateY(-5px);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
+        <button
+          onclick="exitGame()"
+          style="
             background: white;
             color: #1a7505;
             border: none;
@@ -409,484 +408,486 @@
             align-items: center;
             justify-content: center;
             animation: bounce 2s ease-in-out infinite alternate;
-          " onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
-        onmouseout="this.style.transform = 'scale(1) rotate(0deg)'">
-        ←
-      </button>
-    </div>
-    <div class="header">
-      <h1>垃圾小卫士</h1>
-      <p>花园里掉进了很多垃圾，其他是小花、小草和小石头。小朋友当垃圾小卫士，把所有垃圾圈出来吧！</p>
-    </div>
-    <div class="game-area">
-      <div class="difficulty-selector">
-        <button class="difficulty-btn active" onclick="setDifficulty(1)">简单 (单目标)</button>
-        <button class="difficulty-btn" onclick="setDifficulty(2)">中等 (双目标)</button>
-        <button class="difficulty-btn" onclick="setDifficulty(3)">困难 (动态刷新)</button>
+          "
+          onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
+          onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
+        >
+          ←
+        </button>
       </div>
-      <div class="target-info" id="target-info">准备就绪，点击开始按钮</div>
-      <div class="stats" style="visibility: hidden">
-        <div>正确：<span id="correct">0</span></div>
-        <div>遗漏：<span id="missed">0</span></div>
-        <div>误划：<span id="errors">0</span></div>
-        <div>时间：<span id="time">0</span>s</div>
+      <div class="header">
+        <h1>垃圾小卫士</h1>
+        <p>花园里掉进了很多垃圾，其他是小花、小草和小石头。小朋友当垃圾小卫士，把所有垃圾圈出来吧！</p>
       </div>
-      <div class="feedback" id="feedback" style="visibility: hidden">准备就绪，点击开始按钮</div>
-      <div class="matrix-container">
-        <div class="matrix" id="matrix"></div>
+      <div class="game-area">
+        <div class="difficulty-selector">
+          <button class="difficulty-btn active" onclick="setDifficulty(1)">简单 (单目标)</button>
+          <button class="difficulty-btn" onclick="setDifficulty(2)">中等 (双目标)</button>
+          <button class="difficulty-btn" onclick="setDifficulty(3)">困难 (动态刷新)</button>
+        </div>
+        <div class="target-info" id="target-info">准备就绪，点击开始按钮</div>
+        <div class="stats" style="visibility: hidden">
+          <div>正确：<span id="correct">0</span></div>
+          <div>遗漏：<span id="missed">0</span></div>
+          <div>误划：<span id="errors">0</span></div>
+          <div>时间：<span id="time">0</span>s</div>
+        </div>
+        <div class="feedback" id="feedback" style="visibility: hidden">准备就绪，点击开始按钮</div>
+        <div class="matrix-container">
+          <div class="matrix" id="matrix"></div>
+        </div>
+        <div class="controls">
+          <button class="btn" onclick="startGame()">开始游戏</button>
+        </div>
       </div>
-      <div class="controls">
-        <button class="btn" onclick="startGame()">开始游戏</button>
+      <div class="literature">
+        <p>文献依据：神经心理学经典范式，用于 ADHD、脑损伤注意力评估与训练</p>
       </div>
     </div>
-    <div class="literature">
-      <p>文献依据：神经心理学经典范式，用于 ADHD、脑损伤注意力评估与训练</p>
-    </div>
-  </div>
 
-  <script>
-    let currentDifficulty = 1;
-    let targetNumbers = [5];
-    let currentGarbageImages = [];
-    let matrix = [];
-    let correctCount = 0;
-    let missedCount = 0;
-    let errorCount = 0;
-    let totalTargets = 0;
-    let startTime = 0;
-    let isGameStarted = false;
-    let timeInterval;
-    let refreshInterval;
+    <script>
+      let currentDifficulty = 1;
+      let targetNumbers = [5];
+      let currentGarbageImages = [];
+      let matrix = [];
+      let correctCount = 0;
+      let missedCount = 0;
+      let errorCount = 0;
+      let totalTargets = 0;
+      let startTime = 0;
+      let isGameStarted = false;
+      let timeInterval;
+      let refreshInterval;
 
-    // [scoring-system] Session created in startGame() so vision data
-    // covers the full gameplay period, not just the end-of-game API window.
-    let gameSessionId = null;
+      // [scoring-system] Session created in startGame() so vision data
+      // covers the full gameplay period, not just the end-of-game API window.
+      let gameSessionId = null;
 
-    // 创建音频上下文和音效生成器
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      // 创建音频上下文和音效生成器
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-    function playCorrectSound() {
-      var ctx = audioContext;
-      var now = ctx.currentTime;
+      function playCorrectSound() {
+        var ctx = audioContext;
+        var now = ctx.currentTime;
 
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, now);
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
 
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.08, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.08, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
 
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.22);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
 
-      var osc2 = ctx.createOscillator();
-      var gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(1320, now + 0.08);
+        var osc2 = ctx.createOscillator();
+        var gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1320, now + 0.08);
 
-      gain2.gain.setValueAtTime(0.001, now + 0.08);
-      gain2.gain.linearRampToValueAtTime(0.06, now + 0.10);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
+        gain2.gain.setValueAtTime(0.001, now + 0.08);
+        gain2.gain.linearRampToValueAtTime(0.06, now + 0.1);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
 
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(now + 0.08);
-      osc2.stop(now + 0.30);
-    }
-
-    function playErrorSound() {
-      var ctx = audioContext;
-      var now = ctx.currentTime;
-
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(380, now);
-      osc.frequency.linearRampToValueAtTime(220, now + 0.30);
-
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.10, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.35);
-
-      var osc2 = ctx.createOscillator();
-      var gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(190, now);
-      osc2.frequency.linearRampToValueAtTime(140, now + 0.30);
-
-      gain2.gain.setValueAtTime(0.001, now);
-      gain2.gain.linearRampToValueAtTime(0.06, now + 0.03);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(now);
-      osc2.stop(now + 0.35);
-    }
-
-    function createStarEffect(element) {
-      for (let i = 0; i < 5; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.textContent = '⭐';
-        const x = Math.random() * 40 - 20;
-        const y = Math.random() * 40 - 20;
-        star.style.left = `calc(50% + ${x}px)`;
-        star.style.top = `calc(50% + ${y}px)`;
-        element.appendChild(star);
-        setTimeout(() => star.remove(), 800);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.08);
+        osc2.stop(now + 0.3);
       }
-    }
 
-    function handleCellClick(e) {
-      if (!isGameStarted) return;
-      const row = parseInt(e.currentTarget.dataset.row);
-      const col = parseInt(e.currentTarget.dataset.col);
-      const cell = matrix[row][col];
-      const cellElement = e.currentTarget;
+      function playErrorSound() {
+        var ctx = audioContext;
+        var now = ctx.currentTime;
 
-      if (cell.isMarked) return;
-      cell.isMarked = true;
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.linearRampToValueAtTime(220, now + 0.3);
 
-      if (cell.isTarget) {
-        cellElement.classList.add('marked');
-        correctCount++;
-        document.getElementById('correct').textContent = correctCount;
-        document.getElementById('feedback').textContent = '太棒啦!找到了垃圾!';
-        setTimeout(() => {
-          document.getElementById('feedback').textContent = '';
-        }, 1000);
-        try {
-          playCorrectSound();
-        } catch (e) { }
-        createStarEffect(cellElement);
-        if (correctCount === totalTargets) endGame();
-      } else {
-        cellElement.classList.add('marked', 'error');
-        errorCount++;
-        document.getElementById('errors').textContent = errorCount;
-        document.getElementById('feedback').textContent = '这不是垃圾哦';
-        try {
-          playErrorSound();
-        } catch (e) { }
-        setTimeout(() => {
-          document.getElementById('feedback').textContent = '';
-        }, 1000);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.1, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+
+        var osc2 = ctx.createOscillator();
+        var gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(190, now);
+        osc2.frequency.linearRampToValueAtTime(140, now + 0.3);
+
+        gain2.gain.setValueAtTime(0.001, now);
+        gain2.gain.linearRampToValueAtTime(0.06, now + 0.03);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now);
+        osc2.stop(now + 0.35);
       }
-    }
 
-    function generateMatrix() {
-      const matrixElement = document.getElementById('matrix');
-      matrixElement.innerHTML = '';
-      matrix = [];
-      let size = currentDifficulty === 3 ? 10 : 8;
-      matrixElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-      totalTargets = 0;
+      function createStarEffect(element) {
+        for (let i = 0; i < 5; i++) {
+          const star = document.createElement('div');
+          star.className = 'star';
+          star.textContent = '⭐';
+          const x = Math.random() * 40 - 20;
+          const y = Math.random() * 40 - 20;
+          star.style.left = `calc(50% + ${x}px)`;
+          star.style.top = `calc(50% + ${y}px)`;
+          element.appendChild(star);
+          setTimeout(() => star.remove(), 800);
+        }
+      }
 
-      // 确保图片路径正确，只使用存在的图片
-      const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
-      const nonTargetImages = [
-        'flower1.png',
-        'flower2.png',
-        'flower3.png',
-        'stone1.png',
-        'stone2.png',
-        'grass1.png',
-        'grass2.png',
-      ];
+      function handleCellClick(e) {
+        if (!isGameStarted) return;
+        const row = parseInt(e.currentTarget.dataset.row);
+        const col = parseInt(e.currentTarget.dataset.col);
+        const cell = matrix[row][col];
+        const cellElement = e.currentTarget;
 
-      for (let i = 0; i < size; i++) {
-        matrix[i] = [];
-        for (let j = 0; j < size; j++) {
-          if (currentDifficulty === 3) {
-            const isTarget = Math.random() < 0.2;
-            if (isTarget) totalTargets++;
-            matrix[i][j] = { value: 0, isTarget, isMarked: false };
+        if (cell.isMarked) return;
+        cell.isMarked = true;
 
-            const cell = document.createElement('div');
-            cell.className = 'matrix-cell';
-            if (isTarget) {
-              cell.classList.add('target');
-              const garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
-              cell.style.backgroundImage = `url('../images/${garbageImage}')`;
-              cell.style.backgroundSize = 'cover';
-              cell.style.backgroundRepeat = 'no-repeat';
-              cell.style.backgroundPosition = 'center';
-            } else {
-              const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
-              cell.style.backgroundImage = `url('../images/${randomImage}')`;
-              cell.style.backgroundSize = 'cover';
-              cell.style.backgroundRepeat = 'no-repeat';
-              cell.style.backgroundPosition = 'center';
-            }
-            cell.dataset.row = i;
-            cell.dataset.col = j;
-            cell.addEventListener('click', handleCellClick);
-            matrixElement.appendChild(cell);
-          } else {
-            let num = Math.floor(Math.random() * 9) + 1;
-            if (Math.random() < 0.2) {
-              num = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
-            }
-            const isTarget = targetNumbers.includes(num);
-            if (isTarget) totalTargets++;
-            matrix[i][j] = { value: num, isTarget, isMarked: false };
+        if (cell.isTarget) {
+          cellElement.classList.add('marked');
+          correctCount++;
+          document.getElementById('correct').textContent = correctCount;
+          document.getElementById('feedback').textContent = '太棒啦!找到了垃圾!';
+          setTimeout(() => {
+            document.getElementById('feedback').textContent = '';
+          }, 1000);
+          try {
+            playCorrectSound();
+          } catch (e) {}
+          createStarEffect(cellElement);
+          if (correctCount === totalTargets) endGame();
+        } else {
+          cellElement.classList.add('marked', 'error');
+          errorCount++;
+          document.getElementById('errors').textContent = errorCount;
+          document.getElementById('feedback').textContent = '这不是垃圾哦';
+          try {
+            playErrorSound();
+          } catch (e) {}
+          setTimeout(() => {
+            document.getElementById('feedback').textContent = '';
+          }, 1000);
+        }
+      }
 
-            const cell = document.createElement('div');
-            cell.className = 'matrix-cell';
-            if (isTarget) {
-              cell.classList.add('target');
-              let garbageImage;
-              if (currentDifficulty === 1 && currentGarbageImages.length > 0) {
-                garbageImage = currentGarbageImages[0];
-              } else if (currentDifficulty === 2 && currentGarbageImages.length > 1) {
-                garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+      function generateMatrix() {
+        const matrixElement = document.getElementById('matrix');
+        matrixElement.innerHTML = '';
+        matrix = [];
+        let size = currentDifficulty === 3 ? 10 : 8;
+        matrixElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+        totalTargets = 0;
+
+        // 确保图片路径正确，只使用存在的图片
+        const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+        const nonTargetImages = [
+          'flower1.png',
+          'flower2.png',
+          'flower3.png',
+          'stone1.png',
+          'stone2.png',
+          'grass1.png',
+          'grass2.png',
+        ];
+
+        for (let i = 0; i < size; i++) {
+          matrix[i] = [];
+          for (let j = 0; j < size; j++) {
+            if (currentDifficulty === 3) {
+              const isTarget = Math.random() < 0.2;
+              if (isTarget) totalTargets++;
+              matrix[i][j] = { value: 0, isTarget, isMarked: false };
+
+              const cell = document.createElement('div');
+              cell.className = 'matrix-cell';
+              if (isTarget) {
+                cell.classList.add('target');
+                const garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+                cell.style.backgroundImage = `url('../images/${garbageImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
               } else {
-                garbageImage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
+                cell.style.backgroundImage = `url('../images/${randomImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
               }
-              cell.style.backgroundImage = `url('../images/${garbageImage}')`;
-              cell.style.backgroundSize = 'cover';
-              cell.style.backgroundRepeat = 'no-repeat';
-              cell.style.backgroundPosition = 'center';
+              cell.dataset.row = i;
+              cell.dataset.col = j;
+              cell.addEventListener('click', handleCellClick);
+              matrixElement.appendChild(cell);
             } else {
-              const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
-              cell.style.backgroundImage = `url('../images/${randomImage}')`;
-              cell.style.backgroundSize = 'cover';
-              cell.style.backgroundRepeat = 'no-repeat';
-              cell.style.backgroundPosition = 'center';
+              let num = Math.floor(Math.random() * 9) + 1;
+              if (Math.random() < 0.2) {
+                num = targetNumbers[Math.floor(Math.random() * targetNumbers.length)];
+              }
+              const isTarget = targetNumbers.includes(num);
+              if (isTarget) totalTargets++;
+              matrix[i][j] = { value: num, isTarget, isMarked: false };
+
+              const cell = document.createElement('div');
+              cell.className = 'matrix-cell';
+              if (isTarget) {
+                cell.classList.add('target');
+                let garbageImage;
+                if (currentDifficulty === 1 && currentGarbageImages.length > 0) {
+                  garbageImage = currentGarbageImages[0];
+                } else if (currentDifficulty === 2 && currentGarbageImages.length > 1) {
+                  garbageImage = currentGarbageImages[Math.floor(Math.random() * currentGarbageImages.length)];
+                } else {
+                  garbageImage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+                }
+                cell.style.backgroundImage = `url('../images/${garbageImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
+              } else {
+                const randomImage = nonTargetImages[Math.floor(Math.random() * nonTargetImages.length)];
+                cell.style.backgroundImage = `url('../images/${randomImage}')`;
+                cell.style.backgroundSize = 'cover';
+                cell.style.backgroundRepeat = 'no-repeat';
+                cell.style.backgroundPosition = 'center';
+              }
+              cell.dataset.row = i;
+              cell.dataset.col = j;
+              cell.addEventListener('click', handleCellClick);
+              matrixElement.appendChild(cell);
             }
-            cell.dataset.row = i;
-            cell.dataset.col = j;
-            cell.addEventListener('click', handleCellClick);
-            matrixElement.appendChild(cell);
           }
         }
       }
-    }
 
-    function setDifficulty(difficulty) {
-      currentDifficulty = difficulty;
-      document.querySelectorAll('.difficulty-btn').forEach((btn) => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      resetGame();
-    }
-
-    function generateRandomTargets() {
-      if (currentDifficulty === 1) {
-        const target = Math.floor(Math.random() * 9) + 1;
-        targetNumbers = [target];
-        // 简单模式：使用一个垃圾图片
-        const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
-        const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
-        currentGarbageImages = [randomGarbage];
-        document.getElementById('target-info').innerHTML =
-          `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
-      } else if (currentDifficulty === 2) {
-        let t1 = Math.floor(Math.random() * 9) + 1;
-        let t2 = Math.floor(Math.random() * 9) + 1;
-        while (t2 === t1) t2 = Math.floor(Math.random() * 9) + 1;
-        targetNumbers = [t1, t2];
-        // 中等模式：使用两个垃圾图片
-        const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
-        const randomGarbage1 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
-        let randomGarbage2 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
-        while (randomGarbage2 === randomGarbage1) {
-          randomGarbage2 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
-        }
-        currentGarbageImages = [randomGarbage1, randomGarbage2];
-        document.getElementById('target-info').innerHTML =
-          `目标：圈出所有垃圾 <img src="../images/${randomGarbage1}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;"> 和 <img src="../images/${randomGarbage2}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
-      } else {
-        const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
-        const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
-        currentGarbageImages = [randomGarbage];
-        targetNumbers = [];
-        document.getElementById('target-info').innerHTML =
-          `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
-      }
-    }
-
-    function startGame() {
-      if (isGameStarted) return;
-      document.querySelector('.controls').style.display = 'none';
-      generateRandomTargets();
-      generateMatrix();
-
-      correctCount = 0;
-      missedCount = 0;
-      errorCount = 0;
-      document.getElementById('correct').textContent = 0;
-      document.getElementById('missed').textContent = 0;
-      document.getElementById('errors').textContent = 0;
-      document.getElementById('time').textContent = '0';
-      document.getElementById('feedback').textContent = '游戏开始！圈出所有垃圾';
-      document.getElementById('feedback').style.visibility = 'visible';
-      document.querySelector('.stats').style.visibility = 'visible';
-
-      isGameStarted = true;
-      startTime = Date.now();
-      updateTimer();
-
-      if (currentDifficulty === 3) {
-        refreshInterval = setInterval(() => {
-          generateRandomTargets();
-          generateMatrix();
-        }, 10000);
+      function setDifficulty(difficulty) {
+        currentDifficulty = difficulty;
+        document.querySelectorAll('.difficulty-btn').forEach((btn) => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        resetGame();
       }
 
-      // [scoring-system] Create training session at game start so that
-      // vision data captured during gameplay is associated with this session.
-      const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
-      const _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-      const _childId =
-        (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
-        _userInfo?.currentChildId ||
-        1;
-
-      fetch(`${_baseUrl}/api/training/session/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: JSON.stringify({
-          child_id: _childId,
-          game_type: 'find-numbers',
-          device_id: 'web',
-        }),
-      })
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success) {
-            gameSessionId = res.data.session_id;
-            if (typeof visionUploader !== 'undefined') {
-              visionUploader.start(gameSessionId);
-            }
+      function generateRandomTargets() {
+        if (currentDifficulty === 1) {
+          const target = Math.floor(Math.random() * 9) + 1;
+          targetNumbers = [target];
+          // 简单模式：使用一个垃圾图片
+          const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+          const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+          currentGarbageImages = [randomGarbage];
+          document.getElementById('target-info').innerHTML =
+            `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
+        } else if (currentDifficulty === 2) {
+          let t1 = Math.floor(Math.random() * 9) + 1;
+          let t2 = Math.floor(Math.random() * 9) + 1;
+          while (t2 === t1) t2 = Math.floor(Math.random() * 9) + 1;
+          targetNumbers = [t1, t2];
+          // 中等模式：使用两个垃圾图片
+          const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+          const randomGarbage1 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+          let randomGarbage2 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+          while (randomGarbage2 === randomGarbage1) {
+            randomGarbage2 = garbageImages[Math.floor(Math.random() * garbageImages.length)];
           }
+          currentGarbageImages = [randomGarbage1, randomGarbage2];
+          document.getElementById('target-info').innerHTML =
+            `目标：圈出所有垃圾 <img src="../images/${randomGarbage1}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;"> 和 <img src="../images/${randomGarbage2}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
+        } else {
+          const garbageImages = ['garbage1.png', 'garbage2.png', 'garbage3.png', 'garbage4.png'];
+          const randomGarbage = garbageImages[Math.floor(Math.random() * garbageImages.length)];
+          currentGarbageImages = [randomGarbage];
+          targetNumbers = [];
+          document.getElementById('target-info').innerHTML =
+            `目标：圈出所有垃圾 <img src="../images/${randomGarbage}" style="width: 30px; height: 30px; vertical-align: middle; margin: 0 5px;">`;
+        }
+      }
+
+      function startGame() {
+        if (isGameStarted) return;
+        document.querySelector('.controls').style.display = 'none';
+        generateRandomTargets();
+        generateMatrix();
+
+        correctCount = 0;
+        missedCount = 0;
+        errorCount = 0;
+        document.getElementById('correct').textContent = 0;
+        document.getElementById('missed').textContent = 0;
+        document.getElementById('errors').textContent = 0;
+        document.getElementById('time').textContent = '0';
+        document.getElementById('feedback').textContent = '游戏开始！圈出所有垃圾';
+        document.getElementById('feedback').style.visibility = 'visible';
+        document.querySelector('.stats').style.visibility = 'visible';
+
+        isGameStarted = true;
+        startTime = Date.now();
+        updateTimer();
+
+        if (currentDifficulty === 3) {
+          refreshInterval = setInterval(() => {
+            generateRandomTargets();
+            generateMatrix();
+          }, 10000);
+        }
+
+        // [scoring-system] Create training session at game start so that
+        // vision data captured during gameplay is associated with this session.
+        const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const _baseUrl = window.API_BASE_URL;
+        const _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+        const _childId =
+          (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
+          _userInfo?.currentChildId ||
+          1;
+
+        fetch(`${_baseUrl}/api/training/session/start`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+          body: JSON.stringify({
+            child_id: _childId,
+            game_type: 'find-numbers',
+            device_id: 'web',
+          }),
         })
-        .catch((err) => {
-          console.warn('Failed to create session at game start:', err);
-        });
-    }
+          .then((r) => r.json())
+          .then((res) => {
+            if (res.success) {
+              gameSessionId = res.data.session_id;
+              if (typeof visionUploader !== 'undefined') {
+                visionUploader.start(gameSessionId);
+              }
+            }
+          })
+          .catch((err) => {
+            console.warn('Failed to create session at game start:', err);
+          });
+      }
 
-    function resetGame() {
-      isGameStarted = false;
-      clearInterval(timeInterval);
-      clearInterval(refreshInterval);
-      correctCount = 0;
-      missedCount = 0;
-      errorCount = 0;
-      document.getElementById('correct').textContent = 0;
-      document.getElementById('missed').textContent = 0;
-      document.getElementById('errors').textContent = 0;
-      document.getElementById('time').textContent = '0';
-      document.getElementById('feedback').textContent = '准备就绪，点击开始按钮';
-      document.getElementById('feedback').style.visibility = 'hidden';
-      document.getElementById('target-info').textContent = '准备就绪，点击开始按钮';
-      document.getElementById('matrix').innerHTML = '';
-      document.querySelector('.stats').style.visibility = 'hidden';
-      document.querySelector('.controls').style.display = 'flex';
-    }
+      function resetGame() {
+        isGameStarted = false;
+        clearInterval(timeInterval);
+        clearInterval(refreshInterval);
+        correctCount = 0;
+        missedCount = 0;
+        errorCount = 0;
+        document.getElementById('correct').textContent = 0;
+        document.getElementById('missed').textContent = 0;
+        document.getElementById('errors').textContent = 0;
+        document.getElementById('time').textContent = '0';
+        document.getElementById('feedback').textContent = '准备就绪，点击开始按钮';
+        document.getElementById('feedback').style.visibility = 'hidden';
+        document.getElementById('target-info').textContent = '准备就绪，点击开始按钮';
+        document.getElementById('matrix').innerHTML = '';
+        document.querySelector('.stats').style.visibility = 'hidden';
+        document.querySelector('.controls').style.display = 'flex';
+      }
 
-    function updateTimer() {
-      if (!isGameStarted) return;
-      const t = Math.floor((Date.now() - startTime) / 1000);
-      document.getElementById('time').textContent = t;
-      timeInterval = setTimeout(updateTimer, 1000);
-    }
+      function updateTimer() {
+        if (!isGameStarted) return;
+        const t = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById('time').textContent = t;
+        timeInterval = setTimeout(updateTimer, 1000);
+      }
 
-    function endGame() {
-      isGameStarted = false;
-      clearInterval(timeInterval);
-      clearInterval(refreshInterval);
+      function endGame() {
+        isGameStarted = false;
+        clearInterval(timeInterval);
+        clearInterval(refreshInterval);
 
-      // 统计游戏使用时间
-      try {
-        if (typeof GameTimeUtil !== 'undefined') {
-          GameTimeUtil.endGame('find-numbers');
+        // 统计游戏使用时间
+        try {
+          if (typeof GameTimeUtil !== 'undefined') {
+            GameTimeUtil.endGame('find-numbers');
+          }
+        } catch (e) {
+          console.log('GameTimeUtil 未定义，跳过');
         }
-      } catch (e) {
-        console.log('GameTimeUtil 未定义，跳过');
+
+        if (typeof MedalUtil !== 'undefined') {
+          MedalUtil.recordGameProgress('game2', currentDifficulty);
+        }
+
+        const totalTime = Math.floor((Date.now() - startTime) / 1000);
+        missedCount = totalTargets - correctCount;
+
+        // 上传数据到后端
+        try {
+          uploadTrainingData(totalTime);
+        } catch (e) {
+          console.error('上传数据失败:', e);
+          showGameOverModal(totalTime);
+        }
       }
 
-      if (typeof MedalUtil !== 'undefined') {
-        MedalUtil.recordGameProgress('game2', currentDifficulty);
+      function calculateSelectiveAttentionScore(totalTime) {
+        // 计算各项指标
+        const totalTrial = totalTargets;
+        const acc = totalTrial > 0 ? correctCount / totalTrial : 0;
+        // 放宽时间评分：使用更平滑的曲线，超时120秒才扣到0分
+        const timeOvertime = totalTime - 60;
+        const speed = Math.max(0, 1 / (1 + timeOvertime / 90)); // 使用指数衰减，90秒后降到约50%
+        const errorRate = Math.max(0, 1 - errorCount / totalTrial);
+
+        // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
+        const headStable = 0.8; // 头部稳定性
+        const faceStable = 0.8; // 面部稳定性
+        const blinkStable = 0.8; // 眨眼稳定性
+
+        // 计算最终得分
+        const scoreValue =
+          (acc * 0.4 + speed * 0.25 + errorRate * 0.2 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) *
+          100;
+
+        return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
-      const totalTime = Math.floor((Date.now() - startTime) / 1000);
-      missedCount = totalTargets - correctCount;
+      function showGameOverModal(totalTime, finalScore) {
+        if (!finalScore && finalScore !== 0) finalScore = calculateSelectiveAttentionScore(totalTime);
 
-      // 上传数据到后端
-      try {
-        uploadTrainingData(totalTime);
-      } catch (e) {
-        console.error('上传数据失败:', e);
-        showGameOverModal(totalTime);
-      }
-    }
+        const scoreDetails = {
+          time: {
+            name: '用时',
+            score: totalTime + 's',
+            color: '#81c784',
+          },
+          correct: {
+            name: '正确',
+            score: correctCount,
+            color: '#4fc3f7',
+          },
+          missed: {
+            name: '遗漏',
+            score: missedCount,
+            color: '#ef5350',
+          },
+          error: {
+            name: '误划',
+            score: errorCount,
+            color: '#ce93d8',
+          },
+        };
 
-    function calculateSelectiveAttentionScore(totalTime) {
-      // 计算各项指标
-      const totalTrial = totalTargets;
-      const acc = totalTrial > 0 ? correctCount / totalTrial : 0;
-      // 放宽时间评分：使用更平滑的曲线，超时120秒才扣到0分
-      const timeOvertime = totalTime - 60;
-      const speed = Math.max(0, 1 / (1 + timeOvertime / 90)); // 使用指数衰减，90秒后降到约50%
-      const errorRate = Math.max(0, 1 - errorCount / totalTrial);
+        const message = '你的评分为：' + finalScore + '分';
 
-      // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
-      const headStable = 0.8; // 头部稳定性
-      const faceStable = 0.8; // 面部稳定性
-      const blinkStable = 0.8; // 眨眼稳定性
-
-      // 计算最终得分
-      const scoreValue =
-        (acc * 0.4 + speed * 0.25 + errorRate * 0.2 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) *
-        100;
-
-      return Math.max(0, Math.min(100, Math.round(scoreValue)));
-    }
-
-    function showGameOverModal(totalTime, finalScore) {
-      if (!finalScore && finalScore !== 0) finalScore = calculateSelectiveAttentionScore(totalTime);
-
-      const scoreDetails = {
-        time: {
-          name: '用时',
-          score: totalTime + 's',
-          color: '#81c784',
-        },
-        correct: {
-          name: '正确',
-          score: correctCount,
-          color: '#4fc3f7',
-        },
-        missed: {
-          name: '遗漏',
-          score: missedCount,
-          color: '#ef5350',
-        },
-        error: {
-          name: '误划',
-          score: errorCount,
-          color: '#ce93d8',
-        },
-      };
-
-      const message = '你的评分为：' + finalScore + '分';
-
-      const modal = document.createElement('div');
-      modal.style.cssText = `
+        const modal = document.createElement('div');
+        modal.style.cssText = `
         display: flex;
         position: fixed;
         top: 0;
@@ -902,8 +903,8 @@
         animation: fadeIn 0.3s ease both;
       `;
 
-      const modalContent = document.createElement('div');
-      modalContent.style.cssText = `
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
         background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 40%, #dcedc8 100%);
         padding: 32px 36px 28px;
         border-radius: 20px;
@@ -916,8 +917,8 @@
         overflow: hidden;
       `;
 
-      const topGlow = document.createElement('div');
-      topGlow.style.cssText = `
+        const topGlow = document.createElement('div');
+        topGlow.style.cssText = `
         position: absolute;
         top: -40px;
         left: 50%;
@@ -928,10 +929,10 @@
         border-radius: 50%;
         pointer-events: none;
       `;
-      modalContent.appendChild(topGlow);
+        modalContent.appendChild(topGlow);
 
-      const starField = document.createElement('div');
-      starField.style.cssText = `
+        const starField = document.createElement('div');
+        starField.style.cssText = `
         position: absolute;
         top: 0;
         left: 0;
@@ -941,10 +942,10 @@
         overflow: hidden;
       `;
 
-      for (let i = 0; i < 10; i++) {
-        const s = 1 + Math.random() * 1.5;
-        const star = document.createElement('div');
-        star.style.cssText = `
+        for (let i = 0; i < 10; i++) {
+          const s = 1 + Math.random() * 1.5;
+          const star = document.createElement('div');
+          star.style.cssText = `
           position: absolute;
           width: ${s}px;
           height: ${s}px;
@@ -955,14 +956,14 @@
           opacity: ${0.2 + Math.random() * 0.3};
           box-shadow: 0 0 ${s * 1.5}px rgba(255, 255, 255, 0.6);
         `;
-        starField.appendChild(star);
-      }
+          starField.appendChild(star);
+        }
 
-      const floatDecor = ['\u{1F331}', '\u{1F33F}', '\u{1F33C}', '\u{1F340}', '\u{2618}\uFE0F'];
-      for (let i = 0; i < 4; i++) {
-        const deco = document.createElement('div');
-        deco.textContent = floatDecor[i];
-        deco.style.cssText = `
+        const floatDecor = ['\u{1F331}', '\u{1F33F}', '\u{1F33C}', '\u{1F340}', '\u{2618}\uFE0F'];
+        for (let i = 0; i < 4; i++) {
+          const deco = document.createElement('div');
+          deco.textContent = floatDecor[i];
+          deco.style.cssText = `
           position: absolute;
           font-size: ${16 + i * 4}px;
           top: ${10 + i * 18}%;
@@ -970,25 +971,25 @@
           opacity: 0.2;
           pointer-events: none;
         `;
-        starField.appendChild(deco);
-      }
+          starField.appendChild(deco);
+        }
 
-      modalContent.appendChild(starField);
+        modalContent.appendChild(starField);
 
-      const iconEl = document.createElement('div');
-      iconEl.textContent = '\u{1F33F}';
-      iconEl.style.cssText = `
+        const iconEl = document.createElement('div');
+        iconEl.textContent = '\u{1F33F}';
+        iconEl.style.cssText = `
         font-size: 36px;
         margin-bottom: 4px;
         position: relative;
         z-index: 1;
         animation: revealUp 0.45s 0.02s ease both;
       `;
-      modalContent.appendChild(iconEl);
+        modalContent.appendChild(iconEl);
 
-      const modalTitle = document.createElement('h2');
-      modalTitle.innerHTML = '\u2728 游戏完成 \u2728';
-      modalTitle.style.cssText = `
+        const modalTitle = document.createElement('h2');
+        modalTitle.innerHTML = '\u2728 游戏完成 \u2728';
+        modalTitle.style.cssText = `
         color: #2e7d32;
         font-size: 24px;
         margin-bottom: 20px;
@@ -996,11 +997,11 @@
         z-index: 1;
         animation: revealUp 0.45s 0.05s ease both;
       `;
-      modalContent.appendChild(modalTitle);
+        modalContent.appendChild(modalTitle);
 
-      const scoreItems = Object.values(scoreDetails);
-      const statsGrid = document.createElement('div');
-      statsGrid.style.cssText = `
+        const scoreItems = Object.values(scoreDetails);
+        const statsGrid = document.createElement('div');
+        statsGrid.style.cssText = `
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
@@ -1009,42 +1010,42 @@
         z-index: 1;
       `;
 
-      scoreItems.forEach((detail, idx) => {
-        const statItem = document.createElement('div');
-        statItem.style.cssText = `
+        scoreItems.forEach((detail, idx) => {
+          const statItem = document.createElement('div');
+          statItem.style.cssText = `
           background: rgba(255, 255, 255, 0.55);
           border-radius: 12px;
           padding: 12px 8px;
           animation: revealUp 0.4s ${0.12 + idx * 0.08}s ease both;
         `;
 
-        const statLabel = document.createElement('div');
-        statLabel.textContent = detail.name;
-        statLabel.style.cssText = `
+          const statLabel = document.createElement('div');
+          statLabel.textContent = detail.name;
+          statLabel.style.cssText = `
           color: ${detail.color};
           font-size: 11px;
           margin-bottom: 4px;
           font-weight: bold;
         `;
-        statItem.appendChild(statLabel);
+          statItem.appendChild(statLabel);
 
-        const statValue = document.createElement('div');
-        statValue.textContent = detail.score;
-        statValue.style.cssText = `
+          const statValue = document.createElement('div');
+          statValue.textContent = detail.score;
+          statValue.style.cssText = `
           color: #33691e;
           font-size: 22px;
           font-weight: bold;
         `;
-        statItem.appendChild(statValue);
+          statItem.appendChild(statValue);
 
-        statsGrid.appendChild(statItem);
-      });
+          statsGrid.appendChild(statItem);
+        });
 
-      modalContent.appendChild(statsGrid);
+        modalContent.appendChild(statsGrid);
 
-      const modalMessage = document.createElement('p');
-      modalMessage.textContent = message;
-      modalMessage.style.cssText = `
+        const modalMessage = document.createElement('p');
+        modalMessage.textContent = message;
+        modalMessage.style.cssText = `
         color: #33691e;
         font-size: 20px;
         font-weight: bold;
@@ -1053,10 +1054,10 @@
         z-index: 1;
         animation: revealUp 0.4s 0.3s ease both;
       `;
-      modalContent.appendChild(modalMessage);
+        modalContent.appendChild(modalMessage);
 
-      const modalButtons = document.createElement('div');
-      modalButtons.style.cssText = `
+        const modalButtons = document.createElement('div');
+        modalButtons.style.cssText = `
         display: flex;
         gap: 12px;
         justify-content: center;
@@ -1065,9 +1066,9 @@
         animation: revealUp 0.45s 0.36s ease both;
       `;
 
-      const restartBtn = document.createElement('button');
-      restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
-      restartBtn.style.cssText = `
+        const restartBtn = document.createElement('button');
+        restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
+        restartBtn.style.cssText = `
         background: #66bb6a;
         color: white;
         border: none;
@@ -1078,25 +1079,25 @@
         cursor: pointer;
         transition: all 0.3s ease;
       `;
-      restartBtn.onmouseover = () => {
-        restartBtn.style.transform = 'scale(1.05)';
-        restartBtn.style.background = '#81c784';
-      };
-      restartBtn.onmouseout = () => {
-        restartBtn.style.transform = 'scale(1)';
-        restartBtn.style.background = '#66bb6a';
-      };
-      restartBtn.onclick = function () {
-        document.body.removeChild(modal);
-        resetGame();
-        setTimeout(() => {
-          startGame();
-        }, 500);
-      };
+        restartBtn.onmouseover = () => {
+          restartBtn.style.transform = 'scale(1.05)';
+          restartBtn.style.background = '#81c784';
+        };
+        restartBtn.onmouseout = () => {
+          restartBtn.style.transform = 'scale(1)';
+          restartBtn.style.background = '#66bb6a';
+        };
+        restartBtn.onclick = function () {
+          document.body.removeChild(modal);
+          resetGame();
+          setTimeout(() => {
+            startGame();
+          }, 500);
+        };
 
-      const backBtn = document.createElement('button');
-      backBtn.textContent = '\u8FD4\u56DE';
-      backBtn.style.cssText = `
+        const backBtn = document.createElement('button');
+        backBtn.textContent = '\u8FD4\u56DE';
+        backBtn.style.cssText = `
         background: transparent;
         color: #81c784;
         border: 2px solid #a5d6a7;
@@ -1107,235 +1108,234 @@
         cursor: pointer;
         transition: all 0.3s ease;
       `;
-      backBtn.onmouseover = () => {
-        backBtn.style.background = 'rgba(255, 255, 255, 0.4)';
-        backBtn.style.color = '#43a047';
-      };
-      backBtn.onmouseout = () => {
-        backBtn.style.background = 'transparent';
-        backBtn.style.color = '#81c784';
-      };
-      backBtn.onclick = function () {
-        document.body.removeChild(modal);
-        resetGame();
-      };
-
-      modalButtons.appendChild(restartBtn);
-      modalButtons.appendChild(backBtn);
-
-      modalContent.appendChild(modalButtons);
-
-      const natureRow = document.createElement('div');
-      natureRow.style.cssText =
-        'display:flex;justify-content:center;gap:12px;margin-top:20px;position:relative;z-index:1;';
-      const natureColors = ['#aed581', '#9ccc65', '#81c784', '#66bb6a', '#4caf50', '#43a047', '#388e3c'];
-      for (let i = 0; i < 7; i++) {
-        const s = 4 + Math.random() * 3;
-        const dot = document.createElement('div');
-        dot.style.cssText =
-          'width:' +
-          s +
-          'px;height:' +
-          s +
-          'px;border-radius:50%;background:' +
-          natureColors[i] +
-          ';' +
-          'animation:natureBounce 1.5s ease-in-out infinite;animation-delay:' +
-          i * 0.2 +
-          's;';
-        natureRow.appendChild(dot);
-      }
-      modalContent.appendChild(natureRow);
-
-      modal.appendChild(modalContent);
-      document.body.appendChild(modal);
-    }
-
-    function restartGame() {
-      resetGame();
-      setTimeout(() => {
-        startGame();
-      }, 500);
-    }
-
-    function backToStart() {
-      resetGame();
-    }
-
-    function uploadTrainingData(totalTime) {
-      try {
-        // [scoring-system] Upload game data + end session.
-        // Session was created in startGame(); use gameSessionId directly.
-        const _uploadAndEnd = () => {
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
-
-          // 计算准确率和得分
-          const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
-          const score = calculateSelectiveAttentionScore(totalTime);
-
-          // 检测环境，设置API地址
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-
-          if (typeof visionUploader !== 'undefined') {
-            visionUploader.stop();
-          }
-
-          // 上传游戏数据
-          fetch(`${baseUrl}/api/training/game-data`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              session_id: gameSessionId,
-              request_id: Date.now().toString(),
-              timestamp: new Date().toISOString(),
-              event_type: 'game_complete',
-              score: score,
-              accuracy: accuracy,
-              level: currentDifficulty,
-              time: totalTime,
-              correct: correctCount,
-              error: errorCount,
-              total_target: totalTargets,
-              total_step: totalTargets,
-            }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                console.log('游戏数据上传成功');
-
-                // 清除能力评估页面的缓存
-                const cacheKey = `child_data_${childId}`;
-                localStorage.removeItem(cacheKey);
-                console.log('已清除能力评估缓存:', cacheKey);
-
-                // 结束训练会话
-                return fetch(`${baseUrl}/api/training/session/end`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                  },
-                  body: JSON.stringify({
-                    session_id: gameSessionId,
-                    final_score: score,
-                    total_accuracy: accuracy,
-                    duration: totalTime,
-                  }),
-                });
-              } else {
-                throw new Error(result.message || '上传游戏数据失败');
-              }
-            })
-            .then((response) => response.json())
-            .then((result) => {
-              console.log('会话结束响应数据:', result);
-              if (result.success) {
-                console.log('训练数据上传完成');
-
-                // 保存训练时间到 localStorage，用于今日训练页面显示
-                const today = new Date().toISOString().split('T')[0];
-                const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
-
-                if (!trainingData[today]) {
-                  trainingData[today] = { totalTime: 0 };
-                }
-
-                // 累加游戏时间（秒）
-                trainingData[today].totalTime += totalTime;
-                localStorage.setItem('trainingData', JSON.stringify(trainingData));
-                console.log('训练时间已保存到 localStorage');
-
-                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                var displayScore = score;
-                if (result.data && result.data.summary && result.data.summary.final_score) {
-                  displayScore = Math.round(result.data.summary.final_score);
-                }
-                showGameOverModal(totalTime, displayScore);
-              }
-            })
-            .catch((error) => {
-              console.error('上传训练数据失败:', error);
-              showGameOverModal(totalTime);
-            });
+        backBtn.onmouseover = () => {
+          backBtn.style.background = 'rgba(255, 255, 255, 0.4)';
+          backBtn.style.color = '#43a047';
+        };
+        backBtn.onmouseout = () => {
+          backBtn.style.background = 'transparent';
+          backBtn.style.color = '#81c784';
+        };
+        backBtn.onclick = function () {
+          document.body.removeChild(modal);
+          resetGame();
         };
 
-        if (gameSessionId) {
-          _uploadAndEnd();
-        } else {
-          // [scoring-system] Fallback: session not ready from startGame().
-          // Create session inline so the game still records properly.
-          console.warn('Session not ready from startGame, creating inline');
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+        modalButtons.appendChild(restartBtn);
+        modalButtons.appendChild(backBtn);
 
-          fetch(`${baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: childId,
-              game_type: 'find-numbers',
-              device_id: 'web',
-            }),
-          })
-            .then((r) => r.json())
-            .then((res) => {
-              if (res.success) {
-                gameSessionId = res.data.session_id;
-                // 先上传缓冲的视觉数据，再提交游戏数据
-                var flushDone = Promise.resolve();
-                if (typeof visionUploader !== 'undefined') {
-                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
-                }
-                flushDone.then(function () {
-                  _uploadAndEnd();
-                });
-              }
-            });
+        modalContent.appendChild(modalButtons);
+
+        const natureRow = document.createElement('div');
+        natureRow.style.cssText =
+          'display:flex;justify-content:center;gap:12px;margin-top:20px;position:relative;z-index:1;';
+        const natureColors = ['#aed581', '#9ccc65', '#81c784', '#66bb6a', '#4caf50', '#43a047', '#388e3c'];
+        for (let i = 0; i < 7; i++) {
+          const s = 4 + Math.random() * 3;
+          const dot = document.createElement('div');
+          dot.style.cssText =
+            'width:' +
+            s +
+            'px;height:' +
+            s +
+            'px;border-radius:50%;background:' +
+            natureColors[i] +
+            ';' +
+            'animation:natureBounce 1.5s ease-in-out infinite;animation-delay:' +
+            i * 0.2 +
+            's;';
+          natureRow.appendChild(dot);
         }
-      } catch (e) {
-        console.error('uploadTrainingData 错误:', e);
-      }
-    }
+        modalContent.appendChild(natureRow);
 
-    function exitGame() {
-      // 清除游戏状态
-      isGameStarted = false;
-      clearInterval(timeInterval);
-      clearInterval(refreshInterval);
-
-      // 隐藏所有弹窗
-      const modal = document.getElementById('gameOverModal');
-      if (modal) {
-        modal.classList.remove('show');
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
       }
 
-      // 延迟跳转，确保状态清理完成
-      setTimeout(() => {
-        window.location.href = getTrainingReturnUrl();
-      }, 100);
-    }
-  </script>
-  <script src="../floating-ball.js"></script>
-  <script src="../api/vision-uploader.js"></script>
-  <script src="../utils.js"></script>
-  <script src="../attention-loader.js"></script>
-</body>
+      function restartGame() {
+        resetGame();
+        setTimeout(() => {
+          startGame();
+        }, 500);
+      }
 
+      function backToStart() {
+        resetGame();
+      }
+
+      function uploadTrainingData(totalTime) {
+        try {
+          // [scoring-system] Upload game data + end session.
+          // Session was created in startGame(); use gameSessionId directly.
+          const _uploadAndEnd = () => {
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
+
+            // 计算准确率和得分
+            const accuracy = totalTargets > 0 ? (correctCount / totalTargets) * 100 : 0;
+            const score = calculateSelectiveAttentionScore(totalTime);
+
+            // 检测环境，设置API地址
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = window.API_BASE_URL;
+
+            if (typeof visionUploader !== 'undefined') {
+              visionUploader.stop();
+            }
+
+            // 上传游戏数据
+            fetch(`${baseUrl}/api/training/game-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                session_id: gameSessionId,
+                request_id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                event_type: 'game_complete',
+                score: score,
+                accuracy: accuracy,
+                level: currentDifficulty,
+                time: totalTime,
+                correct: correctCount,
+                error: errorCount,
+                total_target: totalTargets,
+                total_step: totalTargets,
+              }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  console.log('游戏数据上传成功');
+
+                  // 清除能力评估页面的缓存
+                  const cacheKey = `child_data_${childId}`;
+                  localStorage.removeItem(cacheKey);
+                  console.log('已清除能力评估缓存:', cacheKey);
+
+                  // 结束训练会话
+                  return fetch(`${baseUrl}/api/training/session/end`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                    body: JSON.stringify({
+                      session_id: gameSessionId,
+                      final_score: score,
+                      total_accuracy: accuracy,
+                      duration: totalTime,
+                    }),
+                  });
+                } else {
+                  throw new Error(result.message || '上传游戏数据失败');
+                }
+              })
+              .then((response) => response.json())
+              .then((result) => {
+                console.log('会话结束响应数据:', result);
+                if (result.success) {
+                  console.log('训练数据上传完成');
+
+                  // 保存训练时间到 localStorage，用于今日训练页面显示
+                  const today = new Date().toISOString().split('T')[0];
+                  const trainingData = JSON.parse(localStorage.getItem('trainingData') || '{}');
+
+                  if (!trainingData[today]) {
+                    trainingData[today] = { totalTime: 0 };
+                  }
+
+                  // 累加游戏时间（秒）
+                  trainingData[today].totalTime += totalTime;
+                  localStorage.setItem('trainingData', JSON.stringify(trainingData));
+                  console.log('训练时间已保存到 localStorage');
+
+                  // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
+                  var displayScore = score;
+                  if (result.data && result.data.summary && result.data.summary.final_score) {
+                    displayScore = Math.round(result.data.summary.final_score);
+                  }
+                  showGameOverModal(totalTime, displayScore);
+                }
+              })
+              .catch((error) => {
+                console.error('上传训练数据失败:', error);
+                showGameOverModal(totalTime);
+              });
+          };
+
+          if (gameSessionId) {
+            _uploadAndEnd();
+          } else {
+            // [scoring-system] Fallback: session not ready from startGame().
+            // Create session inline so the game still records properly.
+            console.warn('Session not ready from startGame, creating inline');
+            const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
+            const childId =
+              typeof UserStateUtil !== 'undefined'
+                ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
+                : 1;
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = window.API_BASE_URL;
+
+            fetch(`${baseUrl}/api/training/session/start`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+              body: JSON.stringify({
+                child_id: childId,
+                game_type: 'find-numbers',
+                device_id: 'web',
+              }),
+            })
+              .then((r) => r.json())
+              .then((res) => {
+                if (res.success) {
+                  gameSessionId = res.data.session_id;
+                  // 先上传缓冲的视觉数据，再提交游戏数据
+                  var flushDone = Promise.resolve();
+                  if (typeof visionUploader !== 'undefined') {
+                    flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
+                  }
+                  flushDone.then(function () {
+                    _uploadAndEnd();
+                  });
+                }
+              });
+          }
+        } catch (e) {
+          console.error('uploadTrainingData 错误:', e);
+        }
+      }
+
+      function exitGame() {
+        // 清除游戏状态
+        isGameStarted = false;
+        clearInterval(timeInterval);
+        clearInterval(refreshInterval);
+
+        // 隐藏所有弹窗
+        const modal = document.getElementById('gameOverModal');
+        if (modal) {
+          modal.classList.remove('show');
+        }
+
+        // 延迟跳转，确保状态清理完成
+        setTimeout(() => {
+          window.location.href = getTrainingReturnUrl();
+        }, 100);
+      }
+    </script>
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
+    <script src="../utils.js"></script>
+    <script src="../attention-loader.js"></script>
+  </body>
 </html>

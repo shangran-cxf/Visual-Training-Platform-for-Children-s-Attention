@@ -1,326 +1,325 @@
 <!doctype html>
 <html lang="zh-CN">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>关卡1：线索筛选站 - 注意力全能小侦探</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Arial', sans-serif;
-      background-image: url('../images/ground1.png');
-      background-size: cover;
-      background-position: center;
-      color: #333;
-      overflow: hidden;
-    }
-
-    .container {
-      max-width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .header h1 {
-      color: white;
-      font-size: 2.2em;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    .header p {
-      font-size: 1.2em;
-      color: white;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
-    .game-area {
-      width: 800px;
-      height: 500px;
-      background-color: transparent;
-      border-radius: 15px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      position: relative;
-    }
-
-    .clue {
-      width: 110px;
-      height: 110px;
-      margin: 12px;
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-      font-size: 44px;
-      background-color: transparent;
-      border: none;
-    }
-
-    .clue:hover {
-      transform: scale(1.1);
-    }
-
-    .clue.selected {
-      animation: correctBounce 0.6s ease;
-    }
-
-    .clue.selected.distractor {
-      animation: wrongShake 0.5s ease;
-    }
-
-    @keyframes correctBounce {
-      0% {
-        transform: scale(1);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>关卡1：线索筛选站 - 注意力全能小侦探</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      25% {
-        transform: scale(1.2) rotate(-5deg);
+      body {
+        font-family: 'Arial', sans-serif;
+        background-image: url('../images/ground1.png');
+        background-size: cover;
+        background-position: center;
+        color: #333;
+        overflow: hidden;
       }
 
-      50% {
-        transform: scale(1.3) rotate(5deg);
+      .container {
+        max-width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
       }
 
-      75% {
-        transform: scale(1.2) rotate(-3deg);
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
       }
 
-      100% {
-        transform: scale(1.1) rotate(0deg);
-      }
-    }
-
-    @keyframes wrongShake {
-
-      0%,
-      100% {
-        transform: translateX(0) scale(1);
+      .header h1 {
+        color: white;
+        font-size: 2.2em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
       }
 
-      10%,
-      30%,
-      50%,
-      70%,
-      90% {
-        transform: translateX(-8px) rotate(-5deg);
+      .header p {
+        font-size: 1.2em;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
       }
 
-      20%,
-      40%,
-      60%,
-      80% {
-        transform: translateX(8px) rotate(5deg);
-      }
-    }
-
-    .clue img {
-      width: 80%;
-      height: 80%;
-      object-fit: contain;
-      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
-    }
-
-    .controls {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn {
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .btn:hover {
-      background-color: #45a049;
-    }
-
-    .btn-secondary {
-      background-color: #999;
-    }
-
-    .btn-secondary:hover {
-      background-color: #777;
-    }
-
-    .timer {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
-    /* 完成弹窗 */
-    .feedback-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 20000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .feedback-overlay.show {
-      display: flex;
-    }
-
-    .feedback-card {
-      background: #fffef7;
-      border-radius: 36px;
-      width: 88%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow:
-        0 24px 60px rgba(0, 0, 0, 0.12),
-        0 6px 20px rgba(0, 0, 0, 0.06);
-      overflow: hidden;
-      animation: popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
-    }
-
-    @keyframes popBounce {
-      from {
-        transform: translateY(60px) scale(0.85);
-        opacity: 0;
+      .game-area {
+        width: 800px;
+        height: 500px;
+        background-color: transparent;
+        border-radius: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
       }
 
-      to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-      }
-    }
-
-    .fb-top {
-      background: linear-gradient(135deg, #fcceb4, #ffb088);
-      padding: 32px 20px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .fb-top::before {
-      content: '';
-      position: absolute;
-      top: -30px;
-      right: -20px;
-      width: 80px;
-      height: 80px;
-      background: rgba(255, 255, 255, 0.18);
-      border-radius: 50%;
-    }
-
-    .fb-top::after {
-      content: '';
-      position: absolute;
-      bottom: -25px;
-      left: -15px;
-      width: 60px;
-      height: 60px;
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 50%;
-    }
-
-    .fb-emoji {
-      font-size: 56px;
-      display: block;
-      position: relative;
-      z-index: 1;
-      animation: floatEmoji 2s ease-in-out infinite;
-    }
-
-    @keyframes floatEmoji {
-
-      0%,
-      100% {
-        transform: translateY(0);
+      .clue {
+        width: 110px;
+        height: 110px;
+        margin: 12px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        font-size: 44px;
+        background-color: transparent;
+        border: none;
       }
 
-      50% {
-        transform: translateY(-8px);
+      .clue:hover {
+        transform: scale(1.1);
       }
-    }
 
-    .fb-title {
-      font-size: 26px;
-      font-weight: 800;
-      color: #fff;
-      margin: 8px 0 0;
-      position: relative;
-      z-index: 1;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+      .clue.selected {
+        animation: correctBounce 0.6s ease;
+      }
 
-    .fb-body {
-      padding: 20px 24px 8px;
-    }
+      .clue.selected.distractor {
+        animation: wrongShake 0.5s ease;
+      }
 
-    .fb-stat {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 18px;
-      margin-bottom: 8px;
-      background: #faf6ee;
-      border-radius: 16px;
-      font-size: 15px;
-    }
+      @keyframes correctBounce {
+        0% {
+          transform: scale(1);
+        }
 
-    .fb-stat .fb-label {
-      color: #999;
-      font-weight: 600;
-    }
+        25% {
+          transform: scale(1.2) rotate(-5deg);
+        }
 
-    .fb-stat .fb-value {
-      font-weight: 800;
-      color: #555;
-      font-size: 19px;
-    }
+        50% {
+          transform: scale(1.3) rotate(5deg);
+        }
 
-    .fb-status {
-      padding: 6px 24px 4px;
-      font-size: 13px;
-      color: #bbb;
-      font-weight: 500;
-    }
-  </style>
-</head>
+        75% {
+          transform: scale(1.2) rotate(-3deg);
+        }
 
-<body>
-  <div class="container">
-    <!-- 返回按钮 -->
-    <button onclick="window.location.href = 'index.html'" style="
+        100% {
+          transform: scale(1.1) rotate(0deg);
+        }
+      }
+
+      @keyframes wrongShake {
+        0%,
+        100% {
+          transform: translateX(0) scale(1);
+        }
+
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+          transform: translateX(-8px) rotate(-5deg);
+        }
+
+        20%,
+        40%,
+        60%,
+        80% {
+          transform: translateX(8px) rotate(5deg);
+        }
+      }
+
+      .clue img {
+        width: 80%;
+        height: 80%;
+        object-fit: contain;
+        filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+      }
+
+      .controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .btn:hover {
+        background-color: #45a049;
+      }
+
+      .btn-secondary {
+        background-color: #999;
+      }
+
+      .btn-secondary:hover {
+        background-color: #777;
+      }
+
+      .timer {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      /* 完成弹窗 */
+      .feedback-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 20000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .feedback-overlay.show {
+        display: flex;
+      }
+
+      .feedback-card {
+        background: #fffef7;
+        border-radius: 36px;
+        width: 88%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.12),
+          0 6px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        animation: popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+      }
+
+      @keyframes popBounce {
+        from {
+          transform: translateY(60px) scale(0.85);
+          opacity: 0;
+        }
+
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .fb-top {
+        background: linear-gradient(135deg, #fcceb4, #ffb088);
+        padding: 32px 20px 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .fb-top::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+      }
+
+      .fb-top::after {
+        content: '';
+        position: absolute;
+        bottom: -25px;
+        left: -15px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 50%;
+      }
+
+      .fb-emoji {
+        font-size: 56px;
+        display: block;
+        position: relative;
+        z-index: 1;
+        animation: floatEmoji 2s ease-in-out infinite;
+      }
+
+      @keyframes floatEmoji {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+
+      .fb-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin: 8px 0 0;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .fb-body {
+        padding: 20px 24px 8px;
+      }
+
+      .fb-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 18px;
+        margin-bottom: 8px;
+        background: #faf6ee;
+        border-radius: 16px;
+        font-size: 15px;
+      }
+
+      .fb-stat .fb-label {
+        color: #999;
+        font-weight: 600;
+      }
+
+      .fb-stat .fb-value {
+        font-weight: 800;
+        color: #555;
+        font-size: 19px;
+      }
+
+      .fb-status {
+        padding: 6px 24px 4px;
+        font-size: 13px;
+        color: #bbb;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- 返回按钮 -->
+      <button
+        onclick="window.location.href = 'index.html'"
+        style="
           position: absolute;
           top: 22px;
           left: 22px;
@@ -342,253 +341,256 @@
           transition: all 0.25s ease;
           font-family: inherit;
           letter-spacing: 0.5px;
-        " onmouseover="
+        "
+        onmouseover="
           this.style.transform = 'translateY(-2px)';
           this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)';
           this.style.color = '#555';
-        " onmouseout="
+        "
+        onmouseout="
           this.style.transform = '';
           this.style.boxShadow = '0 2px 14px rgba(0,0,0,0.06)';
           this.style.color = '#777';
-        ">
-      ← 返回
-    </button>
-    <div class="header">
-      <h1>关卡1：线索筛选站</h1>
-      <p>请快速点击选出所有目标线索：<span id="target-clue-display">⭐</span></p>
-    </div>
-    <div class="game-area">
-      <div class="timer">时间：0s</div>
-      <div class="feedback-overlay" id="feedbackOverlay">
-        <div class="feedback-card">
-          <div class="fb-top">
-            <span class="fb-emoji">🎉</span>
-            <p class="fb-title">正在前往下一关</p>
+        "
+      >
+        ← 返回
+      </button>
+      <div class="header">
+        <h1>关卡1：线索筛选站</h1>
+        <p>请快速点击选出所有目标线索：<span id="target-clue-display">⭐</span></p>
+      </div>
+      <div class="game-area">
+        <div class="timer">时间：0s</div>
+        <div class="feedback-overlay" id="feedbackOverlay">
+          <div class="feedback-card">
+            <div class="fb-top">
+              <span class="fb-emoji">🎉</span>
+              <p class="fb-title">正在前往下一关</p>
+            </div>
+            <div class="fb-body" id="fbStats"></div>
+            <p class="fb-status" id="fbStatus"></p>
           </div>
-          <div class="fb-body" id="fbStats"></div>
-          <p class="fb-status" id="fbStatus"></p>
         </div>
       </div>
     </div>
-  </div>
-  <script src="../floating-ball.js"></script>
-  <script src="../api/vision-uploader.js"></script>
-  <script src="../utils.js"></script>
-  <script>
-    let clues = [];
-    let targetClues = [];
-    let selectedClues = [];
-    let startTime = 0;
-    let endTime = 0;
-    let isGameStarted = false;
-    let isPaused = false;
-    let errorCount = 0;
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
+    <script src="../utils.js"></script>
+    <script>
+      let clues = [];
+      let targetClues = [];
+      let selectedClues = [];
+      let startTime = 0;
+      let endTime = 0;
+      let isGameStarted = false;
+      let isPaused = false;
+      let errorCount = 0;
 
-    // 简单点击音效（Web Audio API 合成，同 index.html 风格）
-    var clickAudioCtx = null;
-    function getClickAudioCtx() {
-      if (!clickAudioCtx) {
-        clickAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // 简单点击音效（Web Audio API 合成，同 index.html 风格）
+      var clickAudioCtx = null;
+      function getClickAudioCtx() {
+        if (!clickAudioCtx) {
+          clickAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return clickAudioCtx;
       }
-      return clickAudioCtx;
-    }
 
-    function playClickSound() {
-      var ctx = getClickAudioCtx();
-      if (ctx.state === 'suspended') ctx.resume();
-      var now = ctx.currentTime;
+      function playClickSound() {
+        var ctx = getClickAudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
 
-      var harmonics = [
-        { freq: 440, gain: 0.07, delay: 0 },
-        { freq: 554, gain: 0.05, delay: 0.07 },
-        { freq: 660, gain: 0.04, delay: 0.14 },
-      ];
+        var harmonics = [
+          { freq: 440, gain: 0.07, delay: 0 },
+          { freq: 554, gain: 0.05, delay: 0.07 },
+          { freq: 660, gain: 0.04, delay: 0.14 },
+        ];
 
-      for (var i = 0; i < harmonics.length; i++) {
-        var h = harmonics[i];
+        for (var i = 0; i < harmonics.length; i++) {
+          var h = harmonics[i];
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(h.freq, now + h.delay);
+
+          gain.gain.setValueAtTime(0.001, now + h.delay);
+          gain.gain.linearRampToValueAtTime(h.gain, now + h.delay + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + h.delay + 0.28);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now + h.delay);
+          osc.stop(now + h.delay + 0.28);
+        }
+      }
+
+      function playWrongSound() {
+        var ctx = getClickAudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
+
         var osc = ctx.createOscillator();
         var gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(330, now);
+        osc.frequency.linearRampToValueAtTime(200, now + 0.28);
 
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(h.freq, now + h.delay);
-
-        gain.gain.setValueAtTime(0.001, now + h.delay);
-        gain.gain.linearRampToValueAtTime(h.gain, now + h.delay + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + h.delay + 0.28);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.07, now + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.32);
 
-        osc.start(now + h.delay);
-        osc.stop(now + h.delay + 0.28);
-      }
-    }
+        var osc2 = ctx.createOscillator();
+        var gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(165, now);
+        osc2.frequency.linearRampToValueAtTime(120, now + 0.28);
 
-    function playWrongSound() {
-      var ctx = getClickAudioCtx();
-      if (ctx.state === 'suspended') ctx.resume();
-      var now = ctx.currentTime;
+        gain2.gain.setValueAtTime(0.001, now);
+        gain2.gain.linearRampToValueAtTime(0.04, now + 0.04);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
 
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(330, now);
-      osc.frequency.linearRampToValueAtTime(200, now + 0.28);
-
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.07, now + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.32);
-
-      var osc2 = ctx.createOscillator();
-      var gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(165, now);
-      osc2.frequency.linearRampToValueAtTime(120, now + 0.28);
-
-      gain2.gain.setValueAtTime(0.001, now);
-      gain2.gain.linearRampToValueAtTime(0.04, now + 0.04);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
-
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(now);
-      osc2.stop(now + 0.32);
-    }
-
-    // [scoring-system] Session created at level start so vision data
-    // covers the full gameplay period.
-    let gameSessionId = null;
-
-    // 生成线索
-    function generateClues() {
-      const gameArea = document.querySelector('.game-area');
-      gameArea.innerHTML =
-        '<div class="timer">时间：0s</div><div class="feedback-overlay" id="feedbackOverlay"><div class="feedback-card"><div class="fb-top"><span class="fb-emoji">🎉</span><p class="fb-title">正在前往下一关</p></div><div class="fb-body" id="fbStats"></div><p class="fb-status" id="fbStatus"></p></div></div>';
-
-      clues = [];
-      targetClues = [];
-      selectedClues = [];
-      errorCount = 0;
-
-      // 定义可能的目标线索（使用图片）
-      const possibleTargets = [
-        { type: 'image', src: '../images/star.png' },
-        { type: 'image', src: '../images/crayon.png' },
-        { type: 'image', src: '../images/sun.png' },
-        { type: 'image', src: '../images/rainbow.png' },
-        { type: 'image', src: '../images/flower.png' },
-      ];
-
-      // 随机选择一个目标线索
-      const targetClue = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
-
-      // 随机生成目标方格数量（3-5个）
-      const targetCount = Math.floor(Math.random() * 3) + 3;
-
-      // 随机生成总线索数量（10-15个）
-      const totalClues = Math.floor(Math.random() * 6) + 10;
-      const distractorCount = totalClues - targetCount;
-
-      // 更新目标线索显示
-      const targetClueDisplay = document.getElementById('target-clue-display');
-      if (targetClue.type === 'image') {
-        targetClueDisplay.innerHTML = `<img src="${targetClue.src}" style="width: 30px; height: 30px; vertical-align: middle;">`;
-      } else {
-        targetClueDisplay.textContent = targetClue.value;
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now);
+        osc2.stop(now + 0.32);
       }
 
-      // 生成目标线索
-      for (let i = 0; i < targetCount; i++) {
-        const clue = document.createElement('div');
-        clue.className = 'clue';
-        clue.dataset.type = 'target';
-        clue.dataset.index = i;
-        clue.addEventListener('click', () => selectClue(clue));
+      // [scoring-system] Session created at level start so vision data
+      // covers the full gameplay period.
+      let gameSessionId = null;
 
-        // 根据线索类型设置内容
+      // 生成线索
+      function generateClues() {
+        const gameArea = document.querySelector('.game-area');
+        gameArea.innerHTML =
+          '<div class="timer">时间：0s</div><div class="feedback-overlay" id="feedbackOverlay"><div class="feedback-card"><div class="fb-top"><span class="fb-emoji">🎉</span><p class="fb-title">正在前往下一关</p></div><div class="fb-body" id="fbStats"></div><p class="fb-status" id="fbStatus"></p></div></div>';
+
+        clues = [];
+        targetClues = [];
+        selectedClues = [];
+        errorCount = 0;
+
+        // 定义可能的目标线索（使用图片）
+        const possibleTargets = [
+          { type: 'image', src: '../images/star.png' },
+          { type: 'image', src: '../images/crayon.png' },
+          { type: 'image', src: '../images/sun.png' },
+          { type: 'image', src: '../images/rainbow.png' },
+          { type: 'image', src: '../images/flower.png' },
+        ];
+
+        // 随机选择一个目标线索
+        const targetClue = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
+
+        // 随机生成目标方格数量（3-5个）
+        const targetCount = Math.floor(Math.random() * 3) + 3;
+
+        // 随机生成总线索数量（10-15个）
+        const totalClues = Math.floor(Math.random() * 6) + 10;
+        const distractorCount = totalClues - targetCount;
+
+        // 更新目标线索显示
+        const targetClueDisplay = document.getElementById('target-clue-display');
         if (targetClue.type === 'image') {
-          const img = document.createElement('img');
-          img.src = targetClue.src;
-          img.style.width = '80%';
-          img.style.height = '80%';
-          clue.appendChild(img);
+          targetClueDisplay.innerHTML = `<img src="${targetClue.src}" style="width: 30px; height: 30px; vertical-align: middle;">`;
         } else {
-          clue.textContent = targetClue.value;
+          targetClueDisplay.textContent = targetClue.value;
         }
 
-        gameArea.appendChild(clue);
-        clues.push(clue);
-        targetClues.push(clue);
-      }
+        // 生成目标线索
+        for (let i = 0; i < targetCount; i++) {
+          const clue = document.createElement('div');
+          clue.className = 'clue';
+          clue.dataset.type = 'target';
+          clue.dataset.index = i;
+          clue.addEventListener('click', () => selectClue(clue));
 
-      // 生成干扰线索
-      const distractors = possibleTargets.filter((item) => item !== targetClue);
-      for (let i = 0; i < distractorCount; i++) {
-        const distractor = distractors[Math.floor(Math.random() * distractors.length)];
-        const clue = document.createElement('div');
-        clue.className = 'clue';
-        clue.dataset.type = 'distractor';
-        clue.dataset.index = targetCount + i;
-        clue.addEventListener('click', () => selectClue(clue));
+          // 根据线索类型设置内容
+          if (targetClue.type === 'image') {
+            const img = document.createElement('img');
+            img.src = targetClue.src;
+            img.style.width = '80%';
+            img.style.height = '80%';
+            clue.appendChild(img);
+          } else {
+            clue.textContent = targetClue.value;
+          }
 
-        // 根据线索类型设置内容
-        if (distractor.type === 'image') {
-          const img = document.createElement('img');
-          img.src = distractor.src;
-          img.style.width = '80%';
-          img.style.height = '80%';
-          clue.appendChild(img);
-        } else {
-          clue.textContent = distractor.value;
+          gameArea.appendChild(clue);
+          clues.push(clue);
+          targetClues.push(clue);
         }
 
-        gameArea.appendChild(clue);
-        clues.push(clue);
+        // 生成干扰线索
+        const distractors = possibleTargets.filter((item) => item !== targetClue);
+        for (let i = 0; i < distractorCount; i++) {
+          const distractor = distractors[Math.floor(Math.random() * distractors.length)];
+          const clue = document.createElement('div');
+          clue.className = 'clue';
+          clue.dataset.type = 'distractor';
+          clue.dataset.index = targetCount + i;
+          clue.addEventListener('click', () => selectClue(clue));
+
+          // 根据线索类型设置内容
+          if (distractor.type === 'image') {
+            const img = document.createElement('img');
+            img.src = distractor.src;
+            img.style.width = '80%';
+            img.style.height = '80%';
+            clue.appendChild(img);
+          } else {
+            clue.textContent = distractor.value;
+          }
+
+          gameArea.appendChild(clue);
+          clues.push(clue);
+        }
+
+        // 随机打乱线索顺序
+        shuffleClues();
       }
 
-      // 随机打乱线索顺序
-      shuffleClues();
-    }
-
-    // 打乱线索顺序
-    function shuffleClues() {
-      const gameArea = document.querySelector('.game-area');
-      const cluesContainer = Array.from(gameArea.querySelectorAll('.clue'));
-      cluesContainer.sort(() => Math.random() - 0.5);
-      cluesContainer.forEach((clue) => gameArea.appendChild(clue));
-    }
-
-    // 选择线索
-    function selectClue(clue) {
-      if (!isGameStarted || isPaused) return;
-      if (clue.classList.contains('selected')) return;
-
-      clue.classList.add('selected');
-      selectedClues.push(clue.dataset.index);
-
-      if (clue.dataset.type === 'distractor') {
-        errorCount++;
-        clue.classList.add('distractor');
-        showFeedbackEffect(clue, '❌', '#f44336');
-        playWrongSound();
-      } else {
-        showFeedbackEffect(clue, '⭐', '#FFD700');
-        playClickSound();
+      // 打乱线索顺序
+      function shuffleClues() {
+        const gameArea = document.querySelector('.game-area');
+        const cluesContainer = Array.from(gameArea.querySelectorAll('.clue'));
+        cluesContainer.sort(() => Math.random() - 0.5);
+        cluesContainer.forEach((clue) => gameArea.appendChild(clue));
       }
 
-      checkCompletion();
-    }
+      // 选择线索
+      function selectClue(clue) {
+        if (!isGameStarted || isPaused) return;
+        if (clue.classList.contains('selected')) return;
 
-    // 显示反馈特效
-    function showFeedbackEffect(element, emoji, color) {
-      const effect = document.createElement('div');
-      effect.textContent = emoji;
-      effect.style.cssText = `
+        clue.classList.add('selected');
+        selectedClues.push(clue.dataset.index);
+
+        if (clue.dataset.type === 'distractor') {
+          errorCount++;
+          clue.classList.add('distractor');
+          showFeedbackEffect(clue, '❌', '#f44336');
+          playWrongSound();
+        } else {
+          showFeedbackEffect(clue, '⭐', '#FFD700');
+          playClickSound();
+        }
+
+        checkCompletion();
+      }
+
+      // 显示反馈特效
+      function showFeedbackEffect(element, emoji, color) {
+        const effect = document.createElement('div');
+        effect.textContent = emoji;
+        effect.style.cssText = `
                 position: absolute;
                 font-size: 24px;
                 pointer-events: none;
@@ -599,19 +601,19 @@
                 transform: translate(-50%, -50%);
                 opacity: 0.7;
             `;
-      element.style.position = 'relative';
-      element.appendChild(effect);
+        element.style.position = 'relative';
+        element.appendChild(effect);
 
-      setTimeout(() => {
-        if (effect.parentNode) {
-          effect.remove();
-        }
-      }, 800);
-    }
+        setTimeout(() => {
+          if (effect.parentNode) {
+            effect.remove();
+          }
+        }, 800);
+      }
 
-    // 添加反馈动画样式
-    const style = document.createElement('style');
-    style.textContent = `
+      // 添加反馈动画样式
+      const style = document.createElement('style');
+      style.textContent = `
             @keyframes feedbackPop {
                 0% { 
                     transform: translate(-50%, -50%) scale(0) rotate(0deg); 
@@ -627,179 +629,178 @@
                 }
             }
         `;
-    document.head.appendChild(style);
+      document.head.appendChild(style);
 
-    // 检查是否完成
-    function checkCompletion() {
-      const selectedTargetClues = selectedClues.filter((index) => {
-        const clue = document.querySelector(`[data-index="${index}"]`);
-        return clue && clue.dataset.type === 'target';
-      });
-
-      if (selectedTargetClues.length === targetClues.length) {
-        endGame();
-      }
-    }
-
-    // 开始游戏
-    function startGame() {
-      if (isGameStarted) return;
-
-      generateClues();
-      isGameStarted = true;
-      isPaused = false;
-      startTime = Date.now();
-      updateTimer();
-
-      // [scoring-system] 仅在综合训练模式（从 index.html 点击"开始综合训练"）下创建 comprehensive 会话
-      var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
-      if (_sharedSessionId) {
-        gameSessionId = _sharedSessionId;
-        if (typeof visionUploader !== 'undefined') {
-          visionUploader.start(gameSessionId);
-        }
-      } else {
-        var _isComprehensive = localStorage.getItem('comprehensive_mode') === '1';
-        var _gameType = _isComprehensive ? 'comprehensive' : 'level1';
-        const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
-        const _userInfo = UserStateUtil.getUserInfo();
-        const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
-
-        fetch(`${_baseUrl}/api/training/session/start`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-          body: JSON.stringify({
-            child_id: _childId,
-            game_type: _gameType,
-            device_id: 'web',
-          }),
-        })
-          .then((r) => r.json())
-          .then((res) => {
-            if (res.success) {
-              gameSessionId = res.data.session_id;
-              if (_isComprehensive) {
-                sessionStorage.setItem('comprehensive_session_id', gameSessionId);
-              }
-              if (typeof visionUploader !== 'undefined') {
-                visionUploader.start(gameSessionId);
-              }
-            }
-          })
-          .catch((err) => {
-            console.warn('Failed to create session at level start:', err);
-          });
-      }
-    }
-
-    // 暂停游戏
-    function pauseGame() {
-      if (!isGameStarted) return;
-
-      isPaused = !isPaused;
-      if (!isPaused) {
-        startTime = Date.now() - (endTime - startTime);
-        updateTimer();
-      }
-    }
-
-    // 更新计时器
-    function updateTimer() {
-      if (!isGameStarted || isPaused) return;
-
-      const currentTime = Math.floor((Date.now() - startTime) / 1000);
-      document.querySelector('.timer').textContent = `时间：${currentTime}s`;
-      requestAnimationFrame(updateTimer);
-    }
-
-    // 结束游戏
-    function endGame() {
-      isGameStarted = false;
-      endTime = Date.now();
-
-      // 统计游戏使用时间
-      try {
-        if (typeof GameTimeUtil !== 'undefined') {
-          GameTimeUtil.endGame('level1');
-        }
-      } catch (error) {
-        console.log('GameTimeUtil not available');
-      }
-
-      const totalTime = Math.floor((endTime - startTime) / 1000);
-      const correctTargets = selectedClues.filter((index) => {
-        const clue = document.querySelector(`[data-index="${index}"]`);
-        return clue && clue.dataset.type === 'target';
-      }).length;
-      const totalClicks = selectedClues.length;
-      const missCount = targetClues.length - correctTargets;
-
-      try {
-        if (typeof StorageUtil !== 'undefined') {
-          StorageUtil.setItem('level1_data', {
-            completion_time: totalTime,
-            error_count: errorCount,
-          });
-        }
-      } catch (error) {
-        console.log('StorageUtil not available');
-      }
-
-      // 追加原始游戏数据到综合训练数组（后端评分）
-      try {
-        var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
-        gameDataList.push({
-          level: 1,
-          time: totalTime,
-          correct: correctTargets,
-          error: errorCount,
-          miss: missCount,
-          total_target: targetClues.length,
-          total_click: totalClicks,
-          event_type: 'game_complete',
-          timestamp: new Date().toISOString(),
+      // 检查是否完成
+      function checkCompletion() {
+        const selectedTargetClues = selectedClues.filter((index) => {
+          const clue = document.querySelector(`[data-index="${index}"]`);
+          return clue && clue.dataset.type === 'target';
         });
-        localStorage.setItem('comprehensive_game_data', JSON.stringify(gameDataList));
-      } catch (e) {
-        console.error('保存游戏数据到 localStorage 失败:', e);
+
+        if (selectedTargetClues.length === targetClues.length) {
+          endGame();
+        }
       }
 
-      // 显示完成弹窗
-      var accuracyPct = targetClues.length > 0 ? Math.round((correctTargets / targetClues.length) * 100) : 0;
-      document.getElementById('fbStats').innerHTML =
-        '<div class="fb-stat"><span class="fb-label">✅ 正确率</span><span class="fb-value">' +
-        accuracyPct +
-        '%</span></div>' +
-        '<div class="fb-stat"><span class="fb-label">⏱️ 完成时间</span><span class="fb-value">' +
-        totalTime +
-        's</span></div>' +
-        '<div class="fb-stat"><span class="fb-label">❌ 误点次数</span><span class="fb-value">' +
-        errorCount +
-        '</span></div>';
-      document.getElementById('feedbackOverlay').classList.add('show');
+      // 开始游戏
+      function startGame() {
+        if (isGameStarted) return;
 
-      // 2秒后跳转
-      setTimeout(function () {
+        generateClues();
+        isGameStarted = true;
+        isPaused = false;
+        startTime = Date.now();
+        updateTimer();
+
+        // [scoring-system] 仅在综合训练模式（从 index.html 点击"开始综合训练"）下创建 comprehensive 会话
+        var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
+        if (_sharedSessionId) {
+          gameSessionId = _sharedSessionId;
+          if (typeof visionUploader !== 'undefined') {
+            visionUploader.start(gameSessionId);
+          }
+        } else {
+          var _isComprehensive = localStorage.getItem('comprehensive_mode') === '1';
+          var _gameType = _isComprehensive ? 'comprehensive' : 'level1';
+          const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          const _baseUrl = window.API_BASE_URL;
+          const _userInfo = UserStateUtil.getUserInfo();
+          const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
+
+          fetch(`${_baseUrl}/api/training/session/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            },
+            body: JSON.stringify({
+              child_id: _childId,
+              game_type: _gameType,
+              device_id: 'web',
+            }),
+          })
+            .then((r) => r.json())
+            .then((res) => {
+              if (res.success) {
+                gameSessionId = res.data.session_id;
+                if (_isComprehensive) {
+                  sessionStorage.setItem('comprehensive_session_id', gameSessionId);
+                }
+                if (typeof visionUploader !== 'undefined') {
+                  visionUploader.start(gameSessionId);
+                }
+              }
+            })
+            .catch((err) => {
+              console.warn('Failed to create session at level start:', err);
+            });
+        }
+      }
+
+      // 暂停游戏
+      function pauseGame() {
+        if (!isGameStarted) return;
+
+        isPaused = !isPaused;
+        if (!isPaused) {
+          startTime = Date.now() - (endTime - startTime);
+          updateTimer();
+        }
+      }
+
+      // 更新计时器
+      function updateTimer() {
+        if (!isGameStarted || isPaused) return;
+
+        const currentTime = Math.floor((Date.now() - startTime) / 1000);
+        document.querySelector('.timer').textContent = `时间：${currentTime}s`;
+        requestAnimationFrame(updateTimer);
+      }
+
+      // 结束游戏
+      function endGame() {
+        isGameStarted = false;
+        endTime = Date.now();
+
+        // 统计游戏使用时间
+        try {
+          if (typeof GameTimeUtil !== 'undefined') {
+            GameTimeUtil.endGame('level1');
+          }
+        } catch (error) {
+          console.log('GameTimeUtil not available');
+        }
+
+        const totalTime = Math.floor((endTime - startTime) / 1000);
+        const correctTargets = selectedClues.filter((index) => {
+          const clue = document.querySelector(`[data-index="${index}"]`);
+          return clue && clue.dataset.type === 'target';
+        }).length;
+        const totalClicks = selectedClues.length;
+        const missCount = targetClues.length - correctTargets;
+
+        try {
+          if (typeof StorageUtil !== 'undefined') {
+            StorageUtil.setItem('level1_data', {
+              completion_time: totalTime,
+              error_count: errorCount,
+            });
+          }
+        } catch (error) {
+          console.log('StorageUtil not available');
+        }
+
+        // 追加原始游戏数据到综合训练数组（后端评分）
+        try {
+          var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
+          gameDataList.push({
+            level: 1,
+            time: totalTime,
+            correct: correctTargets,
+            error: errorCount,
+            miss: missCount,
+            total_target: targetClues.length,
+            total_click: totalClicks,
+            event_type: 'game_complete',
+            timestamp: new Date().toISOString(),
+          });
+          localStorage.setItem('comprehensive_game_data', JSON.stringify(gameDataList));
+        } catch (e) {
+          console.error('保存游戏数据到 localStorage 失败:', e);
+        }
+
+        // 显示完成弹窗
+        var accuracyPct = targetClues.length > 0 ? Math.round((correctTargets / targetClues.length) * 100) : 0;
+        document.getElementById('fbStats').innerHTML =
+          '<div class="fb-stat"><span class="fb-label">✅ 正确率</span><span class="fb-value">' +
+          accuracyPct +
+          '%</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">⏱️ 完成时间</span><span class="fb-value">' +
+          totalTime +
+          's</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">❌ 误点次数</span><span class="fb-value">' +
+          errorCount +
+          '</span></div>';
+        document.getElementById('feedbackOverlay').classList.add('show');
+
+        // 2秒后跳转
+        setTimeout(function () {
+          window.location.href = 'level2.html';
+        }, 2000);
+      }
+
+      // 下一关
+      function nextLevel() {
         window.location.href = 'level2.html';
-      }, 2000);
-    }
+      }
 
-    // 下一关
-    function nextLevel() {
-      window.location.href = 'level2.html';
-    }
-
-    // 页面加载时生成线索并自动开始游戏
-    window.onload = function () {
-      generateClues();
-      startGame();
-    };
-  </script>
-  <script src="../attention-loader.js"></script>
-</body>
-
+      // 页面加载时生成线索并自动开始游戏
+      window.onload = function () {
+        generateClues();
+        startGame();
+      };
+    </script>
+    <script src="../attention-loader.js"></script>
+  </body>
 </html>

@@ -2,7 +2,7 @@ import os
 import traceback
 
 from config import APP_CONFIG, FRONTEND_DIR
-from flask import Flask, g, request, send_from_directory
+from flask import Flask, request, send_from_directory
 from flask_cors import CORS
 
 # 打印FRONTEND_DIR路径
@@ -17,7 +17,6 @@ from utils.error_codes import AUTH_ERROR, BAD_REQUEST, INTERNAL_ERROR, NOT_FOUND
 from utils.response_utils import error_response
 
 app = Flask(__name__)
-# app.static_folder = FRONTEND_DIR
 CORS(app)
 
 init_db()
@@ -59,16 +58,14 @@ def verify_auth_token():
     if token:
         payload = verify_token(token)
         if payload:
-            g.user_id = payload.get("user_id")
-            g.user_role = payload.get("role")
             request.user_id = payload.get("user_id")
             request.user_role = payload.get("role")
         else:
-            g.user_id = None
-            g.user_role = None
+            request.user_id = None
+            request.user_role = None
     else:
-        g.user_id = None
-        g.user_role = None
+        request.user_id = None
+        request.user_role = None
 
 
 @app.errorhandler(400)
@@ -144,8 +141,6 @@ def static_files(path):
 
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
-    import os
-
     upload_folder = os.path.join(os.path.dirname(__file__), "uploads")
     return send_from_directory(upload_folder, filename)
 

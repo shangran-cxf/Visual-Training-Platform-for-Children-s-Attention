@@ -68,12 +68,12 @@ def calculate_blink_stable(blink_count_list, sample_interval_ms=500):
         return 1.0
 
     blink_rate = total_blinks / total_time_min
-    
+
     # 使用更合理的阈值：正常范围 10-40次/分钟
     # 在这个范围内给予高分，超出范围才扣分
     optimal_min = 10
     optimal_max = 40
-    
+
     if blink_rate >= optimal_min and blink_rate <= optimal_max:
         return 1.0
     elif blink_rate < optimal_min:
@@ -136,7 +136,6 @@ def calculate_sustained_score(game_data, vision_scores, weights=None):
     if weights is None:
         weights = SCORING_WEIGHTS["sustained"]
 
-    game_data.get("correct", 0)
     error = game_data.get("error", 0)
     leave = game_data.get("leave", 0)
     time = game_data.get("time", 0)
@@ -181,7 +180,6 @@ def calculate_tracking_score(game_data, vision_scores, weights=None):
         weights = SCORING_WEIGHTS["tracking"]
 
     correct = game_data.get("correct", 0)
-    game_data.get("error", 0)
     time = game_data.get("time", 0)
     total_click = game_data.get("total_click", 1)
     mean_rt = game_data.get("mean_rt", 1000)
@@ -200,7 +198,7 @@ def calculate_tracking_score(game_data, vision_scores, weights=None):
     # 在 200-800ms 范围内给予高分
     optimal_min = 200
     optimal_max = 800
-    
+
     if mean_rt <= optimal_min:
         rt_score = 1.0
     elif mean_rt <= optimal_max:
