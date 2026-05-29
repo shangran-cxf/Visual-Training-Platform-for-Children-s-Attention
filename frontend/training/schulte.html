@@ -838,69 +838,33 @@
       function playCorrectSound() {
         var ctx = audioContext;
         var now = ctx.currentTime;
-        var duration = 0.85;
+        var duration = 0.18;
 
-        var bufferSize = Math.floor(ctx.sampleRate * duration);
-        var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        var data = buffer.getChannelData(0);
+        // 主音：正弦波从高到低快速滑落，"咻"的感觉
+        var osc = ctx.createOscillator();
+        var oscGain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1800, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + duration);
+        oscGain.gain.setValueAtTime(0.35, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
 
-        for (var i = 0; i < bufferSize; i++) {
-          var t = i / ctx.sampleRate;
-          var envelope = Math.min(t / 0.015, 1) * Math.exp(-t * 3.5);
-          data[i] = (Math.random() * 2 - 1) * envelope * 0.7;
-        }
-
-        var noise = ctx.createBufferSource();
-        noise.buffer = buffer;
-
-        var noiseFilter = ctx.createBiquadFilter();
-        noiseFilter.type = 'lowpass';
-        noiseFilter.frequency.setValueAtTime(60, now);
-        noiseFilter.frequency.exponentialRampToValueAtTime(800, now + 0.25);
-        noiseFilter.frequency.exponentialRampToValueAtTime(150, now + duration);
-
-        var noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.35, now);
-        noiseGain.gain.setValueAtTime(0.35, now + 0.2);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-        noise.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(ctx.destination);
-        noise.start(now);
-        noise.stop(now + duration);
-
-        var rumble = ctx.createOscillator();
-        var rumbleGain = ctx.createGain();
-        rumble.type = 'sine';
-        rumble.frequency.setValueAtTime(55, now);
-        rumble.frequency.linearRampToValueAtTime(30, now + duration);
-
-        rumbleGain.gain.setValueAtTime(0.001, now);
-        rumbleGain.gain.linearRampToValueAtTime(0.25, now + 0.015);
-        rumbleGain.gain.setValueAtTime(0.25, now + 0.15);
-        rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-        rumble.connect(rumbleGain);
-        rumbleGain.connect(ctx.destination);
-        rumble.start(now);
-        rumble.stop(now + duration);
-
-        var subRumble = ctx.createOscillator();
-        var subGain = ctx.createGain();
-        subRumble.type = 'sine';
-        subRumble.frequency.setValueAtTime(28, now);
-        subRumble.frequency.linearRampToValueAtTime(20, now + duration);
-
-        subGain.gain.setValueAtTime(0.001, now);
-        subGain.gain.linearRampToValueAtTime(0.18, now + 0.02);
-        subGain.gain.setValueAtTime(0.18, now + 0.15);
-        subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-        subRumble.connect(subGain);
-        subGain.connect(ctx.destination);
-        subRumble.start(now);
-        subRumble.stop(now + duration);
+        // 叠一层高音谐波增加清脆感
+        var osc2 = ctx.createOscillator();
+        var osc2Gain = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(3200, now);
+        osc2.frequency.exponentialRampToValueAtTime(900, now + duration * 0.7);
+        osc2Gain.gain.setValueAtTime(0.15, now);
+        osc2Gain.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.6);
+        osc2.connect(osc2Gain);
+        osc2Gain.connect(ctx.destination);
+        osc2.start(now);
+        osc2.stop(now + duration);
       }
 
       function playErrorSound() {

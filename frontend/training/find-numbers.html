@@ -14,6 +14,7 @@
       html,
       body {
         overflow: hidden;
+        overscroll-behavior: none;
         width: 100vw;
         height: 100vh;
         margin: 0;
@@ -125,13 +126,11 @@
 
       .matrix-container {
         flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        scrollbar-gutter: stable;
+        overflow: hidden;
         max-width: 100%;
         min-height: 0;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: center;
       }
 
@@ -258,6 +257,7 @@
         font-weight: bold;
         flex-shrink: 0;
         min-height: 42px;
+        line-height: 1.5;
       }
 
       @keyframes fadeIn {
@@ -366,12 +366,16 @@
       }
 
       .literature {
-        font-size: 12px;
-        color: #666;
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 10px;
+        position: fixed;
+        bottom: 12px;
+        right: 16px;
+        font-size: 11px;
+        color: #888;
+        background-color: rgba(255, 255, 255, 0.7);
+        padding: 6px 14px;
         border-radius: 5px;
-        text-align: center;
+        z-index: 10;
+        white-space: nowrap;
       }
 
       @keyframes bounce {
@@ -563,9 +567,6 @@
           correctCount++;
           document.getElementById('correct').textContent = correctCount;
           document.getElementById('feedback').textContent = '太棒啦!找到了垃圾!';
-          setTimeout(() => {
-            document.getElementById('feedback').textContent = '';
-          }, 1000);
           try {
             playCorrectSound();
           } catch (e) {}
@@ -579,9 +580,6 @@
           try {
             playErrorSound();
           } catch (e) {}
-          setTimeout(() => {
-            document.getElementById('feedback').textContent = '';
-          }, 1000);
         }
       }
 
@@ -859,6 +857,9 @@
       }
 
       function showGameOverModal(totalTime, finalScore) {
+        // 锁住页面滚动，防止弹窗撑出滚动条
+        var prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
         if (!finalScore && finalScore !== 0) finalScore = calculateSelectiveAttentionScore(totalTime);
 
         const scoreDetails = {
@@ -912,9 +913,10 @@
         box-shadow: 0 2px 16px rgba(100, 160, 100, 0.15);
         max-width: 420px;
         width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
         animation: cosmosBloom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         position: relative;
-        overflow: hidden;
       `;
 
         const topGlow = document.createElement('div');
@@ -1089,6 +1091,7 @@
         };
         restartBtn.onclick = function () {
           document.body.removeChild(modal);
+          document.body.style.overflow = prevOverflow;
           resetGame();
           setTimeout(() => {
             startGame();
@@ -1118,6 +1121,7 @@
         };
         backBtn.onclick = function () {
           document.body.removeChild(modal);
+          document.body.style.overflow = prevOverflow;
           resetGame();
         };
 
