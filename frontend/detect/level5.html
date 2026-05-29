@@ -601,10 +601,12 @@
       let gameActive = true;
       let switchTimer = null;
 
-      const maxClicks = 100;
       let clickCount = 0;
       let streak = 0;
       let errorCount = 0;
+      let totalTrials = 0; // 总轮次
+      let obstacleCount = 0; // 遗漏的 go 试次
+      let currentRoundClicked = false; // 当前轮是否已点击
 
       const gameDuration = 30;
       let timeLeft = gameDuration;
@@ -648,6 +650,19 @@
       function generateNewRound() {
         if (!gameActive) return;
 
+        // 检查上一轮：如果是匹配但没点击，算遗漏
+        if (
+          currentLightColorObj &&
+          currentPromptColorObj &&
+          currentLightColorObj.name === currentPromptColorObj.name &&
+          !currentRoundClicked
+        ) {
+          obstacleCount++;
+        }
+
+        totalTrials++;
+        currentRoundClicked = false;
+
         const newLight = getRandomColor();
         let newPrompt;
 
@@ -680,6 +695,9 @@
         clickCount = 0;
         streak = 0;
         errorCount = 0;
+        totalTrials = 0;
+        obstacleCount = 0;
+        currentRoundClicked = false;
         currentSpeed = baseSpeed;
         currentMatchRate = baseMatchRate;
         updateScoreUI();
@@ -766,51 +784,42 @@
           console.log('GameTimeUtil not available');
         }
 
-        const inhibitionScore = calculateInhibitionScore();
-        const evaluation = getFocusEvaluation(inhibitionScore);
-
-        // 显示完成弹窗
+        // 显示完成弹窗（仅展示原始统计，评分由后端计算）
+        var correctRate = clickCount > 0 ? Math.round((score / clickCount) * 100) : 0;
         document.getElementById('fbStats').innerHTML =
-          '<div class="fb-stat"><span class="fb-label">🏆 最终得分</span><span class="fb-value">' +
+          '<div class="fb-stat"><span class="fb-label">🏆 正确得分</span><span class="fb-value">' +
           score +
           '分</span></div>' +
-          '<div class="fb-stat"><span class="fb-label">📊 综合评分</span><span class="fb-value">' +
-          inhibitionScore +
-          '分</span></div>' +
-          '<div class="fb-stat"><span class="fb-label">💬 评价</span><span class="fb-value" style="font-size:15px">' +
-          evaluation +
-          '</span></div>';
+          '<div class="fb-stat"><span class="fb-label">🎯 正确率</span><span class="fb-value">' +
+          correctRate +
+          '%</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">❌ 误点次数</span><span class="fb-value">' +
+          errorCount +
+          '次</span></div>';
         document.getElementById('feedbackOverlay').classList.add('show');
 
-        const data = {
-          inhibition_control: inhibitionScore,
-          score: score,
-          total_clicks: clickCount,
-        };
         try {
           if (typeof StorageUtil !== 'undefined') {
-            StorageUtil.setItem('level5_data', data);
-            var det = StorageUtil.getItem('detection_data') || {};
-            det.inhibitory_control = inhibitionScore;
-            det.timestamp = new Date().toISOString();
-            StorageUtil.setItem('detection_data', det);
+            StorageUtil.setItem('level5_data', {
+              score: score,
+              total_clicks: clickCount,
+            });
           }
         } catch (error) {
           console.log('StorageUtil not available');
         }
 
-        // 追加 level5 游戏详细数据到综合训练数组
+        // 追加原始游戏数据到综合训练数组（后端评分）
         try {
           var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
           gameDataList.push({
             level: 5,
-            score: inhibitionScore,
-            accuracy: (score / clickCount) * 100 || 0,
             time: 30,
             correct: score,
-            error: clickCount - score,
-            total_target: clickCount,
-            total_step: clickCount,
+            error: errorCount,
+            obstacle: obstacleCount,
+            total_trial: totalTrials,
+            total_target: totalTrials,
             event_type: 'game_complete',
             timestamp: new Date().toISOString(),
           });
@@ -819,9 +828,8 @@
           console.error('保存游戏数据到 localStorage 失败:', e);
         }
 
-        // 批量上传全部5关数据
+        // 批量上传全部5关数据，完成后跳转
         uploadAllComprehensiveData(function () {
-          // 上传完成后等2秒再跳转
           setTimeout(function () {
             window.location.href = 'index.html?showReport=1';
           }, 2000);
@@ -874,17 +882,8 @@
         // 逐条上传每个关卡的游戏数据
         function uploadNext(index) {
           if (index >= gameDataList.length) {
-            // 所有关卡数据上传完成，结束共享会话
+            // 所有关卡数据上传完成，结束共享会话（后端计算评分）
             console.log('全部关卡数据上传完成，结束共享会话');
-            var totalScore = 0;
-            var totalAccuracy = 0;
-            for (var i = 0; i < gameDataList.length; i++) {
-              totalScore += gameDataList[i].score;
-              totalAccuracy += gameDataList[i].accuracy;
-            }
-            var avgScore = Math.round(totalScore / gameDataList.length);
-            var avgAccuracy = Math.round(totalAccuracy / gameDataList.length);
-
             return fetch(baseUrl + '/api/training/session/end', {
               method: 'POST',
               headers: {
@@ -893,20 +892,20 @@
               },
               body: JSON.stringify({
                 session_id: gameSessionId,
-                final_score: avgScore,
-                total_accuracy: avgAccuracy,
               }),
             })
               .then(function (r) {
                 return r.json();
               })
               .then(function (res) {
-                console.log('共享会话已结束:', res);
-                // 上传综合测评汇总，等待完成后再跳转
-                return doUploadDetection();
+                console.log('共享会话已结束，后端评分:', res);
+                var backendScores = null;
+                if (res.success && res.data && res.data.summary) {
+                  backendScores = res.data.summary;
+                }
+                return doUploadDetection(backendScores);
               })
               .then(function () {
-                // 清理并回调
                 sessionStorage.removeItem('comprehensive_session_id');
                 localStorage.removeItem('comprehensive_game_data');
                 var cacheKey = 'child_data_' + childId;
@@ -955,86 +954,8 @@
         uploadNext(0);
       }
 
-      function uploadAllDetectionResults() {
-        if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) return;
-
-        if (sessionStorage.getItem('detect_uploaded_level5')) return;
-        sessionStorage.setItem('detect_uploaded_level5', '1');
-
-        var dimensionKeys = [
-          'selective_attention',
-          'sustained_attention',
-          'visual_tracking',
-          'working_memory',
-          'inhibitory_control',
-        ];
-        var scores = {};
-        var allComplete = true;
-
-        for (var i = 0; i < 5; i++) {
-          var levelData = null;
-          try {
-            levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
-          } catch (e) {}
-
-          if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
-            scores[dimensionKeys[i]] = levelData[dimensionKeys[i]];
-          } else {
-            allComplete = false;
-            break;
-          }
-        }
-
-        if (!allComplete) return;
-
-        var totalScore = Math.round(
-          (scores.selective_attention +
-            scores.sustained_attention +
-            scores.visual_tracking +
-            scores.working_memory +
-            scores.inhibitory_control) /
-            5,
-        );
-
-        var childId = UserStateUtil.getCurrentChildId();
-        var baseUrl =
-          typeof getBaseUrl !== 'undefined'
-            ? getBaseUrl()
-            : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-              ? 'http://localhost:5000'
-              : window.location.origin;
-
-        fetch(baseUrl + '/api/upload/detection', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
-          },
-          body: JSON.stringify({
-            child_id: childId,
-            selective_attention: scores.selective_attention,
-            sustained_attention: scores.sustained_attention,
-            visual_tracking: scores.visual_tracking,
-            working_memory: scores.working_memory,
-            inhibitory_control: scores.inhibitory_control,
-            total_score: totalScore,
-          }),
-        })
-          .then(function (res) {
-            return res.json();
-          })
-          .then(function (result) {
-            if (result.success) {
-              console.log('[Level5] ✅ 测评数据已持久化到后端');
-            }
-          })
-          .catch(function (err) {
-            console.error('[Level5] 上传测评数据失败:', err);
-          });
-      }
-
-      // 上传检测汇总并返回 Promise
-      function doUploadDetection() {
+      // 上传检测汇总（使用后端 session/end 返回的评分）
+      function doUploadDetection(backendSummary) {
         return new Promise(function (resolve) {
           if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) {
             resolve();
@@ -1046,35 +967,9 @@
           }
           sessionStorage.setItem('detect_uploaded_level5', '1');
 
-          var dimensionKeys = [
-            'selective_attention',
-            'sustained_attention',
-            'visual_tracking',
-            'working_memory',
-            'inhibitory_control',
-          ];
-          var scores = {};
-          for (var i = 0; i < 5; i++) {
-            var levelData = null;
-            try {
-              levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
-            } catch (e) {}
-            if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
-              scores[dimensionKeys[i]] = levelData[dimensionKeys[i]];
-            } else {
-              resolve();
-              return;
-            }
-          }
-
-          var totalScore = Math.round(
-            (scores.selective_attention +
-              scores.sustained_attention +
-              scores.visual_tracking +
-              scores.working_memory +
-              scores.inhibitory_control) /
-              5,
-          );
+          // 使用后端返回的评分，如果没有则跳过
+          var totalScore = backendSummary ? backendSummary.overall_score || backendSummary.final_score || 0 : 0;
+          var scoreDetails = backendSummary ? backendSummary.score_details || {} : {};
 
           var childId = UserStateUtil.getCurrentChildId();
           var baseUrl =
@@ -1084,6 +979,14 @@
                 ? 'http://localhost:5000'
                 : window.location.origin;
 
+          // 综合训练后端按 level 分组计分，从 levels 中取每级得分
+          var levelScores =
+            (backendSummary && backendSummary.score_details && backendSummary.score_details.levels) || {};
+          var lv1 = levelScores.level1 || {};
+          var lv2 = levelScores.level2 || {};
+          var lv3 = levelScores.level3 || {};
+          var lv4 = levelScores.level4 || {};
+          var lv5 = levelScores.level5 || {};
           fetch(baseUrl + '/api/upload/detection', {
             method: 'POST',
             headers: {
@@ -1092,11 +995,11 @@
             },
             body: JSON.stringify({
               child_id: childId,
-              selective_attention: scores.selective_attention,
-              sustained_attention: scores.sustained_attention,
-              visual_tracking: scores.visual_tracking,
-              working_memory: scores.working_memory,
-              inhibitory_control: scores.inhibitory_control,
+              selective_attention: lv1.final_score || 0,
+              sustained_attention: lv2.final_score || 0,
+              visual_tracking: lv3.final_score || 0,
+              working_memory: lv4.final_score || 0,
+              inhibitory_control: lv5.final_score || 0,
               total_score: totalScore,
             }),
           })
@@ -1116,36 +1019,12 @@
         });
       }
 
-      function getFocusEvaluation(score) {
-        if (score >= 76) {
-          return '专注力极强，抑制控制优秀';
-        } else if (score >= 51) {
-          return '专注力良好，有一定自控力';
-        } else if (score >= 26) {
-          return '专注力一般，需要多训练';
-        } else {
-          return '容易冲动，抑制能力较弱，建议坚持练习';
-        }
-      }
-
       function updateDifficulty() {
         if (streak >= 3) {
           currentSpeed = Math.max(minSpeed, baseSpeed - streak * 50);
           currentMatchRate = Math.max(minMatchRate, baseMatchRate - streak * 0.05);
           startSwitching();
         }
-      }
-
-      function calculateInhibitionScore() {
-        const totalTrial = maxClicks;
-        const acc = totalTrial > 0 ? score / totalTrial : 0;
-        const impulse = totalTrial > 0 ? 1 - (clickCount - score) / totalTrial : 0;
-        const headStable = 0.8;
-        const faceStable = 0.8;
-        const blinkStable = 0.8;
-        const scoreValue =
-          (impulse * 0.4 + acc * 0.3 + headStable * 0.15 + faceStable * 0.08 + blinkStable * 0.07) * 100;
-        return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
       function handleClickToAdd() {
@@ -1155,6 +1034,7 @@
         }
 
         clickCount++;
+        currentRoundClicked = true;
 
         const isMatch = currentLightColorObj.name === currentPromptColorObj.name;
 
@@ -1194,6 +1074,9 @@
         clickCount = 0;
         streak = 0;
         errorCount = 0;
+        totalTrials = 0;
+        obstacleCount = 0;
+        currentRoundClicked = false;
         currentSpeed = baseSpeed;
         currentMatchRate = baseMatchRate;
         updateScoreUI();

@@ -582,20 +582,6 @@
         isPaused = !isPaused;
       }
 
-      // 计算工作记忆得分
-      function calculateWorkingMemoryScore() {
-        const acc = accuracy / maxStages;
-        const speed = Math.max(
-          0,
-          1 - (reactionTimes.length > 0 ? reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length / 1000 : 1),
-        );
-        const order = 1 - sequenceErrors / maxStages;
-        const headStable = 0.8;
-        const blinkStable = 0.8;
-        const scoreValue = (acc * 0.4 + order * 0.2 + speed * 0.2 + headStable * 0.12 + blinkStable * 0.08) * 100;
-        return Math.max(0, Math.min(100, Math.round(scoreValue)));
-      }
-
       // 结束游戏
       function endGame() {
         isGameStarted = false;
@@ -609,40 +595,36 @@
           console.log('GameTimeUtil not available');
         }
 
-        // 计算结果
         const accuracyRate = Math.round((accuracy / maxStages) * 100);
         const avgReactionTime =
           reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) : 0;
-        const score = calculateWorkingMemoryScore();
+        // 计算本局最大记忆负荷（阶段3的序列长度）
+        const maxMemoryLoad = currentStage >= 3 ? 6 : currentStage >= 2 ? 4 : 3;
 
-        // 保存数据
-        const data = {
-          working_memory: score,
-          sequence_errors: sequenceErrors,
-          click_errors: clickErrors,
-          correct_rounds: accuracy,
-          reaction_time: avgReactionTime,
-        };
         try {
           if (typeof StorageUtil !== 'undefined') {
-            StorageUtil.setItem('level4_data', data);
+            StorageUtil.setItem('level4_data', {
+              sequence_errors: sequenceErrors,
+              click_errors: clickErrors,
+              correct_rounds: accuracy,
+              reaction_time: avgReactionTime,
+            });
           }
         } catch (error) {
           console.log('StorageUtil not available');
         }
 
-        // 追加游戏详细数据到综合训练数组（方案二：最后 level5 统一上传）
+        // 追加原始游戏数据到综合训练数组（后端评分）
         try {
           var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
           gameDataList.push({
             level: 4,
-            score: score,
-            accuracy: accuracyRate,
             time: 60,
             correct: accuracy,
-            error: sequenceErrors + clickErrors,
-            total_target: maxStages,
-            total_step: maxStages,
+            error: errorRounds,
+            memory_load: maxMemoryLoad,
+            order_error: sequenceErrors,
+            reaction_times: reactionTimes,
             event_type: 'game_complete',
             timestamp: new Date().toISOString(),
           });

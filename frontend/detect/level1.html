@@ -571,7 +571,7 @@
         startTime = Date.now();
         updateTimer();
 
-        // [scoring-system] 综合训练共享会话：level1 创建，level2-5 复用
+        // [scoring-system] 仅在综合训练模式（从 index.html 点击"开始综合训练"）下创建 comprehensive 会话
         var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
         if (_sharedSessionId) {
           gameSessionId = _sharedSessionId;
@@ -579,6 +579,8 @@
             visionUploader.start(gameSessionId);
           }
         } else {
+          var _isComprehensive = localStorage.getItem('comprehensive_mode') === '1';
+          var _gameType = _isComprehensive ? 'comprehensive' : 'level1';
           const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
           const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
           const _userInfo = UserStateUtil.getUserInfo();
@@ -592,7 +594,7 @@
             },
             body: JSON.stringify({
               child_id: _childId,
-              game_type: 'comprehensive',
+              game_type: _gameType,
               device_id: 'web',
             }),
           })
@@ -600,7 +602,9 @@
             .then((res) => {
               if (res.success) {
                 gameSessionId = res.data.session_id;
-                sessionStorage.setItem('comprehensive_session_id', gameSessionId);
+                if (_isComprehensive) {
+                  sessionStorage.setItem('comprehensive_session_id', gameSessionId);
+                }
                 if (typeof visionUploader !== 'undefined') {
                   visionUploader.start(gameSessionId);
                 }
@@ -632,27 +636,6 @@
         requestAnimationFrame(updateTimer);
       }
 
-      // 计算选择性注意得分
-      function calculateSelectiveAttentionScore(totalTime) {
-        const totalTrial = targetClues.length;
-        const acc =
-          totalTrial > 0
-            ? selectedClues.filter((index) => {
-                const clue = document.querySelector(`[data-index="${index}"]`);
-                return clue && clue.dataset.type === 'target';
-              }).length / totalTrial
-            : 0;
-        const speed = Math.max(0, 1 - totalTime / 60);
-        const errorRate = Math.max(0, 1 - errorCount / totalTrial);
-        const headStable = 0.8;
-        const faceStable = 0.8;
-        const blinkStable = 0.8;
-        const scoreValue =
-          (acc * 0.4 + speed * 0.25 + errorRate * 0.2 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) *
-          100;
-        return Math.max(0, Math.min(100, Math.round(scoreValue)));
-      }
-
       // 结束游戏
       function endGame() {
         isGameStarted = false;
@@ -667,41 +650,36 @@
           console.log('GameTimeUtil not available');
         }
 
-        // 计算结果
         const totalTime = Math.floor((endTime - startTime) / 1000);
         const correctTargets = selectedClues.filter((index) => {
           const clue = document.querySelector(`[data-index="${index}"]`);
           return clue && clue.dataset.type === 'target';
         }).length;
-        const accuracy = Math.round((correctTargets / targetClues.length) * 100);
-        const score = calculateSelectiveAttentionScore(totalTime);
+        const totalClicks = selectedClues.length;
+        const missCount = targetClues.length - correctTargets;
 
-        // 保存维度得分
-        const data = {
-          selective_attention: score,
-          completion_time: totalTime,
-          error_count: errorCount,
-        };
         try {
           if (typeof StorageUtil !== 'undefined') {
-            StorageUtil.setItem('level1_data', data);
+            StorageUtil.setItem('level1_data', {
+              completion_time: totalTime,
+              error_count: errorCount,
+            });
           }
         } catch (error) {
           console.log('StorageUtil not available');
         }
 
-        // 追加游戏详细数据到综合训练数组（方案二：最后 level5 统一上传）
+        // 追加原始游戏数据到综合训练数组（后端评分）
         try {
           var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
           gameDataList.push({
             level: 1,
-            score: score,
-            accuracy: accuracy,
             time: totalTime,
             correct: correctTargets,
             error: errorCount,
+            miss: missCount,
             total_target: targetClues.length,
-            total_step: targetClues.length,
+            total_click: totalClicks,
             event_type: 'game_complete',
             timestamp: new Date().toISOString(),
           });
@@ -711,9 +689,10 @@
         }
 
         // 显示完成弹窗
+        var accuracyPct = targetClues.length > 0 ? Math.round((correctTargets / targetClues.length) * 100) : 0;
         document.getElementById('fbStats').innerHTML =
           '<div class="fb-stat"><span class="fb-label">✅ 正确率</span><span class="fb-value">' +
-          accuracy +
+          accuracyPct +
           '%</span></div>' +
           '<div class="fb-stat"><span class="fb-label">⏱️ 完成时间</span><span class="fb-value">' +
           totalTime +

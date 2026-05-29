@@ -521,18 +521,6 @@
         isPaused = !isPaused;
       }
 
-      // 计算视觉追踪得分
-      function calculateTrackingScore() {
-        const meanRt = lagTimes.length > 0 ? lagTimes.reduce((sum, rt) => sum + rt, 0) / lagTimes.length : 1000;
-        const acc = accuracyCount > 0 ? (100 - Math.min(100, accuracySum / accuracyCount)) / 100 : 0;
-        const speed = Math.max(0, 1 - 45 / 60);
-        const rtScore = Math.max(0, 1 - meanRt / 1000);
-        const headStable = 0.8;
-        const faceStable = 0.8;
-        const scoreValue = (acc * 0.35 + speed * 0.25 + rtScore * 0.2 + headStable * 0.12 + faceStable * 0.08) * 100;
-        return Math.max(0, Math.min(100, Math.round(scoreValue)));
-      }
-
       // 结束游戏
       function endGame() {
         isGameStarted = false;
@@ -550,37 +538,32 @@
         // 移除点击事件
         gameArea.removeEventListener('click', handleClick);
 
-        // 计算结果
         const avgAccuracy = accuracyCount > 0 ? Math.round(accuracySum / accuracyCount) : 0;
         const avgLagTime = lagTimes.length > 0 ? Math.round(lagTimes.reduce((a, b) => a + b, 0) / lagTimes.length) : 0;
-        const score = calculateTrackingScore();
+        const correctClicks = accuracyCount - offTargetCount;
 
-        // 保存数据
-        const data = {
-          visual_tracking: score,
-          off_target_count: offTargetCount,
-          lag_time: avgLagTime,
-        };
         try {
           if (typeof StorageUtil !== 'undefined') {
-            StorageUtil.setItem('level3_data', data);
+            StorageUtil.setItem('level3_data', {
+              off_target_count: offTargetCount,
+              lag_time: avgLagTime,
+            });
           }
         } catch (error) {
           console.log('StorageUtil not available');
         }
 
-        // 追加游戏详细数据到综合训练数组（方案二：最后 level5 统一上传）
+        // 追加原始游戏数据到综合训练数组（后端评分）
         try {
           var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
           gameDataList.push({
             level: 3,
-            score: score,
-            accuracy: 100 - avgAccuracy,
             time: 45,
-            correct: accuracyCount - offTargetCount,
+            correct: correctClicks,
             error: offTargetCount,
-            total_target: accuracyCount,
-            total_step: accuracyCount,
+            total_click: accuracyCount,
+            mean_rt: avgLagTime,
+            reaction_times: lagTimes,
             event_type: 'game_complete',
             timestamp: new Date().toISOString(),
           });

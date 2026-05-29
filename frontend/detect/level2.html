@@ -346,11 +346,13 @@
       let isPaused = false;
       let hitCount = 0;
       let falseAlarmCount = 0;
+      let missCount = 0;
       let totalThieves = 0;
       let totalNonThieves = 0;
       let consecutiveCorrect = 0;
       let maxConsecutiveCorrect = 0;
       let currentCharacterClicked = false; // 跟踪当前角色是否已经被点击过
+      let lateErrors = 0; // 后半段错误数（用于疲劳度计算）
       let gameInterval;
       let videoElement; // 视频元素引用
 
@@ -401,10 +403,11 @@
 
         // 2秒后隐藏角色
         setTimeout(() => {
-          // 如果是小偷且没有被点击，算误点
+          // 如果是小偷且没有被点击，算漏点
           if (character.isTarget && !currentCharacterClicked) {
-            falseAlarmCount++;
+            missCount++;
             consecutiveCorrect = 0;
+            if (currentIndex >= characters.length / 2) lateErrors++;
             updateStats();
           }
 
@@ -439,6 +442,7 @@
         } else {
           // 误点
           falseAlarmCount++;
+          if (currentIndex >= characters.length / 2) lateErrors++;
           consecutiveCorrect = 0;
         }
 
@@ -466,6 +470,8 @@
         currentIndex = 0;
         hitCount = 0;
         falseAlarmCount = 0;
+        missCount = 0;
+        lateErrors = 0;
         totalThieves = characters.filter((c) => c.isTarget).length;
         totalNonThieves = characters.filter((c) => !c.isTarget).length;
         consecutiveCorrect = 0;
@@ -505,21 +511,6 @@
         }
       }
 
-      // 计算持续性注意得分
-      function calculateSustainedAttentionScore() {
-        const totalTime = 60;
-        const acc = Math.max(0, 1 - falseAlarmCount / 10);
-        const consistency = Math.max(0, 1 - falseAlarmCount / 10);
-        const speed = Math.max(0, 1 - 20 / 60);
-        const headStable = 0.8;
-        const faceStable = 0.8;
-        const blinkStable = 0.8;
-        const scoreValue =
-          (acc * 0.4 + consistency * 0.3 + speed * 0.15 + headStable * 0.1 + faceStable * 0.03 + blinkStable * 0.02) *
-          100;
-        return Math.max(0, Math.min(100, Math.round(scoreValue)));
-      }
-
       // 结束游戏
       function endGame() {
         isGameStarted = false;
@@ -541,39 +532,34 @@
         // 移除点击事件
         document.getElementById('monitor').removeEventListener('click', handleClick);
 
-        // 计算结果
         const totalCharacters = characters.length;
-        let hitRate = totalCharacters > 0 ? Math.round((hitCount / totalCharacters) * 100) : 0;
-        // 确保击中率和虚报率的和为 100%
-        const falseAlarmRate = 100 - hitRate;
-        const score = calculateSustainedAttentionScore();
+        var hitRate = totalCharacters > 0 ? Math.round((hitCount / totalCharacters) * 100) : 0;
+        var falseAlarmRate = 100 - hitRate;
+        var totalErrors = falseAlarmCount + missCount;
+        var lateErrorRatio = totalErrors > 0 ? lateErrors / totalErrors : 0;
 
-        // 保存数据
-        const data = {
-          sustained_attention: score,
-          false_alarm_rate: falseAlarmRate,
-          max_consecutive_correct: maxConsecutiveCorrect,
-        };
         try {
           if (typeof StorageUtil !== 'undefined') {
-            StorageUtil.setItem('level2_data', data);
+            StorageUtil.setItem('level2_data', {
+              false_alarm_rate: falseAlarmRate,
+              max_consecutive_correct: maxConsecutiveCorrect,
+            });
           }
         } catch (error) {
           console.log('StorageUtil not available');
         }
 
-        // 追加游戏详细数据到综合训练数组（方案二：最后 level5 统一上传）
+        // 追加原始游戏数据到综合训练数组（后端评分）
         try {
           var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
           gameDataList.push({
             level: 2,
-            score: score,
-            accuracy: hitRate,
-            time: 60,
+            time: Math.round(totalCharacters * 2.5),
             correct: hitCount,
             error: falseAlarmCount,
-            total_target: characters.length,
-            total_step: characters.length,
+            leave: missCount,
+            total_step: totalCharacters,
+            late_error_ratio: lateErrorRatio,
             event_type: 'game_complete',
             timestamp: new Date().toISOString(),
           });
