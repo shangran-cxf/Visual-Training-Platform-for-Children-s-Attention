@@ -549,37 +549,13 @@
         startSwitching();
         startCountdown();
 
-        // [scoring-system] Create new session on reset.
-        if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-          const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
-          const _userInfo = UserStateUtil.getUserInfo();
-          const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
-
-          fetch(`${_baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: _childId,
-              game_type: 'inhibitory',
-              device_id: 'web',
-            }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                gameSessionId = result.data.session_id;
-                if (typeof visionUploader !== 'undefined') {
-                  visionUploader.start(gameSessionId);
-                }
-              }
-            })
-            .catch((error) => {
-              console.error('创建训练会话失败:', error);
-            });
+        // [scoring-system] 综合训练共享会话：复用 level1 创建的会话
+        var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
+        if (_sharedSessionId) {
+          gameSessionId = _sharedSessionId;
+          if (typeof visionUploader !== 'undefined') {
+            visionUploader.start(gameSessionId);
+          }
         }
       }
 
@@ -647,6 +623,7 @@
         }
 
         const inhibitionScore = calculateInhibitionScore();
+        const evaluation = getFocusEvaluation(inhibitionScore);
         feedbackDiv.innerHTML =
           '🎉 游戏结束！最终得分：' +
           score +
@@ -654,7 +631,7 @@
           inhibitionScore +
           '分<br>评价：' +
           evaluation +
-          '<br><br><button class="btn" style="background-color:#ff9800;margin-top:10px" onclick="window.location.href=\'../training/traffic-light.html\'">🎯 针对性训练</button><br><span style="font-size:14px;color:#666">点击重置可重新挑战</span>';
+          '<br><span style="font-size:14px;color:#666">正在上传数据，即将返回综合训练页面...</span>';
 
         const data = {
           inhibition_control: inhibitionScore,
@@ -673,10 +650,170 @@
           console.log('StorageUtil not available');
         }
 
-        uploadAllDetectionResults();
+        // 追加 level5 游戏详细数据到综合训练数组
+        try {
+          var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
+          gameDataList.push({
+            level: 5,
+            score: inhibitionScore,
+            accuracy: (score / clickCount) * 100 || 0,
+            time: 30,
+            correct: score,
+            error: clickCount - score,
+            total_target: clickCount,
+            total_step: clickCount,
+            event_type: 'game_complete',
+            timestamp: new Date().toISOString(),
+          });
+          localStorage.setItem('comprehensive_game_data', JSON.stringify(gameDataList));
+        } catch (e) {
+          console.error('保存游戏数据到 localStorage 失败:', e);
+        }
 
-        // 上传训练数据
-        uploadTrainingData(inhibitionScore, score, clickCount);
+        // 更新反馈为"上传中"，然后批量上传
+        feedbackDiv.innerHTML =
+          feedbackDiv.innerHTML +
+          '<br><span id="uploadStatus" style="color:#ff9800;font-size:14px">正在上传数据...</span>';
+
+        // 批量上传全部5关数据
+        uploadAllComprehensiveData(function () {
+          // 上传完成后更新文案，等2秒再跳转
+          var statusEl = document.getElementById('uploadStatus');
+          if (statusEl) {
+            statusEl.textContent = '上传完成，即将返回综合训练页面...';
+            statusEl.style.color = '#4caf50';
+          }
+          setTimeout(function () {
+            window.location.href = 'index.html?showReport=1';
+          }, 2000);
+        });
+      }
+
+      // 批量上传全部关卡数据到共享会话，完成后调用 onComplete
+      function uploadAllComprehensiveData(onComplete) {
+        if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) {
+          sessionStorage.removeItem('comprehensive_session_id');
+          localStorage.removeItem('comprehensive_game_data');
+          if (onComplete) onComplete();
+          return;
+        }
+
+        var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        var baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+        var childId = UserStateUtil.getCurrentChildId();
+
+        if (!gameSessionId) {
+          // 如果会话还没创建好，尝试从 sessionStorage 获取或创建新的
+          var storedId = sessionStorage.getItem('comprehensive_session_id');
+          if (storedId) {
+            gameSessionId = storedId;
+          } else {
+            console.error('共享会话不存在，无法上传');
+            localStorage.removeItem('comprehensive_game_data');
+            if (onComplete) onComplete();
+            return;
+          }
+        }
+
+        var gameDataList = [];
+        try {
+          gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
+        } catch (e) {}
+
+        if (gameDataList.length === 0) {
+          console.warn('没有游戏数据需要上传');
+          sessionStorage.removeItem('comprehensive_session_id');
+          localStorage.removeItem('comprehensive_game_data');
+          if (onComplete) onComplete();
+          return;
+        }
+
+        if (typeof visionUploader !== 'undefined') {
+          visionUploader.stop();
+        }
+
+        // 逐条上传每个关卡的游戏数据
+        function uploadNext(index) {
+          if (index >= gameDataList.length) {
+            // 所有关卡数据上传完成，结束共享会话
+            console.log('全部关卡数据上传完成，结束共享会话');
+            var totalScore = 0;
+            var totalAccuracy = 0;
+            for (var i = 0; i < gameDataList.length; i++) {
+              totalScore += gameDataList[i].score;
+              totalAccuracy += gameDataList[i].accuracy;
+            }
+            var avgScore = Math.round(totalScore / gameDataList.length);
+            var avgAccuracy = Math.round(totalAccuracy / gameDataList.length);
+
+            return fetch(baseUrl + '/api/training/session/end', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
+              },
+              body: JSON.stringify({
+                session_id: gameSessionId,
+                final_score: avgScore,
+                total_accuracy: avgAccuracy,
+              }),
+            })
+              .then(function (r) {
+                return r.json();
+              })
+              .then(function (res) {
+                console.log('共享会话已结束:', res);
+                // 上传综合测评汇总，等待完成后再跳转
+                return doUploadDetection();
+              })
+              .then(function () {
+                // 清理并回调
+                sessionStorage.removeItem('comprehensive_session_id');
+                localStorage.removeItem('comprehensive_game_data');
+                var cacheKey = 'child_data_' + childId;
+                localStorage.removeItem(cacheKey);
+                if (onComplete) onComplete();
+              })
+              .catch(function (err) {
+                console.error('结束会话失败:', err);
+                sessionStorage.removeItem('comprehensive_session_id');
+                localStorage.removeItem('comprehensive_game_data');
+                if (onComplete) onComplete();
+              });
+          }
+
+          var d = gameDataList[index];
+          d.session_id = gameSessionId;
+          d.request_id = Date.now().toString();
+          console.log('上传关卡' + d.level + '数据...');
+
+          fetch(baseUrl + '/api/training/game-data', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+            body: JSON.stringify(d),
+          })
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (res) {
+              if (res.success) {
+                console.log('关卡' + d.level + '数据上传成功');
+              } else {
+                console.error('关卡' + d.level + '上传失败:', res.message);
+              }
+              // 无论成败，继续下一条
+              uploadNext(index + 1);
+            })
+            .catch(function (err) {
+              console.error('关卡' + d.level + '上传异常:', err);
+              uploadNext(index + 1);
+            });
+        }
+
+        uploadNext(0);
       }
 
       function uploadAllDetectionResults() {
@@ -757,6 +894,89 @@
           });
       }
 
+      // 上传检测汇总并返回 Promise
+      function doUploadDetection() {
+        return new Promise(function (resolve) {
+          if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) {
+            resolve();
+            return;
+          }
+          if (sessionStorage.getItem('detect_uploaded_level5')) {
+            resolve();
+            return;
+          }
+          sessionStorage.setItem('detect_uploaded_level5', '1');
+
+          var dimensionKeys = [
+            'selective_attention',
+            'sustained_attention',
+            'visual_tracking',
+            'working_memory',
+            'inhibitory_control',
+          ];
+          var scores = {};
+          for (var i = 0; i < 5; i++) {
+            var levelData = null;
+            try {
+              levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
+            } catch (e) {}
+            if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
+              scores[dimensionKeys[i]] = levelData[dimensionKeys[i]];
+            } else {
+              resolve();
+              return;
+            }
+          }
+
+          var totalScore = Math.round(
+            (scores.selective_attention +
+              scores.sustained_attention +
+              scores.visual_tracking +
+              scores.working_memory +
+              scores.inhibitory_control) /
+              5,
+          );
+
+          var childId = UserStateUtil.getCurrentChildId();
+          var baseUrl =
+            typeof getBaseUrl !== 'undefined'
+              ? getBaseUrl()
+              : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:5000'
+                : window.location.origin;
+
+          fetch(baseUrl + '/api/upload/detection', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+            body: JSON.stringify({
+              child_id: childId,
+              selective_attention: scores.selective_attention,
+              sustained_attention: scores.sustained_attention,
+              visual_tracking: scores.visual_tracking,
+              working_memory: scores.working_memory,
+              inhibitory_control: scores.inhibitory_control,
+              total_score: totalScore,
+            }),
+          })
+            .then(function (res) {
+              return res.json();
+            })
+            .then(function (result) {
+              if (result.success) {
+                console.log('[Level5] 测评数据已持久化到后端');
+              }
+              resolve();
+            })
+            .catch(function (err) {
+              console.error('[Level5] 上传测评数据失败:', err);
+              resolve();
+            });
+        });
+      }
+
       function getFocusEvaluation(score) {
         if (score >= 76) {
           return '专注力极强，抑制控制优秀';
@@ -828,117 +1048,9 @@
         }
       }
 
-      function uploadTrainingData(score, rawScore, clickCount) {
-        try {
-          if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-            const childId = UserStateUtil.getCurrentChildId();
-
-            // [scoring-system] Use session from initGame/resetGame.
-            var sessionReady = Promise.resolve();
-            if (!gameSessionId) {
-              console.warn('Session not ready, creating inline');
-              sessionReady = fetch(`${baseUrl}/api/training/session/start`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-                body: JSON.stringify({
-                  child_id: childId,
-                  game_type: 'inhibitory',
-                  device_id: 'web',
-                }),
-              })
-                .then(function (response) {
-                  return response.json();
-                })
-                .then(function (result) {
-                  if (result.success) {
-                    gameSessionId = result.data.session_id;
-                  }
-                });
-            }
-
-            sessionReady
-              .then(function () {
-                // 先上传缓冲的视觉数据，再提交游戏数据
-                var flushDone = Promise.resolve();
-                if (typeof visionUploader !== 'undefined' && gameSessionId) {
-                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
-                }
-                return flushDone.then(function () {
-                  return fetch(`${baseUrl}/api/training/game-data`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                    body: JSON.stringify({
-                      session_id: gameSessionId,
-                      request_id: Date.now().toString(),
-                      timestamp: new Date().toISOString(),
-                      event_type: 'game_complete',
-                      score: score,
-                      accuracy: (rawScore / clickCount) * 100 || 0,
-                      level: 5,
-                      time: 30,
-                      correct: rawScore,
-                      error: clickCount - rawScore,
-                      total_target: clickCount,
-                      total_step: clickCount,
-                    }),
-                  });
-                });
-              })
-              .then(function (response) {
-                return response.json();
-              })
-              .then(function (result) {
-                if (result.success) {
-                  console.log('游戏数据上传成功');
-
-                  return fetch(`${baseUrl}/api/training/session/end`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                    body: JSON.stringify({
-                      session_id: gameSessionId,
-                      final_score: score,
-                      total_accuracy: (rawScore / clickCount) * 100 || 0,
-                    }),
-                  });
-                } else {
-                  throw new Error(result.message || '上传游戏数据失败');
-                }
-              })
-              .then(function (response) {
-                return response.json();
-              })
-              .then(function (result) {
-                console.log('会话结束响应数据:', result);
-                if (result.success) {
-                  console.log('训练数据上传完成');
-                  var cacheKey = 'child_data_' + childId;
-                  localStorage.removeItem(cacheKey);
-                  console.log('已清除能力评估缓存:', cacheKey);
-                }
-              })
-              .catch(function (error) {
-                console.error('上传训练数据失败:', error);
-              });
-          }
-        } catch (e) {
-          console.error('uploadTrainingData 错误:', e);
-        }
-      }
-
       clickBtn.addEventListener('click', handleClickToAdd);
 
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function () {
         score = 0;
         clickCount = 0;
         streak = 0;
@@ -955,41 +1067,15 @@
         startCountdown();
         feedbackDiv.innerHTML = '🧸 游戏开始！记得颜色一致才能点击加分哟~';
 
-        // [scoring-system] Create training session at game start.
-        if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-          const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
-          const _userInfo = UserStateUtil.getUserInfo();
-          const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
-
-          fetch(`${_baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: _childId,
-              game_type: 'inhibitory',
-              device_id: 'web',
-            }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                gameSessionId = result.data.session_id;
-                if (typeof visionUploader !== 'undefined') {
-                  visionUploader.start(gameSessionId);
-                }
-              }
-            })
-            .catch((error) => {
-              console.error('创建训练会话失败:', error);
-            });
+        // [scoring-system] 综合训练共享会话：复用 level1 创建的会话
+        var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
+        if (_sharedSessionId) {
+          gameSessionId = _sharedSessionId;
+          if (typeof visionUploader !== 'undefined') {
+            visionUploader.start(gameSessionId);
+          }
         }
-      }
-
-      initGame();
+      });
 
       window.addEventListener('beforeunload', () => {
         if (switchTimer) clearInterval(switchTimer);
