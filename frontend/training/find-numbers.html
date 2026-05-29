@@ -793,14 +793,13 @@
         const totalTime = Math.floor((Date.now() - startTime) / 1000);
         missedCount = totalTargets - correctCount;
 
-        // 上传数据到后端（异步，不阻塞）
+        // 上传数据到后端
         try {
           uploadTrainingData(totalTime);
         } catch (e) {
           console.error('上传数据失败:', e);
+          showGameOverModal(totalTime);
         }
-
-        showGameOverModal(totalTime);
       }
 
       function calculateSelectiveAttentionScore(totalTime) {
@@ -825,8 +824,8 @@
         return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
-      function showGameOverModal(totalTime) {
-        const score = calculateSelectiveAttentionScore(totalTime);
+      function showGameOverModal(totalTime, finalScore) {
+        if (!finalScore && finalScore !== 0) finalScore = calculateSelectiveAttentionScore(totalTime);
 
         const scoreDetails = {
           time: {
@@ -851,7 +850,7 @@
           },
         };
 
-        const message = '你的评分为：' + score + '分';
+        const message = '你的评分为：' + finalScore + '分';
 
         const modal = document.createElement('div');
         modal.style.cssText = `
@@ -1223,22 +1222,16 @@
                   console.log('训练时间已保存到 localStorage');
 
                   // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                  var backendScore = null;
-                  var backendLevel = null;
-                  if (result.data && result.data.summary) {
-                    backendScore = Math.round(result.data.summary.final_score);
-                    backendLevel = result.data.summary.performance_level;
+                  var displayScore = score;
+                  if (result.data && result.data.summary && result.data.summary.final_score) {
+                    displayScore = Math.round(result.data.summary.final_score);
                   }
-                  if (backendScore !== null) {
-                    var scoreEl = document.getElementById('modal-score');
-                    if (scoreEl) {
-                      scoreEl.textContent = backendScore + '分 (' + (backendLevel || '') + ')';
-                    }
-                  }
+                  showGameOverModal(totalTime, displayScore);
                 }
               })
               .catch((error) => {
                 console.error('上传训练数据失败:', error);
+                showGameOverModal(totalTime);
               });
           };
 

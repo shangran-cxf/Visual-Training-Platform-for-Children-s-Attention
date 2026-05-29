@@ -68,8 +68,21 @@ def calculate_blink_stable(blink_count_list, sample_interval_ms=500):
         return 1.0
 
     blink_rate = total_blinks / total_time_min
-    blink_stable = 1 - (blink_rate / 25)
-    return clamp(blink_stable)
+    
+    # 使用更合理的阈值：正常范围 10-40次/分钟
+    # 在这个范围内给予高分，超出范围才扣分
+    optimal_min = 10
+    optimal_max = 40
+    
+    if blink_rate >= optimal_min and blink_rate <= optimal_max:
+        return 1.0
+    elif blink_rate < optimal_min:
+        # 眨眼过少（可能过于专注或疲劳）
+        return max(0.5, blink_rate / optimal_min)
+    else:
+        # 眨眼过多（可能分心或疲劳），使用更平缓的扣分曲线
+        excess = blink_rate - optimal_max
+        return max(0.3, 1 - excess / 30)
 
 
 def calculate_std(values):
@@ -182,11 +195,23 @@ def calculate_tracking_score(game_data, vision_scores, weights=None):
     speed = 1 - (time / 60)
     speed = clamp(speed)
 
-    rt_score = 1 - (mean_rt / 1000)
+    # 使用更宽松的反应时间评分算法
+    # 正常人类反应时间范围：200ms - 1200ms
+    # 在 200-800ms 范围内给予高分
+    optimal_min = 200
+    optimal_max = 800
+    
+    if mean_rt <= optimal_min:
+        rt_score = 1.0
+    elif mean_rt <= optimal_max:
+        rt_score = 1 - (mean_rt - optimal_min) / (optimal_max - optimal_min) * 0.3
+    else:
+        rt_score = max(0.5, 1 - (mean_rt - optimal_min) / 1000)
     rt_score = clamp(rt_score)
 
     head_stable = vision_scores.get("head_stable", 0)
     face_stable = vision_scores.get("face_stable", 0)
+    blink_stable = vision_scores.get("blink_stable", 0)
 
     score = (
         acc * weights["accuracy"]
@@ -194,6 +219,7 @@ def calculate_tracking_score(game_data, vision_scores, weights=None):
         + speed * weights["speed"]
         + head_stable * weights["head_stable"]
         + face_stable * weights["face_stable"]
+        + blink_stable * weights.get("blink_stable", 0)
     )
 
     return {
@@ -202,6 +228,7 @@ def calculate_tracking_score(game_data, vision_scores, weights=None):
         "speed": speed,
         "head_stable": head_stable,
         "face_stable": face_stable,
+        "blink_stable": blink_stable,
         "final_score": clamp(score * 100, 0, 100),
     }
 

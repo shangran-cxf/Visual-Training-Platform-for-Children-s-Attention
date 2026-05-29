@@ -92,73 +92,14 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         (session_id,),
     )
 
-    aggregated_game_data = {
-        "time": 0,
-        "correct": 0,
-        "error": 0,
-        "miss": 0,
-        "leave": 0,
-        "obstacle": 0,
-        "total_target": 1,
-        "total_step": 1,
-        "total_click": 1,
-        "total_trial": 1,
-        "memory_load": 1,
-        "order_error": 0,
-        "late_error_ratio": 0,
-        "mean_rt": 1000,
-        "reaction_times": [],
+    # ── 综合训练：按 level 分组，每组用对应 attention_type 计算器 ──
+    level_attention_map = {
+        1: "selective",
+        2: "sustained",
+        3: "tracking",
+        4: "memory",
+        5: "inhibitory",
     }
-
-    levels_completed = set()
-    reaction_times_all = []
-
-    for row in game_data_rows:
-        if row[0]:
-            pass
-        if row[1] is not None:
-            pass
-        if row[2]:
-            levels_completed.add(row[2])
-
-        if row[3] is not None:
-            aggregated_game_data["time"] = max(aggregated_game_data["time"], row[3])
-        if row[4] is not None:
-            aggregated_game_data["correct"] += row[4]
-        if row[5] is not None:
-            aggregated_game_data["error"] += row[5]
-        if row[6] is not None:
-            aggregated_game_data["miss"] += row[6]
-        if row[7] is not None:
-            aggregated_game_data["leave"] += row[7]
-        if row[8] is not None:
-            aggregated_game_data["obstacle"] += row[8]
-        if row[9] is not None and row[9] > 0:
-            aggregated_game_data["total_target"] = row[9]
-        if row[10] is not None and row[10] > 0:
-            aggregated_game_data["total_step"] = row[10]
-        if row[11] is not None and row[11] > 0:
-            aggregated_game_data["total_click"] = row[11]
-        if row[12] is not None and row[12] > 0:
-            aggregated_game_data["total_trial"] = row[12]
-        if row[13] is not None and row[13] > 0:
-            aggregated_game_data["memory_load"] = row[13]
-        if row[14] is not None:
-            aggregated_game_data["order_error"] += row[14]
-        if row[15] is not None:
-            aggregated_game_data["late_error_ratio"] = row[15]
-        if row[16] is not None:
-            reaction_times_all.append(row[16])
-        if row[17]:
-            try:
-                rts = json.loads(row[17]) if isinstance(row[17], str) else row[17]
-                if isinstance(rts, list):
-                    reaction_times_all.extend(rts)
-            except:
-                pass
-
-    if reaction_times_all:
-        aggregated_game_data["mean_rt"] = sum(reaction_times_all) / len(reaction_times_all)
 
     vision_data_rows = execute_db(
         """
@@ -204,24 +145,238 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
 
     vision_scores = calculate_vision_scores(vision_data_list) if vision_data_list else {}
 
-    max_level = max(levels_completed) if levels_completed else None
-    score_result = calculate_score(
-        attention_type,
-        aggregated_game_data,
-        vision_scores,
-        game_type=game_type,
-        difficulty_level=max_level,
-    )
+    if game_type == "comprehensive":
+        # 综合训练：按 level 分组，每级独立聚合+计分
+        level_rows = {1: [], 2: [], 3: [], 4: [], 5: []}
+        for row in game_data_rows:
+            lv = row[2]
+            if lv in level_rows:
+                level_rows[lv].append(row)
 
-    dimension_contributions = GAME_DIMENSION_CONTRIBUTIONS.get(game_type, {f"{attention_type}_attention": 1.0})
+        levels_completed = set()
+        all_score_details = {}
+        level_scores = []
+        aggregated_game_data = {
+            "time": 0,
+            "correct": 0,
+            "error": 0,
+            "miss": 0,
+            "leave": 0,
+            "obstacle": 0,
+            "total_target": 1,
+            "total_step": 1,
+            "total_click": 1,
+            "total_trial": 1,
+            "memory_load": 1,
+            "order_error": 0,
+            "late_error_ratio": 0,
+            "mean_rt": 1000,
+            "reaction_times": [],
+        }
+        reaction_times_all = []
 
-    normalized_score = None
-    if ENABLE_CROSS_GAME_NORMALIZATION:
-        calib = GAME_SCORE_CALIBRATION.get(game_type)
-        if calib and calib["std"] > 0:
-            raw = score_result.get("final_score", 0)
-            z_score = (raw - calib["mean"]) / calib["std"]
-            normalized_score = round(clamp(50 + z_score * 10, 0, 100), 2)
+        for lv in [1, 2, 3, 4, 5]:
+            rows = level_rows[lv]
+            if not rows:
+                continue
+            levels_completed.add(lv)
+
+            lv_data = {
+                "time": 0,
+                "correct": 0,
+                "error": 0,
+                "miss": 0,
+                "leave": 0,
+                "obstacle": 0,
+                "total_target": 1,
+                "total_step": 1,
+                "total_click": 1,
+                "total_trial": 1,
+                "memory_load": 1,
+                "order_error": 0,
+                "late_error_ratio": 0,
+                "mean_rt": 1000,
+            }
+            lv_reaction_times = []
+
+            for row in rows:
+                if row[3] is not None:
+                    lv_data["time"] = max(lv_data["time"], row[3])
+                if row[4] is not None:
+                    lv_data["correct"] += row[4]
+                if row[5] is not None:
+                    lv_data["error"] += row[5]
+                if row[6] is not None:
+                    lv_data["miss"] += row[6]
+                if row[7] is not None:
+                    lv_data["leave"] += row[7]
+                if row[8] is not None:
+                    lv_data["obstacle"] += row[8]
+                if row[9] is not None and row[9] > 0:
+                    lv_data["total_target"] = row[9]
+                if row[10] is not None and row[10] > 0:
+                    lv_data["total_step"] = row[10]
+                if row[11] is not None and row[11] > 0:
+                    lv_data["total_click"] = row[11]
+                if row[12] is not None and row[12] > 0:
+                    lv_data["total_trial"] = row[12]
+                if row[13] is not None and row[13] > 0:
+                    lv_data["memory_load"] = row[13]
+                if row[14] is not None:
+                    lv_data["order_error"] += row[14]
+                if row[15] is not None:
+                    lv_data["late_error_ratio"] = row[15]
+                if row[16] is not None:
+                    lv_reaction_times.append(row[16])
+                if row[17]:
+                    try:
+                        rts = json.loads(row[17]) if isinstance(row[17], str) else row[17]
+                        if isinstance(rts, list):
+                            lv_reaction_times.extend(rts)
+                    except:
+                        pass
+
+            if lv_reaction_times:
+                lv_data["mean_rt"] = sum(lv_reaction_times) / len(lv_reaction_times)
+
+            lv_attention_type = level_attention_map.get(lv, "selective")
+            lv_result = calculate_score(
+                lv_attention_type,
+                lv_data,
+                vision_scores,
+                game_type=f"level{lv}",
+                difficulty_level=lv,
+            )
+            all_score_details[f"level{lv}"] = lv_result
+            level_scores.append(lv_result.get("final_score", 0))
+
+            # 累加到全局聚合数据
+            for k in ["correct", "error", "miss", "leave", "obstacle", "order_error"]:
+                aggregated_game_data[k] += lv_data.get(k, 0)
+            aggregated_game_data["time"] = max(aggregated_game_data["time"], lv_data["time"])
+            reaction_times_all.extend(lv_reaction_times)
+
+        if reaction_times_all:
+            aggregated_game_data["mean_rt"] = sum(reaction_times_all) / len(reaction_times_all)
+
+        overall = round(sum(level_scores) / len(level_scores)) if level_scores else 0
+        max_level = max(levels_completed) if levels_completed else None
+
+        # 综合得分取各维度均值落在哪个等级
+        if overall >= 90:
+            perf_level = "优秀"
+        elif overall >= 75:
+            perf_level = "良好"
+        elif overall >= 50:
+            perf_level = "一般"
+        else:
+            perf_level = "较弱"
+
+        # 合并各维度子分数（×100 到 0-100 区间）
+        merged_details = {}
+        for lv_key, details in all_score_details.items():
+            for k, v in details.items():
+                if k == "final_score":
+                    continue
+                if isinstance(v, (int, float)) and v <= 1.0:
+                    merged_details[f"{lv_key}_{k}"] = round(v * 100, 2)
+                else:
+                    merged_details[f"{lv_key}_{k}"] = v
+        merged_details["final_score"] = overall
+        merged_details["performance_level"] = perf_level
+        merged_details["levels"] = all_score_details
+
+        dimension_contributions = GAME_DIMENSION_CONTRIBUTIONS.get(game_type, {})
+        normalized_score = None
+        if ENABLE_CROSS_GAME_NORMALIZATION:
+            calib = GAME_SCORE_CALIBRATION.get(game_type)
+            if calib and calib["std"] > 0:
+                z_score = (overall - calib["mean"]) / calib["std"]
+                normalized_score = round(clamp(50 + z_score * 10, 0, 100), 2)
+
+    else:
+        # ── 单游戏训练：原有逻辑 ──
+        aggregated_game_data = {
+            "time": 0,
+            "correct": 0,
+            "error": 0,
+            "miss": 0,
+            "leave": 0,
+            "obstacle": 0,
+            "total_target": 1,
+            "total_step": 1,
+            "total_click": 1,
+            "total_trial": 1,
+            "memory_load": 1,
+            "order_error": 0,
+            "late_error_ratio": 0,
+            "mean_rt": 1000,
+            "reaction_times": [],
+        }
+        levels_completed = set()
+        reaction_times_all = []
+
+        for row in game_data_rows:
+            if row[2]:
+                levels_completed.add(row[2])
+            if row[3] is not None:
+                aggregated_game_data["time"] = max(aggregated_game_data["time"], row[3])
+            if row[4] is not None:
+                aggregated_game_data["correct"] += row[4]
+            if row[5] is not None:
+                aggregated_game_data["error"] += row[5]
+            if row[6] is not None:
+                aggregated_game_data["miss"] += row[6]
+            if row[7] is not None:
+                aggregated_game_data["leave"] += row[7]
+            if row[8] is not None:
+                aggregated_game_data["obstacle"] += row[8]
+            if row[9] is not None and row[9] > 0:
+                aggregated_game_data["total_target"] = row[9]
+            if row[10] is not None and row[10] > 0:
+                aggregated_game_data["total_step"] = row[10]
+            if row[11] is not None and row[11] > 0:
+                aggregated_game_data["total_click"] = row[11]
+            if row[12] is not None and row[12] > 0:
+                aggregated_game_data["total_trial"] = row[12]
+            if row[13] is not None and row[13] > 0:
+                aggregated_game_data["memory_load"] = row[13]
+            if row[14] is not None:
+                aggregated_game_data["order_error"] += row[14]
+            if row[15] is not None:
+                aggregated_game_data["late_error_ratio"] = row[15]
+            if row[16] is not None:
+                reaction_times_all.append(row[16])
+            if row[17]:
+                try:
+                    rts = json.loads(row[17]) if isinstance(row[17], str) else row[17]
+                    if isinstance(rts, list):
+                        reaction_times_all.extend(rts)
+                except:
+                    pass
+
+        if reaction_times_all:
+            aggregated_game_data["mean_rt"] = sum(reaction_times_all) / len(reaction_times_all)
+
+        max_level = max(levels_completed) if levels_completed else None
+        score_result = calculate_score(
+            attention_type,
+            aggregated_game_data,
+            vision_scores,
+            game_type=game_type,
+            difficulty_level=max_level,
+        )
+        merged_details = score_result
+        overall = score_result.get("final_score", 0)
+
+        dimension_contributions = GAME_DIMENSION_CONTRIBUTIONS.get(game_type, {f"{attention_type}_attention": 1.0})
+        normalized_score = None
+        if ENABLE_CROSS_GAME_NORMALIZATION:
+            calib = GAME_SCORE_CALIBRATION.get(game_type)
+            if calib and calib["std"] > 0:
+                raw = score_result.get("final_score", 0)
+                z_score = (raw - calib["mean"]) / calib["std"]
+                normalized_score = round(clamp(50 + z_score * 10, 0, 100), 2)
 
     avg_attention = sum(attention_scores) / len(attention_scores) if attention_scores else 0
     max_attention = max(attention_scores) if attention_scores else 0
@@ -242,7 +397,6 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         total_time = int(duration)
     elif session_info:
         start_time_str = session_info[0][0]
-        # SQLite's CURRENT_TIMESTAMP usually returns 'YYYY-MM-DD HH:MM:SS'
         if " " in start_time_str:
             start_time_str = start_time_str.replace(" ", "T")
         try:
@@ -254,7 +408,7 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
             total_time = 0
 
     return {
-        "final_score": score_result.get("final_score", 0),
+        "final_score": overall,
         "total_accuracy": total_accuracy,
         "total_time": total_time,
         "total_errors": aggregated_game_data["error"],
@@ -267,10 +421,10 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         "avg_blink_rate": round(avg_blink_rate, 2),
         "total_focus_time": round(total_focus_time, 2),
         "distraction_count": distraction_count,
-        "overall_score": score_result.get("final_score", 0),
-        "performance_level": score_result.get("performance_level", "较弱"),
+        "overall_score": overall,
+        "performance_level": merged_details.get("performance_level", "较弱"),
         "attention_type": attention_type,
-        "score_details": score_result,
+        "score_details": merged_details,
         "game_data": aggregated_game_data,
         "dimension_contributions": dimension_contributions,
         "normalized_score": normalized_score,
@@ -601,6 +755,47 @@ def end_session():
             duration=duration,
         )
 
+        # 从 score_details 提取子分数；综合训练使用 level 归并后的分数
+        sd = summary.get("score_details", {})
+        if session_info["game_type"] == "comprehensive" and "levels" in sd:
+            lv_scores = sd["levels"]
+
+            # 辅助：取子分数（0~1）并换算到 0~100
+            def _pct(d, k, default=0):
+                v = d.get(k, default)
+                return round(v * 100, 2) if isinstance(v, float) and v <= 1.0 else v
+
+            lv1 = lv_scores.get("level1", {})
+            lv2 = lv_scores.get("level2", {})
+            lv3 = lv_scores.get("level3", {})
+            lv4 = lv_scores.get("level4", {})
+            lv5 = lv_scores.get("level5", {})
+            acc_score = lv1.get("final_score", 0)
+            prec_score = _pct(lv1, "precision")
+            spd_score = _pct(lv1, "speed")
+            head_score = _pct(lv1, "head_stable")
+            face_score = _pct(lv3, "face_stable", _pct(lv5, "face_stable"))
+            blink_score = max(_pct(lv1, "blink_stable"), _pct(lv4, "blink_stable"))
+            imp_score = lv5.get("final_score", 0)
+            mem_score = lv4.get("final_score", 0)
+            nf_score = _pct(lv2, "no_fatigue")
+            rt_score = lv3.get("final_score", 0)
+            ord_score = _pct(lv4, "order")
+            sa_score = lv2.get("final_score", 0)
+        else:
+            acc_score = sd.get("accuracy", 0)
+            prec_score = sd.get("precision", 0)
+            spd_score = sd.get("speed", 0)
+            head_score = sd.get("head_stable", 0)
+            face_score = sd.get("face_stable", 0)
+            blink_score = sd.get("blink_stable", 0)
+            imp_score = sd.get("impulse", 0)
+            mem_score = sd.get("memory", 0)
+            nf_score = sd.get("no_fatigue", 0)
+            rt_score = sd.get("rt_score", 0)
+            ord_score = sd.get("order", 0)
+            sa_score = sd.get("stable_act", 0)
+
         execute_db(
             """
             INSERT INTO session_summaries
@@ -633,18 +828,18 @@ def end_session():
                 summary["distraction_count"],
                 summary["overall_score"],
                 summary["performance_level"],
-                summary["score_details"].get("accuracy", 0),
-                summary["score_details"].get("precision", 0),
-                summary["score_details"].get("speed", 0),
-                summary["score_details"].get("head_stable", 0),
-                summary["score_details"].get("face_stable", 0),
-                summary["score_details"].get("blink_stable", 0),
-                summary["score_details"].get("impulse", 0),
-                summary["score_details"].get("memory", 0),
-                summary["score_details"].get("no_fatigue", 0),
-                summary["score_details"].get("rt_score", 0),
-                summary["score_details"].get("order", 0),
-                summary["score_details"].get("stable_act", 0),
+                acc_score,
+                prec_score,
+                spd_score,
+                head_score,
+                face_score,
+                blink_score,
+                imp_score,
+                mem_score,
+                nf_score,
+                rt_score,
+                ord_score,
+                sa_score,
                 json.dumps(summary.get("game_data", {})),
                 json.dumps(summary.get("dimension_contributions", {})),
                 summary.get("normalized_score"),
@@ -1009,9 +1204,21 @@ def get_training_trend(child_id):
             if at in trend_data:
                 records_list = trend_data[at]["records"]
                 if records_list:
-                    scores = [r["score"] for r in records_list]
-                    trend_data[at]["avg_score"] = round(sum(scores) / len(scores), 2)
+                    # 查询该维度所有记录的直接平均分（不按日期分组）
+                    avg_query = """
+                        SELECT AVG(ss.overall_score), COUNT(*)
+                        FROM session_summaries ss
+                        JOIN training_sessions s ON CAST(ss.session_id AS INTEGER) = s.id
+                        WHERE s.child_id = ? AND DATE(s.start_time) >= ? AND ss.attention_type = ?
+                    """
+                    avg_result = execute_db(avg_query, (child_id, start_date.strftime("%Y-%m-%d"), at))
+                    if avg_result and avg_result[0][0]:
+                        trend_data[at]["avg_score"] = round(avg_result[0][0], 2)
+                    else:
+                        trend_data[at]["avg_score"] = 0
 
+                    # 计算趋势（使用每日平均分数据）
+                    scores = [r["score"] for r in records_list]
                     if len(scores) >= 2:
                         first_half = sum(scores[: len(scores) // 2]) / (len(scores) // 2) if len(scores) // 2 > 0 else 0
                         second_half = (

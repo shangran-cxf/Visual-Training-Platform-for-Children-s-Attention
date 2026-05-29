@@ -320,6 +320,124 @@
         padding: 4px 10px;
       }
 
+      /* 完成弹窗 */
+      .feedback-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 20000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .feedback-overlay.show {
+        display: flex;
+      }
+      .feedback-card {
+        background: #fffef7;
+        border-radius: 36px;
+        width: 88%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.12),
+          0 6px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        animation: popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+      }
+      @keyframes popBounce {
+        from {
+          transform: translateY(60px) scale(0.85);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+      .fb-top {
+        background: linear-gradient(135deg, #ffd1dc, #ffb8c6);
+        padding: 32px 20px 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .fb-top::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+      }
+      .fb-top::after {
+        content: '';
+        position: absolute;
+        bottom: -25px;
+        left: -15px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 50%;
+      }
+      .fb-emoji {
+        font-size: 56px;
+        display: block;
+        position: relative;
+        z-index: 1;
+        animation: floatEmoji 2s ease-in-out infinite;
+      }
+      @keyframes floatEmoji {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      .fb-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin: 8px 0 0;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .fb-body {
+        padding: 20px 24px 8px;
+      }
+      .fb-stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 18px;
+        margin-bottom: 8px;
+        background: #faf6ee;
+        border-radius: 16px;
+        font-size: 15px;
+      }
+      .fb-stat .fb-label {
+        color: #999;
+        font-weight: 600;
+      }
+      .fb-stat .fb-value {
+        font-weight: 800;
+        color: #555;
+        font-size: 19px;
+      }
+      .fb-status {
+        padding: 6px 24px 4px;
+        font-size: 13px;
+        color: #bbb;
+        font-weight: 500;
+      }
+
       footer {
         font-size: 0.6rem;
         margin-top: 6px;
@@ -376,31 +494,45 @@
   </head>
 
   <body>
-    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000">
-      <button
-        onclick="window.location.href = 'index.html'"
-        style="
-          background: linear-gradient(135deg, #4caf50, #81c784);
-          color: white;
-          border: none;
-          border-radius: 50%;
-          width: 60px;
-          height: 60px;
-          font-size: 24px;
-          cursor: pointer;
-          box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          animation: bounce 2s ease-in-out infinite alternate;
-        "
-        onmouseover="this.style.transform = 'scale(1.1) rotate(10deg)'"
-        onmouseout="this.style.transform = 'scale(1) rotate(0deg)'"
-      >
-        ←
-      </button>
-    </div>
+    <!-- 返回按钮 -->
+    <button
+      onclick="window.location.href = 'index.html'"
+      style="
+        position: absolute;
+        top: 22px;
+        left: 22px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1.5px solid rgba(255, 255, 255, 0.6);
+        border-radius: 30px;
+        padding: 10px 22px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #777;
+        cursor: pointer;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.25s ease;
+        font-family: inherit;
+        letter-spacing: 0.5px;
+      "
+      onmouseover="
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)';
+        this.style.color = '#555';
+      "
+      onmouseout="
+        this.style.transform = '';
+        this.style.boxShadow = '0 2px 14px rgba(0,0,0,0.06)';
+        this.style.color = '#777';
+      "
+    >
+      ← 返回
+    </button>
     <div class="game-container">
       <h1>🚦 专注小特工 🚦</h1>
 
@@ -434,6 +566,18 @@
       <div class="feedback" id="feedbackMsg">🧸 点击按钮，匹配颜色得1分！</div>
     </div>
 
+    <!-- 完成弹窗 -->
+    <div class="feedback-overlay" id="feedbackOverlay">
+      <div class="feedback-card">
+        <div class="fb-top">
+          <span class="fb-emoji">🎉</span>
+          <p class="fb-title">训练完成！</p>
+        </div>
+        <div class="fb-body" id="fbStats"></div>
+        <p class="fb-status" id="fbStatus"></p>
+      </div>
+    </div>
+
     <script src="../../floating-ball.js"></script>
     <script src="../../api/vision-uploader.js"></script>
     <script src="../utils.js"></script>
@@ -457,10 +601,12 @@
       let gameActive = true;
       let switchTimer = null;
 
-      const maxClicks = 100;
       let clickCount = 0;
       let streak = 0;
       let errorCount = 0;
+      let totalTrials = 0; // 总轮次
+      let obstacleCount = 0; // 遗漏的 go 试次
+      let currentRoundClicked = false; // 当前轮是否已点击
 
       const gameDuration = 30;
       let timeLeft = gameDuration;
@@ -504,6 +650,19 @@
       function generateNewRound() {
         if (!gameActive) return;
 
+        // 检查上一轮：如果是匹配但没点击，算遗漏
+        if (
+          currentLightColorObj &&
+          currentPromptColorObj &&
+          currentLightColorObj.name === currentPromptColorObj.name &&
+          !currentRoundClicked
+        ) {
+          obstacleCount++;
+        }
+
+        totalTrials++;
+        currentRoundClicked = false;
+
         const newLight = getRandomColor();
         let newPrompt;
 
@@ -536,6 +695,9 @@
         clickCount = 0;
         streak = 0;
         errorCount = 0;
+        totalTrials = 0;
+        obstacleCount = 0;
+        currentRoundClicked = false;
         currentSpeed = baseSpeed;
         currentMatchRate = baseMatchRate;
         updateScoreUI();
@@ -549,37 +711,13 @@
         startSwitching();
         startCountdown();
 
-        // [scoring-system] Create new session on reset.
-        if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-          const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
-          const _userInfo = UserStateUtil.getUserInfo();
-          const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
-
-          fetch(`${_baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: _childId,
-              game_type: 'inhibitory',
-              device_id: 'web',
-            }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                gameSessionId = result.data.session_id;
-                if (typeof visionUploader !== 'undefined') {
-                  visionUploader.start(gameSessionId);
-                }
-              }
-            })
-            .catch((error) => {
-              console.error('创建训练会话失败:', error);
-            });
+        // [scoring-system] 综合训练共享会话：复用 level1 创建的会话
+        var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
+        if (_sharedSessionId) {
+          gameSessionId = _sharedSessionId;
+          if (typeof visionUploader !== 'undefined') {
+            visionUploader.start(gameSessionId);
+          }
         }
       }
 
@@ -646,127 +784,239 @@
           console.log('GameTimeUtil not available');
         }
 
-        const inhibitionScore = calculateInhibitionScore();
-        feedbackDiv.innerHTML =
-          '🎉 游戏结束！最终得分：' +
+        // 显示完成弹窗（仅展示原始统计，评分由后端计算）
+        var correctRate = clickCount > 0 ? Math.round((score / clickCount) * 100) : 0;
+        document.getElementById('fbStats').innerHTML =
+          '<div class="fb-stat"><span class="fb-label">🏆 正确得分</span><span class="fb-value">' +
           score +
-          '分 🎉<br>综合评分：' +
-          inhibitionScore +
-          '分<br>评价：' +
-          evaluation +
-          '<br><br><button class="btn" style="background-color:#ff9800;margin-top:10px" onclick="window.location.href=\'../training/traffic-light.html\'">🎯 针对性训练</button><br><span style="font-size:14px;color:#666">点击重置可重新挑战</span>';
+          '分</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">🎯 正确率</span><span class="fb-value">' +
+          correctRate +
+          '%</span></div>' +
+          '<div class="fb-stat"><span class="fb-label">❌ 误点次数</span><span class="fb-value">' +
+          errorCount +
+          '次</span></div>';
+        document.getElementById('feedbackOverlay').classList.add('show');
 
-        const data = {
-          inhibition_control: inhibitionScore,
-          score: score,
-          total_clicks: clickCount,
-        };
         try {
           if (typeof StorageUtil !== 'undefined') {
-            StorageUtil.setItem('level5_data', data);
-            var det = StorageUtil.getItem('detection_data') || {};
-            det.inhibitory_control = inhibitionScore;
-            det.timestamp = new Date().toISOString();
-            StorageUtil.setItem('detection_data', det);
+            StorageUtil.setItem('level5_data', {
+              score: score,
+              total_clicks: clickCount,
+            });
           }
         } catch (error) {
           console.log('StorageUtil not available');
         }
 
-        uploadAllDetectionResults();
+        // 追加原始游戏数据到综合训练数组（后端评分）
+        try {
+          var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
+          gameDataList.push({
+            level: 5,
+            time: 30,
+            correct: score,
+            error: errorCount,
+            obstacle: obstacleCount,
+            total_trial: totalTrials,
+            total_target: totalTrials,
+            event_type: 'game_complete',
+            timestamp: new Date().toISOString(),
+          });
+          localStorage.setItem('comprehensive_game_data', JSON.stringify(gameDataList));
+        } catch (e) {
+          console.error('保存游戏数据到 localStorage 失败:', e);
+        }
 
-        // 上传训练数据
-        uploadTrainingData(inhibitionScore, score, clickCount);
+        // 批量上传全部5关数据，完成后跳转
+        uploadAllComprehensiveData(function () {
+          setTimeout(function () {
+            window.location.href = 'index.html?showReport=1';
+          }, 2000);
+        });
       }
 
-      function uploadAllDetectionResults() {
-        if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) return;
+      // 批量上传全部关卡数据到共享会话，完成后调用 onComplete
+      function uploadAllComprehensiveData(onComplete) {
+        if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) {
+          sessionStorage.removeItem('comprehensive_session_id');
+          localStorage.removeItem('comprehensive_game_data');
+          if (onComplete) onComplete();
+          return;
+        }
 
-        if (sessionStorage.getItem('detect_uploaded_level5')) return;
-        sessionStorage.setItem('detect_uploaded_level5', '1');
+        var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        var baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
+        var childId = UserStateUtil.getCurrentChildId();
 
-        var dimensionKeys = [
-          'selective_attention',
-          'sustained_attention',
-          'visual_tracking',
-          'working_memory',
-          'inhibitory_control',
-        ];
-        var scores = {};
-        var allComplete = true;
-
-        for (var i = 0; i < 5; i++) {
-          var levelData = null;
-          try {
-            levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
-          } catch (e) {}
-
-          if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
-            scores[dimensionKeys[i]] = levelData[dimensionKeys[i]];
+        if (!gameSessionId) {
+          // 如果会话还没创建好，尝试从 sessionStorage 获取或创建新的
+          var storedId = sessionStorage.getItem('comprehensive_session_id');
+          if (storedId) {
+            gameSessionId = storedId;
           } else {
-            allComplete = false;
-            break;
+            console.error('共享会话不存在，无法上传');
+            localStorage.removeItem('comprehensive_game_data');
+            if (onComplete) onComplete();
+            return;
           }
         }
 
-        if (!allComplete) return;
+        var gameDataList = [];
+        try {
+          gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
+        } catch (e) {}
 
-        var totalScore = Math.round(
-          (scores.selective_attention +
-            scores.sustained_attention +
-            scores.visual_tracking +
-            scores.working_memory +
-            scores.inhibitory_control) /
-            5,
-        );
+        if (gameDataList.length === 0) {
+          console.warn('没有游戏数据需要上传');
+          sessionStorage.removeItem('comprehensive_session_id');
+          localStorage.removeItem('comprehensive_game_data');
+          if (onComplete) onComplete();
+          return;
+        }
 
-        var childId = UserStateUtil.getCurrentChildId();
-        var baseUrl =
-          typeof getBaseUrl !== 'undefined'
-            ? getBaseUrl()
-            : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-              ? 'http://localhost:5000'
-              : window.location.origin;
+        if (typeof visionUploader !== 'undefined') {
+          visionUploader.stop();
+        }
 
-        fetch(baseUrl + '/api/upload/detection', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
-          },
-          body: JSON.stringify({
-            child_id: childId,
-            selective_attention: scores.selective_attention,
-            sustained_attention: scores.sustained_attention,
-            visual_tracking: scores.visual_tracking,
-            working_memory: scores.working_memory,
-            inhibitory_control: scores.inhibitory_control,
-            total_score: totalScore,
-          }),
-        })
-          .then(function (res) {
-            return res.json();
+        // 逐条上传每个关卡的游戏数据
+        function uploadNext(index) {
+          if (index >= gameDataList.length) {
+            // 所有关卡数据上传完成，结束共享会话（后端计算评分）
+            console.log('全部关卡数据上传完成，结束共享会话');
+            return fetch(baseUrl + '/api/training/session/end', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
+              },
+              body: JSON.stringify({
+                session_id: gameSessionId,
+              }),
+            })
+              .then(function (r) {
+                return r.json();
+              })
+              .then(function (res) {
+                console.log('共享会话已结束，后端评分:', res);
+                var backendScores = null;
+                if (res.success && res.data && res.data.summary) {
+                  backendScores = res.data.summary;
+                }
+                return doUploadDetection(backendScores);
+              })
+              .then(function () {
+                sessionStorage.removeItem('comprehensive_session_id');
+                localStorage.removeItem('comprehensive_game_data');
+                var cacheKey = 'child_data_' + childId;
+                localStorage.removeItem(cacheKey);
+                if (onComplete) onComplete();
+              })
+              .catch(function (err) {
+                console.error('结束会话失败:', err);
+                sessionStorage.removeItem('comprehensive_session_id');
+                localStorage.removeItem('comprehensive_game_data');
+                if (onComplete) onComplete();
+              });
+          }
+
+          var d = gameDataList[index];
+          d.session_id = gameSessionId;
+          d.request_id = Date.now().toString();
+          console.log('上传关卡' + d.level + '数据...');
+
+          fetch(baseUrl + '/api/training/game-data', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+            body: JSON.stringify(d),
           })
-          .then(function (result) {
-            if (result.success) {
-              console.log('[Level5] ✅ 测评数据已持久化到后端');
-            }
-          })
-          .catch(function (err) {
-            console.error('[Level5] 上传测评数据失败:', err);
-          });
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (res) {
+              if (res.success) {
+                console.log('关卡' + d.level + '数据上传成功');
+              } else {
+                console.error('关卡' + d.level + '上传失败:', res.message);
+              }
+              // 无论成败，继续下一条
+              uploadNext(index + 1);
+            })
+            .catch(function (err) {
+              console.error('关卡' + d.level + '上传异常:', err);
+              uploadNext(index + 1);
+            });
+        }
+
+        uploadNext(0);
       }
 
-      function getFocusEvaluation(score) {
-        if (score >= 76) {
-          return '专注力极强，抑制控制优秀';
-        } else if (score >= 51) {
-          return '专注力良好，有一定自控力';
-        } else if (score >= 26) {
-          return '专注力一般，需要多训练';
-        } else {
-          return '容易冲动，抑制能力较弱，建议坚持练习';
-        }
+      // 上传检测汇总（使用后端 session/end 返回的评分）
+      function doUploadDetection(backendSummary) {
+        return new Promise(function (resolve) {
+          if (typeof UserStateUtil === 'undefined' || !UserStateUtil.isLoggedIn()) {
+            resolve();
+            return;
+          }
+          if (sessionStorage.getItem('detect_uploaded_level5')) {
+            resolve();
+            return;
+          }
+          sessionStorage.setItem('detect_uploaded_level5', '1');
+
+          // 使用后端返回的评分，如果没有则跳过
+          var totalScore = backendSummary ? backendSummary.overall_score || backendSummary.final_score || 0 : 0;
+          var scoreDetails = backendSummary ? backendSummary.score_details || {} : {};
+
+          var childId = UserStateUtil.getCurrentChildId();
+          var baseUrl =
+            typeof getBaseUrl !== 'undefined'
+              ? getBaseUrl()
+              : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:5000'
+                : window.location.origin;
+
+          // 综合训练后端按 level 分组计分，从 levels 中取每级得分
+          var levelScores =
+            (backendSummary && backendSummary.score_details && backendSummary.score_details.levels) || {};
+          var lv1 = levelScores.level1 || {};
+          var lv2 = levelScores.level2 || {};
+          var lv3 = levelScores.level3 || {};
+          var lv4 = levelScores.level4 || {};
+          var lv5 = levelScores.level5 || {};
+          fetch(baseUrl + '/api/upload/detection', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+            body: JSON.stringify({
+              child_id: childId,
+              selective_attention: lv1.final_score || 0,
+              sustained_attention: lv2.final_score || 0,
+              visual_tracking: lv3.final_score || 0,
+              working_memory: lv4.final_score || 0,
+              inhibitory_control: lv5.final_score || 0,
+              total_score: totalScore,
+            }),
+          })
+            .then(function (res) {
+              return res.json();
+            })
+            .then(function (result) {
+              if (result.success) {
+                console.log('[Level5] 测评数据已持久化到后端');
+              }
+              resolve();
+            })
+            .catch(function (err) {
+              console.error('[Level5] 上传测评数据失败:', err);
+              resolve();
+            });
+        });
       }
 
       function updateDifficulty() {
@@ -777,18 +1027,6 @@
         }
       }
 
-      function calculateInhibitionScore() {
-        const totalTrial = maxClicks;
-        const acc = totalTrial > 0 ? score / totalTrial : 0;
-        const impulse = totalTrial > 0 ? 1 - (clickCount - score) / totalTrial : 0;
-        const headStable = 0.8;
-        const faceStable = 0.8;
-        const blinkStable = 0.8;
-        const scoreValue =
-          (impulse * 0.4 + acc * 0.3 + headStable * 0.15 + faceStable * 0.08 + blinkStable * 0.07) * 100;
-        return Math.max(0, Math.min(100, Math.round(scoreValue)));
-      }
-
       function handleClickToAdd() {
         if (!gameActive) {
           feedbackDiv.innerHTML = '🎮 游戏已经完成啦！';
@@ -796,6 +1034,7 @@
         }
 
         clickCount++;
+        currentRoundClicked = true;
 
         const isMatch = currentLightColorObj.name === currentPromptColorObj.name;
 
@@ -828,121 +1067,16 @@
         }
       }
 
-      function uploadTrainingData(score, rawScore, clickCount) {
-        try {
-          if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-            const childId = UserStateUtil.getCurrentChildId();
-
-            // [scoring-system] Use session from initGame/resetGame.
-            var sessionReady = Promise.resolve();
-            if (!gameSessionId) {
-              console.warn('Session not ready, creating inline');
-              sessionReady = fetch(`${baseUrl}/api/training/session/start`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-                body: JSON.stringify({
-                  child_id: childId,
-                  game_type: 'inhibitory',
-                  device_id: 'web',
-                }),
-              })
-                .then(function (response) {
-                  return response.json();
-                })
-                .then(function (result) {
-                  if (result.success) {
-                    gameSessionId = result.data.session_id;
-                  }
-                });
-            }
-
-            sessionReady
-              .then(function () {
-                // 先上传缓冲的视觉数据，再提交游戏数据
-                var flushDone = Promise.resolve();
-                if (typeof visionUploader !== 'undefined' && gameSessionId) {
-                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
-                }
-                return flushDone.then(function () {
-                  return fetch(`${baseUrl}/api/training/game-data`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                    body: JSON.stringify({
-                      session_id: gameSessionId,
-                      request_id: Date.now().toString(),
-                      timestamp: new Date().toISOString(),
-                      event_type: 'game_complete',
-                      score: score,
-                      accuracy: (rawScore / clickCount) * 100 || 0,
-                      level: 5,
-                      time: 30,
-                      correct: rawScore,
-                      error: clickCount - rawScore,
-                      total_target: clickCount,
-                      total_step: clickCount,
-                    }),
-                  });
-                });
-              })
-              .then(function (response) {
-                return response.json();
-              })
-              .then(function (result) {
-                if (result.success) {
-                  console.log('游戏数据上传成功');
-
-                  return fetch(`${baseUrl}/api/training/session/end`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                    body: JSON.stringify({
-                      session_id: gameSessionId,
-                      final_score: score,
-                      total_accuracy: (rawScore / clickCount) * 100 || 0,
-                    }),
-                  });
-                } else {
-                  throw new Error(result.message || '上传游戏数据失败');
-                }
-              })
-              .then(function (response) {
-                return response.json();
-              })
-              .then(function (result) {
-                console.log('会话结束响应数据:', result);
-                if (result.success) {
-                  console.log('训练数据上传完成');
-                  var cacheKey = 'child_data_' + childId;
-                  localStorage.removeItem(cacheKey);
-                  console.log('已清除能力评估缓存:', cacheKey);
-                }
-              })
-              .catch(function (error) {
-                console.error('上传训练数据失败:', error);
-              });
-          }
-        } catch (e) {
-          console.error('uploadTrainingData 错误:', e);
-        }
-      }
-
       clickBtn.addEventListener('click', handleClickToAdd);
 
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function () {
         score = 0;
         clickCount = 0;
         streak = 0;
         errorCount = 0;
+        totalTrials = 0;
+        obstacleCount = 0;
+        currentRoundClicked = false;
         currentSpeed = baseSpeed;
         currentMatchRate = baseMatchRate;
         updateScoreUI();
@@ -955,41 +1089,15 @@
         startCountdown();
         feedbackDiv.innerHTML = '🧸 游戏开始！记得颜色一致才能点击加分哟~';
 
-        // [scoring-system] Create training session at game start.
-        if (typeof UserStateUtil !== 'undefined' && UserStateUtil.isLoggedIn()) {
-          const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
-          const _userInfo = UserStateUtil.getUserInfo();
-          const _childId = UserStateUtil.getCurrentChildId() || _userInfo?.currentChildId || 1;
-
-          fetch(`${_baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: _childId,
-              game_type: 'inhibitory',
-              device_id: 'web',
-            }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.success) {
-                gameSessionId = result.data.session_id;
-                if (typeof visionUploader !== 'undefined') {
-                  visionUploader.start(gameSessionId);
-                }
-              }
-            })
-            .catch((error) => {
-              console.error('创建训练会话失败:', error);
-            });
+        // [scoring-system] 综合训练共享会话：复用 level1 创建的会话
+        var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
+        if (_sharedSessionId) {
+          gameSessionId = _sharedSessionId;
+          if (typeof visionUploader !== 'undefined') {
+            visionUploader.start(gameSessionId);
+          }
         }
-      }
-
-      initGame();
+      });
 
       window.addEventListener('beforeunload', () => {
         if (switchTimer) clearInterval(switchTimer);

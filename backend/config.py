@@ -35,6 +35,17 @@ GAME_TYPES = {
     "level5": {"name": "抑制控制训练", "attention_type": "inhibitory", "dimensions": ["inhibitory_control"]},
     "traffic-light": {"name": "红绿灯", "attention_type": "inhibitory", "dimensions": ["inhibitory_control"]},
     "command-adventure": {"name": "指令冒险", "attention_type": "inhibitory", "dimensions": ["inhibitory_control"]},
+    "comprehensive": {
+        "name": "综合训练",
+        "attention_type": "comprehensive",
+        "dimensions": [
+            "selective_attention",
+            "sustained_attention",
+            "visual_tracking",
+            "working_memory",
+            "inhibitory_control",
+        ],
+    },
 }
 
 ATTENTION_TYPES = {
@@ -76,7 +87,7 @@ ATTENTION_DIMENSIONS = {
 SCORING_WEIGHTS = {
     "selective": {"accuracy": 0.35, "precision": 0.25, "speed": 0.20, "head_stable": 0.10, "blink_stable": 0.10},
     "sustained": {"stable_act": 0.30, "no_fatigue": 0.25, "speed": 0.20, "head_stable": 0.15, "blink_stable": 0.10},
-    "tracking": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.08},
+    "tracking": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.05, "blink_stable": 0.03},
     "memory": {"accuracy": 0.40, "order": 0.20, "speed": 0.20, "head_stable": 0.12, "blink_stable": 0.08},
     "inhibitory": {"impulse": 0.40, "accuracy": 0.30, "head_stable": 0.15, "face_stable": 0.08, "blink_stable": 0.07},
 }
@@ -144,15 +155,16 @@ GAME_DIFFICULTY_WEIGHTS = {
         "blink_stable": 0.10,
     },
     # ── Tracking ──
-    "sun-tracking:easy": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.08},
+    "sun-tracking:easy": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.05, "blink_stable": 0.03},
     "sun-tracking:medium": {
         "accuracy": 0.30,
         "rt_score": 0.30,
         "speed": 0.20,
         "head_stable": 0.12,
-        "face_stable": 0.08,
+        "face_stable": 0.05,
+        "blink_stable": 0.03,
     },
-    "sun-tracking:hard": {"accuracy": 0.25, "rt_score": 0.35, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.08},
+    "sun-tracking:hard": {"accuracy": 0.25, "rt_score": 0.35, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.05, "blink_stable": 0.03},
     "animal-searching:easy": {
         "accuracy": 0.40,
         "rt_score": 0.20,
@@ -261,6 +273,13 @@ GAME_DIMENSION_CONTRIBUTIONS = {
     "level3": {"visual_tracking": 1.00},
     "level4": {"working_memory": 1.00},
     "level5": {"inhibitory_control": 1.00},
+    "comprehensive": {
+        "selective_attention": 0.20,
+        "sustained_attention": 0.20,
+        "visual_tracking": 0.20,
+        "working_memory": 0.20,
+        "inhibitory_control": 0.20,
+    },
 }
 
 # Cross-game score calibration (mean, std_dev) for z-score normalization
@@ -281,6 +300,7 @@ GAME_SCORE_CALIBRATION = {
     "level3": {"mean": 60, "std": 20},
     "level4": {"mean": 50, "std": 25},
     "level5": {"mean": 55, "std": 25},
+    "comprehensive": {"mean": 60, "std": 20},
 }
 
 TIME_DECAY_HALF_LIFE_DAYS = 30

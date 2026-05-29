@@ -744,11 +744,7 @@
         isGameStarted = false;
         clearInterval(progressInterval);
 
-        const finalScore = calculateSustainedAttentionScore();
-
         feedback.textContent = '恭喜！植物成功开花！';
-
-        showResultModal(finalScore);
 
         // 统计游戏使用时间
         try {
@@ -763,11 +759,12 @@
           MedalUtil.recordGameProgress('game4', null, { increment: true });
         }
 
-        // 上传数据到后端
+        // 上传数据到后端（完成后会调用 showResultModal）
         uploadTrainingData();
       }
 
-      function showResultModal(finalScore) {
+      function showResultModal(displayScore) {
+        if (!displayScore && displayScore !== 0) displayScore = calculateSustainedAttentionScore();
         const scoreDetails = {
           waterTime: {
             name: '有效浇水',
@@ -786,7 +783,7 @@
           },
         };
 
-        const message = '你的评分为：' + finalScore + '分';
+        const message = '你的评分为：' + displayScore + '分';
 
         const modal = document.createElement('div');
         modal.style.cssText = `
@@ -1135,16 +1132,16 @@
                   console.log('训练时间已保存到 localStorage');
 
                   // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                  var backendScore = null;
-                  var backendLevel = null;
-                  if (result.data && result.data.summary) {
-                    backendScore = Math.round(result.data.summary.final_score);
-                    backendLevel = result.data.summary.performance_level;
+                  var displayScore = calculateSustainedAttentionScore();
+                  if (result.data && result.data.summary && result.data.summary.final_score) {
+                    displayScore = Math.round(result.data.summary.final_score);
                   }
+                  showResultModal(displayScore);
                 }
               })
               .catch((error) => {
                 console.error('上传训练数据失败:', error);
+                showResultModal();
               });
           };
 
