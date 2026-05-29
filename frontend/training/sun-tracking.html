@@ -320,6 +320,32 @@
       let reactionTimes = [];
       let targetAppearTime = 0;
 
+      // 太阳主题音效
+      var soundCtx = null;
+      function getSCtx() {
+        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (soundCtx.state === 'suspended') soundCtx.resume();
+        return soundCtx;
+      }
+      function playSunSparkle() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var notes = [1046.5, 1318.5, 1568.0, 2093.0]; // C6-E6-G6-C7 闪亮音色
+        for (var i = 0; i < notes.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[i], now + i * 0.05);
+          gain.gain.setValueAtTime(0.001, now + i * 0.05);
+          gain.gain.linearRampToValueAtTime(0.08, now + i * 0.05 + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.05);
+          osc.stop(now + i * 0.05 + 0.4);
+        }
+      }
+
       // [scoring-system] Session created in startGame() so vision data
       // covers the full gameplay period, not just the end-of-game API window.
       let gameSessionId = null;
@@ -464,6 +490,7 @@
 
         score++;
         currentTarget++;
+        playSunSparkle();
         document.getElementById('score').textContent = score;
 
         if (currentTarget > maxTargets) {

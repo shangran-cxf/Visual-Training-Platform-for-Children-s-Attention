@@ -470,13 +470,13 @@
       <div class="game-header">
         <button class="back-btn" id="backBtn">←</button>
         <div class="stats">
-          <div class="stat"><span class="stat-icon">🪙</span> <span id="coinCount">0</span></div>
-          <div class="stat"><span class="stat-icon">⭐</span> <span id="scoreCount">0</span></div>
           <div class="stat">
-            <span class="stat-icon">🎯</span> <span id="correctCount">0</span>/<span id="totalCount">0</span>
+            <span class="stat-icon">🎯</span> <span id="correctCount">0</span>/<span id="totalCount">20</span>
           </div>
         </div>
-        <div class="difficulty-badge" id="difficultyBadge"><span>🌟</span> <span id="difficultyText">中等</span></div>
+        <div class="difficulty-badge" id="difficultyBadge">
+          <span>🌟</span> <span id="difficultyText">简单 ⭐</span>
+        </div>
       </div>
 
       <div id="gameMainArea" class="game-area">
@@ -492,8 +492,8 @@
           <div class="difficulty-selector">
             <h4>选择难度：</h4>
             <div class="difficulty-buttons">
-              <button class="diff-btn" data-difficulty="easy">⭐ 简单</button>
-              <button class="diff-btn active" data-difficulty="medium">⭐⭐ 中等</button>
+              <button class="diff-btn active" data-difficulty="easy">⭐ 简单</button>
+              <button class="diff-btn" data-difficulty="medium">⭐⭐ 中等</button>
               <button class="diff-btn" data-difficulty="hard">⭐⭐⭐ 困难</button>
             </div>
           </div>
@@ -505,6 +505,8 @@
 
     <script src="../floating-ball.js"></script>
     <script src="../api/vision-uploader.js"></script>
+    <script src="../utils.js"></script>
+    <script src="../attention-loader.js"></script>
     <script>
       // ========================
       // 游戏数据 & 研究参数 (基于Stroop范式，抑制控制训练)
@@ -596,35 +598,28 @@
 
       // 难度参数 (难度固定，根据用户选择设置不同的试次数量、时间限制和不一致比例)
       const DIFFICULTY_SETTINGS = {
-        easy: { timeLimit: 4000, incongruentRatio: 0.3, name: '简单', stars: '⭐', totalTrials: 20, items: EASY_ITEMS },
+        easy: { timeLimit: 5000, incongruentRatio: 0.3, name: '简单', stars: '⭐', totalTrials: 20, items: EASY_ITEMS },
         medium: {
           timeLimit: 3500,
           incongruentRatio: 0.5,
           name: '中等',
           stars: '⭐⭐',
-          totalTrials: 30,
+          totalTrials: 20,
           items: MEDIUM_ITEMS,
         },
         hard: {
-          timeLimit: 2900,
+          timeLimit: 2000,
           incongruentRatio: 0.7,
           name: '困难',
           stars: '⭐⭐⭐',
-          totalTrials: 40,
+          totalTrials: 20,
           items: HARD_ITEMS,
         },
       };
 
       // 言语鼓励库 (金币+语音表情鼓励: 研究证实最优)
-      const ENCOURAGE_MSGS = [
-        '🎉 真棒！',
-        '⭐ 反应超快！',
-        '🌟 你做到了！',
-        '💪 完美分类！',
-        '🎈 好厉害！',
-        '🧠 抑制控制好强！',
-      ];
-      const GENTLE_FEEDBACK = ['🤔 再试试看~', '👀 注意看图片是什么', '💡 忽略文字哦', '🌱 没关系，再来一次'];
+      const ENCOURAGE_MSGS = ['真棒！', '反应超快！', '你做到了！', '完美分类！', '好厉害！', '抑制控制好强！'];
+      const GENTLE_FEEDBACK = ['注意看图片是什么', '忽略文字哦', '没关系，继续加油~', '下次注意就好'];
 
       // 游戏状态
       let currentTrial = null;
@@ -633,15 +628,67 @@
       let timerInterval = null;
       let startTime = 0;
 
+      // 环保主题音效
+      var soundCtx = null;
+      function getSCtx() {
+        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (soundCtx.state === 'suspended') soundCtx.resume();
+        return soundCtx;
+      }
+      function playCoinChime() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var notes = [783.99, 987.77, 1174.7];
+        for (var i = 0; i < notes.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[i], now + i * 0.06);
+          gain.gain.setValueAtTime(0.001, now + i * 0.06);
+          gain.gain.linearRampToValueAtTime(0.09, now + i * 0.06 + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.06);
+          osc.stop(now + i * 0.06 + 0.3);
+        }
+      }
+      function playSoftWrong() {
+        var ctx = getSCtx(),
+          now = ctx.currentTime;
+        var osc1 = ctx.createOscillator(),
+          osc2 = ctx.createOscillator();
+        var gain1 = ctx.createGain(),
+          gain2 = ctx.createGain();
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(330, now);
+        osc1.frequency.linearRampToValueAtTime(220, now + 0.3);
+        osc2.type = 'square';
+        osc2.frequency.setValueAtTime(165, now);
+        osc2.frequency.linearRampToValueAtTime(110, now + 0.3);
+        gain1.gain.setValueAtTime(0.001, now);
+        gain1.gain.linearRampToValueAtTime(0.1, now + 0.02);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        gain2.gain.setValueAtTime(0.001, now);
+        gain2.gain.linearRampToValueAtTime(0.05, now + 0.02);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.35);
+        osc2.start(now);
+        osc2.stop(now + 0.35);
+      }
+
       let gameState = {
-        score: 0,
-        coins: 0,
         correctCount: 0,
         totalCount: 0,
-        currentDifficulty: 'medium',
+        currentDifficulty: 'easy',
         trialHistory: [], // 用于自适应
         waitingNext: false,
-        level: 2, // 难度映射: easy=1, medium=2, hard=3
+        level: 1, // 难度映射: easy=1, medium=2, hard=3
       };
 
       let timeoutId = null;
@@ -653,8 +700,6 @@
 
       // DOM 元素
       const container = document.getElementById('gameMainArea');
-      const coinSpan = document.getElementById('coinCount');
-      const scoreSpan = document.getElementById('scoreCount');
       const correctSpan = document.getElementById('correctCount');
       const totalSpan = document.getElementById('totalCount');
       const difficultyTextSpan = document.getElementById('difficultyText');
@@ -686,10 +731,10 @@
 
       // 辅助函数
       function updateUIStats() {
-        coinSpan.innerText = gameState.coins;
-        scoreSpan.innerText = gameState.score;
         correctSpan.innerText = gameState.correctCount;
-        totalSpan.innerText = gameState.totalCount;
+        totalSpan.innerText = (
+          DIFFICULTY_SETTINGS[gameState.currentDifficulty] || DIFFICULTY_SETTINGS['easy']
+        ).totalTrials;
         const diffObj = DIFFICULTY_SETTINGS[gameState.currentDifficulty];
         difficultyTextSpan.innerText = diffObj.name + ' ' + diffObj.stars;
       }
@@ -808,6 +853,7 @@
               canRespond = false;
               gameState.totalCount++;
               updateUIStats();
+              playSoftWrong();
               showFeedbackMessage('时间到啦~ 下次快一点点！', false);
               recordTrialAndNext(false, limitMs);
             }
@@ -831,24 +877,20 @@
 
         // 记录本次尝试
         gameState.totalCount++;
-        let earnedCoins = 0;
         let feedbackMsg = '';
         let isGood = false;
 
         if (validResponse) {
           // 正确：金币奖励 + 言语鼓励（最优组合）
-          const baseReward = 10;
-          const speedBonus = Math.max(0, Math.floor((trial.timeLimit - reactionTime) / 100));
-          earnedCoins = baseReward + speedBonus;
-          gameState.coins += earnedCoins;
-          gameState.score += earnedCoins;
+          playCoinChime();
           gameState.correctCount++;
           isGood = true;
           const randomEnc = ENCOURAGE_MSGS[Math.floor(Math.random() * ENCOURAGE_MSGS.length)];
-          feedbackMsg = `${randomEnc} +${earnedCoins}🪙`;
+          feedbackMsg = randomEnc;
           showFeedbackMessage(feedbackMsg, true);
         } else {
           // 错误：无惩罚，温和反馈
+          playSoftWrong();
           const gentleMsg = GENTLE_FEEDBACK[Math.floor(Math.random() * GENTLE_FEEDBACK.length)];
           feedbackMsg = gentleMsg;
           showFeedbackMessage(feedbackMsg, false);
@@ -903,10 +945,9 @@
       }
 
       function startGame() {
+        if (active) return;
         active = true;
         gameState = {
-          score: 0,
-          coins: 0,
           correctCount: 0,
           totalCount: 0,
           currentDifficulty: gameState.currentDifficulty,
@@ -1252,6 +1293,10 @@
         };
         restartBtn.onclick = function () {
           document.body.removeChild(modal);
+          active = false;
+          if (timerInterval) clearInterval(timerInterval);
+          startScreen.classList.remove('hidden');
+          container.innerHTML = '';
           startGame();
         };
 
@@ -1473,7 +1518,5 @@
       // 页面加载完成后初始化
       window.addEventListener('DOMContentLoaded', initGame);
     </script>
-    <script src="../utils.js"></script>
-    <script src="../attention-loader.js"></script>
   </body>
 </html>
