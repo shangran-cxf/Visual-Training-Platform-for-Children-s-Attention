@@ -801,104 +801,6 @@
         animation: float 3s ease-in-out infinite;
       }
 
-      .reassess-days {
-        font-size: 12px;
-        color: #ff8c42;
-        background: #fff3e8;
-        border-radius: 12px;
-        padding: 4px 14px;
-        display: inline-block;
-        margin-top: 6px;
-        font-weight: 700;
-        position: relative;
-        z-index: 1;
-      }
-
-      .ability-bars {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        justify-content: space-evenly;
-        position: relative;
-        z-index: 1;
-      }
-
-      .ability-bar-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .ability-bar-label {
-        font-size: 15px;
-        font-weight: 700;
-        color: #6b4d2a;
-        width: 80px;
-        flex-shrink: 0;
-        text-align: right;
-      }
-
-      .ability-bar-track {
-        flex: 1;
-        height: 14px;
-        background: #f0e8d8;
-        border-radius: 10px;
-        overflow: hidden;
-      }
-
-      .ability-bar-fill {
-        height: 100%;
-        border-radius: 10px;
-        transition: width 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
-      }
-
-      .ability-bar-fill.sel {
-        background: #e8c4b8;
-      }
-
-      .ability-bar-fill.sus {
-        background: #b0cfe8;
-      }
-
-      .ability-bar-fill.tra {
-        background: #c8d8a8;
-      }
-
-      .ability-bar-fill.mem {
-        background: #c8c8e0;
-      }
-
-      .ability-bar-fill.inh {
-        background: #e8ccd0;
-      }
-
-      .ability-bar-score {
-        font-size: 14px;
-        font-weight: 700;
-        color: #8b6914;
-        width: 38px;
-        text-align: center;
-        flex-shrink: 0;
-      }
-
-      .ability-bar-row.weak-row .ability-bar-fill {
-        animation: barPulse 2.5s ease-in-out infinite;
-      }
-
-      .ability-bar-row.weak-row .ability-bar-label {
-        color: #c06020;
-      }
-
-      @keyframes barPulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.6;
-        }
-      }
-
       /* 游戏卡片样式（沿用原代码） */
       .game-card {
         background: var(--card-bg);
@@ -1597,12 +1499,10 @@
 
         <!-- 右侧：推荐训练 -->
         <div class="recommend-training-card">
-          <h2 class="recommend-title">训练计划</h2>
-          <p class="recommend-subtitle" id="recommendSubtitle">本周薄弱维度（建议今日攻克）</p>
-          <div class="reassess-days" id="reassessDays" style="display: none"></div>
+          <h2 class="recommend-title">推荐训练</h2>
+          <p class="recommend-subtitle">根据历史训练数据推荐</p>
           <div class="recommend-divider"></div>
           <div class="recommend-items"></div>
-          <div class="ability-bars" id="abilityBars"></div>
         </div>
       </div>
     </main>
@@ -1909,51 +1809,27 @@
         ],
       };
 
-      // 从后端获取能力评估数据并推荐薄弱项训练（含历史趋势对比）
+      // 从后端获取能力评估数据并推荐薄弱项训练
       async function recommendGames() {
         const recommendItems = document.querySelector('.recommend-items');
-        const reassessDaysEl = document.getElementById('reassessDays');
-        const recommendSubtitle = document.getElementById('recommendSubtitle');
         if (!recommendItems || !currentChildId) return;
 
+        // 先尝试获取检测数据
         const detectionResult = await ApiUtil.apiGet('/api/get/detection', { child_id: currentChildId });
         let abilities = [];
-        let trends = {};
-        let lastAssessDate = null;
 
         if (detectionResult.success && detectionResult.data && detectionResult.data.length > 0) {
+          // 使用最新的检测数据
           const latest = detectionResult.data[0];
-          const dimKeys = [
-            'selective_attention',
-            'sustained_attention',
-            'visual_tracking',
-            'working_memory',
-            'inhibitory_control',
+          abilities = [
+            { type: 'selective', score: (latest.selective_attention || 0) * 100, name: '选择性注意' },
+            { type: 'sustained', score: (latest.sustained_attention || 0) * 100, name: '持续性注意' },
+            { type: 'tracking', score: (latest.visual_tracking || 0) * 100, name: '视觉追踪' },
+            { type: 'memory', score: (latest.working_memory || 0) * 100, name: '工作记忆' },
+            { type: 'inhibitory', score: (latest.inhibitory_control || 0) * 100, name: '抑制控制' },
           ];
-          const dimTypes = ['selective', 'sustained', 'tracking', 'memory', 'inhibitory'];
-          const dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
-
-          for (let i = 0; i < dimKeys.length; i++) {
-            const score = (latest[dimKeys[i]] || 0) * 100;
-            abilities.push({ type: dimTypes[i], score: score, name: dimNames[i] });
-          }
-
-          if (detectionResult.data.length >= 2) {
-            const previous = detectionResult.data[1];
-            for (let i = 0; i < dimKeys.length; i++) {
-              const prevScore = (previous[dimKeys[i]] || 0) * 100;
-              const currScore = (latest[dimKeys[i]] || 0) * 100;
-              const diff = currScore - prevScore;
-              if (diff > 3) trends[dimTypes[i]] = '↑' + Math.round(Math.abs(diff));
-              else if (diff < -3) trends[dimTypes[i]] = '↓' + Math.round(Math.abs(diff));
-              else trends[dimTypes[i]] = '→';
-            }
-          }
-
-          if (latest.timestamp) {
-            lastAssessDate = new Date(latest.timestamp);
-          }
         } else {
+          // 无检测数据时，使用训练趋势数据推断
           const trendResult = await ApiUtil.apiGet(`/api/training/trend/${currentChildId}`, { days: 30 });
           if (trendResult.success && trendResult.data && trendResult.data.trend) {
             const trend = trendResult.data.trend;
@@ -1967,28 +1843,13 @@
           }
         }
 
-        if (lastAssessDate && reassessDaysEl) {
-          const now = new Date();
-          const diffDays = Math.floor((now - lastAssessDate) / (1000 * 60 * 60 * 24));
-          if (diffDays > 7) {
-            reassessDaysEl.style.display = 'inline-block';
-            reassessDaysEl.textContent = '⏰ 距上次测评已 ' + diffDays + ' 天，建议复测';
-          } else {
-            reassessDaysEl.style.display = 'none';
-          }
-        }
-
         if (abilities.length === 0) {
           recommendItems.innerHTML =
-            '<div class="recommend-empty"><span class="empty-icon">📝</span>尚未测评，先去做一次测评定位薄弱项吧～</div>';
-          if (recommendSubtitle) recommendSubtitle.textContent = '建议先完成测评，再定制专属训练计划';
+            '<div class="recommend-empty"><span class="empty-icon">🎮</span>暂无推荐数据</div>';
           return;
         }
 
-        if (recommendSubtitle) recommendSubtitle.textContent = '本周薄弱维度（建议今日攻克）';
-
         abilities.sort((a, b) => a.score - b.score);
-        const allAbilities = abilities.slice();
         const weakest = abilities.slice(0, 2);
 
         recommendItems.innerHTML = '';
@@ -1998,11 +1859,6 @@
           if (game) {
             const icon = gameIconMap[game.name] || '🎯';
             const label = abilityLabelMap[ability.type] || ability.name;
-            const trendText = trends[ability.type] || '';
-            let trendClass = 'trend-flat';
-            if (trendText.startsWith('↑')) trendClass = 'trend-up';
-            else if (trendText.startsWith('↓')) trendClass = 'trend-down';
-
             const recommendItem = document.createElement('div');
             recommendItem.className = 'recommend-item ' + ability.type;
             recommendItem.onclick = () => startGame(game.path, game.name);
@@ -2019,48 +1875,6 @@
             recommendItems.appendChild(recommendItem);
           }
         });
-
-        renderAbilityBars(allAbilities, weakest);
-      }
-
-      function renderAbilityBars(allAbilities, weakAbilities) {
-        var barsEl = document.getElementById('abilityBars');
-        if (!barsEl) return;
-
-        var dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
-        var dotClasses = ['sel', 'sus', 'tra', 'mem', 'inh'];
-        var weakTypes = weakAbilities.map(function (a) {
-          return a.type;
-        });
-
-        var html = '';
-        for (var i = 0; i < allAbilities.length; i++) {
-          var ab = allAbilities[i];
-          var isWeak = weakTypes.indexOf(ab.type) >= 0;
-          var rowClass = isWeak ? 'ability-bar-row weak-row' : 'ability-bar-row';
-          var scoreClamped = Math.max(0, Math.min(100, Math.round(ab.score)));
-
-          html +=
-            '<div class="' +
-            rowClass +
-            '">' +
-            '<span class="ability-bar-label">' +
-            dimNames[i] +
-            '</span>' +
-            '<div class="ability-bar-track">' +
-            '<div class="ability-bar-fill ' +
-            dotClasses[i] +
-            '" style="width:' +
-            scoreClamped +
-            '%"></div>' +
-            '</div>' +
-            '<span class="ability-bar-score">' +
-            scoreClamped +
-            '分</span>' +
-            '</div>';
-        }
-
-        barsEl.innerHTML = html;
       }
 
       // 开始游戏

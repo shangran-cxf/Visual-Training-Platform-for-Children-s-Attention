@@ -1,30 +1,12 @@
 import math
 
-from config import (
-    DEFAULT_GAME_DATA,
-    DIFFICULTY_MULTIPLIERS,
-    GAME_DIFFICULTY_WEIGHTS,
-    PERFORMANCE_LEVELS,
-    SCORING_WEIGHTS,
-)
+from config import DEFAULT_GAME_DATA, PERFORMANCE_LEVELS, SCORING_WEIGHTS
 
 
 def clamp(value, min_val=0, max_val=1):
     if value is None:
         return 0
     return max(min_val, min(max_val, value))
-
-
-def resolve_scoring_weights(game_type, difficulty_level, attention_type):
-    """Resolve sub-score weights for a specific game+difficulty combination.
-
-    Priority: game_type:difficulty_level  >  attention_type default
-    """
-    if game_type and difficulty_level is not None:
-        key = f"{game_type}:{difficulty_level}"
-        if key in GAME_DIFFICULTY_WEIGHTS:
-            return GAME_DIFFICULTY_WEIGHTS[key]
-    return SCORING_WEIGHTS.get(attention_type, {})
 
 
 def calculate_head_stable(head_yaw_list, head_pitch_list):
@@ -80,9 +62,8 @@ def calculate_std(values):
     return math.sqrt(variance)
 
 
-def calculate_selective_score(game_data, vision_scores, weights=None):
-    if weights is None:
-        weights = SCORING_WEIGHTS["selective"]
+def calculate_selective_score(game_data, vision_scores):
+    weights = SCORING_WEIGHTS["selective"]
 
     correct = game_data.get("correct", 0)
     error = game_data.get("error", 0)
@@ -119,9 +100,8 @@ def calculate_selective_score(game_data, vision_scores, weights=None):
     }
 
 
-def calculate_sustained_score(game_data, vision_scores, weights=None):
-    if weights is None:
-        weights = SCORING_WEIGHTS["sustained"]
+def calculate_sustained_score(game_data, vision_scores):
+    weights = SCORING_WEIGHTS["sustained"]
 
     game_data.get("correct", 0)
     error = game_data.get("error", 0)
@@ -163,9 +143,8 @@ def calculate_sustained_score(game_data, vision_scores, weights=None):
     }
 
 
-def calculate_tracking_score(game_data, vision_scores, weights=None):
-    if weights is None:
-        weights = SCORING_WEIGHTS["tracking"]
+def calculate_tracking_score(game_data, vision_scores):
+    weights = SCORING_WEIGHTS["tracking"]
 
     correct = game_data.get("correct", 0)
     game_data.get("error", 0)
@@ -206,9 +185,8 @@ def calculate_tracking_score(game_data, vision_scores, weights=None):
     }
 
 
-def calculate_memory_score(game_data, vision_scores, weights=None):
-    if weights is None:
-        weights = SCORING_WEIGHTS["memory"]
+def calculate_memory_score(game_data, vision_scores):
+    weights = SCORING_WEIGHTS["memory"]
 
     correct = game_data.get("correct", 0)
     error = game_data.get("error", 0)
@@ -249,9 +227,8 @@ def calculate_memory_score(game_data, vision_scores, weights=None):
     }
 
 
-def calculate_inhibitory_score(game_data, vision_scores, weights=None):
-    if weights is None:
-        weights = SCORING_WEIGHTS["inhibitory"]
+def calculate_inhibitory_score(game_data, vision_scores):
+    weights = SCORING_WEIGHTS["inhibitory"]
 
     correct = game_data.get("correct", 0)
     error = game_data.get("error", 0)
@@ -301,10 +278,8 @@ def get_performance_level(score):
         return PERFORMANCE_LEVELS["weak"]["name"]
 
 
-def calculate_score(attention_type, game_data, vision_scores, game_type=None, difficulty_level=None):
+def calculate_score(attention_type, game_data, vision_scores):
     game_data = {**DEFAULT_GAME_DATA, **game_data}
-
-    weights = resolve_scoring_weights(game_type, difficulty_level, attention_type)
 
     calculators = {
         "selective": calculate_selective_score,
@@ -318,12 +293,9 @@ def calculate_score(attention_type, game_data, vision_scores, game_type=None, di
     if not calculator:
         return {"final_score": 0, "performance_level": "较弱", "error": f"未知的注意力类型: {attention_type}"}
 
-    result = calculator(game_data, vision_scores, weights)
-
-    difficulty_mult = DIFFICULTY_MULTIPLIERS.get(difficulty_level, 1.0)
-    result["final_score"] = clamp(result["final_score"] * difficulty_mult, 0, 100)
-
+    result = calculator(game_data, vision_scores)
     result["performance_level"] = get_performance_level(result["final_score"])
+
     return result
 
 

@@ -1,13 +1,4 @@
-import json
-import math
 import statistics
-from datetime import UTC, datetime
-
-from config import (
-    ENABLE_CROSS_GAME_NORMALIZATION,
-    GAME_SCORE_CALIBRATION,
-    TIME_DECAY_HALF_LIFE_DAYS,
-)
 
 
 class AttentionAnalyzer:
@@ -35,52 +26,6 @@ class AttentionAnalyzer:
     }
 
     PERFORMANCE_LEVELS = {(90, 100): "优秀", (75, 89.99): "良好", (50, 74.99): "一般", (0, 49.99): "较弱"}
-
-    @staticmethod
-    def _compute_decay_weight(session_date_str, reference_date=None, half_life_days=None):
-        """Exponential time decay. A session half_life_days old gets 50% weight."""
-        if half_life_days is None:
-            half_life_days = TIME_DECAY_HALF_LIFE_DAYS
-        if not session_date_str:
-            return 1.0
-        if reference_date is None:
-            reference_date = datetime.now(UTC)
-        try:
-            if isinstance(session_date_str, str):
-                session_date_str = session_date_str.replace("Z", "+00:00")
-                session_date = datetime.fromisoformat(session_date_str)
-                if session_date.tzinfo is None:
-                    session_date = session_date.replace(tzinfo=UTC)
-            else:
-                session_date = session_date_str
-            days_ago = (reference_date - session_date).total_seconds() / 86400
-            if days_ago < 0:
-                days_ago = 0
-            return math.pow(0.5, days_ago / half_life_days)
-        except Exception:
-            return 1.0
-
-    @staticmethod
-    def _weighted_mean(values, weights):
-        """Weighted mean. Falls back to simple mean when weights sum to 0."""
-        if not values or not weights:
-            return 0.0
-        total_weight = sum(weights)
-        if total_weight == 0:
-            return sum(values) / len(values)
-        return sum(v * w for v, w in zip(values, weights, strict=False)) / total_weight
-
-    @staticmethod
-    def _normalize_score(raw_score, game_type):
-        """Convert raw score to T-score (mean=50, std=10) using per-game calibration."""
-        if not ENABLE_CROSS_GAME_NORMALIZATION:
-            return raw_score
-        calib = GAME_SCORE_CALIBRATION.get(game_type)
-        if not calib or calib.get("std", 0) == 0:
-            return raw_score
-        z_score = (raw_score - calib["mean"]) / calib["std"]
-        t_score = 50 + z_score * 10
-        return max(0.0, min(100.0, t_score))
 
     @staticmethod
     def calculate_attention_score(vision_data: dict, game_data: dict) -> float:
@@ -146,7 +91,7 @@ class AttentionAnalyzer:
 
     @staticmethod
     def assess_five_dimensions(sessions_data: list) -> dict:
-        """评估五维注意力能力（带时间衰减、跨游戏归一化、多维度拆分）
+        """评估五维注意力能力
 
         Args:
             sessions_data: 训练会话数据列表，每个元素包含:
@@ -154,9 +99,6 @@ class AttentionAnalyzer:
                 - overall_score: 综合评分
                 - accuracy: 正确率
                 - attention_stability: 注意力稳定性
-                - dimension_contributions: JSON字符串或dict (新会话)
-                - normalized_score: 跨游戏归一化分 (新会话)
-                - date / created_at: 会话日期 (用于时间衰减)
 
         Returns:
             五维注意力评分字典
@@ -168,59 +110,26 @@ class AttentionAnalyzer:
             "working_memory": [],
             "inhibitory_control": [],
         }
-        dimension_weights = {
-            "selective_attention": [],
-            "sustained_attention": [],
-            "visual_tracking": [],
-            "working_memory": [],
-            "inhibitory_control": [],
-        }
 
         for session in sessions_data:
             game_type = session.get("game_type")
-            if not game_type:
+            if game_type not in AttentionAnalyzer.GAME_DIMENSION_MAP:
                 continue
 
+            dimensions = AttentionAnalyzer.GAME_DIMENSION_MAP[game_type]
             score = session.get("overall_score", 0)
+            accuracy = session.get("accuracy", 0)
+            stability = session.get("attention_stability", 0)
 
-            # Prefer normalized_score, fall back to raw overall_score
-            normalized = session.get("normalized_score")
-            base_score = normalized if normalized is not None else AttentionAnalyzer._normalize_score(score, game_type)
+            weighted_score = score * 0.5 + accuracy * 0.3 + stability * 0.2
 
-            # Time decay weight
-            session_date = session.get("created_at") or session.get("date")
-            decay_weight = AttentionAnalyzer._compute_decay_weight(session_date)
-
-            # Resolve dimension contributions
-            contributions_raw = session.get("dimension_contributions")
-            if contributions_raw:
-                if isinstance(contributions_raw, str):
-                    try:
-                        contributions = json.loads(contributions_raw)
-                    except (json.JSONDecodeError, TypeError):
-                        contributions = None
-                else:
-                    contributions = contributions_raw
-
-            if contributions:
-                for dim, fraction in contributions.items():
-                    if dim in dimension_scores:
-                        dimension_scores[dim].append(base_score * fraction)
-                        dimension_weights[dim].append(decay_weight * fraction)
-            else:
-                # Legacy: binary GAME_DIMENSION_MAP with full score per dimension
-                dimensions = AttentionAnalyzer.GAME_DIMENSION_MAP.get(game_type, [])
-                for dim in dimensions:
-                    if dim in dimension_scores:
-                        dimension_scores[dim].append(base_score)
-                        dimension_weights[dim].append(decay_weight)
+            for dimension in dimensions:
+                dimension_scores[dimension].append(weighted_score)
 
         result = {}
-        for dimension in dimension_scores:
-            scores = dimension_scores[dimension]
-            weights = dimension_weights[dimension]
+        for dimension, scores in dimension_scores.items():
             if scores:
-                result[dimension] = round(AttentionAnalyzer._weighted_mean(scores, weights), 2)
+                result[dimension] = round(statistics.mean(scores), 2)
             else:
                 result[dimension] = 0.0
 
@@ -228,7 +137,7 @@ class AttentionAnalyzer:
 
     @staticmethod
     def analyze_trend(historical_data: list) -> dict:
-        """分析注意力趋势（带时间衰减）
+        """分析注意力趋势
 
         Args:
             historical_data: 历史训练数据列表，按时间排序，每个元素包含:
@@ -243,17 +152,13 @@ class AttentionAnalyzer:
             return {"trend": "stable", "change_rate": 0.0, "description": "数据不足，无法分析趋势"}
 
         scores = [d.get("overall_score", 0) for d in historical_data]
-        dates = [d.get("date") or d.get("created_at") for d in historical_data]
-        weights = [AttentionAnalyzer._compute_decay_weight(d) for d in dates]
 
         if len(scores) >= 3:
             recent_scores = scores[-3:]
-            recent_weights = weights[-3:]
             earlier_scores = scores[:-3] if len(scores) > 3 else scores[:1]
-            earlier_weights = weights[:-3] if len(weights) > 3 else weights[:1]
 
-            recent_avg = AttentionAnalyzer._weighted_mean(recent_scores, recent_weights)
-            earlier_avg = AttentionAnalyzer._weighted_mean(earlier_scores, earlier_weights)
+            recent_avg = statistics.mean(recent_scores)
+            earlier_avg = statistics.mean(earlier_scores)
 
             change_rate = 0.0 if earlier_avg == 0 else (recent_avg - earlier_avg) / earlier_avg * 100
 
@@ -282,16 +187,14 @@ class AttentionAnalyzer:
                 trend = "stable"
                 description = "注意力表现稳定"
 
-        overall_avg = AttentionAnalyzer._weighted_mean(scores, weights)
-
         return {
             "trend": trend,
             "change_rate": round(change_rate, 2),
             "description": description,
-            "recent_average": round(AttentionAnalyzer._weighted_mean(scores[-3:], weights[-3:]), 2)
+            "recent_average": round(statistics.mean(scores[-3:]), 2)
             if len(scores) >= 3
-            else round(overall_avg, 2),
-            "overall_average": round(overall_avg, 2),
+            else round(statistics.mean(scores), 2),
+            "overall_average": round(statistics.mean(scores), 2),
         }
 
     @staticmethod

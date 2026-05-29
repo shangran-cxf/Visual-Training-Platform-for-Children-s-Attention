@@ -36,29 +36,15 @@ def register():
             fetch_last_id=True,
         )
 
-        created_children = []
         for child in children:
             child_name = child.get("name")
             child_age = child.get("age")
             if child_name:
-                _, child_id = execute_db(
-                    "INSERT INTO children (parent_id, name, age) VALUES (?, ?, ?)",
-                    (parent_id, child_name, child_age),
-                    fetch_last_id=True,
+                execute_db(
+                    "INSERT INTO children (parent_id, name, age) VALUES (?, ?, ?)", (parent_id, child_name, child_age)
                 )
-                created_children.append({"id": child_id, "name": child_name, "age": child_age})
 
-        token = generate_token(parent_id, "user")
-
-        return jsonify(
-            {
-                "parent_id": parent_id,
-                "uid": uid,
-                "token": token,
-                "role": "user",
-                "children": created_children,
-            }
-        ), 201
+        return jsonify({"parent_id": parent_id, "uid": uid}), 201
     except sqlite3.IntegrityError:
         return error_response("用户名已存在", status=400)
 

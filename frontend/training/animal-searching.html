@@ -1,662 +1,686 @@
 <!doctype html>
 <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>森林动物追踪战</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>森林动物追踪战</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+      body {
+        font-family: 'Arial', sans-serif;
+        background-image: url('../images/ground14.png');
+        background-size: cover;
+        background-position: center;
+        color: #333;
+        min-height: 100vh;
+      }
 
-    body {
-      font-family: 'Arial', sans-serif;
-      background-image: url('../images/ground14.png');
-      background-size: cover;
-      background-position: center;
-      color: #333;
-      min-height: 100vh;
-    }
+      .container {
+        max-width: 100vw;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 20px;
+        position: relative;
+      }
 
-    .container {
-      max-width: 100vw;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 20px;
-      position: relative;
-    }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
 
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
+      .header h1 {
+        color: #fff;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 0 0 20px rgba(99, 255, 154, 0.8);
+      }
 
-    .header h1 {
-      color: #fff;
-      font-size: 2.5em;
-      margin-bottom: 10px;
-      text-shadow: 0 0 20px rgba(99, 255, 154, 0.8);
-    }
+      .header p {
+        font-size: 1.1em;
+        color: #fff;
+        text-shadow: 0 0 10px rgba(118, 255, 125, 0.8);
+      }
 
-    .header p {
-      font-size: 1.1em;
-      color: #fff;
-      text-shadow: 0 0 10px rgba(118, 255, 125, 0.8);
-    }
+      .game-area {
+        background-image: url('../images/ground13.png');
+        background-size: cover;
+        background-position: center;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 0 30px #244237;
+        margin-bottom: 30px;
+        border: 1px solid #244237;
+      }
 
-    .game-area {
-      background-image: url('../images/ground13.png');
-      background-size: cover;
-      background-position: center;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 0 30px #244237;
-      margin-bottom: 30px;
-      border: 1px solid #244237;
-    }
+      .game-info {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 10px;
+        font-size: 20px;
+        background: rgba(255, 255, 255, 0.5);
+        padding: 5px 15px;
+        border-radius: 20px;
+        color: #223b32;
+        font-weight: bold;
+      }
 
-    .game-info {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 10px;
-      font-size: 20px;
-      background: rgba(255, 255, 255, 0.5);
-      padding: 5px 15px;
-      border-radius: 20px;
-      color: #223b32;
-      font-weight: bold;
-    }
+      .canvas-container {
+        width: 500px;
+        height: 500px;
+        background: transparent;
+        border: 5px solid #7dad86;
+        border-radius: 15px;
+        position: relative;
+        margin: 0 auto 20px;
+      }
 
-    .canvas-container {
-      width: 500px;
-      height: 500px;
-      background: transparent;
-      border: 5px solid #7dad86;
-      border-radius: 15px;
-      position: relative;
-      margin: 0 auto 20px;
-    }
+      canvas {
+        background: transparent;
+        display: block;
+        transform: translateZ(0);
+        will-change: transform;
+      }
 
-    canvas {
-      background: transparent;
-      display: block;
-      transform: translateZ(0);
-      will-change: transform;
-    }
+      .instructions {
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 15px;
+        padding: 20px 30px;
+        margin-bottom: 10px;
+      }
 
-    .instructions {
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 15px;
-      padding: 20px 30px;
-      margin-bottom: 10px;
-    }
+      .instructions h2 {
+        color: #0f6204;
+        margin-bottom: 10px;
+      }
 
-    .instructions h2 {
-      color: #0f6204;
-      margin-bottom: 10px;
-    }
+      .difficulty-selector {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 30px;
+      }
 
-    .difficulty-selector {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
+      .difficulty-btn {
+        padding: 10px 40px;
+        border: 2px solid #d9e679;
+        background: rgba(255, 255, 255, 0.8);
+        color: #d9e679;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s;
+      }
 
-    .difficulty-btn {
-      padding: 10px 40px;
-      border: 2px solid #d9e679;
-      background: rgba(255, 255, 255, 0.8);
-      color: #d9e679;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s;
-    }
+      .difficulty-btn:hover {
+        background: rgba(255, 193, 7, 0.2);
+      }
 
-    .difficulty-btn:hover {
-      background: rgba(255, 193, 7, 0.2);
-    }
+      .difficulty-btn.active {
+        background: #d9e679;
+        color: #223b32;
+      }
 
-    .difficulty-btn.active {
-      background: #d9e679;
-      color: #223b32;
-    }
+      .controls {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 5;
+      }
 
-    .controls {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 5;
-    }
+      .btn {
+        background: linear-gradient(135deg, #b9d372, #a9ccb4);
+        color: white;
+        border: none;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        font-size: 30px;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 0 20px #a9ccb4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    .btn {
-      background: linear-gradient(135deg, #b9d372, #a9ccb4);
-      color: white;
-      border: none;
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      font-size: 30px;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 0 20px #a9ccb4;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+      .btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 30px #a9ccb4;
+      }
 
-    .btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 30px #a9ccb4;
-    }
+      .btn.hidden {
+        display: none;
+      }
 
-    .btn.hidden {
-      display: none;
-    }
+      .back-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        background: linear-gradient(135deg, #fff, #065514);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 30px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    .back-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 1000;
-      background: linear-gradient(135deg, #fff, #065514);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      font-size: 30px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+      .back-btn:hover {
+        transform: scale(1.1) rotate(10deg);
+      }
 
-    .back-btn:hover {
-      transform: scale(1.1) rotate(10deg);
-    }
-
-    @keyframes fadeIn {
-      from {
+      /* 游戏结束弹窗 */
+      .game-over-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(10, 30, 15, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
         opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.35s ease,
+          visibility 0.35s ease;
       }
 
-      to {
+      .game-over-modal.show {
         opacity: 1;
-      }
-    }
-
-    @keyframes cosmosBloom {
-      0% {
-        transform: scale(0.8) translateY(40px);
-        opacity: 0;
+        visibility: visible;
       }
 
-      100% {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes revealUp {
-      0% {
-        transform: translateY(12px);
-        opacity: 0;
-      }
-
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes forestBounce {
-
-      0%,
-      100% {
-        transform: translateY(0);
-        opacity: 0.6;
+      .modal-content {
+        background: linear-gradient(170deg, #e8f0e3 0%, #c8d9b8 25%, #9bb87f 60%, #5d7a4a 100%);
+        border-radius: 28px;
+        padding: 44px 36px 36px;
+        text-align: center;
+        box-shadow:
+          0 16px 56px rgba(10, 40, 15, 0.5),
+          0 0 0 3px rgba(180, 210, 130, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        max-width: 420px;
+        width: 90%;
+        position: relative;
+        overflow: hidden;
+        animation: forestBloom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       }
 
-      50% {
-        transform: translateY(-8px);
-        opacity: 1;
+      .modal-content::before {
+        content: '';
+        position: absolute;
+        top: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 260px;
+        height: 260px;
+        background: radial-gradient(ellipse, rgba(255, 210, 60, 0.18) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
       }
-    }
-  </style>
-</head>
 
-<body>
-  <div class="container">
-    <button class="back-btn" onclick="window.location.href = '../child-home.html'">←</button>
-    <div class="header">
-      <h1>森林动物追踪战</h1>
-      <p>化身森林小侦探，找到发光的小动物，锻炼注意力分配能力！</p>
-    </div>
-    <div class="game-area">
-      <div class="instructions">
-        <h2>游戏说明</h2>
-        <ul>
-          <li>游戏开始时，会有几只发光的小动物短暂闪烁，请记住它们的位置</li>
-          <li>移动停止后，点击你记住的发光小动物</li>
-        </ul>
+      .modal-content::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: radial-gradient(ellipse at bottom, rgba(40, 80, 30, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      @keyframes forestBloom {
+        0% {
+          transform: scale(0.75) translateY(50px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-icon {
+        font-size: 50px;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+        animation: iconFloat 0.55s 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes iconFloat {
+        0% {
+          transform: translateY(20px) scale(0);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-content h2 {
+        color: #1b3a1a;
+        font-size: 26px;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+        animation: fadeSlideUp 0.5s 0.25s ease both;
+      }
+
+      .modal-subtitle {
+        color: #4a6d3a;
+        font-size: 13px;
+        margin-bottom: 22px;
+        position: relative;
+        z-index: 1;
+        animation: fadeSlideUp 0.5s 0.32s ease both;
+      }
+
+      @keyframes fadeSlideUp {
+        0% {
+          transform: translateY(10px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .modal-stat {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(4px);
+        border-radius: 14px;
+        padding: 12px 8px;
+        border: 1.5px solid rgba(130, 170, 100, 0.35);
+        animation: fadeSlideUp 0.5s ease both;
+      }
+
+      .modal-stat:nth-child(1) {
+        animation-delay: 0.38s;
+      }
+
+      .modal-stat:nth-child(2) {
+        animation-delay: 0.44s;
+      }
+
+      .modal-stat:nth-child(3) {
+        animation-delay: 0.5s;
+      }
+
+      .modal-stat:nth-child(4) {
+        animation-delay: 0.56s;
+      }
+
+      .modal-stat.highlight {
+        background: rgba(255, 215, 80, 0.15);
+        border-color: rgba(200, 170, 60, 0.5);
+      }
+
+      .modal-stat .ms-label {
+        color: #4a6d3a;
+        font-size: 11px;
+        font-weight: bold;
+        margin-bottom: 3px;
+      }
+
+      .modal-stat .ms-value {
+        color: #1b3a1a;
+        font-size: 22px;
+        font-weight: bold;
+      }
+
+      .modal-stat.highlight .ms-value {
+        color: #5d4037;
+        font-size: 26px;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        animation: fadeSlideUp 0.5s 0.62s ease both;
+      }
+
+      .modal-btn {
+        padding: 11px 26px;
+        border: none;
+        border-radius: 25px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+
+      .modal-btn.restart {
+        background: linear-gradient(135deg, #7cb342, #558b2f);
+        color: white;
+        box-shadow: 0 4px 14px rgba(85, 139, 47, 0.35);
+      }
+
+      .modal-btn.restart:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(85, 139, 47, 0.5);
+      }
+
+      .modal-btn.back {
+        background: transparent;
+        color: #4a6d3a;
+        border: 2px solid #a5c68a;
+      }
+
+      .modal-btn.back:hover {
+        background: rgba(130, 170, 100, 0.12);
+        border-color: #7cb342;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <button class="back-btn" onclick="window.location.href = '../child-home.html'">←</button>
+      <div class="header">
+        <h1>森林动物追踪战</h1>
+        <p>化身森林小侦探，找到发光的小动物，锻炼注意力分配能力！</p>
       </div>
-      <div class="difficulty-selector">
-        <button class="difficulty-btn active" id="easyBtn">简单</button>
-        <button class="difficulty-btn" id="mediumBtn">中等</button>
-        <button class="difficulty-btn" id="hardBtn">困难</button>
-      </div>
-      <div class="game-info">
-        <div>轮次: <span id="roundText">1</span>/3</div>
-        <div>得分: <span id="scoreText">0</span></div>
-        <div>错误: <span id="errorText">0</span></div>
-      </div>
-      <div class="canvas-container">
-        <canvas id="gameCanvas" width="500" height="500"></canvas>
-        <div class="controls">
-          <button class="btn" id="startBtn">开始</button>
+      <div class="game-area">
+        <div class="instructions">
+          <h2>游戏说明</h2>
+          <ul>
+            <li>游戏开始时，会有几只发光的小动物短暂闪烁，请记住它们的位置</li>
+            <li>移动停止后，点击你记住的发光小动物</li>
+          </ul>
+        </div>
+        <div class="difficulty-selector">
+          <button class="difficulty-btn active" id="easyBtn">简单</button>
+          <button class="difficulty-btn" id="mediumBtn">中等</button>
+          <button class="difficulty-btn" id="hardBtn">困难</button>
+        </div>
+        <div class="game-info">
+          <div>轮次: <span id="roundText">1</span>/3</div>
+          <div>得分: <span id="scoreText">0</span></div>
+          <div>错误: <span id="errorText">0</span></div>
+        </div>
+        <div class="canvas-container">
+          <canvas id="gameCanvas" width="500" height="500"></canvas>
+          <div class="controls">
+            <button class="btn" id="startBtn">开始</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const startBtn = document.getElementById('startBtn');
-    const roundText = document.getElementById('roundText');
-    const scoreText = document.getElementById('scoreText');
-    const errorText = document.getElementById('errorText');
-    const easyBtn = document.getElementById('easyBtn');
-    const mediumBtn = document.getElementById('mediumBtn');
-    const hardBtn = document.getElementById('hardBtn');
+    <!-- 游戏结束弹窗 -->
+    <div class="game-over-modal" id="gameOverModal">
+      <div class="modal-content">
+        <div class="modal-icon">🦊</div>
+        <h2>森林探险完成！</h2>
+        <p class="modal-subtitle">你成功找到了所有发光的小动物</p>
+        <div class="modal-stats">
+          <div class="modal-stat highlight">
+            <div class="ms-label">🏆 得分</div>
+            <div class="ms-value" id="finalScore">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="ms-label">✅ 找到</div>
+            <div class="ms-value" id="finalHits">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="ms-label">❌ 误点</div>
+            <div class="ms-value" id="finalErrors">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="ms-label">⏱️ 用时</div>
+            <div class="ms-value" id="finalTime">0s</div>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button class="modal-btn restart" onclick="resetGame()">再玩一次</button>
+          <button class="modal-btn back" onclick="resetGame()">返回</button>
+        </div>
+      </div>
+    </div>
 
-    // 动物图片路径
-    const animalImages = [
-      '../images/angela.png',
-      '../images/squrriel.png',
-      '../images/rabbit.png',
-      '../images/hedgehog.png',
-      '../images/fox.png',
-      '../images/bird.png',
-    ];
+    <script>
+      // ===================== 核心稳定游戏逻辑（永不卡死）=====================
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const startBtn = document.getElementById('startBtn');
+      const roundText = document.getElementById('roundText');
+      const scoreText = document.getElementById('scoreText');
+      const errorText = document.getElementById('errorText');
+      const easyBtn = document.getElementById('easyBtn');
+      const mediumBtn = document.getElementById('mediumBtn');
+      const hardBtn = document.getElementById('hardBtn');
+      const gameOverModal = document.getElementById('gameOverModal');
+      const finalScore = document.getElementById('finalScore');
+      const finalErrors = document.getElementById('finalErrors');
+      const finalHits = document.getElementById('finalHits');
+      const finalTime = document.getElementById('finalTime');
 
-    // 预加载图片
-    const loadedImages = {};
-    animalImages.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-      loadedImages[src] = img;
-    });
+      // 动物图片路径
+      const animalImages = [
+        '../images/angela.png',
+        '../images/squrriel.png',
+        '../images/rabbit.png',
+        '../images/hedgehog.png',
+        '../images/fox.png',
+        '../images/bird.png',
+      ];
 
-    // 预渲染发光光晕（避免每帧创建 RadialGradient）
-    const glowSize = 75;
-    const glowCanvas = document.createElement('canvas');
-    glowCanvas.width = glowSize * 2;
-    glowCanvas.height = glowSize * 2;
-    const glowCtx = glowCanvas.getContext('2d');
-    const glowGrad = glowCtx.createRadialGradient(
-      glowSize,
-      glowSize,
-      glowSize * 0.25,
-      glowSize,
-      glowSize,
-      glowSize * 0.85,
-    );
-    glowGrad.addColorStop(0, 'rgba(255, 235, 59, 0.5)');
-    glowGrad.addColorStop(0.5, 'rgba(255, 193, 7, 0.22)');
-    glowGrad.addColorStop(1, 'rgba(255, 193, 7, 0)');
-    glowCtx.fillStyle = glowGrad;
-    glowCtx.beginPath();
-    glowCtx.arc(glowSize, glowSize, glowSize * 0.85, 0, Math.PI * 2);
-    glowCtx.fill();
-
-    let objects = [];
-    let score = 0;
-    let errors = 0;
-    let round = 1;
-    const maxRound = 3;
-    let gameState = 'ready'; // ready → highlighting → moving → selecting
-    let animationId = null;
-    let moveEndTime;
-    let totalClick = 0;
-    let reactionTimes = [];
-    let selectionStartTime = 0;
-    let gameStartTime = 0;
-    let lastFrameTime = 0;
-
-    // [scoring-system] Session created in startGame() so vision data
-    // covers the full gameplay period, not just the end-of-game API window.
-    let gameSessionId = null;
-
-    // 难度
-    let difficulty = { count: 8, target: 1, speed: 3, moveTime: 3000, highTime: 1500 };
-    let currentDifficultyKey = 'easy';
-    function setDifficulty(diff) {
-      currentDifficultyKey = diff;
-      if (diff === 'easy') difficulty = { count: 8, target: 1, speed: 3, moveTime: 3000, highTime: 1500 };
-      if (diff === 'medium') difficulty = { count: 10, target: 2, speed: 4, moveTime: 3500, highTime: 1200 };
-      if (diff === 'hard') difficulty = { count: 12, target: 3, speed: 4.5, moveTime: 4000, highTime: 1000 };
-      document.querySelectorAll('.difficulty-btn').forEach((b) => b.classList.remove('active'));
-      if (diff === 'easy') easyBtn.classList.add('active');
-      if (diff === 'medium') mediumBtn.classList.add('active');
-      if (diff === 'hard') hardBtn.classList.add('active');
-      reset();
-    }
-    easyBtn.onclick = () => setDifficulty('easy');
-    mediumBtn.onclick = () => setDifficulty('medium');
-    hardBtn.onclick = () => setDifficulty('hard');
-
-    // 清空动画
-    function clearAnim() {
-      if (animationId) cancelAnimationFrame(animationId);
-    }
-
-    // 重置
-    function reset() {
-      clearAnim();
-      gameState = 'ready';
-      objects = [];
-      score = 0;
-      errors = 0;
-      round = 1;
-      totalClick = 0;
-      reactionTimes = [];
-      selectionStartTime = 0;
-      updateUI();
-      startBtn.classList.remove('hidden');
-      ctx.clearRect(0, 0, 500, 500);
-    }
-
-    // 检查两个物体是否重叠（真实距离 + 缓冲间距）
-    function checkOverlap(obj1, obj2) {
-      const dx = obj1.x + obj1.size / 2 - (obj2.x + obj2.size / 2);
-      const dy = obj1.y + obj1.size / 2 - (obj2.y + obj2.size / 2);
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      return dist < obj1.size + 20;
-    }
-
-    // 创建物体
-    function createObjects() {
-      objects = [];
-      let total = difficulty.count;
-      let targetCount = difficulty.target;
-      const spawnMax = 425;
-      for (let i = 0; i < total; i++) {
-        let attempts = 0;
-        let validPosition = false;
-        let newObj = null;
-
-        while (!validPosition && attempts < 200) {
-          const randomImage = animalImages[Math.floor(Math.random() * animalImages.length)];
-          const angle = Math.random() * Math.PI * 2;
-          newObj = {
-            x: Math.random() * spawnMax,
-            y: Math.random() * spawnMax,
-            size: 75,
-            vx: Math.cos(angle) * difficulty.speed,
-            vy: Math.sin(angle) * difficulty.speed,
-            isTarget: i < targetCount,
-            selected: false,
-            image: randomImage,
-            animation: 0,
-          };
-
-          validPosition = true;
-          for (let j = 0; j < objects.length; j++) {
-            if (checkOverlap(newObj, objects[j])) {
-              validPosition = false;
-              break;
-            }
-          }
-          attempts++;
-        }
-
-        if (newObj) {
-          objects.push(newObj);
-        }
-      }
-    }
-
-    // 移动停止后分离所有重叠的动物
-    function separateOverlapping() {
-      for (let iter = 0; iter < 10; iter++) {
-        let hasOverlap = false;
-        for (let i = 0; i < objects.length; i++) {
-          for (let j = i + 1; j < objects.length; j++) {
-            const a = objects[i];
-            const b = objects[j];
-            const cxA = a.x + a.size / 2;
-            const cyA = a.y + a.size / 2;
-            const cxB = b.x + b.size / 2;
-            const cyB = b.y + b.size / 2;
-            const dx = cxA - cxB;
-            const dy = cyA - cyB;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const minDist = a.size + 10;
-            if (dist < minDist && dist > 0) {
-              hasOverlap = true;
-              const nx = dx / dist;
-              const ny = dy / dist;
-              const push = (minDist - dist) / 2;
-              a.x += nx * push;
-              a.y += ny * push;
-              b.x -= nx * push;
-              b.y -= ny * push;
-              a.x = Math.max(0, Math.min(500 - a.size, a.x));
-              a.y = Math.max(0, Math.min(500 - a.size, a.y));
-              b.x = Math.max(0, Math.min(500 - b.size, b.x));
-              b.y = Math.max(0, Math.min(500 - b.size, b.y));
-            }
-          }
-        }
-        if (!hasOverlap) break;
-      }
-    }
-
-    // 开始
-    startBtn.onclick = () => {
-      if (gameState !== 'ready') return;
-      clearAnim();
-      gameState = 'highlighting';
-      startBtn.classList.add('hidden');
-      gameStartTime = Date.now();
-      lastFrameTime = 0;
-      createObjects();
-      animate();
-      setTimeout(() => {
-        gameState = 'moving';
-        moveEndTime = Date.now() + difficulty.moveTime;
-      }, difficulty.highTime);
-
-      // [scoring-system] Create training session at game start so that
-      // vision data captured during gameplay is associated with this session.
-      const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const _baseUrl = _isLocal ? 'http://localhost:5000' : window.location.origin;
-      const _userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-      const _childId =
-        (typeof UserStateUtil !== 'undefined' ? UserStateUtil.getCurrentChildId() : null) ||
-        _userInfo?.currentChildId ||
-        1;
-
-      fetch(`${_baseUrl}/api/training/session/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: JSON.stringify({
-          child_id: _childId,
-          game_type: 'animal-searching',
-          device_id: 'web',
-        }),
-      })
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success) {
-            gameSessionId = res.data.session_id;
-            if (typeof visionUploader !== 'undefined') {
-              visionUploader.start(gameSessionId);
-            }
-          }
-        })
-        .catch((err) => {
-          console.warn('Failed to create session at game start:', err);
-        });
-    };
-
-    function animate(timestamp) {
-      if (!lastFrameTime) lastFrameTime = timestamp;
-      const rawDt = (timestamp - lastFrameTime) / 1000;
-      const dt = Math.min(rawDt, 0.1);
-      lastFrameTime = timestamp;
-
-      ctx.clearRect(0, 0, 500, 500);
-
-      if (gameState === 'moving') {
-        const scale = dt * 60;
-        objects.forEach((o) => {
-          o.x += o.vx * scale;
-          o.y += o.vy * scale;
-          if (o.x < 0) {
-            o.x = 0;
-            o.vx *= -1;
-          }
-          if (o.x + o.size > 500) {
-            o.x = 500 - o.size;
-            o.vx *= -1;
-          }
-          if (o.y < 0) {
-            o.y = 0;
-            o.vy *= -1;
-          }
-          if (o.y + o.size > 500) {
-            o.y = 500 - o.size;
-            o.vy *= -1;
-          }
-        });
-        if (Date.now() > moveEndTime) {
-          separateOverlapping();
-          gameState = 'selecting';
-          selectionStartTime = Date.now();
-        }
-      }
-
-      // 绘制
-      objects.forEach((o) => {
-        const rx = Math.round(o.x);
-        const ry = Math.round(o.y);
-
-        // 发光效果 - 使用预渲染光晕图片
-        if (o.isTarget && gameState === 'highlighting') {
-          ctx.save();
-          ctx.shadowColor = '#FFC107';
-          ctx.shadowBlur = 35;
-          ctx.drawImage(glowCanvas, rx - glowSize / 2, ry - glowSize / 2, glowSize * 2, glowSize * 2);
-          ctx.restore();
-          ctx.drawImage(glowCanvas, rx - glowSize / 2, ry - glowSize / 2, glowSize * 2, glowSize * 2);
-        }
-
-        // 绘制动物图片
-        const img = loadedImages[o.image];
-        if (img) {
-          ctx.drawImage(img, rx, ry, o.size, o.size);
-        }
-
-        // 动画效果 - 闪光效果
-        if (o.animation > 0) {
-          o.animation += 0.2;
-          if (o.animation > 1) {
-            o.animation = 0;
-          }
-          const animationRadius = o.size / 2 + o.animation * 30;
-          const alpha = 1 - o.animation;
-          ctx.strokeStyle = o.isTarget ? `rgba(27, 94, 32, ${alpha})` : `rgba(244, 67, 54, ${alpha})`;
-          ctx.lineWidth = 4;
-          ctx.beginPath();
-          ctx.arc(o.x + o.size / 2, o.y + o.size / 2, animationRadius, 0, Math.PI * 2);
-          ctx.stroke();
-
-          const centerRadius = o.animation * 15;
-          ctx.fillStyle = o.isTarget ? `rgba(27, 94, 32, ${alpha})` : `rgba(244, 67, 54, ${alpha})`;
-          ctx.beginPath();
-          ctx.arc(o.x + o.size / 2, o.y + o.size / 2, centerRadius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // 选中效果
-        if (o.selected) {
-          ctx.strokeStyle = o.isTarget ? '#1B5E20' : '#F44336';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(o.x + o.size / 2, o.y + o.size / 2, o.size / 2, 0, Math.PI * 2);
-          ctx.stroke();
-        }
+      // 预加载图片
+      const loadedImages = {};
+      animalImages.forEach((src) => {
+        const img = new Image();
+        img.src = src;
+        loadedImages[src] = img;
       });
 
-      animationId = requestAnimationFrame(animate);
-    }
+      // 预渲染发光光晕（避免每帧创建 RadialGradient）
+      const glowSize = 75;
+      const glowCanvas = document.createElement('canvas');
+      glowCanvas.width = glowSize * 2;
+      glowCanvas.height = glowSize * 2;
+      const glowCtx = glowCanvas.getContext('2d');
+      const glowGrad = glowCtx.createRadialGradient(
+        glowSize,
+        glowSize,
+        glowSize * 0.25,
+        glowSize,
+        glowSize,
+        glowSize * 0.85,
+      );
+      glowGrad.addColorStop(0, 'rgba(255, 235, 59, 0.5)');
+      glowGrad.addColorStop(0.5, 'rgba(255, 193, 7, 0.22)');
+      glowGrad.addColorStop(1, 'rgba(255, 193, 7, 0)');
+      glowCtx.fillStyle = glowGrad;
+      glowCtx.beginPath();
+      glowCtx.arc(glowSize, glowSize, glowSize * 0.85, 0, Math.PI * 2);
+      glowCtx.fill();
 
-    // 点击（绝对有效）
-    canvas.onclick = (e) => {
-      if (gameState !== 'selecting') return;
+      let objects = [];
+      let score = 0;
+      let errors = 0;
+      let round = 1;
+      const maxRound = 3;
+      let gameState = 'ready'; // ready → highlighting → moving → selecting
+      let animationId = null;
+      let moveEndTime;
+      let totalClick = 0;
+      let reactionTimes = [];
+      let selectionStartTime = 0;
+      let gameStartTime = 0;
+      let lastFrameTime = 0;
 
-      // 计算反应时间
-      const clickTime = Date.now();
-      const reactionTime = clickTime - selectionStartTime;
-      reactionTimes.push(reactionTime);
-      totalClick++;
+      // 难度
+      let difficulty = { count: 8, target: 1, speed: 3, moveTime: 3000, highTime: 1500 };
+      let currentDifficultyKey = 'easy';
+      function setDifficulty(diff) {
+        currentDifficultyKey = diff;
+        if (diff === 'easy') difficulty = { count: 8, target: 1, speed: 3, moveTime: 3000, highTime: 1500 };
+        if (diff === 'medium') difficulty = { count: 10, target: 2, speed: 4, moveTime: 3500, highTime: 1200 };
+        if (diff === 'hard') difficulty = { count: 12, target: 3, speed: 4.5, moveTime: 4000, highTime: 1000 };
+        document.querySelectorAll('.difficulty-btn').forEach((b) => b.classList.remove('active'));
+        if (diff === 'easy') easyBtn.classList.add('active');
+        if (diff === 'medium') mediumBtn.classList.add('active');
+        if (diff === 'hard') hardBtn.classList.add('active');
+        reset();
+      }
+      easyBtn.onclick = () => setDifficulty('easy');
+      mediumBtn.onclick = () => setDifficulty('medium');
+      hardBtn.onclick = () => setDifficulty('hard');
 
-      const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
+      // 清空动画
+      function clearAnim() {
+        if (animationId) cancelAnimationFrame(animationId);
+      }
 
-      // 遍历物体，找到第一个被点击的物体
-      for (let i = 0; i < objects.length; i++) {
-        const o = objects[i];
-        if (o.selected) continue;
-        if (mx >= o.x && mx <= o.x + o.size && my >= o.y && my <= o.y + o.size) {
-          o.selected = true;
-          o.animation = 1; // 开始动画
-          if (o.isTarget) score++;
-          else errors++;
-          updateUI();
-          // 找到一个物体后立即返回，确保一次只点击一个物体
-          break;
+      // 重置
+      function reset() {
+        clearAnim();
+        gameState = 'ready';
+        objects = [];
+        score = 0;
+        errors = 0;
+        round = 1;
+        totalClick = 0;
+        reactionTimes = [];
+        selectionStartTime = 0;
+        updateUI();
+        startBtn.classList.remove('hidden');
+        ctx.clearRect(0, 0, 500, 500);
+      }
+
+      // 检查两个物体是否重叠（真实距离 + 缓冲间距）
+      function checkOverlap(obj1, obj2) {
+        const dx = obj1.x + obj1.size / 2 - (obj2.x + obj2.size / 2);
+        const dy = obj1.y + obj1.size / 2 - (obj2.y + obj2.size / 2);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        return dist < obj1.size + 20;
+      }
+
+      // 创建物体
+      function createObjects() {
+        objects = [];
+        let total = difficulty.count;
+        let targetCount = difficulty.target;
+        const spawnMax = 425;
+        for (let i = 0; i < total; i++) {
+          let attempts = 0;
+          let validPosition = false;
+          let newObj = null;
+
+          while (!validPosition && attempts < 200) {
+            const randomImage = animalImages[Math.floor(Math.random() * animalImages.length)];
+            const angle = Math.random() * Math.PI * 2;
+            newObj = {
+              x: Math.random() * spawnMax,
+              y: Math.random() * spawnMax,
+              size: 75,
+              vx: Math.cos(angle) * difficulty.speed,
+              vy: Math.sin(angle) * difficulty.speed,
+              isTarget: i < targetCount,
+              selected: false,
+              image: randomImage,
+              animation: 0,
+            };
+
+            validPosition = true;
+            for (let j = 0; j < objects.length; j++) {
+              if (checkOverlap(newObj, objects[j])) {
+                validPosition = false;
+                break;
+              }
+            }
+            attempts++;
+          }
+
+          if (newObj) {
+            objects.push(newObj);
+          }
         }
       }
 
-      // 检查完成
-      const allDone = objects.filter((o) => o.isTarget).every((o) => o.selected);
-      if (allDone) {
-        // 延迟进入下一轮，让最后一个绿色方框有时间显示
-        setTimeout(nextRound, 500);
+      // 移动停止后分离所有重叠的动物
+      function separateOverlapping() {
+        for (let iter = 0; iter < 10; iter++) {
+          let hasOverlap = false;
+          for (let i = 0; i < objects.length; i++) {
+            for (let j = i + 1; j < objects.length; j++) {
+              const a = objects[i];
+              const b = objects[j];
+              const cxA = a.x + a.size / 2;
+              const cyA = a.y + a.size / 2;
+              const cxB = b.x + b.size / 2;
+              const cyB = b.y + b.size / 2;
+              const dx = cxA - cxB;
+              const dy = cyA - cyB;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const minDist = a.size + 10;
+              if (dist < minDist && dist > 0) {
+                hasOverlap = true;
+                const nx = dx / dist;
+                const ny = dy / dist;
+                const push = (minDist - dist) / 2;
+                a.x += nx * push;
+                a.y += ny * push;
+                b.x -= nx * push;
+                b.y -= ny * push;
+                a.x = Math.max(0, Math.min(500 - a.size, a.x));
+                a.y = Math.max(0, Math.min(500 - a.size, a.y));
+                b.x = Math.max(0, Math.min(500 - b.size, b.x));
+                b.y = Math.max(0, Math.min(500 - b.size, b.y));
+              }
+            }
+          }
+          if (!hasOverlap) break;
+        }
       }
-    };
 
-    // 下一轮（完全干净）
-    function nextRound() {
-      clearAnim();
-      round++;
-      if (round > maxRound) {
-        // 显示游戏结束弹窗
-        showGameOverModal();
-        return;
-      }
-      updateUI();
-      // 新一轮
-      setTimeout(() => {
+      // 开始
+      startBtn.onclick = () => {
+        if (gameState !== 'ready') return;
+        clearAnim();
         gameState = 'highlighting';
+        startBtn.classList.add('hidden');
+        gameStartTime = Date.now();
         lastFrameTime = 0;
         createObjects();
         animate();
@@ -664,324 +688,245 @@
           gameState = 'moving';
           moveEndTime = Date.now() + difficulty.moveTime;
         }, difficulty.highTime);
-      }, 600);
-    }
-
-    function calculateTrackingScore() {
-      // 计算平均反应时间
-      const meanRt =
-        reactionTimes.length > 0 ? reactionTimes.reduce((sum, rt) => sum + rt, 0) / reactionTimes.length : 1000;
-
-      // 计算各项指标
-      const acc = totalClick > 0 ? score / totalClick : 0;
-      // 放宽时间评分：使用更平滑的曲线，超时120秒才扣到0分
-      const timeOvertime = (Date.now() - gameStartTime) / 1000 - 60;
-      const speed = Math.max(0, 1 / (1 + timeOvertime / 90)); // 使用指数衰减
-      const rtScore = Math.max(0, 1 - meanRt / 1000);
-
-      // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
-      const headStable = 0.8; // 头部稳定性
-      const faceStable = 0.8; // 面部稳定性
-
-      // 计算最终得分
-      const scoreValue = (acc * 0.35 + rtScore * 0.25 + speed * 0.2 + headStable * 0.12 + faceStable * 0.08) * 100;
-
-      return Math.max(0, Math.min(100, Math.round(scoreValue)));
-    }
-
-    function showGameOverModal() {
-      const finalScoreValue = calculateTrackingScore();
-      const totalTime = Math.floor((Date.now() - gameStartTime) / 1000);
-
-      const scoreDetails = {
-        hits: {
-          name: '找到',
-          score: score,
-          color: '#2e7d32',
-        },
-        errors: {
-          name: '误点',
-          score: errors,
-          color: '#c62828',
-        },
-        time: {
-          name: '用时',
-          score: totalTime + 's',
-          color: '#ef6c00',
-        },
       };
 
-      const message = '你的评分为：' + finalScoreValue + '分';
+      function animate(timestamp) {
+        if (!lastFrameTime) lastFrameTime = timestamp;
+        const rawDt = (timestamp - lastFrameTime) / 1000;
+        const dt = Math.min(rawDt, 0.1);
+        lastFrameTime = timestamp;
 
-      // 统计游戏使用时间
-      try {
-        if (typeof GameTimeUtil !== 'undefined') {
-          GameTimeUtil.endGame('animal-searching');
+        ctx.clearRect(0, 0, 500, 500);
+
+        if (gameState === 'moving') {
+          const scale = dt * 60;
+          objects.forEach((o) => {
+            o.x += o.vx * scale;
+            o.y += o.vy * scale;
+            if (o.x < 0) {
+              o.x = 0;
+              o.vx *= -1;
+            }
+            if (o.x + o.size > 500) {
+              o.x = 500 - o.size;
+              o.vx *= -1;
+            }
+            if (o.y < 0) {
+              o.y = 0;
+              o.vy *= -1;
+            }
+            if (o.y + o.size > 500) {
+              o.y = 500 - o.size;
+              o.vy *= -1;
+            }
+          });
+          if (Date.now() > moveEndTime) {
+            separateOverlapping();
+            gameState = 'selecting';
+            selectionStartTime = Date.now();
+          }
         }
-      } catch (e) {
-        console.log('GameTimeUtil 未定义，跳过');
+
+        // 绘制
+        objects.forEach((o) => {
+          const rx = Math.round(o.x);
+          const ry = Math.round(o.y);
+
+          // 发光效果 - 使用预渲染光晕图片
+          if (o.isTarget && gameState === 'highlighting') {
+            ctx.save();
+            ctx.shadowColor = '#FFC107';
+            ctx.shadowBlur = 35;
+            ctx.drawImage(glowCanvas, rx - glowSize / 2, ry - glowSize / 2, glowSize * 2, glowSize * 2);
+            ctx.restore();
+            ctx.drawImage(glowCanvas, rx - glowSize / 2, ry - glowSize / 2, glowSize * 2, glowSize * 2);
+          }
+
+          // 绘制动物图片
+          const img = loadedImages[o.image];
+          if (img) {
+            ctx.drawImage(img, rx, ry, o.size, o.size);
+          }
+
+          // 动画效果 - 闪光效果
+          if (o.animation > 0) {
+            o.animation += 0.2;
+            if (o.animation > 1) {
+              o.animation = 0;
+            }
+            const animationRadius = o.size / 2 + o.animation * 30;
+            const alpha = 1 - o.animation;
+            ctx.strokeStyle = o.isTarget ? `rgba(27, 94, 32, ${alpha})` : `rgba(244, 67, 54, ${alpha})`;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(o.x + o.size / 2, o.y + o.size / 2, animationRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            const centerRadius = o.animation * 15;
+            ctx.fillStyle = o.isTarget ? `rgba(27, 94, 32, ${alpha})` : `rgba(244, 67, 54, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(o.x + o.size / 2, o.y + o.size / 2, centerRadius, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // 选中效果
+          if (o.selected) {
+            ctx.strokeStyle = o.isTarget ? '#1B5E20' : '#F44336';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(o.x + o.size / 2, o.y + o.size / 2, o.size / 2, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        });
+
+        animationId = requestAnimationFrame(animate);
       }
 
-      if (typeof MedalUtil !== 'undefined') {
-        MedalUtil.recordGameProgress('game6', currentDifficultyKey);
+      // 点击（绝对有效）
+      canvas.onclick = (e) => {
+        if (gameState !== 'selecting') return;
+
+        // 计算反应时间
+        const clickTime = Date.now();
+        const reactionTime = clickTime - selectionStartTime;
+        reactionTimes.push(reactionTime);
+        totalClick++;
+
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        // 遍历物体，找到第一个被点击的物体
+        for (let i = 0; i < objects.length; i++) {
+          const o = objects[i];
+          if (o.selected) continue;
+          if (mx >= o.x && mx <= o.x + o.size && my >= o.y && my <= o.y + o.size) {
+            o.selected = true;
+            o.animation = 1; // 开始动画
+            if (o.isTarget) score++;
+            else errors++;
+            updateUI();
+            // 找到一个物体后立即返回，确保一次只点击一个物体
+            break;
+          }
+        }
+
+        // 检查完成
+        const allDone = objects.filter((o) => o.isTarget).every((o) => o.selected);
+        if (allDone) {
+          // 延迟进入下一轮，让最后一个绿色方框有时间显示
+          setTimeout(nextRound, 500);
+        }
+      };
+
+      // 下一轮（完全干净）
+      function nextRound() {
+        clearAnim();
+        round++;
+        if (round > maxRound) {
+          // 显示游戏结束弹窗
+          showGameOverModal();
+          return;
+        }
+        updateUI();
+        // 新一轮
+        setTimeout(() => {
+          gameState = 'highlighting';
+          lastFrameTime = 0;
+          createObjects();
+          animate();
+          setTimeout(() => {
+            gameState = 'moving';
+            moveEndTime = Date.now() + difficulty.moveTime;
+          }, difficulty.highTime);
+        }, 600);
       }
 
-      uploadTrainingData();
+      function calculateTrackingScore() {
+        // 计算平均反应时间
+        const meanRt =
+          reactionTimes.length > 0 ? reactionTimes.reduce((sum, rt) => sum + rt, 0) / reactionTimes.length : 1000;
 
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        display: flex;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(15, 30, 15, 0.3);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-        animation: fadeIn 0.3s ease both;
-      `;
+        // 计算各项指标
+        const acc = totalClick > 0 ? score / totalClick : 0;
+        // 放宽时间评分：使用更平滑的曲线，超时120秒才扣到0分
+        const timeOvertime = (Date.now() - gameStartTime) / 1000 - 60;
+        const speed = Math.max(0, 1 / (1 + timeOvertime / 90)); // 使用指数衰减
+        const rtScore = Math.max(0, 1 - meanRt / 1000);
 
-      const modalContent = document.createElement('div');
-      modalContent.style.cssText = `
-        background: linear-gradient(180deg, #F1F8E9 0%, #C5E1A5 100%);
-        padding: 32px 36px 28px;
-        border-radius: 20px;
-        text-align: center;
-        box-shadow: 0 2px 16px rgba(60, 100, 40, 0.12);
-        max-width: 420px;
-        width: 90%;
-        animation: cosmosBloom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        position: relative;
-        overflow: hidden;
-      `;
+        // MediaPipe 指标（暂时使用默认值，后续可从实际数据获取）
+        const headStable = 0.8; // 头部稳定性
+        const faceStable = 0.8; // 面部稳定性
 
-      const topGlow = document.createElement('div');
-      topGlow.style.cssText = `
-        position: absolute;
-        top: -40px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 200px;
-        height: 200px;
-        background: radial-gradient(ellipse, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
-        border-radius: 50%;
-        pointer-events: none;
-      `;
-      modalContent.appendChild(topGlow);
+        // 计算最终得分
+        const scoreValue = (acc * 0.35 + rtScore * 0.25 + speed * 0.2 + headStable * 0.12 + faceStable * 0.08) * 100;
 
-      const starField = document.createElement('div');
-      starField.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
-        overflow: hidden;
-      `;
-
-      for (let i = 0; i < 10; i++) {
-        const s = 1 + Math.random() * 1.5;
-        const star = document.createElement('div');
-        star.style.cssText = `
-          position: absolute;
-          width: ${s}px;
-          height: ${s}px;
-          background: #fff;
-          border-radius: 50%;
-          top: ${Math.random() * 100}%;
-          left: ${Math.random() * 100}%;
-          opacity: ${0.2 + Math.random() * 0.3};
-          box-shadow: 0 0 ${s * 1.5}px rgba(160, 210, 130, 0.5);
-        `;
-        starField.appendChild(star);
+        return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
-      const floatDecor = ['\u{1F98A}', '\u{1F33F}', '\u{1F331}', '\u{1F338}', '\u2728'];
-      for (let i = 0; i < 4; i++) {
-        const deco = document.createElement('div');
-        deco.textContent = floatDecor[i];
-        deco.style.cssText = `
-          position: absolute;
-          font-size: ${16 + i * 4}px;
-          top: ${10 + i * 18}%;
-          ${i % 2 === 0 ? 'left' : 'right'}: ${-5 + i * 2}px;
-          opacity: 0.2;
-          pointer-events: none;
-        `;
-        starField.appendChild(deco);
+      // 显示游戏结束弹窗
+      function showGameOverModal() {
+        try {
+          // 计算视觉追踪得分
+          const finalScoreValue = calculateTrackingScore();
+
+          // 计算平均反应时间
+          const meanRt =
+            reactionTimes.length > 0
+              ? Math.round(reactionTimes.reduce((sum, rt) => sum + rt, 0) / reactionTimes.length)
+              : 0;
+
+          // 显示最终得分和相关数据
+          finalScore.textContent = finalScoreValue;
+          finalErrors.textContent = errors;
+          finalHits.textContent = score;
+          finalTime.textContent = Math.floor((Date.now() - gameStartTime) / 1000) + 's';
+
+          console.log(
+            '游戏结束 - 上传到雷达的得分:',
+            finalScoreValue,
+            '正确率:',
+            ((score / totalClick) * 100).toFixed(1) + '%',
+            '错误:',
+            errors,
+            '总点击:',
+            totalClick,
+            '平均反应时间:',
+            meanRt,
+            'ms',
+          );
+
+          // 统计游戏使用时间
+          try {
+            if (typeof GameTimeUtil !== 'undefined') {
+              GameTimeUtil.endGame('animal-searching');
+            }
+          } catch (e) {
+            console.log('GameTimeUtil 未定义，跳过');
+          }
+
+          if (typeof MedalUtil !== 'undefined') {
+            MedalUtil.recordGameProgress('game6', currentDifficultyKey);
+          }
+
+          // 上传数据到后端
+          uploadTrainingData();
+
+          // 显示弹窗
+          gameOverModal.classList.add('show');
+        } catch (e) {
+          console.error('显示游戏结束弹窗失败:', e);
+        }
       }
 
-      modalContent.appendChild(starField);
-
-      const modalTitle = document.createElement('h2');
-      modalTitle.innerHTML = '\u{1F98A} \u68EE\u6797\u63A2\u9669\u5B8C\u6210\uFF01 \u{1F98A}';
-      modalTitle.style.cssText = `
-        color: #33691e;
-        font-size: 24px;
-        margin-bottom: 20px;
-        position: relative;
-        z-index: 1;
-        animation: revealUp 0.45s 0.05s ease both;
-      `;
-      modalContent.appendChild(modalTitle);
-
-      const scoreItems = Object.values(scoreDetails);
-      const statsGrid = document.createElement('div');
-      statsGrid.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 24px;
-        position: relative;
-        z-index: 1;
-      `;
-
-      scoreItems.forEach((detail, idx) => {
-        const statItem = document.createElement('div');
-        statItem.style.cssText = `
-          background: rgba(255, 255, 255, 0.55);
-          border-radius: 12px;
-          padding: 12px 8px;
-          animation: revealUp 0.4s ${0.12 + idx * 0.08}s ease both;
-        `;
-
-        const statLabel = document.createElement('div');
-        statLabel.textContent = detail.name;
-        statLabel.style.cssText = `
-          color: ${detail.color};
-          font-size: 11px;
-          margin-bottom: 4px;
-          font-weight: bold;
-        `;
-        statItem.appendChild(statLabel);
-
-        const statValue = document.createElement('div');
-        statValue.textContent = detail.score;
-        statValue.style.cssText = `
-          color: #1b5e20;
-          font-size: 22px;
-          font-weight: bold;
-        `;
-        statItem.appendChild(statValue);
-
-        statsGrid.appendChild(statItem);
-      });
-
-      modalContent.appendChild(statsGrid);
-
-      const modalMessage = document.createElement('p');
-      modalMessage.textContent = message;
-      modalMessage.style.cssText = `
-        color: #1b5e20;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        position: relative;
-        z-index: 1;
-        animation: revealUp 0.4s 0.3s ease both;
-      `;
-      modalContent.appendChild(modalMessage);
-
-      const modalButtons = document.createElement('div');
-      modalButtons.style.cssText = `
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        position: relative;
-        z-index: 1;
-        animation: revealUp 0.45s 0.36s ease both;
-      `;
-
-      const restartBtn = document.createElement('button');
-      restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
-      restartBtn.style.cssText = `
-        background: #7cb342;
-        color: white;
-        border: none;
-        padding: 10px 26px;
-        border-radius: 25px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      `;
-      restartBtn.onmouseover = () => {
-        restartBtn.style.transform = 'scale(1.05)';
-        restartBtn.style.background = '#9ccc65';
-      };
-      restartBtn.onmouseout = () => {
-        restartBtn.style.transform = 'scale(1)';
-        restartBtn.style.background = '#7cb342';
-      };
-      restartBtn.onclick = function () {
-        document.body.removeChild(modal);
-        reset();
-      };
-
-      const backBtn = document.createElement('button');
-      backBtn.textContent = '\u8FD4\u56DE';
-      backBtn.style.cssText = `
-        background: transparent;
-        color: #689f38;
-        border: 2px solid #aed581;
-        padding: 10px 26px;
-        border-radius: 25px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      `;
-      backBtn.onmouseover = () => {
-        backBtn.style.background = 'rgba(255, 255, 255, 0.4)';
-        backBtn.style.color = '#33691e';
-      };
-      backBtn.onmouseout = () => {
-        backBtn.style.background = 'transparent';
-        backBtn.style.color = '#689f38';
-      };
-      backBtn.onclick = function () {
-        document.body.removeChild(modal);
-        reset();
-      };
-
-      modalButtons.appendChild(restartBtn);
-      modalButtons.appendChild(backBtn);
-
-      modalContent.appendChild(modalButtons);
-
-      const forestRow = document.createElement('div');
-      forestRow.style.cssText =
-        'display:flex;justify-content:center;gap:12px;margin-top:20px;position:relative;z-index:1;';
-      const forestColors = ['#c5e1a5', '#aed581', '#9ccc65', '#8bc34a', '#7cb342', '#689f38', '#558b2f'];
-      for (let i = 0; i < 7; i++) {
-        const s = 4 + Math.random() * 3;
-        const dot = document.createElement('div');
-        dot.style.cssText =
-          'width:' + s + 'px;height:' + s + 'px;border-radius:50%;background:' + forestColors[i] + ';' +
-          'animation:forestBounce 1.5s ease-in-out infinite;animation-delay:' + (i * 0.2) + 's;';
-        forestRow.appendChild(dot);
-      }
-      modalContent.appendChild(forestRow);
-
-      modal.appendChild(modalContent);
-      document.body.appendChild(modal);
-    }
-
-    function uploadTrainingData() {
-      try {
-        // [scoring-system] Upload game data + end session.
-        // Session was created in startGame(); use gameSessionId directly.
-        const _uploadAndEnd = () => {
+      function uploadTrainingData() {
+        try {
           const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
           const childId =
             typeof UserStateUtil !== 'undefined'
               ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
               : 1;
+          let sessionId = null;
 
           // 计算视觉追踪得分
           const finalScore = calculateTrackingScore();
@@ -996,34 +941,53 @@
           const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
           const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
 
-          if (typeof visionUploader !== 'undefined') {
-            visionUploader.stop();
-          }
-
-          // 上传游戏数据
-          fetch(`${baseUrl}/api/training/game-data`, {
+          // 开始训练会话
+          fetch(`${baseUrl}/api/training/session/start`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
             },
             body: JSON.stringify({
-              session_id: gameSessionId,
-              request_id: Date.now().toString(),
-              timestamp: new Date().toISOString(),
-              event_type: 'game_complete',
-              score: finalScore,
-              accuracy: (score / totalClick) * 100,
-              level: difficulty.level || 1,
-              time: Math.floor((Date.now() - gameStartTime) / 1000),
-              correct: score,
-              error: errors,
-              total_target: score,
-              total_step: totalClick,
-              total_click: totalClick,
-              mean_rt: meanRt,
+              child_id: childId,
+              game_type: 'animal-searching',
+              device_id: 'web',
             }),
           })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                sessionId = result.data.session_id;
+                console.log('训练会话创建成功:', sessionId);
+
+                // 上传游戏数据
+                return fetch(`${baseUrl}/api/training/game-data`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                  },
+                  body: JSON.stringify({
+                    session_id: sessionId,
+                    request_id: Date.now().toString(),
+                    timestamp: new Date().toISOString(),
+                    event_type: 'game_complete',
+                    score: finalScore,
+                    accuracy: (score / totalClick) * 100,
+                    level: difficulty.level || 1,
+                    time: Math.floor((Date.now() - gameStartTime) / 1000),
+                    correct: score,
+                    error: errors,
+                    total_target: score,
+                    total_step: totalClick,
+                    total_click: totalClick,
+                    mean_rt: meanRt,
+                  }),
+                });
+              } else {
+                throw new Error(result.message || '创建会话失败');
+              }
+            })
             .then((response) => response.json())
             .then((result) => {
               if (result.success) {
@@ -1042,7 +1006,7 @@
                     Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
                   },
                   body: JSON.stringify({
-                    session_id: gameSessionId,
+                    session_id: sessionId,
                     final_score: finalScore,
                     total_accuracy: (score / totalClick) * 100,
                     duration: Math.floor((Date.now() - gameStartTime) / 1000),
@@ -1071,83 +1035,31 @@
                 trainingData[today].totalTime += gameTime;
                 localStorage.setItem('trainingData', JSON.stringify(trainingData));
                 console.log('训练时间已保存到 localStorage');
-
-                // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                var backendScore = null;
-                var backendLevel = null;
-                if (result.data && result.data.summary) {
-                  backendScore = Math.round(result.data.summary.final_score);
-                  backendLevel = result.data.summary.performance_level;
-                }
               }
             })
             .catch((error) => {
               console.error('上传训练数据失败:', error);
             });
-        };
-
-        if (gameSessionId) {
-          _uploadAndEnd();
-        } else {
-          // [scoring-system] Fallback: session not ready from startGame().
-          console.warn('Session not ready from startGame, creating inline');
-          const userInfo = typeof UserStateUtil !== 'undefined' ? UserStateUtil.getUserInfo() : null;
-          const childId =
-            typeof UserStateUtil !== 'undefined'
-              ? UserStateUtil.getCurrentChildId() || userInfo?.currentChildId || 1
-              : 1;
-          const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const baseUrl = isLocal ? 'http://localhost:5000' : window.location.origin;
-
-          fetch(`${baseUrl}/api/training/session/start`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
-            body: JSON.stringify({
-              child_id: childId,
-              game_type: 'animal-searching',
-              device_id: 'web',
-            }),
-          })
-            .then((r) => r.json())
-            .then((res) => {
-              if (res.success) {
-                gameSessionId = res.data.session_id;
-                // 先上传缓冲的视觉数据，再提交游戏数据
-                var flushDone = Promise.resolve();
-                if (typeof visionUploader !== 'undefined') {
-                  flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
-                }
-                flushDone.then(function () {
-                  _uploadAndEnd();
-                });
-              }
-            });
+        } catch (e) {
+          console.error('uploadTrainingData 错误:', e);
         }
-      } catch (e) {
-        console.error('uploadTrainingData 错误:', e);
       }
-    }
 
-    // 重置游戏
-    function resetGame() {
+      // 重置游戏
+      function resetGame() {
+        gameOverModal.classList.remove('show');
+        reset();
+      }
+
+      function updateUI() {
+        roundText.textContent = round;
+        scoreText.textContent = score;
+        errorText.textContent = errors;
+      }
+
       reset();
-    }
-
-    function updateUI() {
-      roundText.textContent = round;
-      scoreText.textContent = score;
-      errorText.textContent = errors;
-    }
-
-    reset();
-  </script>
-  <script src="../floating-ball.js"></script>
-  <script src="../api/vision-uploader.js"></script>
-  <script src="../utils.js"></script>
-  <script src="../attention-loader.js"></script>
-</body>
-
+    </script>
+    <script src="../utils.js"></script>
+    <script src="../attention-loader.js"></script>
+  </body>
 </html>

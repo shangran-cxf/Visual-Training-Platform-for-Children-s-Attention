@@ -561,16 +561,6 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
-    try:
-        cursor.execute("ALTER TABLE session_summaries ADD COLUMN dimension_contributions TEXT")
-    except sqlite3.OperationalError:
-        pass
-
-    try:
-        cursor.execute("ALTER TABLE session_summaries ADD COLUMN normalized_score REAL")
-    except sqlite3.OperationalError:
-        pass
-
     # 为管理员插入默认孩子"小A"（需在 children 表创建之后）
     admin_row = cursor.execute("SELECT id FROM parents WHERE username = ?", ("admin",)).fetchone()
     if admin_row:
