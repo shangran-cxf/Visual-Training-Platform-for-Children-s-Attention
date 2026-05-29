@@ -2055,15 +2055,15 @@
           recommendItem.className = 'recommend-item ' + ability.type;
           recommendItem.onclick = () => startGame(game.path, game.name);
           recommendItem.innerHTML = `
-              <div class="rec-card-inner">
-                <div class="rec-card-left ${ability.type}">${icon}</div>
-                <div class="rec-card-info">
-                  <div class="rec-card-name">${game.name}</div>
-                  <span class="rec-card-tag ${ability.type}">${label}</span>
+                <div class="rec-card-inner">
+                  <div class="rec-card-left ${ability.type}">${icon}</div>
+                  <div class="rec-card-info">
+                    <div class="rec-card-name">${game.name}</div>
+                    <span class="rec-card-tag ${ability.type}">${label}</span>
+                  </div>
+                  <div class="rec-card-arrow">→</div>
                 </div>
-                <div class="rec-card-arrow">→</div>
-              </div>
-            `;
+              `;
           recommendItems.appendChild(recommendItem);
         }
       });
@@ -2111,20 +2111,15 @@
       barsEl.innerHTML = html;
     }
 
-    // 开始游戏
     function startGame(gamePath, gameName) {
+      sessionStorage.setItem(
+        'returnState',
+        JSON.stringify({
+          from: 'today-training',
+        }),
+      );
       window.location.href = `training/${gamePath}`;
     }
-
-    // 键盘导航支持
-    document.querySelectorAll('.nav-item, .recommend-item').forEach((el) => {
-      el.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          el.click();
-        }
-      });
-    });
 
     // 页面加载初始化
     window.addEventListener('DOMContentLoaded', async () => {
@@ -2135,6 +2130,15 @@
       await initCalendar();
       updateTodayDisplay();
       await recommendGames();
+
+      document.querySelectorAll('.nav-item, .recommend-item').forEach((el) => {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            el.click();
+          }
+        });
+      });
 
       document.getElementById('prev-month').addEventListener('click', prevMonth);
       document.getElementById('next-month').addEventListener('click', nextMonth);

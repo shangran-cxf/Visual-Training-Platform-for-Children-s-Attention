@@ -566,6 +566,21 @@ function getBaseUrl() {
   return isLocal ? 'http://localhost:5000' : window.location.origin;
 }
 
+// 获取训练游戏的返回URL（根据进入游戏前的记录，返回到正确的来源页面）
+function getTrainingReturnUrl() {
+  try {
+    const state = JSON.parse(sessionStorage.getItem('returnState'));
+    sessionStorage.removeItem('returnState');
+    if (state && state.from === 'today-training') {
+      return '../today-training.html';
+    }
+    if (state && state.from === 'child-home' && state.category) {
+      return `../child-home.html?category=${encodeURIComponent(state.category)}`;
+    }
+  } catch (e) {}
+  return '../child-home.html'; // fallback
+}
+
 // HTML 转义函数，防止 XSS 攻击
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -586,4 +601,5 @@ if (typeof module !== 'undefined' && module.exports) {
   window.MedalUtil = MedalUtil;
   window.getBaseUrl = getBaseUrl;
   window.escapeHtml = escapeHtml;
+  window.getTrainingReturnUrl = getTrainingReturnUrl;
 }

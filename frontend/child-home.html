@@ -865,6 +865,7 @@
       }
 
       .main-content {
+        max-width: 100%;
         height: auto;
         overflow-y: visible;
       }
@@ -1364,6 +1365,9 @@
       console.log('显示用户资料');
     }
 
+    // 当前选中的分类（由 showCategory 更新）
+    let currentCategory = 'selective';
+
     // 开始游戏
     function startGame(gameName) {
       // 记录游戏开始时间
@@ -1371,6 +1375,14 @@
       // 存储到localStorage
       localStorage.setItem('gameStartTime', gameStartTime);
       localStorage.setItem('currentGame', gameName);
+      // 记录返回来源，供游戏页返回按钮使用
+      sessionStorage.setItem(
+        'returnState',
+        JSON.stringify({
+          from: 'child-home',
+          category: currentCategory,
+        }),
+      );
       window.location.href = `training/${gameName}.html`;
     }
 
@@ -1399,6 +1411,7 @@
         }
       });
 
+      currentCategory = categoryId;
       console.log('切换到分类:', categoryId);
     }
 
@@ -1417,8 +1430,15 @@
         childNameElement.textContent = childName;
       }
 
-      // 默认显示选择性注意分类
-      showCategory('selective');
+      // 从URL参数恢复分类（游戏返回时携带），否则默认显示选择性注意
+      const urlParams = new URLSearchParams(window.location.search);
+      const categoryParam = urlParams.get('category');
+      if (categoryParam) {
+        showCategory(categoryParam);
+        window.history.replaceState({}, '', window.location.pathname);
+      } else {
+        showCategory('selective');
+      }
     };
 
     // 键盘导航支持

@@ -18,242 +18,489 @@
         justify-content: center;
         align-items: center;
         font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
-        padding: 20px;
-
-        /* 你的背景图片（放在同一文件夹） */
-        background-image: url('background.jpg');
+        padding: 15px;
+        background: url('../images/background.png') no-repeat center center fixed;
         background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        background-repeat: no-repeat;
       }
 
       /* 卡通主卡片 */
       .game-container {
-        background-color: #fff9e8;
-        border-radius: 80px 80px 70px 70px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 249, 232, 0.92) 50%, rgba(255, 245, 220, 0.9) 100%);
+        border-radius: 28px;
         box-shadow:
-          0 20px 35px rgba(0, 0, 0, 0.2),
-          inset 0 1px 4px rgba(255, 255, 200, 0.8);
-        padding: 20px 25px 35px 25px;
-        max-width: 600px;
+          0 12px 30px rgba(0, 0, 0, 0.1),
+          0 4px 15px rgba(255, 193, 150, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        padding: 15px 20px;
+        max-width: 360px;
         width: 100%;
         text-align: center;
-        transition: all 0.2s ease;
-        border: 5px solid #ffcf9a;
+        transition: all 0.3s ease;
+        border: 2px solid rgba(255, 196, 138, 0.6);
         position: relative;
         z-index: 10;
+        backdrop-filter: blur(10px);
       }
 
       h1 {
-        font-size: 2.5rem;
-        margin: 0 0 5px 0;
+        font-size: 1.4rem;
+        margin: 0 0 6px 0;
         background: linear-gradient(135deg, #ff9966, #ff5e62);
         background-clip: text;
         -webkit-background-clip: text;
         color: transparent;
-        text-shadow: 3px 3px 0 #fff3bf;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
       }
 
       .sub {
-        font-size: 1rem;
+        font-size: 0.8rem;
         background: #ffe3b5;
         display: inline-block;
-        padding: 5px 18px;
-        border-radius: 40px;
+        padding: 3px 12px;
+        border-radius: 20px;
         color: #b45f2b;
         font-weight: bold;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
       }
 
       .difficulty-panel {
         background: #ffefcf;
-        border-radius: 60px;
-        padding: 12px 15px;
-        margin: 10px 0 20px;
+        border-radius: 20px;
+        padding: 6px 10px;
+        margin: 6px 0 12px;
         display: flex;
         justify-content: center;
-        gap: 18px;
+        gap: 10px;
         flex-wrap: wrap;
         border: 2px solid #ffc48a;
       }
 
       .difficulty-btn {
-        font-size: 1.2rem;
+        font-size: 0.9rem;
         font-weight: bold;
-        padding: 8px 24px;
+        padding: 5px 15px;
         border: none;
-        border-radius: 50px;
+        border-radius: 25px;
         background: #fdd998;
         cursor: pointer;
         font-family: inherit;
         transition: 0.1s linear;
         color: #77450e;
-        box-shadow: 0 5px 0 #b97f3b;
+        box-shadow: 0 3px 0 #b97f3b;
       }
 
       .difficulty-btn.active {
         background: #ff9f4b;
         color: white;
         box-shadow: 0 2px 0 #b85e1a;
-        transform: translateY(3px);
+        transform: translateY(2px);
       }
 
       .difficulty-btn:active {
-        transform: translateY(3px);
+        transform: translateY(2px);
         box-shadow: 0 1px 0 #b85e1a;
       }
 
       .traffic-scene {
-        background: #ffe1aa;
-        border-radius: 70px;
-        padding: 25px 15px 20px;
-        margin: 5px 0 15px;
+        background: linear-gradient(180deg, rgba(255, 225, 170, 0.9) 0%, rgba(255, 210, 150, 0.85) 100%);
+        border-radius: 22px;
+        padding: 10px;
+        margin: 4px 0 10px;
         box-shadow:
-          inset 0 0 0 5px #fff1cf,
-          0 10px 20px rgba(0, 0, 0, 0.1);
+          inset 0 0 0 2px rgba(255, 241, 207, 0.8),
+          0 8px 20px rgba(0, 0, 0, 0.08),
+          0 2px 8px rgba(255, 193, 150, 0.2);
+        border: 1px solid rgba(255, 196, 138, 0.5);
       }
 
       .light-box {
-        background: #3b2a1f;
-        width: 220px;
-        height: 220px;
+        background: linear-gradient(180deg, #4a3528 0%, #2d1f15 100%);
+        width: 110px;
+        height: 110px;
         margin: 0 auto;
-        border-radius: 120px;
+        border-radius: 55px;
         display: flex;
         align-items: center;
         justify-content: center;
         box-shadow:
-          0 12px 0 #1f140c,
-          inset 0 0 0 6px #fbe6a0;
-        transition: all 0.1s;
+          0 5px 0 #1a120a,
+          0 8px 20px rgba(0, 0, 0, 0.3),
+          inset 0 0 0 3px rgba(251, 230, 160, 0.8);
+        transition: all 0.15s ease;
+        position: relative;
+      }
+
+      .light-box::before {
+        content: '';
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 8px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        border-radius: 4px;
       }
 
       .bulb {
-        width: 160px;
-        height: 160px;
+        width: 78px;
+        height: 78px;
         border-radius: 50%;
-        background: gray;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        transition: all 0.2s ease;
+        background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
+        box-shadow: 
+          0 0 20px rgba(0, 0, 0, 0.4),
+          inset 0 -5px 15px rgba(0, 0, 0, 0.3),
+          inset 0 5px 15px rgba(255, 255, 255, 0.1);
+        transition: all 0.25s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 4rem;
+        font-size: 2.3rem;
         font-weight: bold;
-        text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .bulb.lit-red {
+        background: radial-gradient(circle at 35% 35%, #ff8a7d, #ff4757);
+        box-shadow: 
+          0 0 30px rgba(255, 71, 87, 0.7),
+          0 0 60px rgba(255, 71, 87, 0.4),
+          0 0 90px rgba(255, 71, 87, 0.2),
+          inset 0 -5px 15px rgba(0, 0, 0, 0.2),
+          inset 0 5px 20px rgba(255, 255, 255, 0.3);
+      }
+
+      .bulb.lit-green {
+        background: radial-gradient(circle at 35% 35%, #7ed695, #2ed573);
+        box-shadow: 
+          0 0 30px rgba(46, 213, 115, 0.7),
+          0 0 60px rgba(46, 213, 115, 0.4),
+          0 0 90px rgba(46, 213, 115, 0.2),
+          inset 0 -5px 15px rgba(0, 0, 0, 0.2),
+          inset 0 5px 20px rgba(255, 255, 255, 0.3);
+      }
+
+      .bulb.lit-yellow {
+        background: radial-gradient(circle at 35% 35%, #ffe88a, #ffa502);
+        box-shadow: 
+          0 0 30px rgba(255, 165, 2, 0.7),
+          0 0 60px rgba(255, 165, 2, 0.4),
+          0 0 90px rgba(255, 165, 2, 0.2),
+          inset 0 -5px 15px rgba(0, 0, 0, 0.2),
+          inset 0 5px 20px rgba(255, 255, 255, 0.3);
       }
 
       .prompt-area {
-        background: #ffd49f;
-        margin-top: 20px;
-        border-radius: 60px;
-        padding: 12px;
+        background: rgba(255, 212, 159, 0.85);
+        margin-top: 10px;
+        border-radius: 18px;
+        padding: 10px 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
+        gap: 10px;
+        flex-wrap: nowrap;
+        overflow: hidden;
+        border: 2px solid rgba(255, 196, 138, 0.8);
+        backdrop-filter: blur(5px);
       }
 
       .prompt-card {
-        background: white;
-        border-radius: 50px;
-        padding: 10px 25px;
-        font-size: 1.8rem;
-        font-weight: bold;
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 5px 0 #cca86e;
-      }
-
-      .prompt-text {
-        background: #fef2cf;
-        padding: 8px 25px;
-        border-radius: 45px;
-        font-size: 2rem;
-        letter-spacing: 4px;
-        font-weight: bold;
-        color: #ce7e2e;
-      }
-
-      /* ========== 更有质感的加分按钮 ========== */
-      .action-btn {
-        background: linear-gradient(180deg, #82d879, #52b348);
-        border: none;
-        font-size: 1.8rem;
-        font-family: inherit;
-        font-weight: bold;
-        padding: 14px 40px;
-        border-radius: 60px;
-        color: white;
-        cursor: pointer;
-        box-shadow:
-          0 8px 0 #367c2c,
-          0 4px 15px rgba(110, 220, 100, 0.4);
-        text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-        transition: 0.08s ease;
-        margin-top: 8px;
-      }
-      .action-btn:active {
-        transform: translateY(4px);
-        box-shadow: 0 3px 0 #367c2c;
-      }
-
-      .score-board {
-        background: #ffd966;
-        border-radius: 50px;
-        display: flex;
-        justify-content: space-between;
-        padding: 12px 25px;
-        margin: 20px 0 10px;
-        font-weight: bold;
-        font-size: 1.5rem;
-        color: #4a2a0a;
-        border: 2px solid #ffbc6e;
-      }
-
-      .score,
-      .message-area {
-        background: #fff2d2;
-        padding: 6px 20px;
-        border-radius: 30px;
-      }
-
-      .message-area {
-        font-size: 1.2rem;
-        background: #ffecb3;
-        color: #b95f1a;
-      }
-
-      .feedback {
-        min-height: 55px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 14px;
+        padding: 6px 14px;
+        font-size: 0.95rem;
         font-weight: bold;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        font-size: 1.2rem;
-        margin-top: 5px;
+        box-shadow: 0 3px 8px rgba(204, 168, 110, 0.3);
+        color: #8b4513;
+        flex: 1;
+        max-width: 100%;
+        margin: 0;
       }
 
-      .reset-icon {
-        background: #f4b942;
+      .prompt-text {
+        background: rgba(254, 242, 207, 0.95);
+        padding: 5px 14px;
+        border-radius: 14px;
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+        font-weight: bold;
+        color: #ce7e2e;
+        flex-shrink: 0;
+        margin: 0;
+        min-width: 40px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(206, 126, 46, 0.2);
+      }
+
+      /* ========== 加分按钮 ========== */
+      .action-btn {
+        background: linear-gradient(180deg, #82d879, #52b348);
         border: none;
-        font-size: 1.2rem;
-        padding: 6px 18px;
-        border-radius: 40px;
+        font-size: 1.1rem;
+        font-family: inherit;
+        font-weight: bold;
+        padding: 10px 28px;
+        border-radius: 28px;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(82, 179, 72, 0.3);
+        text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        margin-top: 8px;
+      }
+
+      .action-btn:hover {
+        background: linear-gradient(180deg, #66bb6a, #388e3c);
+        transform: scale(1.05);
+        box-shadow: 0 6px 15px rgba(82, 179, 72, 0.4);
+      }
+
+      .action-btn:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 5px rgba(82, 179, 72, 0.3);
+      }
+
+      .feedback {
+        min-height: 35px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 0.85rem;
+        margin-top: 6px;
+        color: #8b4513;
+        padding: 0 8px;
+      }
+
+      .reset-btn {
+        background: linear-gradient(180deg, #f4b942, #e0a000);
+        border: none;
+        font-size: 0.85rem;
+        padding: 5px 14px;
+        border-radius: 20px;
         cursor: pointer;
         font-weight: bold;
-        margin-left: 10px;
+        color: white;
+        margin-top: 6px;
+        box-shadow: 0 3px 0 #b8860b;
       }
 
-      footer {
-        font-size: 0.7rem;
-        margin-top: 20px;
-        color: #bb872b;
+      .reset-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 0 #b8860b;
+      }
+
+      /* 游戏结束弹窗 */
+      .game-over-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .game-over-modal.show {
+        display: flex;
+      }
+
+      .modal-content {
+        background: linear-gradient(180deg, #fff9e8 0%, #ffe8c8 40%, #ffd996 100%);
+        padding: 24px 28px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+        max-width: 340px;
+        width: 85%;
+        animation: modalSlideIn 0.35s ease-out;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid #ffc48a;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          transform: translateY(-15px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-content::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+        background: radial-gradient(circle at 35% 35%, #ff6b5e, #b32d1a);
+        border-radius: 50%;
+        box-shadow: 0 0 15px rgba(255, 107, 94, 0.6);
+        animation: lightBlink 1.5s ease-in-out infinite;
+      }
+
+      @keyframes lightBlink {
+        0%, 33% { 
+          background: radial-gradient(circle at 35% 35%, #ff6b5e, #b32d1a);
+          box-shadow: 0 0 15px rgba(255, 107, 94, 0.6);
+        }
+        34%, 66% { 
+          background: radial-gradient(circle at 35% 35%, #ffe174, #d4a017);
+          box-shadow: 0 0 15px rgba(255, 225, 116, 0.6);
+        }
+        67%, 100% { 
+          background: radial-gradient(circle at 35% 35%, #6fdc8c, #2c6e2c);
+          box-shadow: 0 0 15px rgba(111, 220, 140, 0.6);
+        }
+      }
+
+      .modal-title {
+        font-size: 1.5rem;
+        color: #e65c00;
+        margin-bottom: 6px;
+      }
+
+      .modal-subtitle {
+        font-size: 0.85rem;
+        color: #8b4513;
+        margin-bottom: 16px;
+      }
+
+      .modal-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .stat-item {
+        background: rgba(255, 255, 255, 0.75);
+        padding: 10px;
+        border-radius: 12px;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+        color: #8b6914;
+        margin-bottom: 3px;
+      }
+
+      .stat-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #e65c00;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .modal-btn {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-btn-primary {
+        background-color: #ff9f4b;
+        color: white;
+      }
+
+      .modal-btn-primary:hover {
+        background-color: #ff6b35;
+        transform: scale(1.05);
+        box-shadow: 0 6px 15px rgba(255, 107, 53, 0.4);
+      }
+
+      .modal-btn-secondary {
+        background-color: #78909c;
+        color: white;
+      }
+
+      .modal-btn-secondary:hover {
+        background-color: #546e7a;
+        transform: scale(1.05);
+        box-shadow: 0 6px 15px rgba(84, 110, 122, 0.4);
+      }
+
+      /* 弹窗装饰 - 红绿灯元素 */
+      .light-decoration {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        animation: lightBlink 1.5s ease-in-out infinite;
+      }
+
+      .light-1 {
+        top: 15px;
+        right: 25px;
+        background: radial-gradient(circle at 35% 35%, #ff6b5e, #b32d1a);
+        box-shadow: 0 0 10px rgba(255, 107, 94, 0.8);
+        animation-delay: 0s;
+      }
+
+      .light-2 {
+        top: 35px;
+        right: 25px;
+        background: radial-gradient(circle at 35% 35%, #ffe174, #d4a017);
+        box-shadow: 0 0 10px rgba(255, 225, 116, 0.8);
+        animation-delay: 0.5s;
+      }
+
+      .light-3 {
+        top: 55px;
+        right: 25px;
+        background: radial-gradient(circle at 35% 35%, #6fdc8c, #2c6e2c);
+        box-shadow: 0 0 10px rgba(111, 220, 140, 0.8);
+        animation-delay: 1s;
+      }
+
+      /* 星星装饰 */
+      .modal-content::before {
+        content: '⭐';
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 20px;
+        animation: starTwinkle 2s ease-in-out infinite;
+      }
+
+      .modal-content::after {
+        content: '✨';
+        position: absolute;
+        bottom: 25px;
+        right: 30px;
+        font-size: 18px;
+        animation: starTwinkle 2.5s ease-in-out infinite reverse;
+      }
+
+      @keyframes starTwinkle {
+        0%, 100% { opacity: 0.5; transform: scale(0.9); }
+        50% { opacity: 1; transform: scale(1.1); }
       }
 
       @media (max-width: 480px) {
@@ -285,11 +532,11 @@
   </head>
   <body>
     <div class="game-container">
-      <h1>🚦 专注小特工 🚦</h1>
-      <div class="sub">✨ 颜色一致才能加分 ✨</div>
+      <h1>专注小特工</h1>
+      <div class="sub">颜色一致才能加分</div>
 
       <div class="difficulty-panel">
-        <button data-diff="hard" class="difficulty-btn active">🦊 困难</button>
+        <button data-diff="hard" class="difficulty-btn active">困难</button>
       </div>
 
       <div class="traffic-scene">
@@ -298,25 +545,48 @@
         </div>
         <div class="prompt-area">
           <div class="prompt-card">
-            📢 提示颜色：
+            提示颜色：
             <span id="promptWord" class="prompt-text">红</span>
           </div>
         </div>
       </div>
 
-      <!-- ========== 质感按钮文字 ========== -->
-      <button id="clickBtn" class="action-btn">🎯 正确加分</button>
+      <button id="clickBtn" class="action-btn">正确加分</button>
 
-      <div class="score-board">
-        <span>🏆 当前得分</span>
-        <span id="scoreValue" class="score">0</span>
-        <span>🎯 上限100分</span>
+      <div class="feedback" id="feedbackMsg">点击按钮，匹配颜色得5分！</div>
+    </div>
+
+    <!-- 游戏结束弹窗 -->
+    <div class="game-over-modal" id="gameOverModal">
+      <div class="modal-content">
+        <div class="light-decoration light-1"></div>
+        <div class="light-decoration light-2"></div>
+        <div class="light-decoration light-3"></div>
+        <h2 class="modal-title">训练完成！</h2>
+        <p class="modal-subtitle">你的专注力表现非常棒！</p>
+        <div class="modal-stats">
+          <div class="stat-item">
+            <div class="stat-label">最终得分</div>
+            <div class="stat-value" id="finalScore">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">正确次数</div>
+            <div class="stat-value" id="finalCorrect">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">错误次数</div>
+            <div class="stat-value" id="finalWrong">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">正确率</div>
+            <div class="stat-value" id="finalAccuracy">0%</div>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button class="modal-btn modal-btn-primary" onclick="resetGame()">再玩一次</button>
+          <button class="modal-btn modal-btn-secondary" onclick="goHome()">返回首页</button>
+        </div>
       </div>
-      <div class="feedback" id="feedbackMsg">🧸 点击按钮，匹配颜色得1分！</div>
-      <div style="display: flex; justify-content: center; gap: 12px; margin-top: 8px">
-        <button id="resetGameBtn" class="reset-icon">🔄 重置游戏</button>
-      </div>
-      <footer>⚡ 只有【亮灯颜色】和【提示文字颜色】相同才能加分！不同就忍住喔~</footer>
     </div>
 
     <script>
@@ -328,10 +598,9 @@
 
       const lightBulb = document.getElementById('lightBulb');
       const promptWordSpan = document.getElementById('promptWord');
-      const scoreSpan = document.getElementById('scoreValue');
       const clickBtn = document.getElementById('clickBtn');
-      const resetBtn = document.getElementById('resetGameBtn');
       const feedbackDiv = document.getElementById('feedbackMsg');
+      const gameOverModal = document.getElementById('gameOverModal');
 
       const diffHard = document.querySelector('[data-diff="hard"]');
 
@@ -343,6 +612,8 @@
       let difficulty = 'easy';
       let switchTimer = null;
       let isSwitching = false;
+      let correctCount = 0;
+      let wrongCount = 0;
 
       const DIFFICULTY_SPEED = {
         hard: 900,
@@ -361,9 +632,9 @@
         else if (colorObj.name === '绿') bgStyle = 'radial-gradient(circle at 35% 35%, #6fdc8c, #2c6e2c)';
         else if (colorObj.name === '黄') bgStyle = 'radial-gradient(circle at 35% 35%, #ffe174, #d4a017)';
         lightBulb.style.background = bgStyle;
-        lightBulb.style.boxShadow = `0 0 28px ${colorObj.name === '红' ? '#ff7b5e' : colorObj.name === '绿' ? '#6fdc8c' : '#ffdd77'}`;
+        lightBulb.style.boxShadow = `0 0 20px ${colorObj.name === '红' ? '#ff7b5e' : colorObj.name === '绿' ? '#6fdc8c' : '#ffdd77'}`;
         lightBulb.innerText = colorObj.emoji;
-        lightBulb.style.fontSize = '4.5rem';
+        lightBulb.style.fontSize = '3.5rem';
         lightBulb.style.display = 'flex';
         lightBulb.style.alignItems = 'center';
         lightBulb.style.justifyContent = 'center';
@@ -393,13 +664,16 @@
           switchTimer = null;
         }
         score = 0;
+        correctCount = 0;
+        wrongCount = 0;
+        gameOverModal.classList.remove('show');
         updateScoreUI();
         gameActive = true;
         currentLightColorObj = getRandomColor();
         currentPromptColorObj = getRandomColor();
         updateLightUI(currentLightColorObj);
         updatePromptUI(currentPromptColorObj);
-        feedbackDiv.innerHTML = '🧸 新的一局！记得颜色一致才能点击加分哟~';
+        feedbackDiv.innerHTML = '新的一局！记得颜色一致才能点击加分';
         startSwitching();
       }
 
@@ -439,16 +713,15 @@
       }
 
       function updateScoreUI() {
-        scoreSpan.innerText = score;
       }
 
       function handleClickToAdd() {
         if (!gameActive) {
-          feedbackDiv.innerHTML = '🎮 游戏已经完成啦！点「重置游戏」继续训练吧 🎮';
+          feedbackDiv.innerHTML = '游戏已经完成！点击重置继续';
           return;
         }
         if (score >= maxScore) {
-          feedbackDiv.innerHTML = '🏆 已经满分100分啦！你太厉害了！重置可以继续玩 🏆';
+          feedbackDiv.innerHTML = '已经满分100分！重置可以继续玩';
           gameActive = false;
           if (switchTimer) {
             clearInterval(switchTimer);
@@ -460,32 +733,28 @@
         const isMatch = currentLightColorObj.name === currentPromptColorObj.name;
 
         if (isMatch) {
+          correctCount++;
           if (score + POINTS_PER_CLICK <= maxScore) {
             score += POINTS_PER_CLICK;
             updateScoreUI();
-            feedbackDiv.innerHTML = `✅ 正确！颜色一致！ +${POINTS_PER_CLICK}分 ✅ 🎈 继续加油！`;
+            feedbackDiv.innerHTML = `正确！+${POINTS_PER_CLICK}分！继续加油！`;
             lightBulb.style.transform = 'scale(1.02)';
             setTimeout(() => {
               if (lightBulb) lightBulb.style.transform = '';
             }, 150);
             if (score === maxScore) {
-              feedbackDiv.innerHTML = '🎉🎉🎉 满分100！ 你获得了专注力大师奖杯！ 🎉🎉🎉';
               gameActive = false;
               if (switchTimer) {
                 clearInterval(switchTimer);
                 switchTimer = null;
               }
+              showGameOverModal();
               return;
-            }
-          } else {
-            if (score >= maxScore) {
-              gameActive = false;
-              if (switchTimer) clearInterval(switchTimer);
-              feedbackDiv.innerHTML = '满分啦！不能继续加分咯，重置继续挑战吧！';
             }
           }
         } else {
-          feedbackDiv.innerHTML = '❌ 哎呀！亮灯颜色和提示词不一样，不能加分哦～ ❌ 再观察一下！';
+          wrongCount++;
+          feedbackDiv.innerHTML = '颜色不一样，不能加分哦！再观察一下';
           const btn = clickBtn;
           btn.style.transform = 'translateX(4px)';
           setTimeout(() => {
@@ -498,24 +767,38 @@
         }
       }
 
+      function showGameOverModal() {
+        const totalCount = correctCount + wrongCount;
+        const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+        
+        document.getElementById('finalScore').innerText = score;
+        document.getElementById('finalCorrect').innerText = correctCount;
+        document.getElementById('finalWrong').innerText = wrongCount;
+        document.getElementById('finalAccuracy').innerText = accuracy + '%';
+        
+        gameOverModal.classList.add('show');
+      }
+
+      function goHome() {
+        window.location.href = 'index.html';
+      }
+
       diffHard.addEventListener('click', () => changeDifficulty('hard'));
       clickBtn.addEventListener('click', handleClickToAdd);
-      resetBtn.addEventListener('click', () => {
-        resetGame();
-      });
 
       function initGame() {
         difficulty = 'hard';
         updateDifficultyButtonActive();
         score = 0;
-        updateScoreUI();
+        correctCount = 0;
+        wrongCount = 0;
         gameActive = true;
         currentLightColorObj = getRandomColor();
         currentPromptColorObj = getRandomColor();
         updateLightUI(currentLightColorObj);
         updatePromptUI(currentPromptColorObj);
         startSwitching();
-        feedbackDiv.innerHTML = '🦊 困难模式开始咯！看准颜色一致再按按钮！上限100分！每次+5分！';
+        feedbackDiv.innerHTML = '困难模式开始！看准颜色一致再按按钮！';
       }
 
       initGame();
