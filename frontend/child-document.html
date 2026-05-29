@@ -12,12 +12,12 @@
       /* 首屏 body 样式 — 与 components-parent 保持一致，消除白屏闪烁 */
       body {
         background: #f2f0faff;
-        min-height: 100vh;
+        height: 100vh;
         display: flex;
         gap: 24px;
         padding: 24px;
         padding-left: 194px;
-        overflow-x: hidden;
+        overflow: hidden;
       }
 
       /* ===== 页面特定样式 ===== */
@@ -26,16 +26,11 @@
       .main-content {
         display: grid !important;
         grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr auto;
         gap: 24px;
-        overflow-y: auto;
+        overflow: hidden;
         flex: 1;
         padding: 24px;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-
-      .main-content::-webkit-scrollbar {
-        display: none;
       }
 
       /* 左侧主卡片 - 跨两行 */
@@ -45,80 +40,35 @@
         background: #fff9e3 !important;
       }
 
-      /* 右上卡片 - 固定高度 + 折叠展开 */
+      /* 右上卡片 - 训练评析 */
       .card.right-top-card {
         grid-column: 2 / 3;
         grid-row: 1 / 2;
         background: #d0c6f5 !important;
-        max-height: 340px;
-        overflow: hidden;
-        position: relative;
-        transition: max-height 0.4s ease;
-      }
-
-      .card.right-top-card.expanded {
-        max-height: 1200px;
-        overflow-y: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-
-      .card.right-top-card.expanded::-webkit-scrollbar {
-        display: none;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
       }
 
       .card.right-top-card .card-body-inner {
-        overflow: hidden;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+        scrollbar-width: thin;
+        scrollbar-color: #b8a9d4 transparent;
       }
 
-      .eval-collapse-btn-wrap {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(transparent, #d0c6f5 50%);
-        pointer-events: none;
-        z-index: 2;
+      .card.right-top-card .card-body-inner::-webkit-scrollbar {
+        width: 6px;
       }
 
-      .card.right-top-card.expanded .eval-collapse-btn-wrap {
-        background: none;
-        position: static;
-        height: auto;
-        padding-top: 12px;
-        pointer-events: auto;
-      }
-
-      .eval-collapse-btn {
-        pointer-events: auto;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 18px;
-        border: 2px solid #343559;
-        border-radius: 20px;
+      .card.right-top-card .card-body-inner::-webkit-scrollbar-track {
         background: transparent;
-        color: #343559;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-family: inherit;
       }
 
-      .eval-collapse-btn:hover {
-        background: #343559;
-        color: #fff;
-      }
-
-      .eval-collapse-btn .btn-arrow {
-        display: inline-block;
-        transition: transform 0.3s ease;
-        font-size: 12px;
+      .card.right-top-card .card-body-inner::-webkit-scrollbar-thumb {
+        background: #b8a9d4;
+        border-radius: 3px;
       }
 
       /* 右下卡片 - 成长轨迹 */
@@ -407,31 +357,30 @@
       <!-- 右上卡片 - 训练评析 -->
       <div class="card right-top-card">
         <div class="card-header">训练评析</div>
-        <div class="card-body-inner">
-          <!-- 儿童基本信息 - 始终可见 -->
-          <div
-            id="child-info"
-            style="
-              margin-top: 16px;
-              color: #555;
-              font-size: 14px;
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 6px 16px;
-            "
-          >
-            <span>姓名：<span id="child-name">-</span></span>
-            <span>年龄：<span id="child-age">-</span></span>
-            <span>训练时长：<span id="training-time">0分钟</span></span>
-            <span>完成课程：<span id="completed-courses">0次</span></span>
-            <span style="grid-column: 1 / -1">当前水平：<span id="current-level">-</span></span>
-          </div>
+        <!-- 儿童基本信息 - 固定 -->
+        <div
+          id="child-info"
+          style="
+            margin-top: 16px;
+            padding-bottom: 16px;
+            color: #555;
+            font-size: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+            border-bottom: 2px solid rgba(52, 53, 89, 0.2);
+          "
+        >
+          <span>姓名：<span id="child-name">-</span></span>
+          <span>年龄：<span id="child-age">-</span></span>
+          <span>训练时长：<span id="training-time">0分钟</span></span>
+          <span>完成课程：<span id="completed-courses">0次</span></span>
+          <span style="grid-column: 1 / -1">当前水平：<span id="current-level">-</span></span>
+        </div>
 
-          <!-- AI 评价区域 - 可折叠 -->
-          <div
-            id="ai-evaluation-container"
-            style="margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(52, 53, 89, 0.2)"
-          >
+        <!-- AI 评价区域 - 可滚动 -->
+        <div class="card-body-inner">
+          <div id="ai-evaluation-container" style="margin-top: 16px">
             <div id="ai-evaluation-loading" style="text-align: center; padding: 20px; color: #666">
               <p>正在生成评价...</p>
             </div>
@@ -461,13 +410,6 @@
               <p>AI 评价暂时不可用</p>
             </div>
           </div>
-        </div>
-
-        <!-- 展开/折叠按钮 -->
-        <div class="eval-collapse-btn-wrap">
-          <button class="eval-collapse-btn" onclick="toggleEvalCollapse()">
-            查看详情 <span class="btn-arrow">▼</span>
-          </button>
         </div>
       </div>
 
@@ -550,21 +492,6 @@
 
       // ===== 页面初始化 =====
 
-      function toggleEvalCollapse() {
-        var card = document.querySelector('.card.right-top-card');
-        var btn = document.querySelector('.eval-collapse-btn');
-        var arrow = btn.querySelector('.btn-arrow');
-        var isExpanded = card.classList.contains('expanded');
-
-        if (isExpanded) {
-          card.classList.remove('expanded');
-          btn.innerHTML = '查看详情 <span class="btn-arrow">▼</span>';
-        } else {
-          card.classList.add('expanded');
-          btn.innerHTML = '收起 <span class="btn-arrow">▲</span>';
-        }
-      }
-
       // 页面初始化在 DOMContentLoaded 事件中执行
 
       // ===== 页面特定功能 =====
@@ -630,9 +557,7 @@
           }
           currentChildId = firstChild.id;
 
-          loadChildInfo(firstChild.id);
-          loadCharts(firstChild.id);
-          loadGrowthChart(firstChild.id);
+          loadAllData(firstChild.id);
         } catch (error) {
           console.error('加载儿童列表失败:', error);
           document.getElementById('selected-child-name').textContent = '加载失败';
@@ -662,28 +587,39 @@
         arrow.classList.remove('active');
 
         currentChildId = childId;
-        loadChildInfo(childId);
-        loadCharts(childId);
-        loadGrowthChart(childId);
+        loadAllData(childId);
       }
 
-      // 三个独立加载函数，各自容错，互不阻塞
-      function loadChildInfo(childId) {
-        updateChildInfo(childId).catch(function (e) {
-          console.error('加载儿童信息/评价失败:', e);
-        });
-      }
+      // 统一加载入口：fetchChildData 只调一次，AI 评价不阻塞其他
+      async function loadAllData(childId) {
+        // 先发起请求（不 await），让后续调用可以并行
+        const childDataPromise = fetchChildData(childId);
+        // 成长轨迹图独立加载（使用 56 天数据，不与上面互相阻塞）
+        drawGrowthChart(childId).catch(e => console.error('加载成长轨迹失败:', e));
 
-      function loadCharts(childId) {
-        updateCharts(childId).catch(function (e) {
-          console.error('加载雷达图失败:', e);
-        });
-      }
+        // 等待通用数据就绪
+        const childData = await childDataPromise;
+        if (!childData) return;
 
-      function loadGrowthChart(childId) {
-        drawGrowthChart(childId).catch(function (e) {
-          console.error('加载成长轨迹失败:', e);
-        });
+        // 基本信息
+        if (childData.info) {
+          const $ = id => document.getElementById(id);
+          const info = childData.info;
+          if ($('child-name')) $('child-name').textContent = info.name;
+          if ($('child-age')) $('child-age').textContent = info.age;
+          if ($('training-time')) $('training-time').textContent = info.time;
+          if ($('completed-courses')) $('completed-courses').textContent = info.courses;
+          if ($('current-level')) $('current-level').textContent = info.level;
+        }
+
+        // 雷达图
+        if (childData.radarData) {
+          lastRadarData = childData.radarData;
+          drawRadarChart(childData.radarData);
+        }
+
+        // AI 评价（慢接口，不阻塞页面渲染）
+        fetchAndDisplayAIEvaluation(childId, childData).catch(e => console.error('AI评价失败:', e));
       }
 
       // 从后端获取儿童数据
@@ -714,7 +650,7 @@
           let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
           if (latestDetection) {
             // 优先使用综合训练的检测数据（已包含视觉模型计算）
-            var det = latestDetection;
+            const det = latestDetection;
             radarData = [
               det.selective_attention != null ? det.selective_attention / 100 : 0.5,
               det.sustained_attention != null ? det.sustained_attention / 100 : 0.5,
@@ -725,7 +661,7 @@
             console.log('使用综合训练检测数据:', radarData);
           } else if (trend && trend.trend) {
             // 其次使用日常训练的聚合趋势数据
-            var trendData = trend.trend;
+            const trendData = trend.trend;
             radarData = [
               (trendData.selective?.avg_score || 50) / 100 || 0.5,
               (trendData.sustained?.avg_score || 50) / 100 || 0.5,
@@ -770,29 +706,6 @@
             radarData: [0.5, 0.5, 0.5, 0.5, 0.5],
           };
         }
-      }
-
-      // 更新儿童信息
-      async function updateChildInfo(childId) {
-        const childData = await fetchChildData(childId);
-        if (childData && childData.info) {
-          const info = childData.info;
-          const childNameEl = document.getElementById('child-name');
-          const childAgeEl = document.getElementById('child-age');
-          const trainingTimeEl = document.getElementById('training-time');
-          const completedCoursesEl = document.getElementById('completed-courses');
-          const currentLevelEl = document.getElementById('current-level');
-
-          if (childNameEl) childNameEl.textContent = info.name;
-          if (childAgeEl) childAgeEl.textContent = info.age;
-          if (trainingTimeEl) trainingTimeEl.textContent = info.time;
-          if (completedCoursesEl) completedCoursesEl.textContent = info.courses;
-          if (currentLevelEl) currentLevelEl.textContent = info.level;
-
-          // 调用 AI 评价（传递 childData 用于缓存检测）
-          await fetchAndDisplayAIEvaluation(childId, childData);
-        }
-      }
 
       // 生成数据版本标识（用于检测数据是否更新）
       function generateDataVersion(childData) {
@@ -972,14 +885,6 @@
         }
       }
 
-      // 更新图表
-      async function updateCharts(childId) {
-        const childData = await fetchChildData(childId);
-        if (childData && childData.radarData) {
-          drawRadarChart(childData.radarData);
-        }
-      }
-
       // 雷达图配置
       const radarChartConfig = {
         // 维度配置
@@ -1039,6 +944,7 @@
 
       // 雷达图实例
       let radarChart = null;
+      let lastRadarData = null; // 用于 resize 重绘，避免重复请求
 
       // 绘制雷达图
       function drawRadarChart(data) {
@@ -1289,7 +1195,7 @@
             clearTimeout(resizeTimeout);
           }
           resizeTimeout = setTimeout(async () => {
-            await updateCharts(currentChildId);
+            if (lastRadarData) drawRadarChart(lastRadarData);
             await drawGrowthChart(currentChildId);
           }, 250);
         }
