@@ -370,6 +370,74 @@
       let isPaused = false;
       let errorCount = 0;
 
+      // 简单点击音效（Web Audio API 合成，同 index.html 风格）
+      var clickAudioCtx = null;
+      function getClickAudioCtx() {
+        if (!clickAudioCtx) {
+          clickAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return clickAudioCtx;
+      }
+
+      function playClickSound() {
+        var ctx = getClickAudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
+
+        // 钢琴音色：基频 + 多个泛音，模拟琴弦振动
+        var harmonics = [
+          { freq: 523.25, gain: 0.18 }, // C5 基频
+          { freq: 1046.5, gain: 0.09 }, // 2倍泛音
+          { freq: 1569.8, gain: 0.04 }, // 3倍泛音
+          { freq: 2093.0, gain: 0.02 }, // 4倍泛音
+        ];
+
+        for (var i = 0; i < harmonics.length; i++) {
+          var h = harmonics[i];
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(h.freq, now);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(h.gain, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.6);
+        }
+      }
+
+      function playWrongSound() {
+        var ctx = getClickAudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
+
+        // 小二度不协和音程，短促刺耳
+        var freqs = [180, 191];
+        for (var i = 0; i < freqs.length; i++) {
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freqs[i], now);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.06, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      }
+
       // [scoring-system] Session created at level start so vision data
       // covers the full gameplay period.
       let gameSessionId = null;
@@ -485,8 +553,10 @@
           errorCount++;
           clue.classList.add('distractor');
           showFeedbackEffect(clue, '❌', '#f44336');
+          playWrongSound();
         } else {
           showFeedbackEffect(clue, '⭐', '#FFD700');
+          playClickSound();
         }
 
         checkCompletion();

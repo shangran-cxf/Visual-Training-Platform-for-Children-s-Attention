@@ -380,6 +380,56 @@
       let gameInterval;
       let clickCountedThisStep = false;
 
+      // 点击音效
+      var soundCtx = null;
+      function getSoundCtx() {
+        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return soundCtx;
+      }
+      function playCorrectSound() {
+        var ctx = getSoundCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
+        var harmonics = [
+          { f: 523.25, g: 0.18 },
+          { f: 1046.5, g: 0.09 },
+          { f: 1569.8, g: 0.04 },
+          { f: 2093.0, g: 0.02 },
+        ];
+        for (var i = 0; i < harmonics.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(harmonics[i].f, now);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(harmonics[i].g, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        }
+      }
+      function playWrongSound() {
+        var ctx = getSoundCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
+        var freqs = [180, 191];
+        for (var i = 0; i < freqs.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freqs[i], now);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.06, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      }
+
       // [scoring-system] Session created at level start so vision data
       // covers the full gameplay period.
       let gameSessionId = null;
@@ -473,6 +523,9 @@
 
         if (distance > 60) {
           offTargetCount++;
+          playWrongSound();
+        } else {
+          playCorrectSound();
         }
 
         requestAnimationFrame(updateStats);
