@@ -697,33 +697,43 @@
 
         const latestDetection = Array.isArray(detection) && detection.length > 0 ? detection[0] : null;
 
-        // 雷达图数据优先级：检测数据(综合训练) > 趋势数据(日常训练) > 默认值
-        let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
-        if (latestDetection) {
-          // 优先使用综合训练的检测数据（已包含视觉模型计算）
-          var det = latestDetection;
-          radarData = [
-            det.selective_attention != null ? (det.selective_attention / 100) : 0.5,
-            det.sustained_attention != null ? (det.sustained_attention / 100) : 0.5,
-            det.visual_tracking != null ? (det.visual_tracking / 100) : 0.5,
-            det.working_memory != null ? (det.working_memory / 100) : 0.5,
-            det.inhibitory_control != null ? (det.inhibitory_control / 100) : 0.5,
-          ];
-          console.log('使用综合训练检测数据:', radarData);
-        } else if (trend && trend.trend) {
-          // 其次使用日常训练的聚合趋势数据
-          var trendData = trend.trend;
-          radarData = [
-            (trendData.selective?.avg_score || 50) / 100 || 0.5,
-            (trendData.sustained?.avg_score || 50) / 100 || 0.5,
-            (trendData.tracking?.avg_score || 50) / 100 || 0.5,
-            (trendData.memory?.avg_score || 50) / 100 || 0.5,
-            (trendData.inhibitory?.avg_score || 50) / 100 || 0.5,
-          ];
-          console.log('使用训练趋势数据:', radarData);
-        } else {
-          console.log('未获取到任何数据，使用默认值');
+        // 雷达图数据：逐维度合并综合训练检测数据 + 日常训练趋势数据
+        // 每个维度优先取检测数据(综合训练)，没有则取趋势数据(日常训练)，都没有则默认50
+        var detScores = latestDetection ? [
+          latestDetection.selective_attention,
+          latestDetection.sustained_attention,
+          latestDetection.visual_tracking,
+          latestDetection.working_memory,
+          latestDetection.inhibitory_control,
+        ] : [null, null, null, null, null];
+
+        var trendScores = (trend && trend.trend) ? [
+          trend.trend.selective?.avg_score,
+          trend.trend.sustained?.avg_score,
+          trend.trend.tracking?.avg_score,
+          trend.trend.memory?.avg_score,
+          trend.trend.inhibitory?.avg_score,
+        ] : [null, null, null, null, null];
+
+        var labels = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
+        var radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
+        for (var i = 0; i < 5; i++) {
+          var detVal = detScores[i];
+          var trendVal = trendScores[i];
+          var hasDet = detVal != null && detVal > 0;
+          var hasTrend = trendVal != null && trendVal > 0;
+          if (hasDet && hasTrend) {
+            // 两者都有：取平均值
+            radarData[i] = ((detVal + trendVal) / 2) / 100;
+          } else if (hasDet) {
+            radarData[i] = detVal / 100;
+          } else if (hasTrend) {
+            radarData[i] = trendVal / 100;
+          }
+          var src = hasDet && hasTrend ? '平均' : hasDet ? '综合训练' : hasTrend ? '日常训练' : '默认';
+          console.log(labels[i] + ': 综合=' + detVal + ' 日常=' + trendVal + ' → ' + src + ' ' + (radarData[i] * 100).toFixed(1) + '%');
         }
+        console.log('合并后雷达图数据:', radarData);
 
         const result = {
           info: {
