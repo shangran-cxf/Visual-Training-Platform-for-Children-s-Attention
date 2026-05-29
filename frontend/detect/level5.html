@@ -578,8 +578,8 @@
       </div>
     </div>
 
-    <script src="../../floating-ball.js"></script>
-    <script src="../../api/vision-uploader.js"></script>
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script src="../utils.js"></script>
     <script>
       const COLORS = [
@@ -611,6 +611,56 @@
       const gameDuration = 30;
       let timeLeft = gameDuration;
       let countdownTimer = null;
+
+      // 点击音效
+      var soundCtx = null;
+      function getSoundCtx() {
+        if (!soundCtx) soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return soundCtx;
+      }
+      function playCorrectSound() {
+        var ctx = getSoundCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
+        var harmonics = [
+          { f: 523.25, g: 0.18 },
+          { f: 1046.5, g: 0.09 },
+          { f: 1569.8, g: 0.04 },
+          { f: 2093.0, g: 0.02 },
+        ];
+        for (var i = 0; i < harmonics.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(harmonics[i].f, now);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(harmonics[i].g, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        }
+      }
+      function playWrongSound() {
+        var ctx = getSoundCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        var now = ctx.currentTime;
+        var freqs = [180, 191];
+        for (var i = 0; i < freqs.length; i++) {
+          var osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freqs[i], now);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.06, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      }
 
       // [scoring-system] Session created at game start so vision data
       // covers the full gameplay period.
@@ -832,7 +882,7 @@
         uploadAllComprehensiveData(function () {
           setTimeout(function () {
             window.location.href = 'index.html?showReport=1';
-          }, 1000);
+          }, 500);
         });
       }
 
@@ -914,8 +964,14 @@
               })
               .catch(function (err) {
                 console.error('结束会话失败:', err);
+                // 即使 session/end 失败，也尝试上传检测数据
+                return doUploadDetection(null);
+              })
+              .then(function () {
                 sessionStorage.removeItem('comprehensive_session_id');
                 localStorage.removeItem('comprehensive_game_data');
+                var cacheKey = 'child_data_' + (UserStateUtil.getCurrentChildId() || 1);
+                localStorage.removeItem(cacheKey);
                 if (onComplete) onComplete();
               });
           }
@@ -1041,6 +1097,7 @@
         const isMatch = currentLightColorObj.name === currentPromptColorObj.name;
 
         if (isMatch) {
+          playCorrectSound();
           score++;
           streak++;
           updateScoreUI();
@@ -1051,6 +1108,7 @@
           }, 150);
           updateDifficulty();
         } else {
+          playWrongSound();
           streak = 0;
           errorCount++;
           currentSpeed = baseSpeed;
