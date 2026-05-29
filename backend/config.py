@@ -76,7 +76,7 @@ ATTENTION_DIMENSIONS = {
 SCORING_WEIGHTS = {
     "selective": {"accuracy": 0.35, "precision": 0.25, "speed": 0.20, "head_stable": 0.10, "blink_stable": 0.10},
     "sustained": {"stable_act": 0.30, "no_fatigue": 0.25, "speed": 0.20, "head_stable": 0.15, "blink_stable": 0.10},
-    "tracking": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.08},
+    "tracking": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.05, "blink_stable": 0.03},
     "memory": {"accuracy": 0.40, "order": 0.20, "speed": 0.20, "head_stable": 0.12, "blink_stable": 0.08},
     "inhibitory": {"impulse": 0.40, "accuracy": 0.30, "head_stable": 0.15, "face_stable": 0.08, "blink_stable": 0.07},
 }
@@ -144,15 +144,16 @@ GAME_DIFFICULTY_WEIGHTS = {
         "blink_stable": 0.10,
     },
     # ── Tracking ──
-    "sun-tracking:easy": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.08},
+    "sun-tracking:easy": {"accuracy": 0.35, "rt_score": 0.25, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.05, "blink_stable": 0.03},
     "sun-tracking:medium": {
         "accuracy": 0.30,
         "rt_score": 0.30,
         "speed": 0.20,
         "head_stable": 0.12,
-        "face_stable": 0.08,
+        "face_stable": 0.05,
+        "blink_stable": 0.03,
     },
-    "sun-tracking:hard": {"accuracy": 0.25, "rt_score": 0.35, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.08},
+    "sun-tracking:hard": {"accuracy": 0.25, "rt_score": 0.35, "speed": 0.20, "head_stable": 0.12, "face_stable": 0.05, "blink_stable": 0.03},
     "animal-searching:easy": {
         "accuracy": 0.40,
         "rt_score": 0.20,

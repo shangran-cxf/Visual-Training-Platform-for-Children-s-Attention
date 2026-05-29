@@ -647,8 +647,7 @@
         clearAnim();
         round++;
         if (round > maxRound) {
-          // 显示游戏结束弹窗
-          showGameOverModal();
+          uploadTrainingData();
           return;
         }
         updateUI();
@@ -687,8 +686,8 @@
         return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
-      function showGameOverModal() {
-        const finalScoreValue = calculateTrackingScore();
+      function showGameOverModal(finalScoreValue) {
+        if (!finalScoreValue) finalScoreValue = calculateTrackingScore();
         const totalTime = Math.floor((Date.now() - gameStartTime) / 1000);
 
         const scoreDetails = {
@@ -723,8 +722,6 @@
         if (typeof MedalUtil !== 'undefined') {
           MedalUtil.recordGameProgress('game6', currentDifficultyKey);
         }
-
-        uploadTrainingData();
 
         const modal = document.createElement('div');
         modal.style.cssText = `
@@ -1079,16 +1076,16 @@
                   console.log('训练时间已保存到 localStorage');
 
                   // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                  var backendScore = null;
-                  var backendLevel = null;
-                  if (result.data && result.data.summary) {
-                    backendScore = Math.round(result.data.summary.final_score);
-                    backendLevel = result.data.summary.performance_level;
+                  var displayScore = calculateTrackingScore();
+                  if (result.data && result.data.summary && result.data.summary.final_score) {
+                    displayScore = Math.round(result.data.summary.final_score);
                   }
+                  showGameOverModal(displayScore);
                 }
               })
               .catch((error) => {
                 console.error('上传训练数据失败:', error);
+                showGameOverModal();
               });
           };
 

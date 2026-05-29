@@ -44,29 +44,25 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
-        padding: 30px 15px 20px;
+        justify-content: center;
+        padding: 20px;
         overflow: hidden;
       }
 
       .header {
         text-align: center;
-        margin-bottom: 12px;
-        flex-shrink: 0;
+        margin-bottom: 30px;
       }
 
       .header h1 {
         color: #005403;
-        font-size: 1.8em;
-        margin-bottom: 6px;
+        font-size: 2em;
+        margin-bottom: 10px;
       }
 
       .header p {
-        font-size: 1em;
+        font-size: 1.1em;
         color: #116500;
-        max-width: 700px;
-        margin: 0 auto;
-        line-height: 1.4;
       }
 
       .game-area {
@@ -74,40 +70,37 @@
         background-size: cover;
         background-position: center;
         border-radius: 15px;
-        padding: 15px 20px 55px 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        margin-bottom: 8px;
+        padding: 30px 30px 10px 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
         text-align: center;
-        border: 3px solid #ffffff;
-        min-height: 500px;
-        max-height: 75vh;
-        min-width: 430px;
-        width: fit-content;
+        border: 2px solid #ffffff;
+        min-height: 600px;
+        max-height: 85vh;
         position: relative;
-        display: block;
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
-        transition: none;
       }
 
       .difficulty-selector {
         display: flex;
-        gap: 8px;
-        margin-bottom: 10px;
+        gap: 10px;
+        margin-bottom: 30px;
         justify-content: center;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         max-width: 100%;
         flex-shrink: 0;
       }
 
       .difficulty-btn {
-        padding: 8px 14px;
+        padding: 15px 20px;
         border: 2px solid #b3d9ff;
-        border-radius: 15px;
+        border-radius: 25px;
         background-color: #e6f2ff;
         color: #6699cc;
         cursor: pointer;
         transition: all 0.3s ease;
-        font-size: 13px;
       }
 
       .difficulty-btn:hover {
@@ -119,12 +112,12 @@
         background-color: #9edfff;
         color: #ffffff;
         border-color: #9edfff;
-        box-shadow: 0 2px 6px rgba(51, 153, 255, 0.4);
+        box-shadow: 0 2px 8px rgba(51, 153, 255, 0.4);
       }
 
       .target-info {
-        margin-bottom: 10px;
-        font-size: 15px;
+        margin-bottom: 20px;
+        font-size: 18px;
         font-weight: bold;
         color: #146607;
         flex-shrink: 0;
@@ -132,8 +125,9 @@
 
       .matrix-container {
         flex: 1;
-        overflow-y: hidden;
+        overflow-y: auto;
         overflow-x: hidden;
+        scrollbar-gutter: stable;
         max-width: 100%;
         min-height: 0;
         display: flex;
@@ -148,8 +142,8 @@
       }
 
       .matrix-cell {
-        width: 55px;
-        height: 55px;
+        width: 60px;
+        height: 60px;
         background-color: transparent;
         border-radius: 5px;
         display: flex;
@@ -160,14 +154,10 @@
         cursor: pointer;
         position: relative;
         box-sizing: border-box;
-        transition:
-          transform 0.12s ease,
-          background-color 0.15s ease;
       }
 
       .matrix-cell:hover {
         background-color: transparent;
-        transform: scale(1.1);
       }
 
       .matrix-cell.target {
@@ -184,13 +174,13 @@
       .matrix-cell.marked {
         background-color: #d4edda !important;
         color: #155724 !important;
-        animation: pulse 0.3s ease-in-out;
+        animation: pulse 0.5s ease-in-out;
       }
 
       .matrix-cell.marked.error {
         background-color: #f8d7da !important;
         color: #721c24 !important;
-        animation: shake 0.3s ease-in-out;
+        animation: shake 0.5s ease-in-out;
       }
 
       @keyframes starEffect {
@@ -200,7 +190,7 @@
         }
 
         100% {
-          transform: scale(1.5);
+          transform: scale(1);
           opacity: 0;
         }
       }
@@ -208,10 +198,9 @@
       .star {
         position: absolute;
         color: #ffd700;
-        font-size: 24px;
-        animation: starEffect 0.5s ease-out forwards;
+        font-size: 20px;
+        animation: starEffect 0.8s ease-out forwards;
         pointer-events: none;
-        z-index: 10;
       }
 
       @keyframes pulse {
@@ -220,7 +209,7 @@
         }
 
         50% {
-          transform: scale(1.12);
+          transform: scale(1.1);
         }
 
         100% {
@@ -234,50 +223,41 @@
           transform: translateX(0);
         }
 
-        20% {
-          transform: translateX(-4px);
+        25% {
+          transform: translateX(-5px);
         }
 
-        40% {
-          transform: translateX(4px);
-        }
-
-        60% {
-          transform: translateX(-4px);
-        }
-
-        80% {
-          transform: translateX(4px);
+        75% {
+          transform: translateX(5px);
         }
       }
 
       .stats {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 14px;
-        gap: 12px;
+        margin-bottom: 20px;
+        font-size: 16px;
+        gap: 15px;
         flex-wrap: wrap;
         background-color: rgba(44, 124, 47, 0.5);
         color: white;
         font-weight: bold;
-        padding: 8px 12px;
-        border-radius: 8px;
+        padding: 10px;
+        border-radius: 5px;
         max-width: 100%;
         flex-shrink: 0;
       }
 
       .feedback {
         text-align: center;
-        margin-bottom: 8px;
-        padding: 8px;
+        margin-bottom: 20px;
+        padding: 10px;
         background-color: rgba(255, 255, 255, 0.8);
-        border-radius: 8px;
+        border-radius: 5px;
         color: #4caf50;
         font-weight: bold;
         flex-shrink: 0;
-        min-height: 36px;
-        font-size: 14px;
+        min-height: 42px;
       }
 
       @keyframes fadeIn {
@@ -290,15 +270,37 @@
         }
       }
 
-      @keyframes modalSlideIn {
-        from {
-          transform: translateY(-20px);
+      @keyframes cosmosBloom {
+        0% {
+          transform: scale(0.8) translateY(40px);
           opacity: 0;
         }
 
-        to {
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes revealUp {
+        0% {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+
+        100% {
           transform: translateY(0);
           opacity: 1;
+        }
+      }
+
+      @keyframes orbitFloat {
+        0% {
+          transform: translateY(0) rotate(0deg) scale(1);
+        }
+
+        100% {
+          transform: translateY(-14px) rotate(15deg) scale(1.2);
         }
       }
 
@@ -315,124 +317,21 @@
         }
       }
 
-      /* 游戏结束弹窗 */
-      .game-over-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(180, 210, 180, 0.35);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .game-over-modal.show {
-        display: flex;
-      }
-
-      .game-over-content {
-        background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 40%, #a5d6a7 100%);
-        padding: 25px 30px;
-        border-radius: 20px;
-        text-align: center;
-        box-shadow: 0 8px 32px rgba(0, 80, 3, 0.25);
-        max-width: 420px;
-        width: 90%;
-        animation: modalSlideIn 0.4s ease-out;
-        border: 3px solid rgba(86, 171, 47, 0.3);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .game-over-content h2 {
-        color: #2e7d32;
-        font-size: 24px;
-        margin-bottom: 18px;
-        position: relative;
-        z-index: 1;
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 20px;
-        position: relative;
-        z-index: 1;
-      }
-
-      .stat-item {
-        background-color: #ffffff;
-        padding: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 80, 3, 0.1);
-        border: 1px solid #dcedc8;
-      }
-
-      .stat-label {
-        color: #558b2f;
-        font-size: 13px;
-        margin-bottom: 6px;
-        font-weight: bold;
-      }
-
-      .stat-value {
-        color: #33691e;
-        font-size: 22px;
-        font-weight: bold;
-      }
-
-      .modal-buttons {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        position: relative;
-        z-index: 1;
-      }
-
-      .modal-btn {
-        padding: 10px 24px;
-        border: none;
-        border-radius: 20px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      }
-
-      .modal-btn.restart {
-        background-color: #66bb6a;
-        color: white;
-      }
-
-      .modal-btn.restart:hover {
-        background-color: #43a047;
-        transform: scale(1.05);
-      }
-
-      .modal-btn.back {
-        background-color: #8d6e63;
-        color: white;
-      }
-
-      .modal-btn.back:hover {
-        background-color: #6d4c41;
-        transform: scale(1.05);
-      }
-
       .controls {
         display: flex;
-        gap: 15px;
+        gap: 20px;
         justify-content: center;
         align-items: center;
-        margin-top: 12px;
-        flex-shrink: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .controls > * {
+        pointer-events: auto;
       }
 
       .btn {
@@ -440,14 +339,14 @@
         color: white;
         font-weight: bold;
         border: none;
-        width: 110px;
-        height: 110px;
+        width: 150px;
+        height: 150px;
         border-radius: 50%;
-        font-size: 16px;
+        font-size: 20px;
         cursor: pointer;
         transition: all 0.3s;
         box-shadow:
-          0 4px 12px #5a4010,
+          0 4px 15px #5a4010,
           transparent 0.4;
         display: flex;
         align-items: center;
@@ -456,7 +355,6 @@
 
       .btn:hover {
         background-color: #b79173;
-        transform: scale(1.05);
       }
 
       .btn-secondary {
@@ -465,22 +363,15 @@
 
       .btn-secondary:hover {
         background-color: #777;
-        transform: scale(1.05);
       }
 
       .literature {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        font-size: 11px;
-        color: #555;
-        background-color: rgba(255, 255, 255, 0.9);
-        padding: 6px 10px;
-        border-radius: 8px;
-        text-align: left;
-        max-width: 220px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-        z-index: 100;
+        font-size: 12px;
+        color: #666;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 5px;
+        text-align: center;
       }
 
       @keyframes bounce {
@@ -551,39 +442,6 @@
       </div>
       <div class="literature">
         <p>文献依据：神经心理学经典范式，用于 ADHD、脑损伤注意力评估与训练</p>
-      </div>
-    </div>
-
-    <!-- 游戏结束弹窗 -->
-    <div class="game-over-modal" id="gameOverModal">
-      <div class="game-over-content">
-        <h2>✨ 游戏完成 ✨</h2>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-label">🏆 得分</div>
-            <div class="stat-value" id="modal-score" style="color: #2e7d32; font-size: 32px">0</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">⏱️ 用时</div>
-            <div class="stat-value" id="modal-time">0s</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">✅ 正确</div>
-            <div class="stat-value" id="modal-correct">0</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">❌ 遗漏</div>
-            <div class="stat-value" id="modal-missed">0</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">⚠️ 误划</div>
-            <div class="stat-value" id="modal-errors">0</div>
-          </div>
-        </div>
-        <div class="modal-buttons">
-          <button class="modal-btn restart" onclick="restartGame()">🔄 再来一局</button>
-          <button class="modal-btn back" onclick="backToStart()">🏠 返回开始</button>
-        </div>
       </div>
     </div>
 
@@ -935,25 +793,12 @@
         const totalTime = Math.floor((Date.now() - startTime) / 1000);
         missedCount = totalTargets - correctCount;
 
-        // 上传数据到后端（异步，不阻塞）
+        // 上传数据到后端
         try {
           uploadTrainingData(totalTime);
         } catch (e) {
           console.error('上传数据失败:', e);
-        }
-
-        // 显示弹窗
-        const modal = document.getElementById('gameOverModal');
-        if (modal) {
-          const score = calculateSelectiveAttentionScore(totalTime);
-
-          document.getElementById('modal-score').textContent = score;
-          document.getElementById('modal-time').textContent = totalTime + 's';
-          document.getElementById('modal-correct').textContent = correctCount;
-          document.getElementById('modal-missed').textContent = missedCount;
-          document.getElementById('modal-errors').textContent = errorCount;
-
-          modal.classList.add('show');
+          showGameOverModal(totalTime);
         }
       }
 
@@ -979,13 +824,301 @@
         return Math.max(0, Math.min(100, Math.round(scoreValue)));
       }
 
-      function restartGame() {
-        // 隐藏弹窗
-        const modal = document.getElementById('gameOverModal');
-        if (modal) {
-          modal.classList.remove('show');
+      function showGameOverModal(totalTime, finalScore) {
+        if (!finalScore && finalScore !== 0) finalScore = calculateSelectiveAttentionScore(totalTime);
+
+        const scoreDetails = {
+          time: {
+            name: '用时',
+            score: totalTime + 's',
+            color: '#81c784',
+          },
+          correct: {
+            name: '正确',
+            score: correctCount,
+            color: '#4fc3f7',
+          },
+          missed: {
+            name: '遗漏',
+            score: missedCount,
+            color: '#ef5350',
+          },
+          error: {
+            name: '误划',
+            score: errorCount,
+            color: '#ce93d8',
+          },
+        };
+
+        const message = '你的评分为：' + finalScore + '分';
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(180, 210, 180, 0.35);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease both;
+      `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+        background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 40%, #dcedc8 100%);
+        padding: 32px 36px 28px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 2px 16px rgba(100, 160, 100, 0.15);
+        max-width: 420px;
+        width: 90%;
+        animation: cosmosBloom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        position: relative;
+        overflow: hidden;
+      `;
+
+        const topGlow = document.createElement('div');
+        topGlow.style.cssText = `
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(ellipse, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      `;
+        modalContent.appendChild(topGlow);
+
+        const starField = document.createElement('div');
+        starField.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+      `;
+
+        for (let i = 0; i < 10; i++) {
+          const s = 1 + Math.random() * 1.5;
+          const star = document.createElement('div');
+          star.style.cssText = `
+          position: absolute;
+          width: ${s}px;
+          height: ${s}px;
+          background: #fff;
+          border-radius: 50%;
+          top: ${Math.random() * 100}%;
+          left: ${Math.random() * 100}%;
+          opacity: ${0.2 + Math.random() * 0.3};
+          box-shadow: 0 0 ${s * 1.5}px rgba(255, 255, 255, 0.6);
+        `;
+          starField.appendChild(star);
         }
-        // 重新开始游戏
+
+        const floatDecor = ['\u{1F331}', '\u{1F33F}', '\u{1F33C}', '\u{1F340}', '\u{2618}\uFE0F'];
+        for (let i = 0; i < 4; i++) {
+          const deco = document.createElement('div');
+          deco.textContent = floatDecor[i];
+          deco.style.cssText = `
+          position: absolute;
+          font-size: ${16 + i * 4}px;
+          top: ${10 + i * 18}%;
+          ${i % 2 === 0 ? 'left' : 'right'}: ${-5 + i * 2}px;
+          opacity: 0.2;
+          pointer-events: none;
+        `;
+          starField.appendChild(deco);
+        }
+
+        modalContent.appendChild(starField);
+
+        const iconEl = document.createElement('div');
+        iconEl.textContent = '\u{1F33F}';
+        iconEl.style.cssText = `
+        font-size: 36px;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.02s ease both;
+      `;
+        modalContent.appendChild(iconEl);
+
+        const modalTitle = document.createElement('h2');
+        modalTitle.innerHTML = '\u2728 游戏完成 \u2728';
+        modalTitle.style.cssText = `
+        color: #2e7d32;
+        font-size: 24px;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.05s ease both;
+      `;
+        modalContent.appendChild(modalTitle);
+
+        const scoreItems = Object.values(scoreDetails);
+        const statsGrid = document.createElement('div');
+        statsGrid.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+      `;
+
+        scoreItems.forEach((detail, idx) => {
+          const statItem = document.createElement('div');
+          statItem.style.cssText = `
+          background: rgba(255, 255, 255, 0.55);
+          border-radius: 12px;
+          padding: 12px 8px;
+          animation: revealUp 0.4s ${0.12 + idx * 0.08}s ease both;
+        `;
+
+          const statLabel = document.createElement('div');
+          statLabel.textContent = detail.name;
+          statLabel.style.cssText = `
+          color: ${detail.color};
+          font-size: 11px;
+          margin-bottom: 4px;
+          font-weight: bold;
+        `;
+          statItem.appendChild(statLabel);
+
+          const statValue = document.createElement('div');
+          statValue.textContent = detail.score;
+          statValue.style.cssText = `
+          color: #33691e;
+          font-size: 22px;
+          font-weight: bold;
+        `;
+          statItem.appendChild(statValue);
+
+          statsGrid.appendChild(statItem);
+        });
+
+        modalContent.appendChild(statsGrid);
+
+        const modalMessage = document.createElement('p');
+        modalMessage.textContent = message;
+        modalMessage.style.cssText = `
+        color: #33691e;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.4s 0.3s ease both;
+      `;
+        modalContent.appendChild(modalMessage);
+
+        const modalButtons = document.createElement('div');
+        modalButtons.style.cssText = `
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        animation: revealUp 0.45s 0.36s ease both;
+      `;
+
+        const restartBtn = document.createElement('button');
+        restartBtn.textContent = '\u518D\u73A9\u4E00\u6B21';
+        restartBtn.style.cssText = `
+        background: #66bb6a;
+        color: white;
+        border: none;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        restartBtn.onmouseover = () => {
+          restartBtn.style.transform = 'scale(1.05)';
+          restartBtn.style.background = '#81c784';
+        };
+        restartBtn.onmouseout = () => {
+          restartBtn.style.transform = 'scale(1)';
+          restartBtn.style.background = '#66bb6a';
+        };
+        restartBtn.onclick = function () {
+          document.body.removeChild(modal);
+          resetGame();
+          setTimeout(() => {
+            startGame();
+          }, 500);
+        };
+
+        const backBtn = document.createElement('button');
+        backBtn.textContent = '\u8FD4\u56DE';
+        backBtn.style.cssText = `
+        background: transparent;
+        color: #81c784;
+        border: 2px solid #a5d6a7;
+        padding: 10px 26px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+        backBtn.onmouseover = () => {
+          backBtn.style.background = 'rgba(255, 255, 255, 0.4)';
+          backBtn.style.color = '#43a047';
+        };
+        backBtn.onmouseout = () => {
+          backBtn.style.background = 'transparent';
+          backBtn.style.color = '#81c784';
+        };
+        backBtn.onclick = function () {
+          document.body.removeChild(modal);
+          resetGame();
+        };
+
+        modalButtons.appendChild(restartBtn);
+        modalButtons.appendChild(backBtn);
+
+        modalContent.appendChild(modalButtons);
+
+        const natureRow = document.createElement('div');
+        natureRow.style.cssText =
+          'display:flex;justify-content:center;gap:12px;margin-top:20px;position:relative;z-index:1;';
+        const natureColors = ['#aed581', '#9ccc65', '#81c784', '#66bb6a', '#4caf50', '#43a047', '#388e3c'];
+        for (let i = 0; i < 7; i++) {
+          const s = 4 + Math.random() * 3;
+          const dot = document.createElement('div');
+          dot.style.cssText =
+            'width:' +
+            s +
+            'px;height:' +
+            s +
+            'px;border-radius:50%;background:' +
+            natureColors[i] +
+            ';' +
+            'animation:natureBounce 1.5s ease-in-out infinite;animation-delay:' +
+            i * 0.2 +
+            's;';
+          natureRow.appendChild(dot);
+        }
+        modalContent.appendChild(natureRow);
+
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+      }
+
+      function restartGame() {
         resetGame();
         setTimeout(() => {
           startGame();
@@ -993,12 +1126,6 @@
       }
 
       function backToStart() {
-        // 隐藏弹窗
-        const modal = document.getElementById('gameOverModal');
-        if (modal) {
-          modal.classList.remove('show');
-        }
-        // 返回到开始状态
         resetGame();
       }
 
@@ -1095,22 +1222,16 @@
                   console.log('训练时间已保存到 localStorage');
 
                   // 使用后端计算的综合评分（融合视觉数据 + 游戏权重 + 难度）
-                  var backendScore = null;
-                  var backendLevel = null;
-                  if (result.data && result.data.summary) {
-                    backendScore = Math.round(result.data.summary.final_score);
-                    backendLevel = result.data.summary.performance_level;
+                  var displayScore = score;
+                  if (result.data && result.data.summary && result.data.summary.final_score) {
+                    displayScore = Math.round(result.data.summary.final_score);
                   }
-                  if (backendScore !== null) {
-                    var scoreEl = document.getElementById('modal-score');
-                    if (scoreEl) {
-                      scoreEl.textContent = backendScore + '分 (' + (backendLevel || '') + ')';
-                    }
-                  }
+                  showGameOverModal(totalTime, displayScore);
                 }
               })
               .catch((error) => {
                 console.error('上传训练数据失败:', error);
+                showGameOverModal(totalTime);
               });
           };
 

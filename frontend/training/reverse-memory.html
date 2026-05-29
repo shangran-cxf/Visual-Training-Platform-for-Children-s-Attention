@@ -1070,7 +1070,7 @@
                 score: finalScore,
                 accuracy: accuracy,
                 level: level,
-                time: time,
+                time: 30 - time,
                 correct: score,
                 error: errors,
                 total_target: level,
@@ -1098,7 +1098,7 @@
                       session_id: gameSessionId,
                       final_score: finalScore,
                       total_accuracy: accuracy,
-                      duration: time,
+                      duration: 30 - time,
                     }),
                   });
                 } else {
@@ -1120,7 +1120,7 @@
                   }
 
                   // 累加游戏时间（秒）
-                  trainingData[today].totalTime += time;
+                  trainingData[today].totalTime += 30 - time;
                   localStorage.setItem('trainingData', JSON.stringify(trainingData));
                   console.log('训练时间已保存到 localStorage');
 
@@ -1167,7 +1167,6 @@
               .then((res) => {
                 if (res.success) {
                   gameSessionId = res.data.session_id;
-                  // 先上传缓冲的视觉数据，再提交游戏数据
                   var flushDone = Promise.resolve();
                   if (typeof visionUploader !== 'undefined') {
                     flushDone = visionUploader.start(gameSessionId) || Promise.resolve();
