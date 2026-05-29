@@ -1,2072 +1,2069 @@
 <!doctype html>
 <html lang="zh-CN">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>儿童注意力训练平台 - 今日训练</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --primary: #4f46e5;
-      --primary-light: #818cf8;
-      --secondary: #f97316;
-      --secondary-light: #fdba74;
-      --bg-color: #eef2ff;
-      --card-bg: #ffffff;
-      --text-dark: #1e1b4b;
-      --text-light: #6366f1;
-      --accent-green: #ceefdd;
-      --accent-pink: #ec4899;
-      --accent-yellow: #f2e1c4;
-      --accent-cyan: #06b6d4;
-      --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
-      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
-      --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
-      /* 图表配色，和参考图一致 */
-      --color-pink: #f5c9c7;
-      --color-beige: #f7e2c4;
-      --color-purple: #d7d2f6;
-      --color-green: #d4f4e1;
-    }
-
-    html,
-    body {
-      overflow: hidden;
-    }
-
-    body {
-      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
-      background: #fff4a2;
-      color: var(--text-dark);
-      height: 100vh;
-      display: flex;
-      gap: 24px;
-      padding: 24px;
-      padding-left: 194px;
-    }
-
-    /* 左侧导航栏 - 粘土风格 */
-    .sidebar {
-      width: 130px;
-      height: calc(100vh - 48px);
-      background: #62b4a5;
-      box-shadow: var(--shadow-soft);
-      padding: 24px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 30px;
-      border-radius: 32px;
-      position: fixed;
-      top: 24px;
-      left: 40px;
-      z-index: 100;
-    }
-
-    .logo-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .logo {
-      width: 100px;
-      height: 100px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 800;
-      font-size: 28px;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      cursor: pointer;
-    }
-
-    .logo:hover {
-      transform: translateY(-3px) scale(1.05);
-    }
-
-    .nav-item {
-      width: 85px;
-      height: 85px;
-      margin: 0 12px 12px;
-      border-radius: 24px;
-      background: #ffffff;
-      font-size: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      border: 3px solid transparent;
-      box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.06),
-        inset 0 2px 0 rgba(255, 255, 255, 0.8);
-    }
-
-    .nav-item:hover {
-      transform: translateY(-4px) scale(1.02);
-    }
-
-    .nav-item:hover .nav-icon {
-      transform: scale(1.1);
-    }
-
-    .nav-item.active {
-      background: #ffd387;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .nav-item.active .nav-icon,
-    .nav-item.active .nav-label {
-      color: white;
-    }
-
-    .nav-item.switch-mode {
-      background: #d0ece4;
-    }
-
-    .nav-item.switch-mode:hover {
-      background: #ddf5ee;
-    }
-
-    .nav-item.switch-mode .nav-icon {
-      color: #2d5a4a;
-    }
-
-    .nav-item.switch-mode .nav-label {
-      color: #2d5a4a;
-      font-weight: 700;
-    }
-
-    .nav-icon {
-      width: 28px;
-      height: 28px;
-      transition: transform 0.3s ease;
-    }
-
-    .nav-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-top: 4px;
-    }
-
-    .user-avatar-sidebar {
-      position: absolute;
-      bottom: 24px;
-      width: 56px;
-      height: 56px;
-      border-radius: 20px;
-      background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      border: 3px solid var(--primary-light);
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .user-avatar-sidebar:hover {
-      transform: scale(1.1);
-    }
-
-    .user-avatar-sidebar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* 主内容区 */
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 0 24px;
-      height: calc(100vh - 48px);
-      overflow-y: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-
-    .main-content::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* 训练标题区 */
-    .title-section {
-      margin-bottom: -40px;
-      margin-top: 40px;
-      flex-shrink: 0;
-    }
-
-    .page-title h1 {
-      font-size: 90px;
-      color: #51915f;
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: -1px;
-    }
-
-    .page-title .subtitle {
-      font-size: 50px;
-      color: #51915f;
-      font-weight: 600;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      margin-top: 4px;
-      margin-bottom: -30px;
-    }
-
-    /* 今日训练主布局：双栏容器，垂直居中适配不同屏幕 */
-    .today-training-container {
-      display: grid;
-      grid-template-columns: 1fr 0.5fr;
-      gap: 30px;
-      flex: 1;
-      min-height: 0;
-      align-items: center;
-    }
-
-    /* 左侧：我的训练卡片 */
-    .my-training-card {
-      background: rgb(255, 255, 255, 0.9);
-      border-radius: 28px;
-      padding: 20px;
-      box-shadow: var(--shadow-card);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      align-self: center;
-      min-height: 60vh;
-      max-height: calc(100vh - 160px);
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-
-    .my-training-card::-webkit-scrollbar {
-      display: none;
-    }
-
-    .card-title {
-      font-size: 30px;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 4px;
-    }
-
-    .divider {
-      width: 200px;
-      height: 2px;
-      background: #ccc;
-      margin-bottom: 0px;
-    }
-
-    /* 卡片主体：训练信息 + 日历 */
-    .card-body {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      flex: 1;
-      min-height: 0;
-    }
-
-    /* 训练信息块 */
-    .training-info-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      flex-shrink: 0;
-    }
-
-    .total-time-label {
-      font-size: 20px;
-      font-weight: 600;
-      color: #000000;
-    }
-
-    .total-time {
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--text-dark);
-    }
-
-    .result-badge {
-      padding: 6px 12px;
-      background: #bfd7c9;
-      border-radius: 50px;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text-dark);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .result-badge .emoji {
-      font-size: 24px;
-    }
-
-    /* 日历块 */
-    .calendar-box {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-    }
-
-    /* 日历容器 */
-    .calendar-container {
-      flex: 1;
-      min-height: 200px;
-      background: #fff;
-      border-radius: 20px;
-      padding: 8px 15px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* 日历头部 */
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: auto;
-      margin-bottom: 2px;
-      flex-shrink: 0;
-    }
-
-    .calendar-nav {
-      background: none;
-      border: none;
-      font-size: 25px;
-      cursor: pointer;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    }
-
-    .calendar-nav:hover {
-      background: #f0f0f0;
-    }
-
-    .calendar-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin: 0;
-    }
-
-    /* 星期标题 */
-    .calendar-weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      margin-bottom: 10px;
-      flex-shrink: 0;
-    }
-
-    .calendar-weekdays div {
-      text-align: center;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-dark);
-      padding: 5px;
-    }
-
-    /* 日历网格 */
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      row-gap: 4px;
-      flex: 1;
-      align-content: end;
-    }
-
-    /* 日期单元格 */
-    .calendar-day {
-      width: 42px;
-      height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin: 0 auto;
-    }
-
-    .calendar-day:hover {
-      background: #f0f0f0;
-    }
-
-    /* 不同状态的日期 */
-    .calendar-day.past {
-      color: #ccc;
-    }
-
-    .calendar-day.today {
-      background: #f6e19b;
-      font-weight: 700;
-    }
-
-    .calendar-day.has-training {
-      background: #d5dfb0;
-      color: white;
-      font-weight: 700;
-    }
-
-    .calendar-day.has-training:hover {
-      background: #45a049;
-    }
-
-    /* 年月快速选择器 */
-    .date-picker {
-      background: linear-gradient(145deg, #f0f4f8 0%, #e8eef5 100%);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 15px;
-      animation: slideDown 0.3s ease;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>儿童注意力训练平台 - 今日训练</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .picker-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding: 0 10px;
-    }
-
-    .picker-nav {
-      background: #fff;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .picker-nav:hover {
-      background: #5e83b8;
-      color: white;
-      transform: scale(1.1);
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-    }
-
-    .picker-year {
-      font-size: 18px;
-      font-weight: 700;
-      color: #000000;
-      background: #fff;
-      padding: 8px 20px;
-      border-radius: 20px;
-    }
-
-    .picker-months {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    .picker-month {
-      padding: 6px 4px;
-      text-align: center;
-      border-radius: 16px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: #fff;
-      border: 2px solid transparent;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-    }
-
-    .picker-month:hover {
-      background: #5e83b8;
-      color: white;
-      border-color: #5e83b8;
-      transform: translateY(-2px);
-    }
-
-    .picker-month.active {
-      background: #5e83b8;
-      color: white;
-      border-color: #5e83b8;
-      transform: scale(1.05);
-    }
-
-    /* 训练时长弹窗 */
-    .training-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .training-modal .modal-content {
-      background: #dcecb5;
-      border-radius: 20px;
-      padding: 20px;
-      width: 80%;
-      max-width: 300px;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .training-modal .modal-content h4 {
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 15px;
-    }
-
-    .training-modal .modal-content p {
-      font-size: 17px;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-
-    .training-modal .modal-content button {
-      background: #008e6b;
-      color: white;
-      border: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .training-modal .modal-content button:hover {
-      transform: scale(1.1);
-    }
-
-    /* 右侧：推荐训练卡片 */
-    .recommend-training-card {
-      background: linear-gradient(175deg, #fffdf5 0%, #fff8e7 40%, #fef3d8 100%);
-      border-radius: 32px;
-      padding: 22px 24px 20px;
-      box-shadow:
-        0 8px 32px rgba(139, 109, 56, 0.18),
-        0 2px 8px rgba(0, 0, 0, 0.06),
-        inset 0 2px 0 rgba(255, 255, 255, 0.7);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border: 2px solid rgba(220, 190, 100, 0.3);
-      position: relative;
-      min-height: 60vh;
-      max-height: calc(100vh - 160px);
-      overflow-y: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-
-    .recommend-training-card::-webkit-scrollbar {
-      display: none;
-    }
-
-    .recommend-training-card::before {
-      content: '';
-      position: absolute;
-      top: -40px;
-      right: -30px;
-      width: 120px;
-      height: 120px;
-      background: radial-gradient(circle, rgba(255, 226, 163, 0.2) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .recommend-training-card::after {
-      content: '';
-      position: absolute;
-      bottom: -20px;
-      left: -20px;
-      width: 80px;
-      height: 80px;
-      background: radial-gradient(circle, rgba(255, 180, 100, 0.15) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .recommend-title {
-      font-size: 28px;
-      font-weight: 800;
-      color: #5c3d1e;
-      position: relative;
-      z-index: 1;
-      letter-spacing: 2px;
-    }
-
-    .recommend-subtitle {
-      font-size: 12px;
-      color: #8b6d4a;
-      opacity: 0.8;
-      text-align: right;
-      margin-top: -8px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .recommend-divider {
-      width: 50px;
-      height: 4px;
-      background: linear-gradient(90deg, #f0c050, #e8a820, #f0c050);
-      border-radius: 2px;
-      margin-bottom: 4px;
-      margin-top: -4px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .recommend-items {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .recommend-item {
-      background: #fff;
-      border-radius: 22px;
-      padding: 0;
-      transition: all 0.25s ease;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      border: 1.5px solid rgba(180, 140, 80, 0.15);
-    }
-
-    .recommend-item:hover {
-      border-color: rgba(180, 140, 80, 0.35);
-    }
-
-    .rec-card-inner {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 17px 22px;
-    }
-
-    .rec-card-left {
-      flex-shrink: 0;
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-      position: relative;
-    }
-
-    .rec-card-left.selective {
-      background: #fce4ec;
-    }
-
-    .rec-card-left.sustained {
-      background: #e8f5e9;
-    }
-
-    .rec-card-left.tracking {
-      background: #e3f2fd;
-    }
-
-    .rec-card-left.memory {
-      background: #f3e5f5;
-    }
-
-    .rec-card-left.inhibitory {
-      background: #fff3e0;
-    }
-
-    .rec-card-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .rec-card-name {
-      font-size: 18px;
-      font-weight: 700;
-      color: #3d2a15;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .rec-card-tag {
-      display: inline-block;
-      padding: 3px 12px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
-    .rec-card-tag.selective {
-      background: #fce4ec;
-      color: #c44a6a;
-    }
-
-    .rec-card-tag.sustained {
-      background: #e8f5e9;
-      color: #388e3c;
-    }
-
-    .rec-card-tag.tracking {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-
-    .rec-card-tag.memory {
-      background: #f3e5f5;
-      color: #7b1fa2;
-    }
-
-    .rec-card-tag.inhibitory {
-      background: #fff3e0;
-      color: #e65100;
-    }
-
-    .rec-card-arrow {
-      flex-shrink: 0;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: rgba(200, 160, 80, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      color: #8b6d4a;
-      transition: all 0.3s ease;
-    }
-
-    .recommend-item:hover .rec-card-arrow {
-      background: rgba(200, 150, 50, 0.3);
-    }
-
-    .recommend-item.selective {
-      background: #f9e0e7;
-    }
-
-    .recommend-item.sustained {
-      background: #dfefdf;
-    }
-
-    .recommend-item.tracking {
-      background: #dceef9;
-    }
-
-    .recommend-item.memory {
-      background: #efe5f3;
-    }
-
-    .recommend-item.inhibitory {
-      background: #fdeddd;
-    }
-
-    .recommend-empty {
-      text-align: center;
-      padding: 40px 20px;
-      color: #8b6d4a;
-      font-size: 16px;
-      opacity: 0.7;
-    }
-
-    .recommend-empty .empty-icon {
-      font-size: 48px;
-      display: block;
-      margin-bottom: 12px;
-      opacity: 0.5;
-      animation: float 3s ease-in-out infinite;
-    }
-
-    .reassess-days {
-      font-size: 12px;
-      color: #ff8c42;
-      background: #fff3e8;
-      border-radius: 12px;
-      padding: 4px 14px;
-      display: inline-block;
-      margin-top: 6px;
-      font-weight: 700;
-      position: relative;
-      z-index: 1;
-    }
-
-    .ability-bars {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      gap: 4px;
-      justify-content: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .ability-bar-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .ability-bar-label {
-      font-size: 15px;
-      font-weight: 700;
-      color: #6b4d2a;
-      width: 80px;
-      flex-shrink: 0;
-      text-align: right;
-    }
-
-    .ability-bar-track {
-      flex: 1;
-      height: 14px;
-      background: #f0e8d8;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .ability-bar-fill {
-      height: 100%;
-      border-radius: 10px;
-      transition: width 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
-    }
-
-    .ability-bar-fill.sel {
-      background: #e8c4b8;
-    }
-
-    .ability-bar-fill.sus {
-      background: #b0cfe8;
-    }
-
-    .ability-bar-fill.tra {
-      background: #c8d8a8;
-    }
-
-    .ability-bar-fill.mem {
-      background: #c8c8e0;
-    }
-
-    .ability-bar-fill.inh {
-      background: #e8ccd0;
-    }
-
-    .ability-bar-score {
-      font-size: 14px;
-      font-weight: 700;
-      color: #8b6914;
-      width: 38px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-
-    .ability-bar-row.weak-row .ability-bar-fill {
-      animation: barPulse 2.5s ease-in-out infinite;
-    }
-
-    .ability-bar-row.weak-row .ability-bar-label {
-      color: #c06020;
-    }
-
-    @keyframes barPulse {
-
-      0%,
-      100% {
-        opacity: 1;
+      :root {
+        --primary: #4f46e5;
+        --primary-light: #818cf8;
+        --secondary: #f97316;
+        --secondary-light: #fdba74;
+        --bg-color: #eef2ff;
+        --card-bg: #ffffff;
+        --text-dark: #1e1b4b;
+        --text-light: #6366f1;
+        --accent-green: #ceefdd;
+        --accent-pink: #ec4899;
+        --accent-yellow: #f2e1c4;
+        --accent-cyan: #06b6d4;
+        --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
+        --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+        --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
+        /* 图表配色，和参考图一致 */
+        --color-pink: #f5c9c7;
+        --color-beige: #f7e2c4;
+        --color-purple: #d7d2f6;
+        --color-green: #d4f4e1;
       }
 
-      50% {
-        opacity: 0.6;
-      }
-    }
-
-    /* 游戏卡片样式（沿用原代码） */
-    .game-card {
-      background: var(--card-bg);
-      border-radius: 28px;
-      padding: 24px;
-      min-height: 150px;
-      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-      box-shadow: var(--shadow-card);
-    }
-
-    .game-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.2);
-    }
-
-    .game-card.beige {
-      background: linear-gradient(145deg, #f2c674 0%, #ecad64 100%);
-    }
-
-    .game-card.purple {
-      background: linear-gradient(145deg, #d9d3f0 0%, #a899c9 100%);
-    }
-
-    .game-card.blue {
-      background: linear-gradient(145deg, #b7d6e9 0%, #499bc0 100%);
-    }
-
-    .game-card.green {
-      background: linear-gradient(145deg, #c2ded0 0%, #a2c9ae 100%);
-    }
-
-    .game-card.pink {
-      background: linear-gradient(145deg, #f9c5c9 0%, #f7b0b8 100%);
-    }
-
-    .game-card.cyan {
-      background: linear-gradient(145deg, #b0dcd5 0%, #acdae0 100%);
-    }
-
-    /* 装饰元素 */
-    .floating-shapes {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: -1;
-      overflow: hidden;
-    }
-
-    .shape {
-      position: absolute;
-      opacity: 0.15;
-      animation: float 20s ease-in-out infinite;
-    }
-
-    .shape-1 {
-      top: 10%;
-      left: 5%;
-      width: 150px;
-      height: 150px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation-delay: 0s;
-    }
-
-    .shape-2 {
-      top: 60%;
-      right: 5%;
-      width: 180px;
-      height: 180px;
-      background: var(--secondary);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -1s;
-    }
-
-    .shape-3 {
-      bottom: 20%;
-      left: 15%;
-      width: 130px;
-      height: 130px;
-      background: var(--accent-green);
-      border-radius: 50%;
-      animation-delay: -2s;
-    }
-
-    .shape-4 {
-      top: 30%;
-      right: 20%;
-      width: 160px;
-      height: 160px;
-      background: var(--accent-pink);
-      border-radius: 50%;
-      animation-delay: -3s;
-    }
-
-    .shape-5 {
-      top: 20%;
-      right: 10%;
-      width: 140px;
-      height: 140px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation-delay: -4s;
-    }
-
-    .shape-6 {
-      bottom: 10%;
-      right: 15%;
-      width: 120px;
-      height: 120px;
-      background: var(--secondary);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -5s;
-    }
-
-    .shape-7 {
-      top: 40%;
-      left: 10%;
-      width: 170px;
-      height: 170px;
-      background: var(--accent-green);
-      border-radius: 50%;
-      animation-delay: -6s;
-    }
-
-    .shape-8 {
-      bottom: 30%;
-      left: 25%;
-      width: 110px;
-      height: 110px;
-      background: var(--accent-pink);
-      border-radius: 50%;
-      animation-delay: -7s;
-    }
-
-    .shape-9 {
-      top: 50%;
-      right: 25%;
-      width: 150px;
-      height: 150px;
-      background: var(--primary);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -8s;
-    }
-
-    .shape-10 {
-      top: 15%;
-      left: 20%;
-      width: 130px;
-      height: 130px;
-      background: var(--secondary);
-      border-radius: 50%;
-      animation-delay: -9s;
-    }
-
-    .shape-11 {
-      bottom: 40%;
-      right: 10%;
-      width: 160px;
-      height: 160px;
-      background: var(--accent-green);
-      border-radius: 50%;
-      animation-delay: -10s;
-    }
-
-    .shape-12 {
-      top: 25%;
-      left: 30%;
-      width: 120px;
-      height: 120px;
-      background: var(--accent-pink);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -11s;
-    }
-
-    .shape-13 {
-      bottom: 15%;
-      left: 35%;
-      width: 140px;
-      height: 140px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation-delay: -12s;
-    }
-
-    .shape-14 {
-      top: 35%;
-      right: 30%;
-      width: 170px;
-      height: 170px;
-      background: var(--secondary);
-      border-radius: 50%;
-      animation-delay: -13s;
-    }
-
-    .shape-15 {
-      top: 45%;
-      left: 15%;
-      width: 110px;
-      height: 110px;
-      background: var(--accent-green);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -14s;
-    }
-
-    .shape-16 {
-      bottom: 25%;
-      right: 20%;
-      width: 150px;
-      height: 150px;
-      background: var(--accent-pink);
-      border-radius: 50%;
-      animation-delay: -15s;
-    }
-
-    .shape-17 {
-      top: 55%;
-      left: 25%;
-      width: 130px;
-      height: 130px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation-delay: -16s;
-    }
-
-    .shape-18 {
-      bottom: 35%;
-      left: 40%;
-      width: 160px;
-      height: 160px;
-      background: var(--secondary);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -17s;
-    }
-
-    .shape-19 {
-      top: 65%;
-      right: 35%;
-      width: 120px;
-      height: 120px;
-      background: var(--accent-green);
-      border-radius: 50%;
-      animation-delay: -18s;
-    }
-
-    .shape-20 {
-      top: 70%;
-      left: 10%;
-      width: 140px;
-      height: 140px;
-      background: var(--accent-pink);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -19s;
-    }
-
-    .shape-21 {
-      bottom: 5%;
-      left: 20%;
-      width: 170px;
-      height: 170px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation-delay: -20s;
-    }
-
-    .shape-22 {
-      top: 5%;
-      right: 15%;
-      width: 110px;
-      height: 110px;
-      background: var(--secondary);
-      border-radius: 50%;
-      animation-delay: -21s;
-    }
-
-    .shape-23 {
-      top: 75%;
-      right: 10%;
-      width: 150px;
-      height: 150px;
-      background: var(--accent-green);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -22s;
-    }
-
-    .shape-24 {
-      bottom: 50%;
-      left: 5%;
-      width: 130px;
-      height: 130px;
-      background: var(--accent-pink);
-      border-radius: 50%;
-      animation-delay: -23s;
-    }
-
-    .shape-25 {
-      top: 60%;
-      left: 35%;
-      width: 160px;
-      height: 160px;
-      background: var(--primary);
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: -24s;
-    }
-
-    @keyframes float {
-
-      0%,
-      100% {
-        transform: translateY(0) rotate(0deg);
-      }
-
-      25% {
-        transform: translateY(-20px) rotate(5deg);
-      }
-
-      50% {
-        transform: translateY(0) rotate(0deg);
-      }
-
-      75% {
-        transform: translateY(20px) rotate(-5deg);
-      }
-    }
-
-    /* 响应式 */
-    @media (max-width: 1200px) {
-      .today-training-container {
-        grid-template-columns: 1fr;
-      }
-
-      .chart-bar {
-        width: 14%;
-      }
-    }
-
-    @media (max-width: 992px) {
-      .chart-bar {
-        width: 15%;
-      }
-
-      .bar-label {
-        font-size: 20px;
-      }
-    }
-
-    @media (max-width: 768px) {
+      html,
       body {
-        flex-direction: column;
-        padding: 16px;
-        gap: 16px;
-        height: auto;
-        min-height: 100vh;
-        overflow-x: hidden;
-        overflow-y: auto;
+        overflow: hidden;
       }
 
+      body {
+        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
+        background: #fff4a2;
+        color: var(--text-dark);
+        height: 100vh;
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+        padding-left: 194px;
+      }
+
+      /* 左侧导航栏 - 粘土风格 */
       .sidebar {
-        width: 100%;
-        flex-direction: row;
-        padding: 16px 20px;
-        border-radius: 24px;
-        overflow-x: auto;
-        position: relative;
-        top: auto;
-        left: auto;
-        height: auto;
+        width: 130px;
+        height: calc(100vh - 48px);
+        background: #62b4a5;
+        box-shadow: var(--shadow-soft);
+        padding: 24px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+        border-radius: 32px;
+        position: fixed;
+        top: 24px;
+        left: 40px;
+        z-index: 100;
       }
 
       .logo-section {
-        flex-direction: row;
-        margin-bottom: 0;
-        margin-right: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
       }
 
-      .logo-text {
-        display: none;
+      .logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 28px;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer;
+      }
+
+      .logo:hover {
+        transform: translateY(-3px) scale(1.05);
+      }
+
+      .nav-item {
+        width: 85px;
+        height: 85px;
+        margin: 0 12px 12px;
+        border-radius: 24px;
+        background: #ffffff;
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 3px solid transparent;
+        box-shadow:
+          0 4px 12px rgba(0, 0, 0, 0.06),
+          inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      }
+
+      .nav-item:hover {
+        transform: translateY(-4px) scale(1.02);
+      }
+
+      .nav-item:hover .nav-icon {
+        transform: scale(1.1);
+      }
+
+      .nav-item.active {
+        background: #ffd387;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-item.active .nav-icon,
+      .nav-item.active .nav-label {
+        color: white;
+      }
+
+      .nav-item.switch-mode {
+        background: #d0ece4;
+      }
+
+      .nav-item.switch-mode:hover {
+        background: #ddf5ee;
+      }
+
+      .nav-item.switch-mode .nav-icon {
+        color: #2d5a4a;
+      }
+
+      .nav-item.switch-mode .nav-label {
+        color: #2d5a4a;
+        font-weight: 700;
+      }
+
+      .nav-icon {
+        width: 28px;
+        height: 28px;
+        transition: transform 0.3s ease;
+      }
+
+      .nav-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-top: 4px;
       }
 
       .user-avatar-sidebar {
-        position: static;
-        margin-left: auto;
+        position: absolute;
+        bottom: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 20px;
+        background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 3px solid var(--primary-light);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
 
+      .user-avatar-sidebar:hover {
+        transform: scale(1.1);
+      }
+
+      .user-avatar-sidebar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* 主内容区 */
       .main-content {
-        height: auto;
-        overflow-y: visible;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0 24px;
+        height: calc(100vh - 48px);
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .main-content::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* 训练标题区 */
+      .title-section {
+        margin-bottom: -40px;
+        margin-top: 40px;
+        flex-shrink: 0;
       }
 
       .page-title h1 {
-        font-size: 48px;
+        font-size: 90px;
+        color: #51915f;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -1px;
       }
 
       .page-title .subtitle {
-        font-size: 28px;
+        font-size: 50px;
+        color: #51915f;
+        font-weight: 600;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-top: 4px;
+        margin-bottom: -30px;
       }
 
+      /* 今日训练主布局：双栏容器，垂直居中适配不同屏幕 */
       .today-training-container {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 1fr 0.5fr;
+        gap: 30px;
+        flex: 1;
+        min-height: 0;
+        align-items: center;
+      }
+
+      /* 左侧：我的训练卡片 */
+      .my-training-card {
+        background: rgb(255, 255, 255, 0.9);
+        border-radius: 28px;
+        padding: 20px;
+        box-shadow: var(--shadow-card);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        align-self: center;
+        min-height: 60vh;
+        max-height: calc(100vh - 160px);
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .my-training-card::-webkit-scrollbar {
+        display: none;
+      }
+
+      .card-title {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+      }
+
+      .divider {
+        width: 200px;
+        height: 2px;
+        background: #ccc;
+        margin-bottom: 0px;
+      }
+
+      /* 卡片主体：训练信息 + 日历 */
+      .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      /* 训练信息块 */
+      .training-info-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        flex-shrink: 0;
+      }
+
+      .total-time-label {
+        font-size: 20px;
+        font-weight: 600;
+        color: #000000;
       }
 
       .total-time {
-        font-size: 40px;
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--text-dark);
       }
 
       .result-badge {
+        padding: 6px 12px;
+        background: #bfd7c9;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .result-badge .emoji {
         font-size: 24px;
       }
 
-      .time-tabs {
-        flex-wrap: wrap;
+      /* 日历块 */
+      .calendar-box {
+        flex: 1;
+        min-height: 0;
+        display: flex;
       }
 
-      .chart-container {
-        height: 250px;
+      /* 日历容器 */
+      .calendar-container {
+        flex: 1;
+        min-height: 200px;
+        background: #fff;
+        border-radius: 20px;
+        padding: 8px 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
-      .chart-bar {
-        width: 13%;
+      /* 日历头部 */
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        margin-bottom: 2px;
+        flex-shrink: 0;
       }
 
-      .bar-label {
+      .calendar-nav {
+        background: none;
+        border: none;
+        font-size: 25px;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+
+      .calendar-nav:hover {
+        background: #f0f0f0;
+      }
+
+      .calendar-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin: 0;
+      }
+
+      /* 星期标题 */
+      .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-shrink: 0;
+      }
+
+      .calendar-weekdays div {
+        text-align: center;
         font-size: 18px;
-      }
-    }
-
-    /* 家长端登录弹窗 */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
+        font-weight: 600;
+        color: var(--text-dark);
+        padding: 5px;
       }
 
-      to {
+      /* 日历网格 */
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        row-gap: 4px;
+        flex: 1;
+        align-content: end;
+      }
+
+      /* 日期单元格 */
+      .calendar-day {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 0 auto;
+      }
+
+      .calendar-day:hover {
+        background: #f0f0f0;
+      }
+
+      /* 不同状态的日期 */
+      .calendar-day.past {
+        color: #ccc;
+      }
+
+      .calendar-day.today {
+        background: #f6e19b;
+        font-weight: 700;
+      }
+
+      .calendar-day.has-training {
+        background: #d5dfb0;
+        color: white;
+        font-weight: 700;
+      }
+
+      .calendar-day.has-training:hover {
+        background: #45a049;
+      }
+
+      /* 年月快速选择器 */
+      .date-picker {
+        background: linear-gradient(145deg, #f0f4f8 0%, #e8eef5 100%);
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 15px;
+        animation: slideDown 0.3s ease;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .picker-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 0 10px;
+      }
+
+      .picker-nav {
+        background: #fff;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .picker-nav:hover {
+        background: #5e83b8;
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      }
+
+      .picker-year {
+        font-size: 18px;
+        font-weight: 700;
+        color: #000000;
+        background: #fff;
+        padding: 8px 20px;
+        border-radius: 20px;
+      }
+
+      .picker-months {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .picker-month {
+        padding: 6px 4px;
+        text-align: center;
+        border-radius: 16px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #fff;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      }
+
+      .picker-month:hover {
+        background: #5e83b8;
+        color: white;
+        border-color: #5e83b8;
+        transform: translateY(-2px);
+      }
+
+      .picker-month.active {
+        background: #5e83b8;
+        color: white;
+        border-color: #5e83b8;
+        transform: scale(1.05);
+      }
+
+      /* 训练时长弹窗 */
+      .training-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .training-modal .modal-content {
+        background: #dcecb5;
+        border-radius: 20px;
+        padding: 20px;
+        width: 80%;
+        max-width: 300px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .training-modal .modal-content h4 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 15px;
+      }
+
+      .training-modal .modal-content p {
+        font-size: 17px;
+        color: #fff;
+        margin-bottom: 8px;
+      }
+
+      .training-modal .modal-content button {
+        background: #008e6b;
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .training-modal .modal-content button:hover {
+        transform: scale(1.1);
+      }
+
+      /* 右侧：推荐训练卡片 */
+      .recommend-training-card {
+        background: linear-gradient(175deg, #fffdf5 0%, #fff8e7 40%, #fef3d8 100%);
+        border-radius: 32px;
+        padding: 22px 24px 20px;
+        box-shadow:
+          0 8px 32px rgba(139, 109, 56, 0.18),
+          0 2px 8px rgba(0, 0, 0, 0.06),
+          inset 0 2px 0 rgba(255, 255, 255, 0.7);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        border: 2px solid rgba(220, 190, 100, 0.3);
+        position: relative;
+        min-height: 60vh;
+        max-height: calc(100vh - 160px);
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .recommend-training-card::-webkit-scrollbar {
+        display: none;
+      }
+
+      .recommend-training-card::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -30px;
+        width: 120px;
+        height: 120px;
+        background: radial-gradient(circle, rgba(255, 226, 163, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      .recommend-training-card::after {
+        content: '';
+        position: absolute;
+        bottom: -20px;
+        left: -20px;
+        width: 80px;
+        height: 80px;
+        background: radial-gradient(circle, rgba(255, 180, 100, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      .recommend-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: #5c3d1e;
+        position: relative;
+        z-index: 1;
+        letter-spacing: 2px;
+      }
+
+      .recommend-subtitle {
+        font-size: 12px;
+        color: #8b6d4a;
+        opacity: 0.8;
+        text-align: right;
+        margin-top: -8px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .recommend-divider {
+        width: 50px;
+        height: 4px;
+        background: linear-gradient(90deg, #f0c050, #e8a820, #f0c050);
+        border-radius: 2px;
+        margin-bottom: 4px;
+        margin-top: -4px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .recommend-items {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .recommend-item {
+        background: #fff;
+        border-radius: 22px;
+        padding: 0;
+        transition: all 0.25s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        border: 1.5px solid rgba(180, 140, 80, 0.15);
+      }
+
+      .recommend-item:hover {
+        border-color: rgba(180, 140, 80, 0.35);
+      }
+
+      .rec-card-inner {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 17px 22px;
+      }
+
+      .rec-card-left {
+        flex-shrink: 0;
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        position: relative;
+      }
+
+      .rec-card-left.selective {
+        background: #fce4ec;
+      }
+
+      .rec-card-left.sustained {
+        background: #e8f5e9;
+      }
+
+      .rec-card-left.tracking {
+        background: #e3f2fd;
+      }
+
+      .rec-card-left.memory {
+        background: #f3e5f5;
+      }
+
+      .rec-card-left.inhibitory {
+        background: #fff3e0;
+      }
+
+      .rec-card-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .rec-card-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #3d2a15;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .rec-card-tag {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      .rec-card-tag.selective {
+        background: #fce4ec;
+        color: #c44a6a;
+      }
+
+      .rec-card-tag.sustained {
+        background: #e8f5e9;
+        color: #388e3c;
+      }
+
+      .rec-card-tag.tracking {
+        background: #e3f2fd;
+        color: #1976d2;
+      }
+
+      .rec-card-tag.memory {
+        background: #f3e5f5;
+        color: #7b1fa2;
+      }
+
+      .rec-card-tag.inhibitory {
+        background: #fff3e0;
+        color: #e65100;
+      }
+
+      .rec-card-arrow {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(200, 160, 80, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #8b6d4a;
+        transition: all 0.3s ease;
+      }
+
+      .recommend-item:hover .rec-card-arrow {
+        background: rgba(200, 150, 50, 0.3);
+      }
+
+      .recommend-item.selective {
+        background: #f9e0e7;
+      }
+
+      .recommend-item.sustained {
+        background: #dfefdf;
+      }
+
+      .recommend-item.tracking {
+        background: #dceef9;
+      }
+
+      .recommend-item.memory {
+        background: #efe5f3;
+      }
+
+      .recommend-item.inhibitory {
+        background: #fdeddd;
+      }
+
+      .recommend-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: #8b6d4a;
+        font-size: 16px;
+        opacity: 0.7;
+      }
+
+      .recommend-empty .empty-icon {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 12px;
+        opacity: 0.5;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      .reassess-days {
+        font-size: 12px;
+        color: #ff8c42;
+        background: #fff3e8;
+        border-radius: 12px;
+        padding: 4px 14px;
+        display: inline-block;
+        margin-top: 6px;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+      }
+
+      .ability-bars {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        gap: 4px;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .ability-bar-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .ability-bar-label {
+        font-size: 15px;
+        font-weight: 700;
+        color: #6b4d2a;
+        width: 80px;
+        flex-shrink: 0;
+        text-align: right;
+      }
+
+      .ability-bar-track {
+        flex: 1;
+        height: 14px;
+        background: #f0e8d8;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .ability-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
+      }
+
+      .ability-bar-fill.sel {
+        background: #e8c4b8;
+      }
+
+      .ability-bar-fill.sus {
+        background: #b0cfe8;
+      }
+
+      .ability-bar-fill.tra {
+        background: #c8d8a8;
+      }
+
+      .ability-bar-fill.mem {
+        background: #c8c8e0;
+      }
+
+      .ability-bar-fill.inh {
+        background: #e8ccd0;
+      }
+
+      .ability-bar-score {
+        font-size: 14px;
+        font-weight: 700;
+        color: #8b6914;
+        width: 38px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .ability-bar-row.weak-row .ability-bar-fill {
+        animation: barPulse 2.5s ease-in-out infinite;
+      }
+
+      .ability-bar-row.weak-row .ability-bar-label {
+        color: #c06020;
+      }
+
+      @keyframes barPulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      /* 游戏卡片样式（沿用原代码） */
+      .game-card {
+        background: var(--card-bg);
+        border-radius: 28px;
+        padding: 24px;
+        min-height: 150px;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: var(--shadow-card);
+      }
+
+      .game-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 16px 40px rgba(79, 70, 229, 0.2);
+      }
+
+      .game-card.beige {
+        background: linear-gradient(145deg, #f2c674 0%, #ecad64 100%);
+      }
+
+      .game-card.purple {
+        background: linear-gradient(145deg, #d9d3f0 0%, #a899c9 100%);
+      }
+
+      .game-card.blue {
+        background: linear-gradient(145deg, #b7d6e9 0%, #499bc0 100%);
+      }
+
+      .game-card.green {
+        background: linear-gradient(145deg, #c2ded0 0%, #a2c9ae 100%);
+      }
+
+      .game-card.pink {
+        background: linear-gradient(145deg, #f9c5c9 0%, #f7b0b8 100%);
+      }
+
+      .game-card.cyan {
+        background: linear-gradient(145deg, #b0dcd5 0%, #acdae0 100%);
+      }
+
+      /* 装饰元素 */
+      .floating-shapes {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .shape {
+        position: absolute;
+        opacity: 0.15;
+        animation: float 20s ease-in-out infinite;
+      }
+
+      .shape-1 {
+        top: 10%;
+        left: 5%;
+        width: 150px;
+        height: 150px;
+        background: var(--primary);
+        border-radius: 50%;
+        animation-delay: 0s;
+      }
+
+      .shape-2 {
+        top: 60%;
+        right: 5%;
+        width: 180px;
+        height: 180px;
+        background: var(--secondary);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -1s;
+      }
+
+      .shape-3 {
+        bottom: 20%;
+        left: 15%;
+        width: 130px;
+        height: 130px;
+        background: var(--accent-green);
+        border-radius: 50%;
+        animation-delay: -2s;
+      }
+
+      .shape-4 {
+        top: 30%;
+        right: 20%;
+        width: 160px;
+        height: 160px;
+        background: var(--accent-pink);
+        border-radius: 50%;
+        animation-delay: -3s;
+      }
+
+      .shape-5 {
+        top: 20%;
+        right: 10%;
+        width: 140px;
+        height: 140px;
+        background: var(--primary);
+        border-radius: 50%;
+        animation-delay: -4s;
+      }
+
+      .shape-6 {
+        bottom: 10%;
+        right: 15%;
+        width: 120px;
+        height: 120px;
+        background: var(--secondary);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -5s;
+      }
+
+      .shape-7 {
+        top: 40%;
+        left: 10%;
+        width: 170px;
+        height: 170px;
+        background: var(--accent-green);
+        border-radius: 50%;
+        animation-delay: -6s;
+      }
+
+      .shape-8 {
+        bottom: 30%;
+        left: 25%;
+        width: 110px;
+        height: 110px;
+        background: var(--accent-pink);
+        border-radius: 50%;
+        animation-delay: -7s;
+      }
+
+      .shape-9 {
+        top: 50%;
+        right: 25%;
+        width: 150px;
+        height: 150px;
+        background: var(--primary);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -8s;
+      }
+
+      .shape-10 {
+        top: 15%;
+        left: 20%;
+        width: 130px;
+        height: 130px;
+        background: var(--secondary);
+        border-radius: 50%;
+        animation-delay: -9s;
+      }
+
+      .shape-11 {
+        bottom: 40%;
+        right: 10%;
+        width: 160px;
+        height: 160px;
+        background: var(--accent-green);
+        border-radius: 50%;
+        animation-delay: -10s;
+      }
+
+      .shape-12 {
+        top: 25%;
+        left: 30%;
+        width: 120px;
+        height: 120px;
+        background: var(--accent-pink);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -11s;
+      }
+
+      .shape-13 {
+        bottom: 15%;
+        left: 35%;
+        width: 140px;
+        height: 140px;
+        background: var(--primary);
+        border-radius: 50%;
+        animation-delay: -12s;
+      }
+
+      .shape-14 {
+        top: 35%;
+        right: 30%;
+        width: 170px;
+        height: 170px;
+        background: var(--secondary);
+        border-radius: 50%;
+        animation-delay: -13s;
+      }
+
+      .shape-15 {
+        top: 45%;
+        left: 15%;
+        width: 110px;
+        height: 110px;
+        background: var(--accent-green);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -14s;
+      }
+
+      .shape-16 {
+        bottom: 25%;
+        right: 20%;
+        width: 150px;
+        height: 150px;
+        background: var(--accent-pink);
+        border-radius: 50%;
+        animation-delay: -15s;
+      }
+
+      .shape-17 {
+        top: 55%;
+        left: 25%;
+        width: 130px;
+        height: 130px;
+        background: var(--primary);
+        border-radius: 50%;
+        animation-delay: -16s;
+      }
+
+      .shape-18 {
+        bottom: 35%;
+        left: 40%;
+        width: 160px;
+        height: 160px;
+        background: var(--secondary);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -17s;
+      }
+
+      .shape-19 {
+        top: 65%;
+        right: 35%;
+        width: 120px;
+        height: 120px;
+        background: var(--accent-green);
+        border-radius: 50%;
+        animation-delay: -18s;
+      }
+
+      .shape-20 {
+        top: 70%;
+        left: 10%;
+        width: 140px;
+        height: 140px;
+        background: var(--accent-pink);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -19s;
+      }
+
+      .shape-21 {
+        bottom: 5%;
+        left: 20%;
+        width: 170px;
+        height: 170px;
+        background: var(--primary);
+        border-radius: 50%;
+        animation-delay: -20s;
+      }
+
+      .shape-22 {
+        top: 5%;
+        right: 15%;
+        width: 110px;
+        height: 110px;
+        background: var(--secondary);
+        border-radius: 50%;
+        animation-delay: -21s;
+      }
+
+      .shape-23 {
+        top: 75%;
+        right: 10%;
+        width: 150px;
+        height: 150px;
+        background: var(--accent-green);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -22s;
+      }
+
+      .shape-24 {
+        bottom: 50%;
+        left: 5%;
+        width: 130px;
+        height: 130px;
+        background: var(--accent-pink);
+        border-radius: 50%;
+        animation-delay: -23s;
+      }
+
+      .shape-25 {
+        top: 60%;
+        left: 35%;
+        width: 160px;
+        height: 160px;
+        background: var(--primary);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation-delay: -24s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+
+        25% {
+          transform: translateY(-20px) rotate(5deg);
+        }
+
+        50% {
+          transform: translateY(0) rotate(0deg);
+        }
+
+        75% {
+          transform: translateY(20px) rotate(-5deg);
+        }
+      }
+
+      /* 响应式 */
+      @media (max-width: 1200px) {
+        .today-training-container {
+          grid-template-columns: 1fr;
+        }
+
+        .chart-bar {
+          width: 14%;
+        }
+      }
+
+      @media (max-width: 992px) {
+        .chart-bar {
+          width: 15%;
+        }
+
+        .bar-label {
+          font-size: 20px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+          padding: 16px;
+          gap: 16px;
+          height: auto;
+          min-height: 100vh;
+          overflow-x: hidden;
+          overflow-y: auto;
+        }
+
+        .sidebar {
+          width: 100%;
+          flex-direction: row;
+          padding: 16px 20px;
+          border-radius: 24px;
+          overflow-x: auto;
+          position: relative;
+          top: auto;
+          left: auto;
+          height: auto;
+        }
+
+        .logo-section {
+          flex-direction: row;
+          margin-bottom: 0;
+          margin-right: 8px;
+        }
+
+        .logo-text {
+          display: none;
+        }
+
+        .user-avatar-sidebar {
+          position: static;
+          margin-left: auto;
+        }
+
+        .main-content {
+          height: auto;
+          overflow-y: visible;
+        }
+
+        .page-title h1 {
+          font-size: 48px;
+        }
+
+        .page-title .subtitle {
+          font-size: 28px;
+        }
+
+        .today-training-container {
+          grid-template-columns: 1fr;
+        }
+
+        .total-time {
+          font-size: 40px;
+        }
+
+        .result-badge {
+          font-size: 24px;
+        }
+
+        .time-tabs {
+          flex-wrap: wrap;
+        }
+
+        .chart-container {
+          height: 250px;
+        }
+
+        .chart-bar {
+          width: 13%;
+        }
+
+        .bar-label {
+          font-size: 18px;
+        }
+      }
+
+      /* 家长端登录弹窗 */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: #ffd38b;
+        padding: 40px 30px;
+        border-radius: 24px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .modal-content h3 {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+        background: #fff;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .modal-content p {
+        font-size: 16px;
+        color: #fff;
+        margin-bottom: 30px;
         opacity: 1;
       }
-    }
 
-    .modal-content {
-      background: #ffd38b;
-      padding: 40px 30px;
-      border-radius: 24px;
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
+      .modal-content input {
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        font-size: 16px;
+        margin-bottom: 30px;
+        background: white;
+        transition: all 0.3s ease;
+        border: none;
       }
 
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+      .modal-content input:focus {
+        outline: none;
+        border-color: #ffd38b;
+        transform: translateY(-2px);
       }
-    }
 
-    .modal-content h3 {
-      font-size: 28px;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 10px;
-      background: #fff;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
+      .modal-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+      }
 
-    .modal-content p {
-      font-size: 16px;
-      color: #fff;
-      margin-bottom: 30px;
-      opacity: 1;
-    }
+      .modal-buttons button {
+        background: #ca6a16;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
 
-    .modal-content input {
-      width: 100%;
-      padding: 15px;
-      border-radius: 12px;
-      font-size: 16px;
-      margin-bottom: 30px;
-      background: white;
-      transition: all 0.3s ease;
-      border: none;
-    }
+      .modal-buttons button:hover {
+        transform: translateY(-2px);
+      }
 
-    .modal-content input:focus {
-      outline: none;
-      border-color: #ffd38b;
-      transform: translateY(-2px);
-    }
+      .modal-buttons button:last-child {
+        background: #ca6a16;
+        color: #fff;
+      }
 
-    .modal-buttons {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-    }
+      .modal-buttons button:last-child:hover {
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
 
-    .modal-buttons button {
-      background: #ca6a16;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+  <body>
+    <!-- 浮动装饰元素 -->
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div class="shape shape-5"></div>
+      <div class="shape shape-6"></div>
+      <div class="shape shape-7"></div>
+      <div class="shape shape-8"></div>
+      <div class="shape shape-9"></div>
+      <div class="shape shape-10"></div>
+      <div class="shape shape-11"></div>
+      <div class="shape shape-12"></div>
+      <div class="shape shape-13"></div>
+      <div class="shape shape-14"></div>
+      <div class="shape shape-15"></div>
+      <div class="shape shape-16"></div>
+      <div class="shape shape-17"></div>
+      <div class="shape shape-18"></div>
+      <div class="shape shape-19"></div>
+      <div class="shape shape-20"></div>
+      <div class="shape shape-21"></div>
+      <div class="shape shape-22"></div>
+      <div class="shape shape-23"></div>
+      <div class="shape shape-24"></div>
+      <div class="shape shape-25"></div>
+    </div>
 
-    .modal-buttons button:hover {
-      transform: translateY(-2px);
-    }
-
-    .modal-buttons button:last-child {
-      background: #ca6a16;
-      color: #fff;
-    }
-
-    .modal-buttons button:last-child:hover {
-      transform: translateY(-2px);
-    }
-  </style>
-</head>
-
-<body>
-  <!-- 浮动装饰元素 -->
-  <div class="floating-shapes">
-    <div class="shape shape-1"></div>
-    <div class="shape shape-2"></div>
-    <div class="shape shape-3"></div>
-    <div class="shape shape-4"></div>
-    <div class="shape shape-5"></div>
-    <div class="shape shape-6"></div>
-    <div class="shape shape-7"></div>
-    <div class="shape shape-8"></div>
-    <div class="shape shape-9"></div>
-    <div class="shape shape-10"></div>
-    <div class="shape shape-11"></div>
-    <div class="shape shape-12"></div>
-    <div class="shape shape-13"></div>
-    <div class="shape shape-14"></div>
-    <div class="shape shape-15"></div>
-    <div class="shape shape-16"></div>
-    <div class="shape shape-17"></div>
-    <div class="shape shape-18"></div>
-    <div class="shape shape-19"></div>
-    <div class="shape shape-20"></div>
-    <div class="shape shape-21"></div>
-    <div class="shape shape-22"></div>
-    <div class="shape shape-23"></div>
-    <div class="shape shape-24"></div>
-    <div class="shape shape-25"></div>
-  </div>
-
-  <!-- 侧边栏导航 -->
-  <nav class="sidebar">
-    <div class="logo-section">
-      <div class="logo">
-        <img src="images/logo.png" alt="注意力训练平台" style="width: 100%; height: 100%; object-fit: contain" />
+    <!-- 侧边栏导航 -->
+    <nav class="sidebar">
+      <div class="logo-section">
+        <div class="logo">
+          <img src="images/logo.png" alt="注意力训练平台" style="width: 100%; height: 100%; object-fit: contain" />
+        </div>
       </div>
-    </div>
 
-    <div class="nav-item" onclick="window.location.href = 'child-home.html'">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-      </svg>
-      <span class="nav-label">训练</span>
-    </div>
-
-    <div class="nav-item" onclick="window.location.href = 'detect/index.html'">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M12 6v6l4 2"></path>
-      </svg>
-      <span class="nav-label">综合训练</span>
-    </div>
-
-    <div class="nav-item active">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-        <line x1="16" y1="2" x2="16" y2="6"></line>
-        <line x1="8" y1="2" x2="8" y2="6"></line>
-        <line x1="3" y1="10" x2="21" y2="10"></line>
-      </svg>
-      <span class="nav-label">今日训练</span>
-    </div>
-
-    <div class="nav-item" onclick="window.location.href = 'medal-wall.html'">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="8" r="7"></circle>
-        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-      </svg>
-      <span class="nav-label">勋章墙</span>
-    </div>
-
-    <div class="nav-item switch-mode" onclick="window.location.href = 'child-document.html'">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </svg>
-      <span class="nav-label">家长报告</span>
-    </div>
-  </nav>
-
-  <!-- 主内容区 -->
-  <main class="main-content">
-    <!-- 训练标题 -->
-    <div class="title-section">
-      <div class="page-title">
-        <h1>今日训练</h1>
-        <div class="subtitle">TODAY TRAINING</div>
+      <div class="nav-item" onclick="window.location.href = 'child-home.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span class="nav-label">训练</span>
       </div>
-    </div>
 
-    <!-- 今日训练双栏布局 -->
-    <div class="today-training-container">
-      <!-- 左侧：我的训练 -->
-      <div class="my-training-card">
-        <h2 class="card-title">我的训练</h2>
-        <div class="divider"></div>
+      <div class="nav-item" onclick="window.location.href = 'detect/index.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 6v6l4 2"></path>
+        </svg>
+        <span class="nav-label">综合训练</span>
+      </div>
 
-        <!-- 卡片主体：训练信息 + 日历 -->
-        <div class="card-body">
-          <!-- 训练信息块 -->
-          <div class="training-info-box">
-            <div class="total-time-label">今日训练：</div>
-            <div class="total-time" id="total-time">3.5h</div>
-            <div class="result-badge">
-              <span class="emoji">👍</span>
-              <span>Great result!</span>
-            </div>
-          </div>
+      <div class="nav-item active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span class="nav-label">今日训练</span>
+      </div>
 
-          <!-- 日历块 -->
-          <div class="calendar-box">
-            <div class="calendar-container">
-              <!-- 月份导航 -->
-              <div class="calendar-header">
-                <button class="calendar-nav" id="prev-month">‹</button>
-                <h3 class="calendar-title" id="current-month" style="cursor: pointer">2020年2月</h3>
-                <button class="calendar-nav" id="next-month">›</button>
-              </div>
+      <div class="nav-item" onclick="window.location.href = 'medal-wall.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="7"></circle>
+          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+        </svg>
+        <span class="nav-label">勋章墙</span>
+      </div>
 
-              <!-- 年月快速选择器 -->
-              <div class="date-picker" id="date-picker" style="display: none">
-                <div class="picker-header">
-                  <button class="picker-nav" id="prev-year">‹</button>
-                  <span class="picker-year" id="picker-year">2020年</span>
-                  <button class="picker-nav" id="next-year">›</button>
-                </div>
-                <div class="picker-months" id="picker-months">
-                  <!-- 月份会通过JS生成 -->
-                </div>
-              </div>
+      <div class="nav-item switch-mode" onclick="window.location.href = 'child-document.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span class="nav-label">家长报告</span>
+      </div>
+    </nav>
 
-              <!-- 星期标题 -->
-              <div class="calendar-weekdays">
-                <div>日</div>
-                <div>一</div>
-                <div>二</div>
-                <div>三</div>
-                <div>四</div>
-                <div>五</div>
-                <div>六</div>
-              </div>
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <!-- 训练标题 -->
+      <div class="title-section">
+        <div class="page-title">
+          <h1>今日训练</h1>
+          <div class="subtitle">TODAY TRAINING</div>
+        </div>
+      </div>
 
-              <!-- 日历网格 -->
-              <div class="calendar-grid" id="calendar-grid">
-                <!-- 日期会通过JS动态生成 -->
+      <!-- 今日训练双栏布局 -->
+      <div class="today-training-container">
+        <!-- 左侧：我的训练 -->
+        <div class="my-training-card">
+          <h2 class="card-title">我的训练</h2>
+          <div class="divider"></div>
+
+          <!-- 卡片主体：训练信息 + 日历 -->
+          <div class="card-body">
+            <!-- 训练信息块 -->
+            <div class="training-info-box">
+              <div class="total-time-label">今日训练：</div>
+              <div class="total-time" id="total-time">3.5h</div>
+              <div class="result-badge">
+                <span class="emoji">👍</span>
+                <span>Great result!</span>
               </div>
             </div>
 
-            <!-- 训练时长弹窗 -->
-            <div class="training-modal" id="training-modal">
-              <div class="modal-content">
-                <h4>训练时长</h4>
-                <p id="modal-date"></p>
-                <p id="modal-duration"></p>
-                <button id="close-modal">关闭</button>
+            <!-- 日历块 -->
+            <div class="calendar-box">
+              <div class="calendar-container">
+                <!-- 月份导航 -->
+                <div class="calendar-header">
+                  <button class="calendar-nav" id="prev-month">‹</button>
+                  <h3 class="calendar-title" id="current-month" style="cursor: pointer">2020年2月</h3>
+                  <button class="calendar-nav" id="next-month">›</button>
+                </div>
+
+                <!-- 年月快速选择器 -->
+                <div class="date-picker" id="date-picker" style="display: none">
+                  <div class="picker-header">
+                    <button class="picker-nav" id="prev-year">‹</button>
+                    <span class="picker-year" id="picker-year">2020年</span>
+                    <button class="picker-nav" id="next-year">›</button>
+                  </div>
+                  <div class="picker-months" id="picker-months">
+                    <!-- 月份会通过JS生成 -->
+                  </div>
+                </div>
+
+                <!-- 星期标题 -->
+                <div class="calendar-weekdays">
+                  <div>日</div>
+                  <div>一</div>
+                  <div>二</div>
+                  <div>三</div>
+                  <div>四</div>
+                  <div>五</div>
+                  <div>六</div>
+                </div>
+
+                <!-- 日历网格 -->
+                <div class="calendar-grid" id="calendar-grid">
+                  <!-- 日期会通过JS动态生成 -->
+                </div>
+              </div>
+
+              <!-- 训练时长弹窗 -->
+              <div class="training-modal" id="training-modal">
+                <div class="modal-content">
+                  <h4>训练时长</h4>
+                  <p id="modal-date"></p>
+                  <p id="modal-duration"></p>
+                  <button id="close-modal">关闭</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- 右侧：推荐训练 -->
+        <div class="recommend-training-card">
+          <h2 class="recommend-title">训练计划</h2>
+          <p class="recommend-subtitle" id="recommendSubtitle">本周薄弱维度（建议今日攻克）</p>
+          <div class="reassess-days" id="reassessDays" style="display: none"></div>
+          <div class="recommend-divider"></div>
+          <div class="recommend-items"></div>
+          <div class="ability-bars" id="abilityBars"></div>
+        </div>
       </div>
+    </main>
 
-      <!-- 右侧：推荐训练 -->
-      <div class="recommend-training-card">
-        <h2 class="recommend-title">训练计划</h2>
-        <p class="recommend-subtitle" id="recommendSubtitle">本周薄弱维度（建议今日攻克）</p>
-        <div class="reassess-days" id="reassessDays" style="display: none"></div>
-        <div class="recommend-divider"></div>
-        <div class="recommend-items"></div>
-        <div class="ability-bars" id="abilityBars"></div>
-      </div>
-    </div>
-  </main>
+    <script src="utils.js"></script>
+    <script>
+      let currentChildId = null;
+      let dailyTrainingData = {};
+      let todayTrainingInfo = { session_count: 0, total_duration: 0, avg_score: 0 };
 
-  <script src="utils.js"></script>
-  <script>
-    let currentChildId = null;
-    let dailyTrainingData = {};
-    let todayTrainingInfo = { session_count: 0, total_duration: 0, avg_score: 0 };
+      const baseUrl = window.API_BASE_URL;
 
-    const baseUrl = window.API_BASE_URL;
+      const ApiUtil = {
+        async apiGet(url, params = {}) {
+          const queryString = new URLSearchParams(
+            Object.entries(params).filter(([_, v]) => v !== undefined && v !== null),
+          ).toString();
+          const fullUrl = queryString ? `${url}?${queryString}` : url;
+          try {
+            const response = await fetch(`${baseUrl}${fullUrl}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+              },
+            });
+            return await response.json();
+          } catch (error) {
+            console.error('API GET 请求失败:', error);
+            return { success: false, error: { message: '网络错误' } };
+          }
+        },
+      };
 
-    const ApiUtil = {
-      async apiGet(url, params = {}) {
-        const queryString = new URLSearchParams(
-          Object.entries(params).filter(([_, v]) => v !== undefined && v !== null),
-        ).toString();
-        const fullUrl = queryString ? `${url}?${queryString}` : url;
-        try {
-          const response = await fetch(`${baseUrl}${fullUrl}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-            },
+      function initPage() {
+        // 身份认证只验证登录状态，不验证 mode
+        if (!UserStateUtil.isLoggedIn()) {
+          window.location.href = 'index.html';
+          return;
+        }
+        currentChildId = UserStateUtil.getCurrentChildId();
+        // currentChildId 可能为空（旧登录流程未设置），从 userInfo 中取第一个孩子
+        if (!currentChildId) {
+          const userInfo = UserStateUtil.getUserInfo();
+          if (userInfo && userInfo.children && userInfo.children.length > 0) {
+            currentChildId = userInfo.children[0].id;
+            UserStateUtil.setCurrentChildId(currentChildId);
+          }
+        }
+      }
+
+      // 从后端API获取每日训练汇总数据
+      async function fetchDailySummary(year, month) {
+        if (!currentChildId) return;
+        const params = {};
+        if (year && month) {
+          params.year = year;
+          params.month = month;
+        }
+        const result = await ApiUtil.apiGet(`/api/training/daily-summary/${currentChildId}`, params);
+        if (result.success && result.data) {
+          dailyTrainingData = result.data.daily_data || {};
+          // 使用本地日期查找今日数据，避免 UTC 时区偏差
+          const localToday = new Date().toISOString().split('T')[0];
+          todayTrainingInfo = dailyTrainingData[localToday] || { session_count: 0, total_duration: 0, avg_score: 0 };
+        }
+      }
+
+      // 将秒数格式化为可读时长
+      function formatDuration(seconds) {
+        if (!seconds || seconds <= 0) return '0秒';
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+
+        if (hours > 0) {
+          return minutes > 0 ? `${hours}小时${minutes}分钟` : `${hours}小时`;
+        }
+        if (minutes > 0) {
+          return `${minutes}分钟${remainingSeconds > 0 ? remainingSeconds + '秒' : ''}`;
+        }
+        return `${seconds}秒`;
+      }
+
+      // 根据训练表现获取评语
+      function getTrainingBadge(sessionCount, avgScore) {
+        if (sessionCount === 0) return { emoji: '💪', text: '快来训练吧！' };
+        if (avgScore >= 80) return { emoji: '🌟', text: '表现优秀！' };
+        if (avgScore >= 60) return { emoji: '👍', text: '继续加油！' };
+        if (avgScore >= 40) return { emoji: '🎯', text: '还需努力！' };
+        return { emoji: '💪', text: '坚持训练！' };
+      }
+
+      // 更新今日训练统计显示
+      function updateTodayDisplay() {
+        const totalTimeEl = document.getElementById('total-time');
+        const badgeEl = document.querySelector('.result-badge');
+        if (totalTimeEl) {
+          totalTimeEl.textContent = formatDuration(todayTrainingInfo.total_duration);
+        }
+        if (badgeEl) {
+          const badge = getTrainingBadge(todayTrainingInfo.session_count, todayTrainingInfo.avg_score);
+          badgeEl.innerHTML = `<span class="emoji">${badge.emoji}</span><span>${badge.text}</span>`;
+        }
+      }
+
+      // 获取指定日期的训练信息
+      function getTrainingInfoByDate(dateStr) {
+        return dailyTrainingData[dateStr] || null;
+      }
+
+      // 中文月份名称
+      const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+
+      let currentDate = new Date();
+      let pickerYear = currentDate.getFullYear();
+      let isPickerOpen = false;
+
+      // 初始化日历（异步，需要先获取数据）
+      async function initCalendar() {
+        const calendarGrid = document.getElementById('calendar-grid');
+        const currentMonthEl = document.getElementById('current-month');
+
+        // 获取当前月份的信息
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        currentMonthEl.textContent = `${year}年${monthNames[month]}`;
+
+        // 获取该月训练数据
+        await fetchDailySummary(year, month + 1);
+
+        calendarGrid.innerHTML = '';
+
+        // 获取当月第一天是星期几
+        const firstDay = new Date(year, month, 1).getDay();
+        // 获取当月的天数
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        // 获取上个月的天数
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+        for (let i = firstDay; i > 0; i--) {
+          const dayEl = document.createElement('div');
+          dayEl.className = 'calendar-day past';
+          dayEl.textContent = daysInPrevMonth - i + 1;
+          calendarGrid.appendChild(dayEl);
+        }
+
+        // 添加当月的日期
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dayEl = document.createElement('div');
+          const monthStr = String(month + 1).padStart(2, '0');
+          const dayStr = String(i).padStart(2, '0');
+          const dateStr = `${year}-${monthStr}-${dayStr}`;
+
+          dayEl.className = 'calendar-day';
+
+          // 检查是否是今天
+          const today = new Date();
+          if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+            dayEl.classList.add('today');
+          }
+
+          const info = getTrainingInfoByDate(dateStr);
+          if (info && info.session_count > 0) {
+            dayEl.classList.add('has-training');
+          }
+
+          dayEl.textContent = i;
+          dayEl.dataset.date = dateStr;
+          dayEl.addEventListener('click', () => showTrainingModal(dateStr));
+          calendarGrid.appendChild(dayEl);
+        }
+      }
+
+      // 初始化年月选择器
+      function initDatePicker() {
+        const pickerYearEl = document.getElementById('picker-year');
+        const pickerMonthsEl = document.getElementById('picker-months');
+
+        pickerYearEl.textContent = `${pickerYear}年`;
+        pickerMonthsEl.innerHTML = '';
+
+        monthNames.forEach((monthName, index) => {
+          const monthEl = document.createElement('div');
+          monthEl.className = 'picker-month';
+          if (pickerYear === currentDate.getFullYear() && index === currentDate.getMonth()) {
+            monthEl.classList.add('active');
+          }
+          monthEl.textContent = monthName;
+          monthEl.addEventListener('click', () => {
+            currentDate.setFullYear(pickerYear);
+            currentDate.setMonth(index);
+            initCalendar();
+            toggleDatePicker();
           });
-          return await response.json();
-        } catch (error) {
-          console.error('API GET 请求失败:', error);
-          return { success: false, error: { message: '网络错误' } };
-        }
-      },
-    };
-
-    function initPage() {
-      // 身份认证只验证登录状态，不验证 mode
-      if (!UserStateUtil.isLoggedIn()) {
-        window.location.href = 'index.html';
-        return;
+          pickerMonthsEl.appendChild(monthEl);
+        });
       }
-      currentChildId = UserStateUtil.getCurrentChildId();
-      // currentChildId 可能为空（旧登录流程未设置），从 userInfo 中取第一个孩子
-      if (!currentChildId) {
-        const userInfo = UserStateUtil.getUserInfo();
-        if (userInfo && userInfo.children && userInfo.children.length > 0) {
-          currentChildId = userInfo.children[0].id;
-          UserStateUtil.setCurrentChildId(currentChildId);
+
+      // 切换年月选择器显示
+      function toggleDatePicker() {
+        const datePicker = document.getElementById('date-picker');
+        isPickerOpen = !isPickerOpen;
+        datePicker.style.display = isPickerOpen ? 'block' : 'none';
+        if (isPickerOpen) {
+          pickerYear = currentDate.getFullYear();
+          initDatePicker();
         }
       }
-    }
 
-    // 从后端API获取每日训练汇总数据
-    async function fetchDailySummary(year, month) {
-      if (!currentChildId) return;
-      const params = {};
-      if (year && month) {
-        params.year = year;
-        params.month = month;
-      }
-      const result = await ApiUtil.apiGet(`/api/training/daily-summary/${currentChildId}`, params);
-      if (result.success && result.data) {
-        dailyTrainingData = result.data.daily_data || {};
-        // 使用本地日期查找今日数据，避免 UTC 时区偏差
-        const localToday = new Date().toISOString().split('T')[0];
-        todayTrainingInfo = dailyTrainingData[localToday] || { session_count: 0, total_duration: 0, avg_score: 0 };
-      }
-    }
-
-    // 将秒数格式化为可读时长
-    function formatDuration(seconds) {
-      if (!seconds || seconds <= 0) return '0秒';
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const remainingSeconds = seconds % 60;
-
-      if (hours > 0) {
-        return minutes > 0 ? `${hours}小时${minutes}分钟` : `${hours}小时`;
-      }
-      if (minutes > 0) {
-        return `${minutes}分钟${remainingSeconds > 0 ? remainingSeconds + '秒' : ''}`;
-      }
-      return `${seconds}秒`;
-    }
-
-    // 根据训练表现获取评语
-    function getTrainingBadge(sessionCount, avgScore) {
-      if (sessionCount === 0) return { emoji: '💪', text: '快来训练吧！' };
-      if (avgScore >= 80) return { emoji: '🌟', text: '表现优秀！' };
-      if (avgScore >= 60) return { emoji: '👍', text: '继续加油！' };
-      if (avgScore >= 40) return { emoji: '🎯', text: '还需努力！' };
-      return { emoji: '💪', text: '坚持训练！' };
-    }
-
-    // 更新今日训练统计显示
-    function updateTodayDisplay() {
-      const totalTimeEl = document.getElementById('total-time');
-      const badgeEl = document.querySelector('.result-badge');
-      if (totalTimeEl) {
-        totalTimeEl.textContent = formatDuration(todayTrainingInfo.total_duration);
-      }
-      if (badgeEl) {
-        const badge = getTrainingBadge(todayTrainingInfo.session_count, todayTrainingInfo.avg_score);
-        badgeEl.innerHTML = `<span class="emoji">${badge.emoji}</span><span>${badge.text}</span>`;
-      }
-    }
-
-    // 获取指定日期的训练信息
-    function getTrainingInfoByDate(dateStr) {
-      return dailyTrainingData[dateStr] || null;
-    }
-
-    // 中文月份名称
-    const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-
-    let currentDate = new Date();
-    let pickerYear = currentDate.getFullYear();
-    let isPickerOpen = false;
-
-    // 初始化日历（异步，需要先获取数据）
-    async function initCalendar() {
-      const calendarGrid = document.getElementById('calendar-grid');
-      const currentMonthEl = document.getElementById('current-month');
-
-      // 获取当前月份的信息
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      currentMonthEl.textContent = `${year}年${monthNames[month]}`;
-
-      // 获取该月训练数据
-      await fetchDailySummary(year, month + 1);
-
-      calendarGrid.innerHTML = '';
-
-      // 获取当月第一天是星期几
-      const firstDay = new Date(year, month, 1).getDay();
-      // 获取当月的天数
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      // 获取上个月的天数
-      const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-      for (let i = firstDay; i > 0; i--) {
-        const dayEl = document.createElement('div');
-        dayEl.className = 'calendar-day past';
-        dayEl.textContent = daysInPrevMonth - i + 1;
-        calendarGrid.appendChild(dayEl);
+      // 切换年份
+      function prevYear() {
+        pickerYear--;
+        initDatePicker();
       }
 
-      // 添加当月的日期
-      for (let i = 1; i <= daysInMonth; i++) {
-        const dayEl = document.createElement('div');
-        const monthStr = String(month + 1).padStart(2, '0');
-        const dayStr = String(i).padStart(2, '0');
-        const dateStr = `${year}-${monthStr}-${dayStr}`;
+      function nextYear() {
+        pickerYear++;
+        initDatePicker();
+      }
 
-        dayEl.className = 'calendar-day';
+      // 显示训练详情弹窗
+      function showTrainingModal(dateStr) {
+        const modal = document.getElementById('training-modal');
+        const modalDate = document.getElementById('modal-date');
+        const modalDuration = document.getElementById('modal-duration');
 
-        // 检查是否是今天
-        const today = new Date();
-        if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
-          dayEl.classList.add('today');
-        }
+        const date = new Date(dateStr + 'T00:00:00');
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
+
+        modalDate.textContent = formattedDate;
 
         const info = getTrainingInfoByDate(dateStr);
         if (info && info.session_count > 0) {
-          dayEl.classList.add('has-training');
+          modalDuration.textContent = `训练${info.session_count}次，时长${formatDuration(info.total_duration)}，平均${info.avg_score}分`;
+        } else {
+          modalDuration.textContent = '无训练记录';
         }
 
-        dayEl.textContent = i;
-        dayEl.dataset.date = dateStr;
-        dayEl.addEventListener('click', () => showTrainingModal(dateStr));
-        calendarGrid.appendChild(dayEl);
-      }
-    }
-
-    // 初始化年月选择器
-    function initDatePicker() {
-      const pickerYearEl = document.getElementById('picker-year');
-      const pickerMonthsEl = document.getElementById('picker-months');
-
-      pickerYearEl.textContent = `${pickerYear}年`;
-      pickerMonthsEl.innerHTML = '';
-
-      monthNames.forEach((monthName, index) => {
-        const monthEl = document.createElement('div');
-        monthEl.className = 'picker-month';
-        if (pickerYear === currentDate.getFullYear() && index === currentDate.getMonth()) {
-          monthEl.classList.add('active');
-        }
-        monthEl.textContent = monthName;
-        monthEl.addEventListener('click', () => {
-          currentDate.setFullYear(pickerYear);
-          currentDate.setMonth(index);
-          initCalendar();
-          toggleDatePicker();
-        });
-        pickerMonthsEl.appendChild(monthEl);
-      });
-    }
-
-    // 切换年月选择器显示
-    function toggleDatePicker() {
-      const datePicker = document.getElementById('date-picker');
-      isPickerOpen = !isPickerOpen;
-      datePicker.style.display = isPickerOpen ? 'block' : 'none';
-      if (isPickerOpen) {
-        pickerYear = currentDate.getFullYear();
-        initDatePicker();
-      }
-    }
-
-    // 切换年份
-    function prevYear() {
-      pickerYear--;
-      initDatePicker();
-    }
-
-    function nextYear() {
-      pickerYear++;
-      initDatePicker();
-    }
-
-    // 显示训练详情弹窗
-    function showTrainingModal(dateStr) {
-      const modal = document.getElementById('training-modal');
-      const modalDate = document.getElementById('modal-date');
-      const modalDuration = document.getElementById('modal-duration');
-
-      const date = new Date(dateStr + 'T00:00:00');
-      const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-      const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
-
-      modalDate.textContent = formattedDate;
-
-      const info = getTrainingInfoByDate(dateStr);
-      if (info && info.session_count > 0) {
-        modalDuration.textContent = `训练${info.session_count}次，时长${formatDuration(info.total_duration)}，平均${info.avg_score}分`;
-      } else {
-        modalDuration.textContent = '无训练记录';
+        modal.style.display = 'flex';
       }
 
-      modal.style.display = 'flex';
-    }
+      // 关闭弹窗
+      function closeModal() {
+        document.getElementById('training-modal').style.display = 'none';
+      }
 
-    // 关闭弹窗
-    function closeModal() {
-      document.getElementById('training-modal').style.display = 'none';
-    }
+      // 切换到上个月
+      function prevMonth() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        initCalendar();
+      }
 
-    // 切换到上个月
-    function prevMonth() {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      initCalendar();
-    }
+      // 切换到下个月
+      function nextMonth() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        initCalendar();
+      }
 
-    // 切换到下个月
-    function nextMonth() {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      initCalendar();
-    }
+      // 游戏类型到页面路径的映射（与后端 config.py GAME_TYPES 对齐）
+      const gameIconMap = {
+        太空小火箭: '🚀',
+        垃圾小卫士: '🗑️',
+        魔法迷宫冒险: '🧙',
+        植物浇水: '🌱',
+        追太阳: '☀️',
+        森林动物追踪战: '🦁',
+        海底捉迷藏: '🃏',
+        甜品店小帮工: '🧠',
+        环保小卫士: '🚦',
+        冰雪王国小邮差: '📮',
+      };
 
-    // 游戏类型到页面路径的映射（与后端 config.py GAME_TYPES 对齐）
-    const gameIconMap = {
-      太空小火箭: '🚀',
-      垃圾小卫士: '🗑️',
-      魔法迷宫冒险: '🧙',
-      植物浇水: '🌱',
-      追太阳: '☀️',
-      森林动物追踪战: '🦁',
-      海底捉迷藏: '🃏',
-      甜品店小帮工: '🧠',
-      环保小卫士: '🚦',
-      冰雪王国小邮差: '📮',
-    };
+      const abilityLabelMap = {
+        selective: '选择性注意',
+        sustained: '持续性注意',
+        tracking: '视觉追踪',
+        memory: '工作记忆',
+        inhibitory: '抑制控制',
+      };
 
-    const abilityLabelMap = {
-      selective: '选择性注意',
-      sustained: '持续性注意',
-      tracking: '视觉追踪',
-      memory: '工作记忆',
-      inhibitory: '抑制控制',
-    };
+      const gameTypeMapping = {
+        selective: [
+          { name: '太空小火箭', path: 'schulte.html' },
+          { name: '垃圾小卫士', path: 'find-numbers.html' },
+        ],
+        sustained: [
+          { name: '魔法迷宫冒险', path: 'magic-maze.html' },
+          { name: '植物浇水', path: 'water-plants.html' },
+        ],
+        tracking: [
+          { name: '追太阳', path: 'sun-tracking.html' },
+          { name: '森林动物追踪战', path: 'animal-searching.html' },
+        ],
+        memory: [
+          { name: '海底捉迷藏', path: 'card-matching.html' },
+          { name: '甜品店小帮工', path: 'reverse-memory.html' },
+        ],
+        inhibitory: [
+          { name: '环保小卫士', path: 'traffic-light.html' },
+          { name: '冰雪王国小邮差', path: 'command-adventure.html' },
+        ],
+      };
 
-    const gameTypeMapping = {
-      selective: [
-        { name: '太空小火箭', path: 'schulte.html' },
-        { name: '垃圾小卫士', path: 'find-numbers.html' },
-      ],
-      sustained: [
-        { name: '魔法迷宫冒险', path: 'magic-maze.html' },
-        { name: '植物浇水', path: 'water-plants.html' },
-      ],
-      tracking: [
-        { name: '追太阳', path: 'sun-tracking.html' },
-        { name: '森林动物追踪战', path: 'animal-searching.html' },
-      ],
-      memory: [
-        { name: '海底捉迷藏', path: 'card-matching.html' },
-        { name: '甜品店小帮工', path: 'reverse-memory.html' },
-      ],
-      inhibitory: [
-        { name: '环保小卫士', path: 'traffic-light.html' },
-        { name: '冰雪王国小邮差', path: 'command-adventure.html' },
-      ],
-    };
+      // 从后端获取能力评估数据并推荐薄弱项训练（含历史趋势对比）
+      async function recommendGames() {
+        const recommendItems = document.querySelector('.recommend-items');
+        const reassessDaysEl = document.getElementById('reassessDays');
+        const recommendSubtitle = document.getElementById('recommendSubtitle');
+        if (!recommendItems || !currentChildId) return;
 
-    // 从后端获取能力评估数据并推荐薄弱项训练（含历史趋势对比）
-    async function recommendGames() {
-      const recommendItems = document.querySelector('.recommend-items');
-      const reassessDaysEl = document.getElementById('reassessDays');
-      const recommendSubtitle = document.getElementById('recommendSubtitle');
-      if (!recommendItems || !currentChildId) return;
+        const detectionResult = await ApiUtil.apiGet('/api/get/detection', { child_id: currentChildId });
+        let abilities = [];
+        let trends = {};
+        let lastAssessDate = null;
 
-      const detectionResult = await ApiUtil.apiGet('/api/get/detection', { child_id: currentChildId });
-      let abilities = [];
-      let trends = {};
-      let lastAssessDate = null;
+        if (detectionResult.success && detectionResult.data && detectionResult.data.length > 0) {
+          const latest = detectionResult.data[0];
+          const dimKeys = [
+            'selective_attention',
+            'sustained_attention',
+            'visual_tracking',
+            'working_memory',
+            'inhibitory_control',
+          ];
+          const dimTypes = ['selective', 'sustained', 'tracking', 'memory', 'inhibitory'];
+          const dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
 
-      if (detectionResult.success && detectionResult.data && detectionResult.data.length > 0) {
-        const latest = detectionResult.data[0];
-        const dimKeys = [
-          'selective_attention',
-          'sustained_attention',
-          'visual_tracking',
-          'working_memory',
-          'inhibitory_control',
-        ];
-        const dimTypes = ['selective', 'sustained', 'tracking', 'memory', 'inhibitory'];
-        const dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
-
-        for (let i = 0; i < dimKeys.length; i++) {
-          const score = latest[dimKeys[i]] || 0;
-          abilities.push({ type: dimTypes[i], score: score, name: dimNames[i] });
-        }
-
-        if (detectionResult.data.length >= 2) {
-          const previous = detectionResult.data[1];
           for (let i = 0; i < dimKeys.length; i++) {
-            const prevScore = previous[dimKeys[i]] || 0;
-            const currScore = latest[dimKeys[i]] || 0;
-            const diff = currScore - prevScore;
-            if (diff > 3) trends[dimTypes[i]] = '↑' + Math.round(Math.abs(diff));
-            else if (diff < -3) trends[dimTypes[i]] = '↓' + Math.round(Math.abs(diff));
-            else trends[dimTypes[i]] = '→';
+            const score = latest[dimKeys[i]] || 0;
+            abilities.push({ type: dimTypes[i], score: score, name: dimNames[i] });
+          }
+
+          if (detectionResult.data.length >= 2) {
+            const previous = detectionResult.data[1];
+            for (let i = 0; i < dimKeys.length; i++) {
+              const prevScore = previous[dimKeys[i]] || 0;
+              const currScore = latest[dimKeys[i]] || 0;
+              const diff = currScore - prevScore;
+              if (diff > 3) trends[dimTypes[i]] = '↑' + Math.round(Math.abs(diff));
+              else if (diff < -3) trends[dimTypes[i]] = '↓' + Math.round(Math.abs(diff));
+              else trends[dimTypes[i]] = '→';
+            }
+          }
+
+          if (latest.timestamp) {
+            lastAssessDate = new Date(latest.timestamp);
+          }
+        } else {
+          const trendResult = await ApiUtil.apiGet(`/api/training/trend/${currentChildId}`, { days: 30 });
+          if (trendResult.success && trendResult.data && trendResult.data.trend) {
+            const trend = trendResult.data.trend;
+            abilities = [
+              { type: 'selective', score: trend.selective?.avg_score || 0, name: '选择性注意' },
+              { type: 'sustained', score: trend.sustained?.avg_score || 0, name: '持续性注意' },
+              { type: 'tracking', score: trend.tracking?.avg_score || 0, name: '视觉追踪' },
+              { type: 'memory', score: trend.memory?.avg_score || 0, name: '工作记忆' },
+              { type: 'inhibitory', score: trend.inhibitory?.avg_score || 0, name: '抑制控制' },
+            ];
           }
         }
 
-        if (latest.timestamp) {
-          lastAssessDate = new Date(latest.timestamp);
+        if (lastAssessDate && reassessDaysEl) {
+          const now = new Date();
+          const diffDays = Math.floor((now - lastAssessDate) / (1000 * 60 * 60 * 24));
+          if (diffDays > 7) {
+            reassessDaysEl.style.display = 'inline-block';
+            reassessDaysEl.textContent = '⏰ 距上次测评已 ' + diffDays + ' 天，建议复测';
+          } else {
+            reassessDaysEl.style.display = 'none';
+          }
         }
-      } else {
-        const trendResult = await ApiUtil.apiGet(`/api/training/trend/${currentChildId}`, { days: 30 });
-        if (trendResult.success && trendResult.data && trendResult.data.trend) {
-          const trend = trendResult.data.trend;
-          abilities = [
-            { type: 'selective', score: trend.selective?.avg_score || 0, name: '选择性注意' },
-            { type: 'sustained', score: trend.sustained?.avg_score || 0, name: '持续性注意' },
-            { type: 'tracking', score: trend.tracking?.avg_score || 0, name: '视觉追踪' },
-            { type: 'memory', score: trend.memory?.avg_score || 0, name: '工作记忆' },
-            { type: 'inhibitory', score: trend.inhibitory?.avg_score || 0, name: '抑制控制' },
+
+        if (abilities.length === 0) {
+          recommendItems.innerHTML =
+            '<div class="recommend-empty"><span class="empty-icon">📝</span>尚未测评，先去做一次测评定位薄弱项吧～</div>';
+          if (recommendSubtitle) recommendSubtitle.textContent = '建议先完成测评，再定制专属训练计划';
+          var placeholder = [
+            { type: 'selective', score: 0, name: '选择性注意' },
+            { type: 'sustained', score: 0, name: '持续性注意' },
+            { type: 'tracking', score: 0, name: '视觉追踪' },
+            { type: 'memory', score: 0, name: '工作记忆' },
+            { type: 'inhibitory', score: 0, name: '抑制控制' },
           ];
+          renderAbilityBars(placeholder, []);
+          return;
         }
-      }
 
-      if (lastAssessDate && reassessDaysEl) {
-        const now = new Date();
-        const diffDays = Math.floor((now - lastAssessDate) / (1000 * 60 * 60 * 24));
-        if (diffDays > 7) {
-          reassessDaysEl.style.display = 'inline-block';
-          reassessDaysEl.textContent = '⏰ 距上次测评已 ' + diffDays + ' 天，建议复测';
-        } else {
-          reassessDaysEl.style.display = 'none';
-        }
-      }
+        if (recommendSubtitle) recommendSubtitle.textContent = '本周薄弱维度（建议今日攻克）';
 
-      if (abilities.length === 0) {
-        recommendItems.innerHTML =
-          '<div class="recommend-empty"><span class="empty-icon">📝</span>尚未测评，先去做一次测评定位薄弱项吧～</div>';
-        if (recommendSubtitle) recommendSubtitle.textContent = '建议先完成测评，再定制专属训练计划';
-        var placeholder = [
-          { type: 'selective', score: 0, name: '选择性注意' },
-          { type: 'sustained', score: 0, name: '持续性注意' },
-          { type: 'tracking', score: 0, name: '视觉追踪' },
-          { type: 'memory', score: 0, name: '工作记忆' },
-          { type: 'inhibitory', score: 0, name: '抑制控制' },
-        ];
-        renderAbilityBars(placeholder, []);
-        return;
-      }
+        const allAbilities = abilities.slice();
+        abilities.sort((a, b) => a.score - b.score);
+        const weakest = abilities.slice(0, 2);
 
-      if (recommendSubtitle) recommendSubtitle.textContent = '本周薄弱维度（建议今日攻克）';
+        recommendItems.innerHTML = '';
+        weakest.forEach((ability) => {
+          const games = gameTypeMapping[ability.type] || [];
+          const game = games[0];
+          if (game) {
+            const icon = gameIconMap[game.name] || '🎯';
+            const label = abilityLabelMap[ability.type] || ability.name;
+            const trendText = trends[ability.type] || '';
+            let trendClass = 'trend-flat';
+            if (trendText.startsWith('↑')) trendClass = 'trend-up';
+            else if (trendText.startsWith('↓')) trendClass = 'trend-down';
 
-      const allAbilities = abilities.slice();
-      abilities.sort((a, b) => a.score - b.score);
-      const weakest = abilities.slice(0, 2);
-
-      recommendItems.innerHTML = '';
-      weakest.forEach((ability) => {
-        const games = gameTypeMapping[ability.type] || [];
-        const game = games[0];
-        if (game) {
-          const icon = gameIconMap[game.name] || '🎯';
-          const label = abilityLabelMap[ability.type] || ability.name;
-          const trendText = trends[ability.type] || '';
-          let trendClass = 'trend-flat';
-          if (trendText.startsWith('↑')) trendClass = 'trend-up';
-          else if (trendText.startsWith('↓')) trendClass = 'trend-down';
-
-          const recommendItem = document.createElement('div');
-          recommendItem.className = 'recommend-item ' + ability.type;
-          recommendItem.onclick = () => startGame(game.path, game.name);
-          recommendItem.innerHTML = `
+            const recommendItem = document.createElement('div');
+            recommendItem.className = 'recommend-item ' + ability.type;
+            recommendItem.onclick = () => startGame(game.path, game.name);
+            recommendItem.innerHTML = `
                 <div class="rec-card-inner">
                   <div class="rec-card-left ${ability.type}">${icon}</div>
                   <div class="rec-card-info">
@@ -2076,94 +2073,92 @@
                   <div class="rec-card-arrow">→</div>
                 </div>
               `;
-          recommendItems.appendChild(recommendItem);
-        }
-      });
-
-      renderAbilityBars(allAbilities, weakest);
-    }
-
-    function renderAbilityBars(allAbilities, weakAbilities) {
-      var barsEl = document.getElementById('abilityBars');
-      if (!barsEl) return;
-
-      var dimNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
-      var dotClasses = ['sel', 'sus', 'tra', 'mem', 'inh'];
-      var weakTypes = weakAbilities.map(function (a) {
-        return a.type;
-      });
-
-      var html = '';
-      for (var i = 0; i < allAbilities.length; i++) {
-        var ab = allAbilities[i];
-        var isWeak = weakTypes.indexOf(ab.type) >= 0;
-        var rowClass = isWeak ? 'ability-bar-row weak-row' : 'ability-bar-row';
-        var scoreClamped = Math.max(0, Math.min(100, Math.round(ab.score)));
-
-        html +=
-          '<div class="' +
-          rowClass +
-          '">' +
-          '<span class="ability-bar-label">' +
-          dimNames[i] +
-          '</span>' +
-          '<div class="ability-bar-track">' +
-          '<div class="ability-bar-fill ' +
-          dotClasses[i] +
-          '" style="width:' +
-          scoreClamped +
-          '%"></div>' +
-          '</div>' +
-          '<span class="ability-bar-score">' +
-          scoreClamped +
-          '分</span>' +
-          '</div>';
-      }
-
-      barsEl.innerHTML = html;
-    }
-
-    function startGame(gamePath, gameName) {
-      sessionStorage.setItem(
-        'returnState',
-        JSON.stringify({
-          from: 'today-training',
-        }),
-      );
-      window.location.href = `training/${gamePath}`;
-    }
-
-    // 页面加载初始化
-    window.addEventListener('DOMContentLoaded', async () => {
-      initPage();
-      if (typeof MedalUtil !== 'undefined') {
-        MedalUtil.recordCheckin(currentChildId, true);
-      }
-      await initCalendar();
-      updateTodayDisplay();
-      await recommendGames();
-
-      document.querySelectorAll('.nav-item, .recommend-item').forEach((el) => {
-        el.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            el.click();
+            recommendItems.appendChild(recommendItem);
           }
         });
+
+        renderAbilityBars(allAbilities, weakest);
+      }
+
+      function renderAbilityBars(allAbilities, weakAbilities) {
+        var barsEl = document.getElementById('abilityBars');
+        if (!barsEl) return;
+
+        var dotClassMap = { selective: 'sel', sustained: 'sus', tracking: 'tra', memory: 'mem', inhibitory: 'inh' };
+        var weakTypes = weakAbilities.map(function (a) {
+          return a.type;
+        });
+
+        var html = '';
+        for (var i = 0; i < allAbilities.length; i++) {
+          var ab = allAbilities[i];
+          var isWeak = weakTypes.indexOf(ab.type) >= 0;
+          var rowClass = isWeak ? 'ability-bar-row weak-row' : 'ability-bar-row';
+          var scoreClamped = Math.max(0, Math.min(100, Math.round(ab.score)));
+
+          html +=
+            '<div class="' +
+            rowClass +
+            '">' +
+            '<span class="ability-bar-label">' +
+            ab.name +
+            '</span>' +
+            '<div class="ability-bar-track">' +
+            '<div class="ability-bar-fill ' +
+            (dotClassMap[ab.type] || 'sel') +
+            '" style="width:' +
+            scoreClamped +
+            '%"></div>' +
+            '</div>' +
+            '<span class="ability-bar-score">' +
+            scoreClamped +
+            '分</span>' +
+            '</div>';
+        }
+
+        barsEl.innerHTML = html;
+      }
+
+      function startGame(gamePath, gameName) {
+        sessionStorage.setItem(
+          'returnState',
+          JSON.stringify({
+            from: 'today-training',
+          }),
+        );
+        window.location.href = `training/${gamePath}`;
+      }
+
+      // 页面加载初始化
+      window.addEventListener('DOMContentLoaded', async () => {
+        initPage();
+        if (typeof MedalUtil !== 'undefined') {
+          MedalUtil.recordCheckin(currentChildId, true);
+        }
+        await initCalendar();
+        updateTodayDisplay();
+        await recommendGames();
+
+        document.querySelectorAll('.nav-item, .recommend-item').forEach((el) => {
+          el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              el.click();
+            }
+          });
+        });
+
+        document.getElementById('prev-month').addEventListener('click', prevMonth);
+        document.getElementById('next-month').addEventListener('click', nextMonth);
+        document.getElementById('close-modal').addEventListener('click', closeModal);
+        document.getElementById('current-month').addEventListener('click', toggleDatePicker);
+        document.getElementById('prev-year').addEventListener('click', prevYear);
+        document.getElementById('next-year').addEventListener('click', nextYear);
+
+        document.getElementById('training-modal').addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) closeModal();
+        });
       });
-
-      document.getElementById('prev-month').addEventListener('click', prevMonth);
-      document.getElementById('next-month').addEventListener('click', nextMonth);
-      document.getElementById('close-modal').addEventListener('click', closeModal);
-      document.getElementById('current-month').addEventListener('click', toggleDatePicker);
-      document.getElementById('prev-year').addEventListener('click', prevYear);
-      document.getElementById('next-year').addEventListener('click', nextYear);
-
-      document.getElementById('training-modal').addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) closeModal();
-      });
-    });
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
