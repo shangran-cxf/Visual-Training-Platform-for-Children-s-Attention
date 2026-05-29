@@ -358,7 +358,7 @@
         <p>请跟随嫌疑人的移动，尽可能准确地点击嫌疑人</p>
       </div>
       <div class="status-bar">
-        <div class="timer">⏱ 时间：0s</div>
+        <div class="timer">⏱ 时间：22s</div>
         <div class="stats">
           <span>🎯 命中率：<span id="accuracy">0</span>%</span>
           <span>❌ 点偏：<span id="off-target">0</span>次</span>
@@ -388,9 +388,7 @@
       let isGameStarted = false;
       let isPaused = false;
       let gameTime = 0;
-      let maxTime = 22; // 22秒
       let startTime = 0;
-      let timeInterval;
       let positions = [];
       let currentPositionIndex = 0;
       let accuracySum = 0;
@@ -399,6 +397,7 @@
       let lagTimes = [];
       let lastMoveTime = 0;
       let gameInterval;
+      let timerInterval;
       let clickCountedThisStep = false;
 
       // 点击音效
@@ -542,13 +541,20 @@
         }
       }
 
-      // 更新计时器
+      const GAME_DURATION = 22; // 游戏时长（秒），与移动路径步数一致
+
+      // 更新计时器（倒计时）
       function updateTimer() {
         if (!isGameStarted || isPaused) return;
 
-        const currentTime = Math.floor((performance.now() - startTime) / 1000);
-        document.querySelector('.timer').textContent = `时间：${currentTime}s`;
-        requestAnimationFrame(updateTimer);
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = Math.max(0, GAME_DURATION - elapsed);
+
+        document.querySelector('.timer').textContent = `⏱ 时间：${remaining}s`;
+
+        if (remaining <= 0) {
+          endGame();
+        }
       }
 
       // 处理点击
@@ -642,8 +648,9 @@
         // 开始移动嫌疑人（每1000ms移动一次，每秒1步，共45秒）
         gameInterval = setInterval(moveSuspect, 1000);
 
-        // 开始更新计时器
+        // 开始更新计时器（每秒更新一次）
         updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
 
         // [scoring-system] 综合训练共享会话：复用 level1 创建的会话
         var _sharedSessionId = sessionStorage.getItem('comprehensive_session_id');
@@ -666,6 +673,7 @@
       function endGame() {
         isGameStarted = false;
         clearInterval(gameInterval);
+        clearInterval(timerInterval);
 
         // 统计游戏使用时间
         try {
