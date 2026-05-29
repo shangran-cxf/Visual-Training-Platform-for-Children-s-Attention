@@ -139,12 +139,22 @@
         background-color: #777;
       }
 
+      .status-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        width: 800px;
+        margin-bottom: 10px;
+      }
+
       .stats {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        color: white;
+        display: flex;
+        gap: 18px;
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 10px 18px;
+        border-radius: 25px;
         font-size: 14px;
+        color: #555;
       }
 
       /* 完成弹窗 */
@@ -312,16 +322,18 @@
         <h1>关卡2：监控摄像头</h1>
         <p>请在小偷出现时点击屏幕，其他角色出现时不要点击</p>
       </div>
+      <div class="status-bar">
+        <div class="stats">
+          <span>🎯 击中率：<span id="hit-rate">0%</span></span>
+          <span>🔥 连续正确：<span id="consecutive-correct">0</span>次</span>
+        </div>
+      </div>
       <div class="game-area">
         <div class="monitor" id="monitor">
           <video src="../images/monitor.mov" autoplay loop muted></video>
           <div class="monitor-content">
             <div class="character" id="character"></div>
           </div>
-        </div>
-        <div class="stats">
-          <div>击中率：<span id="hit-rate">0%</span></div>
-          <div>连续正确：<span id="consecutive-correct">0</span></div>
         </div>
         <div class="feedback-overlay" id="feedbackOverlay">
           <div class="feedback-card">
