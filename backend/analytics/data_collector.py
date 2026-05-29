@@ -2,10 +2,16 @@ import json
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from config import BADGES, GAME_TYPES
+from config import (
+    BADGES,
+    ENABLE_CROSS_GAME_NORMALIZATION,
+    GAME_DIMENSION_CONTRIBUTIONS,
+    GAME_SCORE_CALIBRATION,
+    GAME_TYPES,
+)
 from flask import Blueprint, request
 
-from analytics.scoring import calculate_score, calculate_vision_scores
+from analytics.scoring import calculate_score, calculate_vision_scores, clamp
 from database import execute_db
 from middleware import require_auth
 from utils.error_codes import (
@@ -198,7 +204,24 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
 
     vision_scores = calculate_vision_scores(vision_data_list) if vision_data_list else {}
 
-    score_result = calculate_score(attention_type, aggregated_game_data, vision_scores)
+    max_level = max(levels_completed) if levels_completed else None
+    score_result = calculate_score(
+        attention_type,
+        aggregated_game_data,
+        vision_scores,
+        game_type=game_type,
+        difficulty_level=max_level,
+    )
+
+    dimension_contributions = GAME_DIMENSION_CONTRIBUTIONS.get(game_type, {f"{attention_type}_attention": 1.0})
+
+    normalized_score = None
+    if ENABLE_CROSS_GAME_NORMALIZATION:
+        calib = GAME_SCORE_CALIBRATION.get(game_type)
+        if calib and calib["std"] > 0:
+            raw = score_result.get("final_score", 0)
+            z_score = (raw - calib["mean"]) / calib["std"]
+            normalized_score = round(clamp(50 + z_score * 10, 0, 100), 2)
 
     avg_attention = sum(attention_scores) / len(attention_scores) if attention_scores else 0
     max_attention = max(attention_scores) if attention_scores else 0
@@ -249,6 +272,8 @@ def calculate_session_summary(session_id, child_id, game_type, final_score, tota
         "attention_type": attention_type,
         "score_details": score_result,
         "game_data": aggregated_game_data,
+        "dimension_contributions": dimension_contributions,
+        "normalized_score": normalized_score,
     }
 
 
@@ -585,8 +610,8 @@ def end_session():
              total_focus_time, distraction_count, overall_score, performance_level,
              accuracy_score, precision_score, speed_score, head_stable_score, face_stable_score,
              blink_stable_score, impulse_score, memory_score, no_fatigue_score, rt_score,
-             order_score, stable_act_score, game_data)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             order_score, stable_act_score, game_data, dimension_contributions, normalized_score)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 session_id,
@@ -621,6 +646,8 @@ def end_session():
                 summary["score_details"].get("order", 0),
                 summary["score_details"].get("stable_act", 0),
                 json.dumps(summary.get("game_data", {})),
+                json.dumps(summary.get("dimension_contributions", {})),
+                summary.get("normalized_score"),
             ),
         )
 

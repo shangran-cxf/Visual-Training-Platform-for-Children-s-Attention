@@ -763,82 +763,6 @@
         margin-left: 150px;
       }
 
-      /* 添加儿童信息弹窗样式 */
-      #addChildModal .modal-content {
-        background-color: #f0f7ff;
-        max-height: 80vh;
-        overflow-y: auto;
-      }
-
-      #addChildModal h2 {
-        color: #333;
-        margin-bottom: 10px;
-        text-align: center;
-        font-size: 1.5em;
-        font-weight: 600;
-      }
-
-      #addChildModal .children-section {
-        margin: 20px 0;
-      }
-
-      #addChildModal h3 {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        color: #333;
-        font-size: 1.1em;
-      }
-
-      #addChildModal .add-child-btn {
-        background: #608bc1;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      #addChildModal .child-item {
-        position: relative;
-        background: #e8f0fe;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-      }
-
-      #addChildModal .remove-child {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: #f44336;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 16px;
-      }
-
-      #addChildModal .child-fields {
-        display: flex;
-        gap: 10px;
-      }
-
-      #addChildModal .child-fields .form-group {
-        flex: 1;
-      }
-
-      #addChildModal .btn {
-        margin-left: 150px;
-      }
-
       /* 模式选择弹窗样式 */
       #modeSelectModal .modal-content {
         background-color: #f0f7ff;
@@ -1311,45 +1235,16 @@
           <input type="password" id="register-confirm-password" placeholder="请再次输入密码" />
         </div>
 
-        <button class="btn" onclick="register()">注册</button>
-        <p class="login-link">
-          已有账号？<a
-            href="#"
-            onclick="
-              closeRegisterModal();
-              openLoginModal();
-            "
-            >立即登录</a
-          >
-        </p>
-      </div>
-    </div>
-
-    <!-- 添加儿童信息弹窗 -->
-    <div id="addChildModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>添加儿童信息</h2>
-        <div class="cloud-container">
-          <img src="index_images/cloud.png" alt="cartoon cloud" class="cloud-img" />
-          <div class="eye eye-left" id="child-eye-left">
-            <div class="pupil" id="child-pupil-left"></div>
-          </div>
-          <div class="eye eye-right" id="child-eye-right">
-            <div class="pupil" id="child-pupil-right"></div>
-          </div>
-        </div>
-        <div id="child-error-message" class="error-message"></div>
-        <div id="child-success-message" class="success-message"></div>
-
         <div class="children-section">
           <h3>
             <span>儿童信息</span>
-            <button onclick="addChild()" class="add-child-btn">+ 添加儿童</button>
+            <button type="button" onclick="addRegisterChild()" class="add-child-btn">+ 添加儿童</button>
           </h3>
-          <div id="children-container">
+          <div id="register-children-container">
             <div class="child-item" data-index="0">
-              <button class="remove-child" style="display: none">×</button>
+              <button type="button" class="remove-child" style="display: none" onclick="removeRegisterChild(this)">
+                ×
+              </button>
               <div class="child-fields">
                 <div class="form-group">
                   <label>儿童姓名 *</label>
@@ -1364,15 +1259,15 @@
           </div>
         </div>
 
-        <button class="btn" onclick="addChildren()">保存</button>
+        <button class="btn" onclick="register()">注册</button>
         <p class="login-link">
-          已有儿童信息？<a
+          已有账号？<a
             href="#"
             onclick="
-              closeAddChildModal();
+              closeRegisterModal();
               openLoginModal();
             "
-            >跳过</a
+            >立即登录</a
           >
         </p>
       </div>
@@ -1440,15 +1335,6 @@
           registerPupilLeft.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
           registerPupilRight.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
         }
-
-        // 添加儿童弹窗眼睛
-        const childPupilLeft = document.getElementById('child-pupil-left');
-        const childPupilRight = document.getElementById('child-pupil-right');
-
-        if (childPupilLeft && childPupilRight) {
-          childPupilLeft.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-          childPupilRight.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-        }
       }
 
       function startBlinking() {
@@ -1515,41 +1401,8 @@
           });
         }
 
-        // 添加儿童信息弹窗眼睛效果
-        const childPasswordInput = document.getElementById('register-confirm-password');
-        const childEyeLeft = document.getElementById('child-eye-left');
-        const childEyeRight = document.getElementById('child-eye-right');
-
-        if (childPasswordInput) {
-          childPasswordInput.addEventListener('focus', () => {
-            if (childEyeLeft && childEyeRight) {
-              childEyeLeft.classList.add('closed');
-              childEyeRight.classList.add('closed');
-            }
-          });
-
-          childPasswordInput.addEventListener('blur', () => {
-            if (childEyeLeft && childEyeRight) {
-              childEyeLeft.classList.remove('closed');
-              childEyeRight.classList.remove('closed');
-            }
-          });
-        }
-
-        // 初始化删除按钮事件
-        initRemoveButtons();
-
         startBlinking();
       });
-
-      function initRemoveButtons() {
-        const removeButtons = document.querySelectorAll('.remove-child');
-        removeButtons.forEach((button) => {
-          button.onclick = function () {
-            removeChild(this);
-          };
-        });
-      }
 
       async function login() {
         const baseUrl = getBaseUrl();
@@ -1600,8 +1453,6 @@
       // 注册弹窗功能
       const registerModal = document.getElementById('registerModal');
       const registerCloseBtn = registerModal.querySelector('.close');
-      const addChildModal = document.getElementById('addChildModal');
-      const addChildCloseBtn = addChildModal.querySelector('.close');
 
       // 打开登录弹窗
       function openLoginModal() {
@@ -1618,24 +1469,9 @@
         registerModal.classList.remove('show');
       }
 
-      // 打开添加儿童信息弹窗
-      function openAddChildModal() {
-        addChildModal.classList.add('show');
-      }
-
-      // 关闭添加儿童信息弹窗
-      function closeAddChildModal() {
-        addChildModal.classList.remove('show');
-      }
-
       // 关闭注册弹窗
       registerCloseBtn.addEventListener('click', function () {
         registerModal.classList.remove('show');
-      });
-
-      // 关闭添加儿童信息弹窗
-      addChildCloseBtn.addEventListener('click', function () {
-        addChildModal.classList.remove('show');
       });
 
       // 点击弹窗外部关闭
@@ -1648,63 +1484,57 @@
         // 不关闭任何弹窗
       });
 
-      // 注册功能
-      let childCount = 1;
+      // 注册表单里的儿童行操作
+      let registerChildCount = 1;
 
-      function addChild() {
-        const container = document.getElementById('children-container');
+      function addRegisterChild() {
+        const container = document.getElementById('register-children-container');
         const childItem = document.createElement('div');
         childItem.className = 'child-item';
-        childItem.dataset.index = childCount;
+        childItem.dataset.index = registerChildCount;
 
-        // 创建删除按钮
         const removeButton = document.createElement('button');
         removeButton.className = 'remove-child';
         removeButton.textContent = '×';
         removeButton.onclick = function () {
-          removeChild(this);
+          removeRegisterChild(this);
         };
         childItem.appendChild(removeButton);
 
-        // 创建子字段容器
         const childFields = document.createElement('div');
         childFields.className = 'child-fields';
 
-        // 创建姓名字段
         const nameField = document.createElement('div');
         nameField.className = 'form-group';
-        nameField.innerHTML = `
-                <label>儿童姓名</label>
-                <input type="text" class="child-name" placeholder="请输入儿童姓名">
-            `;
+        nameField.innerHTML =
+          '<label>儿童姓名</label><input type="text" class="child-name" placeholder="请输入儿童姓名">';
         childFields.appendChild(nameField);
 
-        // 创建年龄字段
         const ageField = document.createElement('div');
         ageField.className = 'form-group';
-        ageField.innerHTML = `
-                <label>儿童年龄</label>
-                <input type="number" class="child-age" placeholder="年龄" min="6" max="12">
-            `;
+        ageField.innerHTML =
+          '<label>儿童年龄</label><input type="number" class="child-age" placeholder="年龄" min="6" max="12">';
         childFields.appendChild(ageField);
 
         childItem.appendChild(childFields);
         container.appendChild(childItem);
-        childCount++;
-        updateRemoveButtons();
+        registerChildCount++;
+        updateRegisterRemoveButtons();
       }
 
-      function removeChild(button) {
+      function removeRegisterChild(button) {
         const childItem = button.parentElement;
         if (childItem) {
           childItem.remove();
-          updateRemoveButtons();
+          updateRegisterRemoveButtons();
         }
       }
 
-      function updateRemoveButtons() {
-        const items = document.querySelectorAll('.child-item');
-        items.forEach((item, index) => {
+      function updateRegisterRemoveButtons() {
+        const container = document.getElementById('register-children-container');
+        if (!container) return;
+        const items = container.querySelectorAll('.child-item');
+        items.forEach(function (item) {
           const removeBtn = item.querySelector('.remove-child');
           if (removeBtn) {
             removeBtn.style.display = items.length > 1 ? 'flex' : 'none';
@@ -1712,9 +1542,10 @@
         });
       }
 
-      function getChildrenData() {
+      function getChildrenData(containerId) {
         const children = [];
-        const items = document.querySelectorAll('.child-item');
+        const container = containerId ? document.getElementById(containerId) : document;
+        const items = container.querySelectorAll('.child-item');
         items.forEach((item) => {
           const name = item.querySelector('.child-name').value.trim();
           const age = item.querySelector('.child-age').value;
@@ -1753,6 +1584,15 @@
           return;
         }
 
+        const children = getChildrenData('register-children-container');
+
+        for (let child of children) {
+          if (child.age < 6 || child.age > 12) {
+            errorMessage.textContent = '儿童年龄必须在6-12岁之间';
+            return;
+          }
+        }
+
         try {
           const response = await fetch(`${baseUrl}/api/register`, {
             method: 'POST',
@@ -1763,93 +1603,37 @@
               username: username,
               password: password,
               email: email,
-              children: [],
+              children: children,
             }),
           });
 
           const result = await response.json();
 
           if (response.ok) {
+            localStorage.removeItem('auth_token');
+            if (result.token) {
+              localStorage.setItem('auth_token', result.token);
+            }
             const userInfo = {
               parent_id: result.parent_id,
               username: username,
               email: email,
               role: 'user',
               mode: 'parent',
-              children: [],
+              children: result.children || [],
             };
             StorageUtil.setItem('userInfo', userInfo);
-            successMessage.textContent = '注册成功！请添加儿童信息...';
+            successMessage.textContent = '注册成功！正在跳转到登录...';
             setTimeout(() => {
               closeRegisterModal();
-              openAddChildModal();
+              openLoginModal();
             }, 1500);
           } else {
-            errorMessage.textContent = result.error || '注册失败';
+            errorMessage.textContent = (result.error && result.error.message) || result.error || '注册失败';
           }
         } catch (error) {
           console.error('注册失败:', error);
           errorMessage.textContent = '注册失败，请稍后再试';
-        }
-      }
-
-      async function addChildren() {
-        const baseUrl = getBaseUrl();
-
-        const children = getChildrenData();
-        const errorMessage = document.getElementById('child-error-message');
-        const successMessage = document.getElementById('child-success-message');
-
-        errorMessage.textContent = '';
-        successMessage.textContent = '';
-
-        if (children.length === 0) {
-          errorMessage.textContent = '请至少添加一个儿童信息';
-          return;
-        }
-
-        for (let child of children) {
-          if (child.age < 6 || child.age > 12) {
-            errorMessage.textContent = '儿童年龄必须在6-12岁之间';
-            return;
-          }
-        }
-
-        try {
-          const userInfo = StorageUtil.getItem('userInfo');
-          if (!userInfo || !userInfo.parent_id) {
-            errorMessage.textContent = '用户信息不存在';
-            return;
-          }
-
-          // 为每个儿童添加到数据库
-          const token = localStorage.getItem('auth_token');
-          for (let child of children) {
-            await fetch(`${baseUrl}/api/children`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                name: child.name,
-                age: child.age,
-              }),
-            });
-          }
-
-          // 更新本地存储中的儿童信息
-          userInfo.children = children;
-          StorageUtil.setItem('userInfo', userInfo);
-
-          successMessage.textContent = '儿童信息添加成功！正在跳转到登录...';
-          setTimeout(() => {
-            closeAddChildModal();
-            openLoginModal();
-          }, 1500);
-        } catch (error) {
-          console.error('添加儿童信息失败:', error);
-          errorMessage.textContent = '添加失败，请稍后再试';
         }
       }
     </script>
