@@ -39,7 +39,6 @@
 
 ```
 frontend/training/
-├── index.html          # 训练中心页面，根据评估数据推荐游戏
 ├── schulte.html        # 太空小火箭 - 舒尔特方格训练
 ├── find-numbers.html   # 垃圾小卫士 - 数字搜索训练
 ├── magic-maze.html     # 魔法迷宫 - 迷宫导航训练
@@ -87,8 +86,8 @@ frontend/training/
 | sun-tracking | 追踪太阳 | tracking |
 | animal-searching | 寻找动物 | tracking |
 | card-matching | 记忆翻牌 | memory |
-| reverse-memory | 倒序记忆 | memory |
+| reverse-memory | 甜品店小帮工 | memory |
 | traffic-light | 红绿灯 | inhibitory |
-| command-adventure | 指令冒险 | inhibitory |
+| command-adventure | 海底捉迷藏 | inhibitory |
 
 > **注意**: `trafficlight-game.html` 是红绿灯游戏的备选版本，目前未在后端配置中注册，不参与正式训练评分。

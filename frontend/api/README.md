@@ -10,6 +10,7 @@
 | `request.js` | 通用 `apiGet(url, params)` / `apiPost(url, data)` 函数：自动注入 `Authorization: Bearer <token>` 头、超时控制（AbortController）、统一错误处理 |
 | `errors.js` | API 错误处理工具类 |
 | `training.js` | 训练会话专用 API：`startSession`、`endSession`、`uploadGameData`、`uploadVisionData`、`heartbeat`、`interruptSession`、训练历史/详情/趋势/每日汇总查询 |
+| `vision-uploader.js` | 视觉数据上传器：从页面加载起缓冲 `__visionBridge__` 帧数据（2Hz），调用 `training.js` 的 `uploadVisionData` 批量上传 |
 
 ## 使用方式
 

@@ -29,7 +29,7 @@
 
 | 目录 | 职责 | 详见 |
 |---|---|---|
-| `api/` | 前端 API 客户端（请求封装、错误处理、训练 API） | [api/README.md](api/README.md) |
+| `api/` | 前端 API 客户端（请求封装、错误处理、训练/视觉数据上传） | [api/README.md](api/README.md) |
 | `training/` | 11 个注意力训练游戏 | [training/README.md](training/README.md) |
 | `detect/` | 5 级注意力测评 | [detect/README.md](detect/README.md) |
 | `assessment/` | 注意力评估表单（儿童自评 + 家长评估） | [assessment/README.md](assessment/README.md) |

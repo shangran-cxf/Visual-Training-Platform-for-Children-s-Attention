@@ -49,10 +49,10 @@ detect/index.html (测评中心)
     ├─ [✅] updateLevelStatus() 从 localStorage 更新关卡卡片得分
     ├─ [✅] 5关全部完成后 uploadDetectionToBackend() 调用 POST /api/upload/detection
     │       （聚合5维得分 + total_score 持久化到后端 detection_data 表）
-    ├─ [✅] 完成后"📋 查看训练建议"按钮 → 跳转 ../training/index.html
+    ├─ [✅] 完成后"📋 查看训练建议"按钮 → 跳转 ../child-home.html
     └─ [✅] 侧边栏"训练"按钮 → 跳转 ../child-home.html
 
-training/index.html (训练中心)
+child-home.html (训练中心)
     │
     ├─ [✅] generateRecommendedGames() 优先调用 GET /api/get/detection 从后端获取测评
     │       API 失败或无登录时 fallback 到 localStorage
@@ -79,11 +79,11 @@ child-home.html / today-training.html
 
 | 导航方向      | 状态     | 实现位置                     | 说明                                                  |
 | ------------- | -------- | ---------------------------- | ----------------------------------------------------- |
-| 测评→训练     | ✅ 已完成 | detect/index.html L1130      | "📋 查看训练建议" 按钮 → training/index.html           |
-| 测评→训练     | ✅ 已完成 | detect/index.html L1018      | 侧边栏"训练" → child-home.html                        |
+| 测评→训练     | ✅ 已完成 | detect/index.html            | "📋 查看训练建议" 按钮 → child-home.html           |
+| 测评→训练     | ✅ 已完成 | detect/index.html            | 侧边栏"训练" → child-home.html                        |
 | 完成页→训练   | ✅ 已完成 | level1~5.html endGame()      | "🎯 针对性训练" 按钮，跳对应维度训练游戏               |
-| 训练→测评     | ✅ 已完成 | training/index.html L256     | "📋 重新测评" 按钮 → detect/index.html                 |
-| 训练→复测提醒 | ✅ 已完成 | training/index.html L488-520 | 每10次访问右下角弹出 Toast，含"去复测"按钮，3天冷却期 |
+| 训练→测评     | ✅ 已完成 | child-home.html              | "📋 重新测评" 按钮 → detect/index.html                 |
+| 训练→复测提醒 | ✅ 已完成 | child-home.html              | 每10次访问右下角弹出 Toast，含"去复测"按钮，3天冷却期 |
 
 ---
 
@@ -104,7 +104,7 @@ child-home.html / today-training.html
 │                              │                              │
 │  全部5关完成后 detect/index.html:                            │
 │           ✅ POST /api/upload/detection (持久化到DB)          │
-│           ✅ "📋 查看训练建议" → training/index.html          │
+│           ✅ "📋 查看训练建议" → child-home.html          │
 │           ✅ 页面加载时 GET /api/get/detection (恢复历史)    │
 └──────────────────────┬──────────────────────────────────────┘
                        │ 后端 API (可靠桥梁)
@@ -112,7 +112,7 @@ child-home.html / today-training.html
 ┌─────────────────────────────────────────────────────────────┐
 │                      训练阶段 (training/)                    │
 │                                                             │
-│  training/index.html 从 GET /api/get/detection 获取测评      │
+│  child-home.html 从 GET /api/get/detection 获取测评      │
 │       ↓                                                     │
 │  按薄弱维度推荐训练游戏                                      │
 │       ↓                                                     │
