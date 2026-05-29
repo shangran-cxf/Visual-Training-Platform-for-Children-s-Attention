@@ -481,1111 +481,819 @@
     </div>
 
     <script>
-            // ===== API 工具函数 =====
-            const baseUrl = getBaseUrl();
+      // ===== API 工具函数 =====
+      const baseUrl = getBaseUrl();
 
-            const ApiUtil = {
-              async apiGet(url, params = {}) {
-                const queryString = new URLSearchParams(
-                  Object.entries(params).filter(([_, v]) => v !== undefined && v !== null),
-                ).toString();
+      const ApiUtil = {
+        async apiGet(url, params = {}) {
+          const queryString = new URLSearchParams(
+            Object.entries(params).filter(([_, v]) => v !== undefined && v !== null),
+          ).toString();
 
-                const fullUrl = queryString ? `${url}?${queryString}` : url;
+          const fullUrl = queryString ? `${url}?${queryString}` : url;
 
-                try {
-                  const response = await fetch(`${baseUrl}${fullUrl}`, {
-                    method: 'GET',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                  });
-
-                  const data = await response.json();
-                  return data;
-                } catch (error) {
-                  console.error('API GET 请求失败:', error);
-                  return { success: false, error: { message: '网络错误' } };
-                }
+          try {
+            const response = await fetch(`${baseUrl}${fullUrl}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
               },
+            });
 
-              async apiPost(url, data = {}) {
-                try {
-                  const response = await fetch(`${baseUrl}${url}`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                    },
-                    body: JSON.stringify(data),
-                  });
+            const data = await response.json();
+            return data;
+          } catch (error) {
+            console.error('API GET 请求失败:', error);
+            return { success: false, error: { message: '网络错误' } };
+          }
+        },
 
-                  const result = await response.json();
-                  return result;
-                } catch (error) {
-                  console.error('API POST 请求失败:', error);
-                  return { success: false, error: { message: '网络错误' } };
-                }
+        async apiPost(url, data = {}) {
+          try {
+            const response = await fetch(`${baseUrl}${url}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
               },
+              body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+            return result;
+          } catch (error) {
+            console.error('API POST 请求失败:', error);
+            return { success: false, error: { message: '网络错误' } };
+          }
+        },
+      };
+
+      // Toast 提示
+      function showToast(msg, type) {
+        const existing = document.querySelector('.child-doc-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = 'child-doc-toast ' + (type || '');
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        requestAnimationFrame(function () {
+          toast.classList.add('show');
+        });
+        setTimeout(function () {
+          toast.classList.remove('show');
+          setTimeout(function () {
+            toast.remove();
+          }, 300);
+        }, 2000);
+      }
+
+      // ===== 页面初始化 =====
+
+      function toggleEvalCollapse() {
+        var card = document.querySelector('.card.right-top-card');
+        var btn = document.querySelector('.eval-collapse-btn');
+        var arrow = btn.querySelector('.btn-arrow');
+        var isExpanded = card.classList.contains('expanded');
+
+        if (isExpanded) {
+          card.classList.remove('expanded');
+          btn.innerHTML = '查看详情 <span class="btn-arrow">▼</span>';
+        } else {
+          card.classList.add('expanded');
+          btn.innerHTML = '收起 <span class="btn-arrow">▲</span>';
+        }
+      }
+
+      // 页面初始化在 DOMContentLoaded 事件中执行
+
+      // ===== 页面特定功能 =====
+
+      // 切换儿童选择器下拉菜单
+      let childrenList = [];
+      let currentChildId = null;
+
+      function toggleChildSelector() {
+        const header = document.querySelector('.child-selector-header');
+        const options = document.querySelector('.child-selector-options');
+        const arrow = document.querySelector('.child-selector-arrow');
+
+        header.classList.toggle('active');
+        options.classList.toggle('active');
+        arrow.classList.toggle('active');
+      }
+
+      // 选择儿童
+      async function loadChildrenList() {
+        try {
+          const userInfo = StorageUtil.getItem('userInfo');
+          if (!userInfo || !userInfo.parent_id) {
+            console.error('用户信息不存在');
+            // 显示错误状态
+            document.getElementById('selected-child-name').textContent = '登录失效';
+            return;
+          }
+
+          // 显示加载状态
+          document.getElementById('selected-child-name').textContent = '加载中...';
+
+          const result = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
+          childrenList = result.data || [];
+
+          const optionsContainer = document.querySelector('.child-selector-options');
+          if (!optionsContainer) {
+            console.error('儿童选择器容器不存在');
+            return;
+          }
+          optionsContainer.innerHTML = '';
+
+          if (!childrenList || childrenList.length === 0) {
+            optionsContainer.innerHTML = '<div class="child-option">暂无儿童信息</div>';
+            document.getElementById('selected-child-name').textContent = '暂无儿童';
+            return;
+          }
+
+          childrenList.forEach((child, index) => {
+            const option = document.createElement('div');
+            option.className = 'child-option' + (index === 0 ? ' active' : '');
+            option.textContent = child.name;
+            option.onclick = function () {
+              selectChild(this, child.id);
+            };
+            optionsContainer.appendChild(option);
+          });
+
+          const firstChild = childrenList[0];
+          const selectedChildNameEl = document.getElementById('selected-child-name');
+          if (selectedChildNameEl) {
+            selectedChildNameEl.textContent = firstChild.name;
+          }
+          currentChildId = firstChild.id;
+
+          loadChildInfo(firstChild.id);
+          loadCharts(firstChild.id);
+          loadGrowthChart(firstChild.id);
+        } catch (error) {
+          console.error('加载儿童列表失败:', error);
+          document.getElementById('selected-child-name').textContent = '加载失败';
+          showToast('加载儿童信息失败，请刷新页面重试', 'error');
+        }
+      }
+
+      async function selectChild(element, childId) {
+        // 移除所有活跃状态
+        document.querySelectorAll('.child-option').forEach((option) => {
+          option.classList.remove('active');
+        });
+
+        // 添加当前活跃状态
+        element.classList.add('active');
+
+        // 更新选中的儿童名称
+        const selectedChildName = element.textContent;
+        document.getElementById('selected-child-name').textContent = selectedChildName;
+
+        // 更新儿童信息
+        const header = document.querySelector('.child-selector-header');
+        const options = document.querySelector('.child-selector-options');
+        const arrow = document.querySelector('.child-selector-arrow');
+        header.classList.remove('active');
+        options.classList.remove('active');
+        arrow.classList.remove('active');
+
+        currentChildId = childId;
+        loadChildInfo(childId);
+        loadCharts(childId);
+        loadGrowthChart(childId);
+      }
+
+      // 三个独立加载函数，各自容错，互不阻塞
+      function loadChildInfo(childId) {
+        updateChildInfo(childId).catch(function (e) {
+          console.error('加载儿童信息/评价失败:', e);
+        });
+      }
+
+      function loadCharts(childId) {
+        updateCharts(childId).catch(function (e) {
+          console.error('加载雷达图失败:', e);
+        });
+      }
+
+      function loadGrowthChart(childId) {
+        drawGrowthChart(childId).catch(function (e) {
+          console.error('加载成长轨迹失败:', e);
+        });
+      }
+
+      // 从后端获取儿童数据
+      async function fetchChildData(childId) {
+        try {
+          // 清除旧缓存，确保每次加载都获取最新数据
+          const cacheKey = `child_data_${childId}`;
+          localStorage.removeItem(cacheKey);
+
+          // 并行请求数据
+          const [statsResult, detectionResult, trendResult] = await Promise.all([
+            ApiUtil.apiGet(`/api/children/${childId}/stats`),
+            ApiUtil.apiGet(`/api/get/detection`, { child_id: childId }),
+            ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 30 }),
+          ]);
+
+          // 数据验证和处理
+          const stats = statsResult.data || {};
+          const detection = detectionResult.data || [];
+          const trend = trendResult.data || {};
+
+          const child =
+            childrenList && Array.isArray(childrenList) ? childrenList.find((c) => c.id === childId) || {} : {};
+
+          const latestDetection = Array.isArray(detection) && detection.length > 0 ? detection[0] : null;
+
+          // 雷达图数据优先级：检测数据(综合训练) > 趋势数据(日常训练) > 默认值
+          let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
+          if (latestDetection) {
+            // 优先使用综合训练的检测数据（已包含视觉模型计算）
+            var det = latestDetection;
+            radarData = [
+              det.selective_attention != null ? det.selective_attention / 100 : 0.5,
+              det.sustained_attention != null ? det.sustained_attention / 100 : 0.5,
+              det.visual_tracking != null ? det.visual_tracking / 100 : 0.5,
+              det.working_memory != null ? det.working_memory / 100 : 0.5,
+              det.inhibitory_control != null ? det.inhibitory_control / 100 : 0.5,
+            ];
+            console.log('使用综合训练检测数据:', radarData);
+          } else if (trend && trend.trend) {
+            // 其次使用日常训练的聚合趋势数据
+            var trendData = trend.trend;
+            radarData = [
+              (trendData.selective?.avg_score || 50) / 100 || 0.5,
+              (trendData.sustained?.avg_score || 50) / 100 || 0.5,
+              (trendData.tracking?.avg_score || 50) / 100 || 0.5,
+              (trendData.memory?.avg_score || 50) / 100 || 0.5,
+              (trendData.inhibitory?.avg_score || 50) / 100 || 0.5,
+            ];
+            console.log('使用训练趋势数据:', radarData);
+          } else {
+            console.log('未获取到任何数据，使用默认值');
+          }
+
+          const result = {
+            info: {
+              name: child.name || '-',
+              age: child.age ? `${child.age}岁` : '-',
+              time: stats.training_time ? `${Math.round((stats.training_time / 60) * 10) / 10}分钟` : '0分钟',
+              courses: stats.training_count ? `${stats.training_count}次` : '0次',
+              level: stats.avg_score ? `平均分 ${stats.avg_score}` : '-',
+            },
+            radarData: radarData,
           };
 
-          // Toast 提示
-          function showToast(msg, type) {
-            const existing = document.querySelector('.child-doc-toast');
-            if (existing) existing.remove();
-            const toast = document.createElement('div');
-            toast.className = 'child-doc-toast ' + (type || '');
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            requestAnimationFrame(function () {
-              toast.classList.add('show');
-            });
-            setTimeout(function () {
-              toast.classList.remove('show');
-              setTimeout(function () {
-                toast.remove();
-              }, 300);
-            }, 2000);
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify({ data: result, _ts: Date.now() }));
+          } catch (cacheError) {
+            console.error('缓存数据失败:', cacheError);
           }
 
-          // ===== 页面初始化 =====
+          return result;
+        } catch (error) {
+          console.error('获取儿童数据失败:', error);
+          // 返回默认数据，避免页面卡住
+          return {
+            info: {
+              name: '-',
+              age: '-',
+              time: '0分钟',
+              courses: '0次',
+              level: '-',
+            },
+            radarData: [0.5, 0.5, 0.5, 0.5, 0.5],
+          };
+        }
+      }
 
-          function toggleEvalCollapse() {
-            var card = document.querySelector('.card.right-top-card');
-            var btn = document.querySelector('.eval-collapse-btn');
-            var arrow = btn.querySelector('.btn-arrow');
-            var isExpanded = card.classList.contains('expanded');
+      // 更新儿童信息
+      async function updateChildInfo(childId) {
+        const childData = await fetchChildData(childId);
+        if (childData && childData.info) {
+          const info = childData.info;
+          const childNameEl = document.getElementById('child-name');
+          const childAgeEl = document.getElementById('child-age');
+          const trainingTimeEl = document.getElementById('training-time');
+          const completedCoursesEl = document.getElementById('completed-courses');
+          const currentLevelEl = document.getElementById('current-level');
 
-            if (isExpanded) {
-              card.classList.remove('expanded');
-              btn.innerHTML = '查看详情 <span class="btn-arrow">▼</span>';
-            } else {
-              card.classList.add('expanded');
-              btn.innerHTML = '收起 <span class="btn-arrow">▲</span>';
-            }
-          }
+          if (childNameEl) childNameEl.textContent = info.name;
+          if (childAgeEl) childAgeEl.textContent = info.age;
+          if (trainingTimeEl) trainingTimeEl.textContent = info.time;
+          if (completedCoursesEl) completedCoursesEl.textContent = info.courses;
+          if (currentLevelEl) currentLevelEl.textContent = info.level;
 
-          // 页面初始化在 DOMContentLoaded 事件中执行
+          // 调用 AI 评价（传递 childData 用于缓存检测）
+          await fetchAndDisplayAIEvaluation(childId, childData);
+        }
+      }
 
-          // ===== 页面特定功能 =====
+      // 生成数据版本标识（用于检测数据是否更新）
+      function generateDataVersion(childData) {
+        if (!childData) return null;
 
-          // 切换儿童选择器下拉菜单
-          let childrenList = [];
-          let currentChildId = null;
+        const info = childData.info || {};
+        const radarData = childData.radarData || [];
 
-          function toggleChildSelector() {
-            const header = document.querySelector('.child-selector-header');
-            const options = document.querySelector('.child-selector-options');
-            const arrow = document.querySelector('.child-selector-arrow');
+        // 使用关键字段生成版本标识
+        const versionData = {
+          name: info.name,
+          time: info.time,
+          courses: info.courses,
+          level: info.level,
+          radarData: radarData.join(','),
+        };
 
-            header.classList.toggle('active');
-            options.classList.toggle('active');
-            arrow.classList.toggle('active');
-          }
+        return JSON.stringify(versionData);
+      }
 
-          // 选择儿童
-          async function loadChildrenList() {
-            try {
-              const userInfo = StorageUtil.getItem('userInfo');
-              if (!userInfo || !userInfo.parent_id) {
-                console.error('用户信息不存在');
-                // 显示错误状态
-                document.getElementById('selected-child-name').textContent = '登录失效';
-                return;
-              }
+      // 缓存 AI 评价结果
+      function cacheEvaluation(childId, childData, evaluation) {
+        try {
+          const cacheKey = `ai_evaluation_${childId}`;
+          const cacheData = {
+            evaluation: evaluation,
+            dataVersion: generateDataVersion(childData),
+            timestamp: Date.now(),
+            childId: childId,
+          };
+          localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+        } catch (error) {
+          console.error('缓存评价失败:', error);
+        }
+      }
 
-              // 显示加载状态
-              document.getElementById('selected-child-name').textContent = '加载中...';
+      // 获取缓存的评价结果
+      function getCachedEvaluation(childId, childData) {
+        try {
+          const cacheKey = `ai_evaluation_${childId}`;
+          const cached = localStorage.getItem(cacheKey);
 
-              const result = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
-              childrenList = result.data || [];
+          if (!cached) return null;
 
-              const optionsContainer = document.querySelector('.child-selector-options');
-              if (!optionsContainer) {
-                console.error('儿童选择器容器不存在');
-                return;
-              }
-              optionsContainer.innerHTML = '';
+          const cacheData = JSON.parse(cached);
 
-              if (!childrenList || childrenList.length === 0) {
-                optionsContainer.innerHTML = '<div class="child-option">暂无儿童信息</div>';
-                document.getElementById('selected-child-name').textContent = '暂无儿童';
-                return;
-              }
-
-              childrenList.forEach((child, index) => {
-                const option = document.createElement('div');
-                option.className = 'child-option' + (index === 0 ? ' active' : '');
-                option.textContent = child.name;
-                option.onclick = function () {
-                  selectChild(this, child.id);
-                };
-                optionsContainer.appendChild(option);
-              });
-
-              const firstChild = childrenList[0];
-              const selectedChildNameEl = document.getElementById('selected-child-name');
-              if (selectedChildNameEl) {
-                selectedChildNameEl.textContent = firstChild.name;
-              }
-              currentChildId = firstChild.id;
-
-              loadChildInfo(firstChild.id);
-              loadCharts(firstChild.id);
-              loadGrowthChart(firstChild.id);
-            } catch (error) {
-              console.error('加载儿童列表失败:', error);
-              document.getElementById('selected-child-name').textContent = '加载失败';
-              showToast('加载儿童信息失败，请刷新页面重试', 'error');
+          // 检查数据版本是否一致
+          const currentVersion = generateDataVersion(childData);
+          if (cacheData.dataVersion === currentVersion) {
+            // 检查缓存是否过期（24小时）
+            const cacheAge = Date.now() - cacheData.timestamp;
+            const maxAge = 24 * 60 * 60 * 1000; // 24小时
+            if (cacheAge < maxAge) {
+              return cacheData.evaluation;
             }
           }
 
-          async function selectChild(element, childId) {
-            // 移除所有活跃状态
-            document.querySelectorAll('.child-option').forEach((option) => {
-              option.classList.remove('active');
-            });
+          return null;
+        } catch (error) {
+          console.error('获取缓存失败:', error);
+          return null;
+        }
+      }
 
-            // 添加当前活跃状态
-            element.classList.add('active');
+      // 展示评价内容
+      function displayEvaluation(evaluation) {
+        document.getElementById('ai-summary').textContent = evaluation.summary || '暂时没有评价哦！快去做训练吧！';
 
-            // 更新选中的儿童名称
-            const selectedChildName = element.textContent;
-            document.getElementById('selected-child-name').textContent = selectedChildName;
+        // 展示优势
+        const strengthsList = document.getElementById('ai-strengths');
+        strengthsList.innerHTML = '';
+        if (evaluation.strengths && evaluation.strengths.length > 0) {
+          evaluation.strengths.forEach((item) => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            strengthsList.appendChild(li);
+          });
+        } else {
+          strengthsList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
+        }
 
-            // 更新儿童信息
-            const header = document.querySelector('.child-selector-header');
-            const options = document.querySelector('.child-selector-options');
-            const arrow = document.querySelector('.child-selector-arrow');
-            header.classList.remove('active');
-            options.classList.remove('active');
-            arrow.classList.remove('active');
+        // 展示待提升领域
+        const weaknessesList = document.getElementById('ai-weaknesses');
+        weaknessesList.innerHTML = '';
+        if (evaluation.weaknesses && evaluation.weaknesses.length > 0) {
+          evaluation.weaknesses.forEach((item) => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            weaknessesList.appendChild(li);
+          });
+        } else {
+          weaknessesList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
+        }
 
-            currentChildId = childId;
-            loadChildInfo(childId);
-            loadCharts(childId);
-            loadGrowthChart(childId);
+        // 展示训练建议
+        const suggestionsList = document.getElementById('ai-suggestions');
+        suggestionsList.innerHTML = '';
+        if (evaluation.suggestions && evaluation.suggestions.length > 0) {
+          evaluation.suggestions.forEach((item) => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            suggestionsList.appendChild(li);
+          });
+        } else {
+          suggestionsList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
+        }
+
+        // 展示家庭指导
+        document.getElementById('ai-home-guidance').textContent =
+          evaluation.home_guidance || '暂时没有指导哦！快去做训练吧！';
+      }
+
+      // 获取并展示 AI 评价
+      async function fetchAndDisplayAIEvaluation(childId, childData) {
+        const loadingEl = document.getElementById('ai-evaluation-loading');
+        const contentEl = document.getElementById('ai-evaluation-content');
+        const errorEl = document.getElementById('ai-evaluation-error');
+
+        // 显示加载状态
+        loadingEl.style.display = 'block';
+        contentEl.style.display = 'none';
+        errorEl.style.display = 'none';
+
+        try {
+          // 检查缓存
+          const cachedEvaluation = getCachedEvaluation(childId, childData);
+          if (cachedEvaluation) {
+            // 使用缓存，直接展示
+            displayEvaluation(cachedEvaluation);
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+            return;
           }
 
-          // 三个独立加载函数，各自容错，互不阻塞
-          function loadChildInfo(childId) {
-            updateChildInfo(childId).catch(function (e) {
-              console.error('加载儿童信息/评价失败:', e);
-            });
-          }
-
-          function loadCharts(childId) {
-            updateCharts(childId).catch(function (e) {
-              console.error('加载雷达图失败:', e);
-            });
-          }
-
-          function loadGrowthChart(childId) {
-            drawGrowthChart(childId).catch(function (e) {
-              console.error('加载成长轨迹失败:', e);
-            });
-          }
-
-          // 从后端获取儿童数据
-          async function fetchChildData(childId) {
-            try {
-              // 清除旧缓存，确保每次加载都获取最新数据
-              const cacheKey = `child_data_${childId}`;
-              localStorage.removeItem(cacheKey);
-
-              // 并行请求数据
-              const [statsResult, detectionResult, trendResult] = await Promise.all([
-                ApiUtil.apiGet(`/api/children/${childId}/stats`),
-                ApiUtil.apiGet(`/api/get/detection`, { child_id: childId }),
-                ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 30 }),
-              ]);
-
-              // 数据验证和处理
-              const stats = statsResult.data || {};
-              const detection = detectionResult.data || [];
-              const trend = trendResult.data || {};
-
-              const child =
-                childrenList && Array.isArray(childrenList) ? childrenList.find((c) => c.id === childId) || {} : {};
-
-              const latestDetection = Array.isArray(detection) && detection.length > 0 ? detection[0] : null;
-
-              // 雷达图数据：逐维度合并综合训练检测数据 + 日常训练趋势数据
-              // 每个维度优先取检测数据(综合训练)，没有则取趋势数据(日常训练)，都没有则默认50
-              var detScores = latestDetection ? [
-                latestDetection.selective_attention,
-                latestDetection.sustained_attention,
-                latestDetection.visual_tracking,
-                latestDetection.working_memory,
-                latestDetection.inhibitory_control,
-              ] : [null, null, null, null, null];
-
-              var trendScores = (trend && trend.trend) ? [
-                trend.trend.selective?.avg_score,
-                trend.trend.sustained?.avg_score,
-                trend.trend.tracking?.avg_score,
-                trend.trend.memory?.avg_score,
-                trend.trend.inhibitory?.avg_score,
-              ] : [null, null, null, null, null];
-
-              var labels = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
-              var radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
-              for (var i = 0; i < 5; i++) {
-                var detVal = detScores[i];
-                var trendVal = trendScores[i];
-                var hasDet = detVal != null && detVal > 0;
-                var hasTrend = trendVal != null && trendVal > 0;
-                if (hasDet && hasTrend) {
-                  // 两者都有：取平均值
-                  radarData[i] = ((detVal + trendVal) / 2) / 100;
-                } else if (hasDet) {
-                  radarData[i] = detVal / 100;
-                } else if (hasTrend) {
-                  radarData[i] = trendVal / 100;
-                }
-                var src = hasDet && hasTrend ? '平均' : hasDet ? '综合训练' : hasTrend ? '日常训练' : '默认';
-                console.log(labels[i] + ': 综合=' + detVal + ' 日常=' + trendVal + ' → ' + src + ' ' + (radarData[i] * 100).toFixed(1) + '%');
-              }
-              console.log('合并后雷达图数据:', radarData);
-
-              const result = {
-                info: {
-                  name: child.name || '-',
-                  age: child.age ? `${child.age}岁` : '-',
-                  time: stats.training_time ? `${Math.round((stats.training_time / 60) * 10) / 10}分钟` : '0分钟',
-                  courses: stats.training_count ? `${stats.training_count}次` : '0次',
-                  level: stats.avg_score ? `平均分 ${stats.avg_score}` : '-',
-                },
-                radarData: radarData,
-              };
-
-              try {
-                localStorage.setItem(cacheKey, JSON.stringify({ data: result, _ts: Date.now() }));
-              } catch (cacheError) {
-                console.error('缓存数据失败:', cacheError);
-              }
-
-              return result;
-            } catch (error) {
-              console.error('获取儿童数据失败:', error);
-              // 返回默认数据，避免页面卡住
-              return {
-                info: {
-                  name: '-',
-                  age: '-',
-                  time: '0分钟',
-                  courses: '0次',
-                  level: '-',
-                },
-                radarData: [0.5, 0.5, 0.5, 0.5, 0.5],
-              };
-            }
-          }
-
-          // 更新儿童信息
-          async function updateChildInfo(childId) {
-            const childData = await fetchChildData(childId);
-            if (childData && childData.info) {
-              const info = childData.info;
-              const childNameEl = document.getElementById('child-name');
-              const childAgeEl = document.getElementById('child-age');
-              const trainingTimeEl = document.getElementById('training-time');
-              const completedCoursesEl = document.getElementById('completed-courses');
-              const currentLevelEl = document.getElementById('current-level');
-
-              if (childNameEl) childNameEl.textContent = info.name;
-              if (childAgeEl) childAgeEl.textContent = info.age;
-              if (trainingTimeEl) trainingTimeEl.textContent = info.time;
-              if (completedCoursesEl) completedCoursesEl.textContent = info.courses;
-              if (currentLevelEl) currentLevelEl.textContent = info.level;
-
-              // 调用 AI 评价（传递 childData 用于缓存检测）
-              await fetchAndDisplayAIEvaluation(childId, childData);
-            }
-          }
-
-          // 生成数据版本标识（用于检测数据是否更新）
-          function generateDataVersion(childData) {
-            if (!childData) return null;
-
-            const info = childData.info || {};
-            const radarData = childData.radarData || [];
-
-            // 使用关键字段生成版本标识
-            const versionData = {
-              name: info.name,
-              time: info.time,
-              courses: info.courses,
-              level: info.level,
-              radarData: radarData.join(','),
-      >>>>>>> origin/main
-            };
-
-            // Toast 提示
-            function showToast(msg, type) {
-              const existing = document.querySelector('.child-doc-toast');
-              if (existing) existing.remove();
-              const toast = document.createElement('div');
-              toast.className = 'child-doc-toast ' + (type || '');
-              toast.textContent = msg;
-              document.body.appendChild(toast);
-              requestAnimationFrame(function () {
-                toast.classList.add('show');
-              });
-              setTimeout(function () {
-                toast.classList.remove('show');
-                setTimeout(function () {
-                  toast.remove();
-                }, 300);
-              }, 2000);
-            }
-
-            // ===== 页面初始化 =====
-
-            function toggleEvalCollapse() {
-              var card = document.querySelector('.card.right-top-card');
-              var btn = document.querySelector('.eval-collapse-btn');
-              var arrow = btn.querySelector('.btn-arrow');
-              var isExpanded = card.classList.contains('expanded');
-
-              if (isExpanded) {
-                card.classList.remove('expanded');
-                btn.innerHTML = '查看详情 <span class="btn-arrow">▼</span>';
-              } else {
-                card.classList.add('expanded');
-                btn.innerHTML = '收起 <span class="btn-arrow">▲</span>';
-              }
-            }
-
-            // 页面初始化在 DOMContentLoaded 事件中执行
-
-            // ===== 页面特定功能 =====
-
-            // 切换儿童选择器下拉菜单
-            let childrenList = [];
-            let currentChildId = null;
-
-            function toggleChildSelector() {
-              const header = document.querySelector('.child-selector-header');
-              const options = document.querySelector('.child-selector-options');
-              const arrow = document.querySelector('.child-selector-arrow');
-
-              header.classList.toggle('active');
-              options.classList.toggle('active');
-              arrow.classList.toggle('active');
-            }
-
-            // 选择儿童
-            async function loadChildrenList() {
-              try {
-                const userInfo = StorageUtil.getItem('userInfo');
-                if (!userInfo || !userInfo.parent_id) {
-                  console.error('用户信息不存在');
-                  // 显示错误状态
-                  document.getElementById('selected-child-name').textContent = '登录失效';
-                  return;
-                }
-
-                // 显示加载状态
-                document.getElementById('selected-child-name').textContent = '加载中...';
-
-                const result = await ApiUtil.apiGet(`/api/children/${userInfo.parent_id}`);
-                childrenList = result.data || [];
-
-                const optionsContainer = document.querySelector('.child-selector-options');
-                if (!optionsContainer) {
-                  console.error('儿童选择器容器不存在');
-                  return;
-                }
-                optionsContainer.innerHTML = '';
-
-                if (!childrenList || childrenList.length === 0) {
-                  optionsContainer.innerHTML = '<div class="child-option">暂无儿童信息</div>';
-                  document.getElementById('selected-child-name').textContent = '暂无儿童';
-                  return;
-                }
-
-                childrenList.forEach((child, index) => {
-                  const option = document.createElement('div');
-                  option.className = 'child-option' + (index === 0 ? ' active' : '');
-                  option.textContent = child.name;
-                  option.onclick = function () {
-                    selectChild(this, child.id);
-                  };
-                  optionsContainer.appendChild(option);
-                });
-
-                const firstChild = childrenList[0];
-                const selectedChildNameEl = document.getElementById('selected-child-name');
-                if (selectedChildNameEl) {
-                  selectedChildNameEl.textContent = firstChild.name;
-                }
-                currentChildId = firstChild.id;
-
-                loadChildInfo(firstChild.id);
-                loadCharts(firstChild.id);
-                loadGrowthChart(firstChild.id);
-              } catch (error) {
-                console.error('加载儿童列表失败:', error);
-                document.getElementById('selected-child-name').textContent = '加载失败';
-                showToast('加载儿童信息失败，请刷新页面重试', 'error');
-              }
-            }
-
-            async function selectChild(element, childId) {
-              // 移除所有活跃状态
-              document.querySelectorAll('.child-option').forEach((option) => {
-                option.classList.remove('active');
-              });
-
-              // 添加当前活跃状态
-              element.classList.add('active');
-
-              // 更新选中的儿童名称
-              const selectedChildName = element.textContent;
-              document.getElementById('selected-child-name').textContent = selectedChildName;
-
-              // 更新儿童信息
-              const header = document.querySelector('.child-selector-header');
-              const options = document.querySelector('.child-selector-options');
-              const arrow = document.querySelector('.child-selector-arrow');
-              header.classList.remove('active');
-              options.classList.remove('active');
-              arrow.classList.remove('active');
-
-              currentChildId = childId;
-              loadChildInfo(childId);
-              loadCharts(childId);
-              loadGrowthChart(childId);
-            }
-
-            // 三个独立加载函数，各自容错，互不阻塞
-            function loadChildInfo(childId) {
-              updateChildInfo(childId).catch(function (e) {
-                console.error('加载儿童信息/评价失败:', e);
-              });
-            }
-
-            function loadCharts(childId) {
-              updateCharts(childId).catch(function (e) {
-                console.error('加载雷达图失败:', e);
-              });
-            }
-
-            function loadGrowthChart(childId) {
-              drawGrowthChart(childId).catch(function (e) {
-                console.error('加载成长轨迹失败:', e);
-              });
-            }
-
-            // 从后端获取儿童数据
-            async function fetchChildData(childId) {
-              try {
-                // 清除旧缓存，确保每次加载都获取最新数据
-                const cacheKey = `child_data_${childId}`;
-                localStorage.removeItem(cacheKey);
-
-                // 并行请求数据
-                const [statsResult, detectionResult, trendResult] = await Promise.all([
-                  ApiUtil.apiGet(`/api/children/${childId}/stats`),
-                  ApiUtil.apiGet(`/api/get/detection`, { child_id: childId }),
-                  ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 30 }),
-                ]);
-
-                // 数据验证和处理
-                const stats = statsResult.data || {};
-                const detection = detectionResult.data || [];
-                const trend = trendResult.data || {};
-
-                const child =
-                  childrenList && Array.isArray(childrenList) ? childrenList.find((c) => c.id === childId) || {} : {};
-
-                const latestDetection = Array.isArray(detection) && detection.length > 0 ? detection[0] : null;
-
-                // 雷达图数据优先级：检测数据(综合训练) > 趋势数据(日常训练) > 默认值
-                let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
-                if (latestDetection) {
-                  // 优先使用综合训练的检测数据（已包含视觉模型计算）
-                  var det = latestDetection;
-                  radarData = [
-                    det.selective_attention != null ? det.selective_attention / 100 : 0.5,
-                    det.sustained_attention != null ? det.sustained_attention / 100 : 0.5,
-                    det.visual_tracking != null ? det.visual_tracking / 100 : 0.5,
-                    det.working_memory != null ? det.working_memory / 100 : 0.5,
-                    det.inhibitory_control != null ? det.inhibitory_control / 100 : 0.5,
-                  ];
-                  console.log('使用综合训练检测数据:', radarData);
-                } else if (trend && trend.trend) {
-                  // 其次使用日常训练的聚合趋势数据
-                  var trendData = trend.trend;
-                  radarData = [
-                    (trendData.selective?.avg_score || 50) / 100 || 0.5,
-                    (trendData.sustained?.avg_score || 50) / 100 || 0.5,
-                    (trendData.tracking?.avg_score || 50) / 100 || 0.5,
-                    (trendData.memory?.avg_score || 50) / 100 || 0.5,
-                    (trendData.inhibitory?.avg_score || 50) / 100 || 0.5,
-                  ];
-                  console.log('使用训练趋势数据:', radarData);
-                } else {
-                  console.log('未获取到任何数据，使用默认值');
-                }
-
-                const result = {
-                  info: {
-                    name: child.name || '-',
-                    age: child.age ? `${child.age}岁` : '-',
-                    time: stats.training_time ? `${Math.round((stats.training_time / 60) * 10) / 10}分钟` : '0分钟',
-                    courses: stats.training_count ? `${stats.training_count}次` : '0次',
-                    level: stats.avg_score ? `平均分 ${stats.avg_score}` : '-',
-                  },
-                  radarData: radarData,
-                };
-
-                try {
-                  localStorage.setItem(cacheKey, JSON.stringify({ data: result, _ts: Date.now() }));
-                } catch (cacheError) {
-                  console.error('缓存数据失败:', cacheError);
-                }
-
-                return result;
-              } catch (error) {
-                console.error('获取儿童数据失败:', error);
-                // 返回默认数据，避免页面卡住
-                return {
-                  info: {
-                    name: '-',
-                    age: '-',
-                    time: '0分钟',
-                    courses: '0次',
-                    level: '-',
-                  },
-                  radarData: [0.5, 0.5, 0.5, 0.5, 0.5],
-                };
-              }
-            }
-
-            // 更新儿童信息
-            async function updateChildInfo(childId) {
-              const childData = await fetchChildData(childId);
-              if (childData && childData.info) {
-                const info = childData.info;
-                const childNameEl = document.getElementById('child-name');
-                const childAgeEl = document.getElementById('child-age');
-                const trainingTimeEl = document.getElementById('training-time');
-                const completedCoursesEl = document.getElementById('completed-courses');
-                const currentLevelEl = document.getElementById('current-level');
-
-                if (childNameEl) childNameEl.textContent = info.name;
-                if (childAgeEl) childAgeEl.textContent = info.age;
-                if (trainingTimeEl) trainingTimeEl.textContent = info.time;
-                if (completedCoursesEl) completedCoursesEl.textContent = info.courses;
-                if (currentLevelEl) currentLevelEl.textContent = info.level;
-
-                // 调用 AI 评价（传递 childData 用于缓存检测）
-                await fetchAndDisplayAIEvaluation(childId, childData);
-              }
-            }
-
-            // 生成数据版本标识（用于检测数据是否更新）
-            function generateDataVersion(childData) {
-              if (!childData) return null;
-
-              const info = childData.info || {};
-              const radarData = childData.radarData || [];
-
-              // 使用关键字段生成版本标识
-              const versionData = {
-                name: info.name,
-                time: info.time,
-                courses: info.courses,
-                level: info.level,
-                radarData: radarData.join(','),
-              };
-
-              return JSON.stringify(versionData);
-            }
-
-            // 缓存 AI 评价结果
-            function cacheEvaluation(childId, childData, evaluation) {
-              try {
-                const cacheKey = `ai_evaluation_${childId}`;
-                const cacheData = {
-                  evaluation: evaluation,
-                  dataVersion: generateDataVersion(childData),
-                  timestamp: Date.now(),
-                  childId: childId,
-                };
-                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-              } catch (error) {
-                console.error('缓存评价失败:', error);
-              }
-            }
-
-            // 获取缓存的评价结果
-            function getCachedEvaluation(childId, childData) {
-              try {
-                const cacheKey = `ai_evaluation_${childId}`;
-                const cached = localStorage.getItem(cacheKey);
-
-                if (!cached) return null;
-
-                const cacheData = JSON.parse(cached);
-
-                // 检查数据版本是否一致
-                const currentVersion = generateDataVersion(childData);
-                if (cacheData.dataVersion === currentVersion) {
-                  // 检查缓存是否过期（24小时）
-                  const cacheAge = Date.now() - cacheData.timestamp;
-                  const maxAge = 24 * 60 * 60 * 1000; // 24小时
-                  if (cacheAge < maxAge) {
-                    return cacheData.evaluation;
-                  }
-                }
-
-                return null;
-              } catch (error) {
-                console.error('获取缓存失败:', error);
-                return null;
-              }
-            }
+          // 缓存不存在或数据已更新，调用 AI 接口
+          const result = await ApiUtil.apiPost('/api/ai/current-training-evaluation', {
+            child_id: childId,
+          });
+
+          if (result.success && result.data && result.data.evaluation) {
+            const evaluation = result.data.evaluation;
+
+            // 缓存评价结果
+            cacheEvaluation(childId, childData, evaluation);
 
             // 展示评价内容
-            function displayEvaluation(evaluation) {
-              document.getElementById('ai-summary').textContent = evaluation.summary || '暂时没有评价哦！快去做训练吧！';
+            displayEvaluation(evaluation);
 
-              // 展示优势
-              const strengthsList = document.getElementById('ai-strengths');
-              strengthsList.innerHTML = '';
-              if (evaluation.strengths && evaluation.strengths.length > 0) {
-                evaluation.strengths.forEach((item) => {
-                  const li = document.createElement('li');
-                  li.textContent = item;
-                  strengthsList.appendChild(li);
-                });
-              } else {
-                strengthsList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
-              }
+            // 显示内容
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+          } else {
+            const defaultEvaluation = {
+              summary: 'AI 评价生成失败，请稍后重试',
+              strengths: ['暂无数据'],
+              weaknesses: ['暂无数据'],
+              suggestions: ['暂无数据'],
+              home_guidance: '完成训练后将生成专业建议',
+            };
+            displayEvaluation(defaultEvaluation);
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+          }
+        } catch (error) {
+          console.error('获取评价失败:', error);
+          // 显示默认内容，避免页面卡住
+          const defaultEvaluation = {
+            summary: 'AI 评价暂时不可用，快去做训练吧！',
+            strengths: ['暂无数据'],
+            weaknesses: ['暂无数据'],
+            suggestions: ['暂无数据'],
+            home_guidance: '完成训练后将生成专业建议',
+          };
+          displayEvaluation(defaultEvaluation);
+          loadingEl.style.display = 'none';
+          contentEl.style.display = 'block';
+        }
+      }
 
-              // 展示待提升领域
-              const weaknessesList = document.getElementById('ai-weaknesses');
-              weaknessesList.innerHTML = '';
-              if (evaluation.weaknesses && evaluation.weaknesses.length > 0) {
-                evaluation.weaknesses.forEach((item) => {
-                  const li = document.createElement('li');
-                  li.textContent = item;
-                  weaknessesList.appendChild(li);
-                });
-              } else {
-                weaknessesList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
-              }
+      // 更新图表
+      async function updateCharts(childId) {
+        const childData = await fetchChildData(childId);
+        if (childData && childData.radarData) {
+          drawRadarChart(childData.radarData);
+        }
+      }
 
-              // 展示训练建议
-              const suggestionsList = document.getElementById('ai-suggestions');
-              suggestionsList.innerHTML = '';
-              if (evaluation.suggestions && evaluation.suggestions.length > 0) {
-                evaluation.suggestions.forEach((item) => {
-                  const li = document.createElement('li');
-                  li.textContent = item;
-                  suggestionsList.appendChild(li);
-                });
-              } else {
-                suggestionsList.innerHTML = '<li>暂时没有数据哦！快去做训练吧！</li>';
-              }
+      // 雷达图配置
+      const radarChartConfig = {
+        // 维度配置
+        dimensions: ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'],
+        // 标准值配置
+        standardValues: [0.7, 0.7, 0.7, 0.7, 0.7], // 标准值，默认为0.7（70%）
+        // 样式配置
+        styles: {
+          dataset: {
+            label: '能力评分',
+            backgroundColor: 'rgba(192, 158, 236, 0.3)',
+            borderColor: '#c09fec',
+            borderWidth: 3,
+            pointBackgroundColor: '#866ec4',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#343a40',
+          },
+          standardDataset: {
+            label: '标准值',
+            backgroundColor: 'rgba(30, 144, 255, 0.2)', // 深蓝色填充
+            borderColor: '#8691c9', // 深蓝色线条
+            borderWidth: 3,
+            pointBackgroundColor: '#356197', // 深蓝色数据点
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#1e90ff',
+          },
+          scales: {
+            angleLines: {
+              display: true,
+              color: '#e0e0e0',
+            },
+            grid: {
+              color: '#e0e0e0',
+            },
+            pointLabels: {
+              font: {
+                size: 14,
+                weight: 'bold',
+              },
+            },
+            ticks: {
+              backdropColor: 'transparent',
+              stepSize: 20,
+              max: 100,
+              min: 0,
+            },
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+            },
+          },
+        },
+      };
 
-              // 展示家庭指导
-              document.getElementById('ai-home-guidance').textContent =
-                evaluation.home_guidance || '暂时没有指导哦！快去做训练吧！';
-            }
+      // 雷达图实例
+      let radarChart = null;
 
-            // 获取并展示 AI 评价
-            async function fetchAndDisplayAIEvaluation(childId, childData) {
-              const loadingEl = document.getElementById('ai-evaluation-loading');
-              const contentEl = document.getElementById('ai-evaluation-content');
-              const errorEl = document.getElementById('ai-evaluation-error');
+      // 绘制雷达图
+      function drawRadarChart(data) {
+        try {
+          const canvas = document.getElementById('radarChart');
+          if (!canvas) return;
 
-              // 显示加载状态
-              loadingEl.style.display = 'block';
-              contentEl.style.display = 'none';
-              errorEl.style.display = 'none';
+          // 销毁旧的图表实例
+          if (radarChart) {
+            radarChart.destroy();
+            radarChart = null;
+          }
 
-              try {
-                // 检查缓存
-                const cachedEvaluation = getCachedEvaluation(childId, childData);
-                if (cachedEvaluation) {
-                  // 使用缓存，直接展示
-                  displayEvaluation(cachedEvaluation);
-                  loadingEl.style.display = 'none';
-                  contentEl.style.display = 'block';
-                  return;
-                }
+          const ctx = canvas.getContext('2d');
+          const values = data || [0.5, 0.5, 0.5, 0.5, 0.5]; // 默认值
+          const { dimensions, standardValues, styles } = radarChartConfig;
 
-                // 缓存不存在或数据已更新，调用 AI 接口
-                const result = await ApiUtil.apiPost('/api/ai/current-training-evaluation', {
-                  child_id: childId,
-                });
-
-                if (result.success && result.data && result.data.evaluation) {
-                  const evaluation = result.data.evaluation;
-
-                  // 缓存评价结果
-                  cacheEvaluation(childId, childData, evaluation);
-
-                  // 展示评价内容
-                  displayEvaluation(evaluation);
-
-                  // 显示内容
-                  loadingEl.style.display = 'none';
-                  contentEl.style.display = 'block';
-                } else {
-                  const defaultEvaluation = {
-                    summary: 'AI 评价生成失败，请稍后重试',
-                    strengths: ['暂无数据'],
-                    weaknesses: ['暂无数据'],
-                    suggestions: ['暂无数据'],
-                    home_guidance: '完成训练后将生成专业建议',
-                  };
-                  displayEvaluation(defaultEvaluation);
-                  loadingEl.style.display = 'none';
-                  contentEl.style.display = 'block';
-                }
-              } catch (error) {
-                console.error('获取评价失败:', error);
-                // 显示默认内容，避免页面卡住
-                const defaultEvaluation = {
-                  summary: 'AI 评价暂时不可用，快去做训练吧！',
-                  strengths: ['暂无数据'],
-                  weaknesses: ['暂无数据'],
-                  suggestions: ['暂无数据'],
-                  home_guidance: '完成训练后将生成专业建议',
-                };
-                displayEvaluation(defaultEvaluation);
-                loadingEl.style.display = 'none';
-                contentEl.style.display = 'block';
-              }
-            }
-
-            // 更新图表
-            async function updateCharts(childId) {
-              const childData = await fetchChildData(childId);
-              if (childData && childData.radarData) {
-                drawRadarChart(childData.radarData);
-              }
-            }
-
-            // 雷达图配置
-            const radarChartConfig = {
-              // 维度配置
-              dimensions: ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'],
-              // 标准值配置
-              standardValues: [0.7, 0.7, 0.7, 0.7, 0.7], // 标准值，默认为0.7（70%）
-              // 样式配置
-              styles: {
-                dataset: {
-                  label: '能力评分',
-                  backgroundColor: 'rgba(192, 158, 236, 0.3)',
-                  borderColor: '#c09fec',
-                  borderWidth: 3,
-                  pointBackgroundColor: '#866ec4',
-                  pointHoverBackgroundColor: '#fff',
-                  pointHoverBorderColor: '#343a40',
+          // 创建新的图表实例
+          radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+              labels: dimensions,
+              datasets: [
+                {
+                  label: styles.dataset.label,
+                  data: values.map((value) => value * 100), // 转换为百分比
+                  backgroundColor: styles.dataset.backgroundColor,
+                  borderColor: styles.dataset.borderColor,
+                  pointBackgroundColor: styles.dataset.pointBackgroundColor,
+                  pointHoverBackgroundColor: styles.dataset.pointHoverBackgroundColor,
+                  pointHoverBorderColor: styles.dataset.pointHoverBorderColor,
                 },
-                standardDataset: {
-                  label: '标准值',
-                  backgroundColor: 'rgba(30, 144, 255, 0.2)', // 深蓝色填充
-                  borderColor: '#8691c9', // 深蓝色线条
-                  borderWidth: 3,
-                  pointBackgroundColor: '#356197', // 深蓝色数据点
-                  pointBorderColor: '#fff',
-                  pointHoverBackgroundColor: '#fff',
-                  pointHoverBorderColor: '#1e90ff',
+                {
+                  label: styles.standardDataset.label,
+                  data: standardValues.map((value) => value * 100), // 转换为百分比
+                  backgroundColor: styles.standardDataset.backgroundColor,
+                  borderColor: styles.standardDataset.borderColor,
+                  pointBackgroundColor: styles.standardDataset.pointBackgroundColor,
+                  pointBorderColor: styles.standardDataset.pointBorderColor,
+                  pointHoverBackgroundColor: styles.standardDataset.pointHoverBackgroundColor,
+                  pointHoverBorderColor: styles.standardDataset.pointHoverBorderColor,
                 },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                r: {
+                  angleLines: styles.scales.angleLines,
+                  grid: styles.scales.grid,
+                  pointLabels: styles.scales.pointLabels,
+                  ticks: styles.scales.ticks,
+                },
+              },
+              plugins: styles.plugins,
+            },
+          });
+        } catch (error) {
+          console.error('绘制雷达图失败:', error);
+          // 即使图表绘制失败，也不影响页面其他部分
+        }
+      }
+
+      // 成长轨迹图实例
+      let growthChart = null;
+
+      // 绘制成长轨迹图
+      async function drawGrowthChart(childId) {
+        try {
+          const canvas = document.getElementById('growthChart');
+          if (!canvas) return;
+
+          // 销毁旧的图表实例
+          if (growthChart) {
+            growthChart.destroy();
+            growthChart = null;
+          }
+
+          const ctx = canvas.getContext('2d');
+
+          // 页面加载完成后初始化
+          try {
+            const result = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
+            const trendData = result.data || result;
+
+            let labels = [];
+            let data = [];
+
+            if (trendData && trendData.trend) {
+              const allRecords = [];
+              Object.values(trendData.trend).forEach((attentionType) => {
+                if (attentionType.records && attentionType.records.length > 0) {
+                  attentionType.records.forEach((record) => {
+                    allRecords.push(record);
+                  });
+                }
+              });
+
+              allRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+              const groupedByDate = {};
+              allRecords.forEach((record) => {
+                if (!groupedByDate[record.date]) {
+                  groupedByDate[record.date] = [];
+                }
+                groupedByDate[record.date].push(record.score);
+              });
+
+              const dates = Object.keys(groupedByDate).slice(-8);
+              dates.forEach((date) => {
+                const avgScore = groupedByDate[date].reduce((a, b) => a + b, 0) / groupedByDate[date].length;
+                // 显示月-日格式
+                const parts = date.split('-');
+                labels.push(parts[1] + '/' + parts[2]);
+                data.push(Math.round(avgScore));
+              });
+            }
+
+            if (labels.length === 0) {
+              labels = ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'];
+              data = [0, 0, 0, 0, 0, 0, 0, 0];
+            }
+
+            growthChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: '专注能力评分',
+                    data: data,
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderColor: '#667eea',
+                    borderWidth: 4,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#667eea',
+                    tension: 0.1,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 scales: {
-                  angleLines: {
-                    display: true,
-                    color: '#e0e0e0',
-                  },
-                  grid: {
-                    color: '#e0e0e0',
-                  },
-                  pointLabels: {
-                    font: {
-                      size: 14,
-                      weight: 'bold',
+                  y: {
+                    beginAtZero: false,
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                      stepSize: 10,
+                      font: {
+                        size: 12,
+                      },
                     },
                   },
-                  ticks: {
-                    backdropColor: 'transparent',
-                    stepSize: 20,
-                    max: 100,
-                    min: 0,
+                  x: {
+                    ticks: {
+                      font: {
+                        size: 12,
+                      },
+                    },
                   },
                 },
                 plugins: {
                   legend: {
                     display: true,
                     position: 'bottom',
+                    labels: {
+                      font: {
+                        size: 16,
+                      },
+                    },
                   },
                 },
               },
-            };
-
-            // 雷达图实例
-            let radarChart = null;
-
-            // 绘制雷达图
-            function drawRadarChart(data) {
-              try {
-                const canvas = document.getElementById('radarChart');
-                if (!canvas) return;
-
-                // 销毁旧的图表实例
-                if (radarChart) {
-                  radarChart.destroy();
-                  radarChart = null;
-                }
-
-                const ctx = canvas.getContext('2d');
-                const values = data || [0.5, 0.5, 0.5, 0.5, 0.5]; // 默认值
-                const { dimensions, standardValues, styles } = radarChartConfig;
-
-                // 创建新的图表实例
-                radarChart = new Chart(ctx, {
-                  type: 'radar',
-                  data: {
-                    labels: dimensions,
-                    datasets: [
-                      {
-                        label: styles.dataset.label,
-                        data: values.map((value) => value * 100), // 转换为百分比
-                        backgroundColor: styles.dataset.backgroundColor,
-                        borderColor: styles.dataset.borderColor,
-                        pointBackgroundColor: styles.dataset.pointBackgroundColor,
-                        pointHoverBackgroundColor: styles.dataset.pointHoverBackgroundColor,
-                        pointHoverBorderColor: styles.dataset.pointHoverBorderColor,
-                      },
-                      {
-                        label: styles.standardDataset.label,
-                        data: standardValues.map((value) => value * 100), // 转换为百分比
-                        backgroundColor: styles.standardDataset.backgroundColor,
-                        borderColor: styles.standardDataset.borderColor,
-                        pointBackgroundColor: styles.standardDataset.pointBackgroundColor,
-                        pointBorderColor: styles.standardDataset.pointBorderColor,
-                        pointHoverBackgroundColor: styles.standardDataset.pointHoverBackgroundColor,
-                        pointHoverBorderColor: styles.standardDataset.pointHoverBorderColor,
-                      },
-                    ],
-                  },
-                  options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                      r: {
-                        angleLines: styles.scales.angleLines,
-                        grid: styles.scales.grid,
-                        pointLabels: styles.scales.pointLabels,
-                        ticks: styles.scales.ticks,
-                      },
-                    },
-                    plugins: styles.plugins,
-                  },
-                });
-              } catch (error) {
-                console.error('绘制雷达图失败:', error);
-                // 即使图表绘制失败，也不影响页面其他部分
-              }
+            });
+          } catch (error) {
+            console.error('加载成长轨迹失败:', error);
+            // 绘制默认图表前，先销毁可能存在的旧图表
+            if (growthChart) {
+              growthChart.destroy();
+              growthChart = null;
             }
-
-            // 成长轨迹图实例
-            let growthChart = null;
-
-            // 绘制成长轨迹图
-            async function drawGrowthChart(childId) {
-              try {
-                const canvas = document.getElementById('growthChart');
-                if (!canvas) return;
-
-                // 销毁旧的图表实例
-                if (growthChart) {
-                  growthChart.destroy();
-                  growthChart = null;
-                }
-
-                const ctx = canvas.getContext('2d');
-
-                // 页面加载完成后初始化
-                try {
-                  const result = await ApiUtil.apiGet(`/api/training/trend/${childId}`, { days: 56 });
-                  const trendData = result.data || result;
-
-                  let labels = [];
-                  let data = [];
-
-                  if (trendData && trendData.trend) {
-                    const allRecords = [];
-                    Object.values(trendData.trend).forEach((attentionType) => {
-                      if (attentionType.records && attentionType.records.length > 0) {
-                        attentionType.records.forEach((record) => {
-                          allRecords.push(record);
-                        });
-                      }
-                    });
-
-                    allRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                    const groupedByDate = {};
-                    allRecords.forEach((record) => {
-                      if (!groupedByDate[record.date]) {
-                        groupedByDate[record.date] = [];
-                      }
-                      groupedByDate[record.date].push(record.score);
-                    });
-
-                    const dates = Object.keys(groupedByDate).slice(-8);
-                    dates.forEach((date) => {
-                      const avgScore = groupedByDate[date].reduce((a, b) => a + b, 0) / groupedByDate[date].length;
-                      // 显示月-日格式
-                      const parts = date.split('-');
-                      labels.push(parts[1] + '/' + parts[2]);
-                      data.push(Math.round(avgScore));
-                    });
-                  }
-
-                  if (labels.length === 0) {
-                    labels = ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'];
-                    data = [0, 0, 0, 0, 0, 0, 0, 0];
-                  }
-
-                  growthChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                      labels: labels,
-                      datasets: [
-                        {
-                          label: '专注能力评分',
-                          data: data,
-                          backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                          borderColor: '#667eea',
-                          borderWidth: 4,
-                          pointBackgroundColor: '#667eea',
-                          pointBorderColor: '#fff',
-                          pointHoverBackgroundColor: '#fff',
-                          pointHoverBorderColor: '#667eea',
-                          tension: 0.1,
-                        },
-                      ],
-                    },
-                    options: {
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: {
-                        y: {
-                          beginAtZero: false,
-                          min: 0,
-                          max: 100,
-                          ticks: {
-                            stepSize: 10,
-                            font: {
-                              size: 12,
-                            },
-                          },
-                        },
-                        x: {
-                          ticks: {
-                            font: {
-                              size: 12,
-                            },
-                          },
-                        },
-                      },
-                      plugins: {
-                        legend: {
-                          display: true,
-                          position: 'bottom',
-                          labels: {
-                            font: {
-                              size: 16,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  });
-                } catch (error) {
-                  console.error('加载成长轨迹失败:', error);
-                  // 绘制默认图表前，先销毁可能存在的旧图表
-                  if (growthChart) {
-                    growthChart.destroy();
-                    growthChart = null;
-                  }
-                  growthChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                      labels: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'],
-                      datasets: [
-                        {
-                          label: '专注能力评分',
-                          data: [0, 0, 0, 0, 0, 0, 0, 0],
-                          backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                          borderColor: '#667eea',
-                          borderWidth: 4,
-                        },
-                      ],
-                    },
-                    options: {
-                      responsive: true,
-                      maintainAspectRatio: false,
-                    },
-                  });
-                }
-              } catch (error) {
-                console.error('绘制成长轨迹图失败:', error);
-                // 即使图表绘制失败，也不影响页面其他部分
-              }
-            }
-
-            document.addEventListener('DOMContentLoaded', async function () {
-              try {
-                // 检查登录状态
-                const userInfo = ParentComponents.checkAuth();
-
-                // 初始化页面
-                ParentComponents.initPage('profile');
-                await loadChildrenList();
-              } catch (error) {
-                console.error('页面初始化失败:', error);
-                // 显示错误提示
-                showToast('页面加载失败，请刷新重试', 'error');
-              }
+            growthChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周', '第7周', '第8周'],
+                datasets: [
+                  {
+                    label: '专注能力评分',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderColor: '#667eea',
+                    borderWidth: 4,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+              },
             });
+          }
+        } catch (error) {
+          console.error('绘制成长轨迹图失败:', error);
+          // 即使图表绘制失败，也不影响页面其他部分
+        }
+      }
 
-            // 防抖函数
-            let resizeTimeout = null;
+      document.addEventListener('DOMContentLoaded', async function () {
+        try {
+          // 检查登录状态
+          const userInfo = ParentComponents.checkAuth();
 
-            // 点击外部关闭儿童选择器下拉
-            document.addEventListener('click', function (e) {
-              const selector = document.querySelector('.child-selector');
-              if (selector && !selector.contains(e.target)) {
-                const header = document.querySelector('.child-selector-header');
-                const options = document.querySelector('.child-selector-options');
-                const arrow = document.querySelector('.child-selector-arrow');
-                header.classList.remove('active');
-                options.classList.remove('active');
-                arrow.classList.remove('active');
-              }
-            });
+          // 初始化页面
+          ParentComponents.initPage('profile');
+          await loadChildrenList();
+        } catch (error) {
+          console.error('页面初始化失败:', error);
+          // 显示错误提示
+          showToast('页面加载失败，请刷新重试', 'error');
+        }
+      });
 
-            // 窗口大小改变时重绘图表
-            window.addEventListener('resize', function () {
-              if (currentChildId) {
-                if (resizeTimeout) {
-                  clearTimeout(resizeTimeout);
-                }
-                resizeTimeout = setTimeout(async () => {
-                  await updateCharts(currentChildId);
-                  await drawGrowthChart(currentChildId);
-                }, 250);
-              }
-            });
+      // 防抖函数
+      let resizeTimeout = null;
+
+      // 点击外部关闭儿童选择器下拉
+      document.addEventListener('click', function (e) {
+        const selector = document.querySelector('.child-selector');
+        if (selector && !selector.contains(e.target)) {
+          const header = document.querySelector('.child-selector-header');
+          const options = document.querySelector('.child-selector-options');
+          const arrow = document.querySelector('.child-selector-arrow');
+          header.classList.remove('active');
+          options.classList.remove('active');
+          arrow.classList.remove('active');
+        }
+      });
+
+      // 窗口大小改变时重绘图表
+      window.addEventListener('resize', function () {
+        if (currentChildId) {
+          if (resizeTimeout) {
+            clearTimeout(resizeTimeout);
+          }
+          resizeTimeout = setTimeout(async () => {
+            await updateCharts(currentChildId);
+            await drawGrowthChart(currentChildId);
+          }, 250);
+        }
+      });
     </script>
   </body>
 </html>
