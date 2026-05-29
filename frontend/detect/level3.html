@@ -348,8 +348,8 @@
         </div>
       </div>
     </div>
-    <script src="../../floating-ball.js"></script>
-    <script src="../../api/vision-uploader.js"></script>
+    <script src="../floating-ball.js"></script>
+    <script src="../api/vision-uploader.js"></script>
     <script src="../utils.js"></script>
     <script>
       let suspect = document.getElementById('suspect');
@@ -357,7 +357,7 @@
       let isGameStarted = false;
       let isPaused = false;
       let gameTime = 0;
-      let maxTime = 45; // 45秒
+      let maxTime = 22; // 22秒
       let startTime = 0;
       let timeInterval;
       let positions = [];
@@ -378,7 +378,7 @@
         positions = [];
         const width = gameArea.offsetWidth;
         const height = gameArea.offsetHeight;
-        const stepCount = 45; // 45秒，每秒1步
+        const stepCount = 22; // 22秒，每秒1步
         const suspectWidth = 120; // thief图片宽度
         const suspectHeight = 120; // 预估thief图片高度
 
@@ -405,7 +405,7 @@
           suspect.style.left = `${pos.x}px`;
           suspect.style.top = `${pos.y}px`;
           currentPositionIndex++;
-          lastMoveTime = performance.now();
+          lastMoveTime = Date.now();
         } else {
           endGame();
         }
@@ -454,8 +454,8 @@
         accuracySum += distance;
         accuracyCount++;
 
-        // 计算滞后时间（使用更高精度的时间）
-        const lagTime = performance.now() - lastMoveTime;
+        // 计算滞后时间（毫秒）
+        const lagTime = Date.now() - lastMoveTime;
         lagTimes.push(lagTime);
 
         // 检查是否脱靶
@@ -492,8 +492,8 @@
 
         isGameStarted = true;
         isPaused = false;
-        startTime = performance.now();
-        lastMoveTime = performance.now();
+        startTime = Date.now();
+        lastMoveTime = Date.now();
 
         // 添加点击事件
         gameArea.addEventListener('click', handleClick);
@@ -558,7 +558,7 @@
           var gameDataList = JSON.parse(localStorage.getItem('comprehensive_game_data') || '[]');
           gameDataList.push({
             level: 3,
-            time: 45,
+            time: 22,
             correct: correctClicks,
             error: offTargetCount,
             total_click: accuracyCount,

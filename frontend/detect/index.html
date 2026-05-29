@@ -1522,6 +1522,15 @@
     }
 
     function startComprehensiveTraining() {
+      // 清除上次综合训练的残留数据
+      sessionStorage.removeItem('comprehensive_session_id');
+      sessionStorage.removeItem('detect_uploaded_level5');
+      localStorage.removeItem('comprehensive_game_data');
+      var levelKeys = ['level1_data', 'level2_data', 'level3_data', 'level4_data', 'level5_data'];
+      for (var i = 0; i < levelKeys.length; i++) {
+        try { if (typeof StorageUtil !== 'undefined') StorageUtil.setItem(levelKeys[i], null); } catch (e) {}
+      }
+
       const gameStartTime = new Date().getTime();
       localStorage.setItem('gameStartTime', gameStartTime);
       localStorage.setItem('currentGame', 'level1');
@@ -1650,65 +1659,82 @@
       ];
       var kidNames = ['选择性注意', '持续性注意', '视觉追踪', '工作记忆', '抑制控制'];
       var dotClasses = ['sel', 'sus', 'tra', 'mem', 'inh'];
-      var scores = [];
-
-      for (var i = 0; i < 5; i++) {
-        var levelData = StorageUtil.getItem('level' + (i + 1) + '_data');
-        if (levelData && levelData[dimensionKeys[i]] !== undefined && levelData[dimensionKeys[i]] !== null) {
-          scores.push({
-            name: kidNames[i],
-            score: levelData[dimensionKeys[i]],
-            key: dimensionKeys[i],
-            dot: dotClasses[i],
-          });
-        }
-      }
-
       var today = new Date();
       document.getElementById('reportDate').textContent =
         today.getFullYear() + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
 
-      if (scores.length === 0) {
-        document.getElementById('growthTable').innerHTML =
-          '<tr><td colspan="4"><div class="empty-state"><span class="empty-icon">&#x1F4DD;</span><p>还没有完成任何挑战哦，先去试试吧～</p></div></td></tr>';
-        document.getElementById('growthMsg').innerHTML = '';
-        if (overlay) overlay.classList.add('show');
-        return;
-      }
-
       var childId = UserStateUtil.getCurrentChildId();
       var baseUrl = getBaseUrl();
 
+      // 直接从后端获取检测数据，不再依赖 localStorage 预加载
       fetch(baseUrl + '/api/get/detection?child_id=' + childId, {
         headers: { Authorization: 'Bearer ' + localStorage.getItem('auth_token') },
       })
-        .then(function (res) {
-          return res.json();
-        })
+        .then(function (res) { return res.json(); })
         .then(function (result) {
+          var scores = [];
+          var latest = null;
           var previous = null;
-          if (result.success && result.data && result.data.length >= 2) {
-            var latest = result.data[0];
-            for (var k = 1; k < result.data.length; k++) {
-              var candidate = result.data[k];
-              var isSame = true;
-              for (var d = 0; d < dimensionKeys.length; d++) {
-                if (candidate[dimensionKeys[d]] !== latest[dimensionKeys[d]]) {
-                  isSame = false;
+
+          if (result.success && result.data && result.data.length > 0) {
+            latest = result.data[0];
+            // 将最新数据写入 localStorage 供后续使用
+            var levelNames = ['selective_attention', 'sustained_attention', 'visual_tracking', 'working_memory', 'inhibitory_control'];
+            for (var j = 0; j < levelNames.length; j++) {
+              var key = levelNames[j];
+              if (latest[key] !== undefined && latest[key] !== null) {
+                var ld = {};
+                ld[key] = latest[key];
+                StorageUtil.setItem('level' + (j + 1) + '_data', ld);
+              }
+            }
+
+            // 构建当前得分列表
+            for (var i = 0; i < 5; i++) {
+              if (latest[dimensionKeys[i]] !== undefined && latest[dimensionKeys[i]] !== null) {
+                scores.push({
+                  name: kidNames[i],
+                  score: latest[dimensionKeys[i]],
+                  key: dimensionKeys[i],
+                  dot: dotClasses[i],
+                });
+              }
+            }
+
+            // 找上一次不同的记录用于对比
+            if (result.data.length >= 2) {
+              for (var k = 1; k < result.data.length; k++) {
+                var candidate = result.data[k];
+                var isSame = true;
+                for (var d = 0; d < dimensionKeys.length; d++) {
+                  if (candidate[dimensionKeys[d]] !== latest[dimensionKeys[d]]) {
+                    isSame = false;
+                    break;
+                  }
+                }
+                if (!isSame) {
+                  previous = candidate;
                   break;
                 }
               }
-              if (!isSame) {
-                previous = candidate;
-                break;
-              }
             }
           }
+
+          if (scores.length === 0) {
+            document.getElementById('growthTable').innerHTML =
+              '<tr><td colspan="4"><div class="empty-state"><span class="empty-icon">&#x1F4DD;</span><p>还没有完成任何挑战哦，先去试试吧～</p></div></td></tr>';
+            document.getElementById('growthMsg').innerHTML = '';
+            if (overlay) overlay.classList.add('show');
+            return;
+          }
+
           renderGrowthCompare(scores, previous, dimensionKeys, dotClasses);
           if (overlay) overlay.classList.add('show');
         })
         .catch(function () {
-          renderGrowthCompare(scores, null, dimensionKeys, dotClasses);
+          document.getElementById('growthTable').innerHTML =
+            '<tr><td colspan="4"><div class="empty-state"><span class="empty-icon">&#x1F4DD;</span><p>还没有完成任何挑战哦，先去试试吧～</p></div></td></tr>';
+          document.getElementById('growthMsg').innerHTML = '';
           if (overlay) overlay.classList.add('show');
         });
     }
@@ -1728,7 +1754,7 @@
         }
 
         var arrowHtml = '';
-        var prevHtml = prev !== null ? prev + '分' : '<span style="color:#ccc">—</span>';
+        var prevHtml = prev !== null ? (Math.round(prev * 100) / 100).toFixed(2) + '分' : '<span style="color:#ccc">—</span>';
 
         if (prev !== null) {
           var diff = curr - prev;
@@ -1752,7 +1778,7 @@
           scores[i].name +
           '</td>' +
           '<td>' +
-          curr +
+          (Math.round(curr * 100) / 100).toFixed(2) +
           '分</td>' +
           '<td class="arrow-cell">' +
           arrowHtml +
@@ -1797,12 +1823,11 @@
       initPage();
       var params = new URLSearchParams(window.location.search);
       if (params.get('showReport') === '1') {
-        loadDetectionFromBackend(function () {
-          updateLevelStatus();
-        });
+        // 直接从后端获取数据并展示成长小报
+        updateLevelStatus();
         setTimeout(function () {
           showTrainingModal();
-        }, 600);
+        }, 200);
         if (window.history && window.history.replaceState) {
           var url = window.location.pathname;
           window.history.replaceState({}, '', url);
@@ -1810,6 +1835,7 @@
         return;
       }
       localStorage.removeItem('comprehensive_mode');
+      // 正常页面加载：从后端同步检测数据到本地
       loadDetectionFromBackend(function () {
         updateLevelStatus();
       });

@@ -588,26 +588,9 @@
       // 从后端获取儿童数据
       async function fetchChildData(childId) {
         try {
-          // 检查缓存（5分钟过期）
+          // 清除旧缓存，确保每次加载都获取最新数据
           const cacheKey = `child_data_${childId}`;
-          const cachedRaw = localStorage.getItem(cacheKey);
-          if (cachedRaw) {
-            try {
-              const cached = JSON.parse(cachedRaw);
-              if (cached._ts) {
-                if (Date.now() - cached._ts < 5 * 60 * 1000) {
-                  return cached.data;
-                }
-              } else {
-                // 旧格式缓存，补上时间戳继续用，5分钟后自然过期
-                localStorage.setItem(cacheKey, JSON.stringify({ data: cached, _ts: Date.now() }));
-                return cached;
-              }
-            } catch (parseError) {
-              console.error('解析缓存数据失败:', parseError);
-            }
-            localStorage.removeItem(cacheKey);
-          }
+          localStorage.removeItem(cacheKey);
 
           // 并行请求数据
           const [statsResult, detectionResult, trendResult] = await Promise.all([
@@ -626,12 +609,22 @@
 
           const latestDetection = Array.isArray(detection) && detection.length > 0 ? detection[0] : null;
 
-          // 从训练趋势数据中获取各维度的平均得分
+          // 雷达图数据优先级：检测数据(综合训练) > 趋势数据(日常训练) > 默认值
           let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
-          if (trend && trend.trend) {
-            console.log('训练趋势数据:', trend.trend);
-            // 后端返回结构: trend.trend.selective.avg_score
-            const trendData = trend.trend;
+          if (latestDetection) {
+            // 优先使用综合训练的检测数据（已包含视觉模型计算）
+            var det = latestDetection;
+            radarData = [
+              det.selective_attention != null ? (det.selective_attention / 100) : 0.5,
+              det.sustained_attention != null ? (det.sustained_attention / 100) : 0.5,
+              det.visual_tracking != null ? (det.visual_tracking / 100) : 0.5,
+              det.working_memory != null ? (det.working_memory / 100) : 0.5,
+              det.inhibitory_control != null ? (det.inhibitory_control / 100) : 0.5,
+            ];
+            console.log('使用综合训练检测数据:', radarData);
+          } else if (trend && trend.trend) {
+            // 其次使用日常训练的聚合趋势数据
+            var trendData = trend.trend;
             radarData = [
               (trendData.selective?.avg_score || 50) / 100 || 0.5,
               (trendData.sustained?.avg_score || 50) / 100 || 0.5,
@@ -639,19 +632,9 @@
               (trendData.memory?.avg_score || 50) / 100 || 0.5,
               (trendData.inhibitory?.avg_score || 50) / 100 || 0.5,
             ];
-            console.log('计算后的雷达图数据:', radarData);
-          } else if (latestDetection) {
-            // 检测数据是百分比分数（0-100），需要转换为小数（0-1）
-            radarData = [
-              ((latestDetection.selective_attention || 50) / 100) || 0.5,
-              ((latestDetection.sustained_attention || 50) / 100) || 0.5,
-              ((latestDetection.visual_tracking || 50) / 100) || 0.5,
-              ((latestDetection.working_memory || 50) / 100) || 0.5,
-              ((latestDetection.inhibitory_control || 50) / 100) || 0.5,
-            ];
-            console.log('检测数据转换后的雷达图数据:', radarData);
+            console.log('使用训练趋势数据:', radarData);
           } else {
-            console.log('未获取到训练趋势数据，使用默认值');
+            console.log('未获取到任何数据，使用默认值');
           }
 
           const result = {
