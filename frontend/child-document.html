@@ -26,7 +26,7 @@
       .main-content {
         display: grid !important;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr auto;
+        grid-template-rows: 2fr 1fr;
         gap: 24px;
         overflow: hidden;
         flex: 1;
@@ -76,6 +76,9 @@
         grid-column: 2 / 3;
         grid-row: 2 / 3;
         background: #cdd4fd !important;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
       }
 
       /* 左侧卡片的标题样式 */
@@ -221,7 +224,8 @@
       /* 成长轨迹图容器 */
       .growth-chart-container {
         width: 100%;
-        height: 250px;
+        flex: 1;
+        min-height: 0;
         display: flex;
         align-items: center;
         justify-content: center;
