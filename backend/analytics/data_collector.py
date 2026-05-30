@@ -1184,7 +1184,7 @@ def get_training_trend(child_id):
 
         from collections import defaultdict
 
-        trend_data = defaultdict(lambda: {"avg_score": 0, "trend": "stable", "records": []})
+        trend_data = defaultdict(lambda: {"avg_score": 0, "session_count": 0, "scores": [], "trend": "stable", "records": []})
 
         attention_types = ["selective", "sustained", "tracking", "memory", "inhibitory"]
 
@@ -1212,8 +1212,21 @@ def get_training_trend(child_id):
                     avg_result = execute_db(avg_query, (child_id, start_date.strftime("%Y-%m-%d"), at))
                     if avg_result and avg_result[0][0]:
                         trend_data[at]["avg_score"] = round(avg_result[0][0], 2)
+                        trend_data[at]["session_count"] = avg_result[0][1] if avg_result[0][1] else 0
                     else:
                         trend_data[at]["avg_score"] = 0
+                        trend_data[at]["session_count"] = 0
+
+                    # 所有独立会话分数（用于雷达图逐次平均）
+                    scores_query = """
+                        SELECT ss.overall_score
+                        FROM session_summaries ss
+                        JOIN training_sessions s ON CAST(ss.session_id AS INTEGER) = s.id
+                        WHERE s.child_id = ? AND DATE(s.start_time) >= ? AND ss.attention_type = ?
+                        ORDER BY s.start_time DESC
+                    """
+                    scores_result = execute_db(scores_query, (child_id, start_date.strftime("%Y-%m-%d"), at))
+                    trend_data[at]["scores"] = [round(s[0], 2) for s in scores_result] if scores_result else []
 
                     # 计算趋势（使用每日平均分数据）
                     scores = [r["score"] for r in records_list]
@@ -1256,11 +1269,11 @@ def get_training_trend(child_id):
                 "days": days,
             },
             "trend": {
-                "selective": trend_data.get("selective", {"avg_score": 0, "trend": "stable", "records": []}),
-                "sustained": trend_data.get("sustained", {"avg_score": 0, "trend": "stable", "records": []}),
-                "tracking": trend_data.get("tracking", {"avg_score": 0, "trend": "stable", "records": []}),
-                "memory": trend_data.get("memory", {"avg_score": 0, "trend": "stable", "records": []}),
-                "inhibitory": trend_data.get("inhibitory", {"avg_score": 0, "trend": "stable", "records": []}),
+                "selective": trend_data.get("selective", {"avg_score": 0, "session_count": 0, "scores": [], "trend": "stable", "records": []}),
+                "sustained": trend_data.get("sustained", {"avg_score": 0, "session_count": 0, "scores": [], "trend": "stable", "records": []}),
+                "tracking": trend_data.get("tracking", {"avg_score": 0, "session_count": 0, "scores": [], "trend": "stable", "records": []}),
+                "memory": trend_data.get("memory", {"avg_score": 0, "session_count": 0, "scores": [], "trend": "stable", "records": []}),
+                "inhibitory": trend_data.get("inhibitory", {"avg_score": 0, "session_count": 0, "scores": [], "trend": "stable", "records": []}),
             },
             "overall": {"avg_score": round(overall_avg, 2), "total_sessions": total_sessions},
         }
