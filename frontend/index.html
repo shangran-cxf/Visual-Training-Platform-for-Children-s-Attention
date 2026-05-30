@@ -735,6 +735,7 @@
       /* 注册弹窗样式 */
       #registerModal .modal-content {
         background-color: #f0f7ff;
+        max-width: 720px;
       }
 
       #registerModal h2 {
@@ -752,15 +753,145 @@
 
       #registerModal #register-error-message,
       #registerModal #register-success-message {
-        margin-bottom: 0px;
-      }
-
-      #registerModal .form-group {
-        margin-bottom: 15px;
+        margin-bottom: 10px;
       }
 
       #registerModal .btn {
-        margin-left: 150px;
+        display: block;
+        width: 200px;
+        margin: 20px auto 0;
+      }
+
+      /* 注册双栏布局 */
+      .register-columns {
+        display: flex;
+        gap: 0;
+        margin-top: 4px;
+      }
+
+      .register-left {
+        flex: 1;
+        min-width: 0;
+        padding-right: 24px;
+        border-right: 1px solid #d0d8e5;
+      }
+
+      .register-right {
+        flex: 1;
+        min-width: 0;
+        padding-left: 24px;
+      }
+
+      .register-left .form-group {
+        margin-bottom: 15px;
+      }
+
+      /* 儿童信息区域 */
+      .children-section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        border: 2px solid #e8e8e8;
+      }
+
+      .children-section h3 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0 0 12px;
+        font-size: 15px;
+        color: #333;
+      }
+
+      .add-child-btn {
+        background: #608bc1;
+        color: white;
+        border: none;
+        padding: 5px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .add-child-btn:hover {
+        background: #4a7ab0;
+      }
+
+      .child-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px;
+        margin-bottom: 8px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #e8e8e8;
+      }
+
+      .child-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .remove-child {
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 14px;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 24px;
+        line-height: 1;
+        transition: all 0.2s;
+      }
+
+      .remove-child:hover {
+        background: #e55a5a;
+      }
+
+      .child-fields {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .child-fields .form-group {
+        margin-bottom: 8px;
+      }
+
+      .child-fields .form-group:last-child {
+        margin-bottom: 0;
+      }
+
+      .child-fields .form-group label {
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+
+      .child-fields .form-group input {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      @media (max-width: 600px) {
+        .register-columns {
+          flex-direction: column;
+        }
+        .register-left {
+          padding-right: 0;
+          border-right: none;
+          padding-bottom: 16px;
+          border-bottom: 1px solid #d0d8e5;
+        }
+        .register-right {
+          padding-left: 0;
+          padding-top: 4px;
+        }
       }
 
       /* 模式选择弹窗样式 */
@@ -1218,41 +1349,46 @@
         <div id="register-error-message" class="error-message"></div>
         <div id="register-success-message" class="success-message"></div>
 
-        <div class="form-group">
-          <label for="register-username">用户名 *</label>
-          <input type="text" id="register-username" placeholder="请输入用户名" />
-        </div>
-        <div class="form-group">
-          <label for="register-email">邮箱</label>
-          <input type="email" id="register-email" placeholder="请输入邮箱（选填）" />
-        </div>
-        <div class="form-group">
-          <label for="register-password">密码 *</label>
-          <input type="password" id="register-password" placeholder="请输入密码" />
-        </div>
-        <div class="form-group">
-          <label for="register-confirm-password">确认密码 *</label>
-          <input type="password" id="register-confirm-password" placeholder="请再次输入密码" />
-        </div>
-
-        <div class="children-section">
-          <h3>
-            <span>儿童信息</span>
-            <button type="button" onclick="addRegisterChild()" class="add-child-btn">+ 添加儿童</button>
-          </h3>
-          <div id="register-children-container">
-            <div class="child-item" data-index="0">
-              <button type="button" class="remove-child" style="display: none" onclick="removeRegisterChild(this)">
-                ×
-              </button>
-              <div class="child-fields">
-                <div class="form-group">
-                  <label>儿童姓名 *</label>
-                  <input type="text" class="child-name" placeholder="请输入儿童姓名" />
-                </div>
-                <div class="form-group">
-                  <label>儿童年龄 *</label>
-                  <input type="number" class="child-age" placeholder="年龄" min="6" max="12" />
+        <div class="register-columns">
+          <div class="register-left">
+            <div class="form-group">
+              <label for="register-username">用户名 *</label>
+              <input type="text" id="register-username" placeholder="请输入用户名" />
+            </div>
+            <div class="form-group">
+              <label for="register-email">邮箱</label>
+              <input type="email" id="register-email" placeholder="请输入邮箱（选填）" />
+            </div>
+            <div class="form-group">
+              <label for="register-password">密码 *</label>
+              <input type="password" id="register-password" placeholder="请输入密码" />
+            </div>
+            <div class="form-group">
+              <label for="register-confirm-password">确认密码 *</label>
+              <input type="password" id="register-confirm-password" placeholder="请再次输入密码" />
+            </div>
+          </div>
+          <div class="register-right">
+            <div class="children-section">
+              <h3>
+                <span>儿童信息</span>
+                <button type="button" onclick="addRegisterChild()" class="add-child-btn">+ 添加儿童</button>
+              </h3>
+              <div id="register-children-container">
+                <div class="child-item" data-index="0">
+                  <button type="button" class="remove-child" style="display: none" onclick="removeRegisterChild(this)">
+                    ×
+                  </button>
+                  <div class="child-fields">
+                    <div class="form-group">
+                      <label>儿童姓名 *</label>
+                      <input type="text" class="child-name" placeholder="请输入儿童姓名" />
+                    </div>
+                    <div class="form-group">
+                      <label>儿童年龄 *</label>
+                      <input type="number" class="child-age" placeholder="年龄" min="6" max="12" />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1385,21 +1521,24 @@
         const registerEyeLeft = document.getElementById('register-eye-left');
         const registerEyeRight = document.getElementById('register-eye-right');
 
-        if (registerPasswordInput) {
-          registerPasswordInput.addEventListener('focus', () => {
+        function addEyeEffect(input) {
+          if (!input) return;
+          input.addEventListener('focus', () => {
             if (registerEyeLeft && registerEyeRight) {
               registerEyeLeft.classList.add('closed');
               registerEyeRight.classList.add('closed');
             }
           });
-
-          registerPasswordInput.addEventListener('blur', () => {
+          input.addEventListener('blur', () => {
             if (registerEyeLeft && registerEyeRight) {
               registerEyeLeft.classList.remove('closed');
               registerEyeRight.classList.remove('closed');
             }
           });
         }
+
+        addEyeEffect(registerPasswordInput);
+        addEyeEffect(document.getElementById('register-confirm-password'));
 
         startBlinking();
       });
@@ -1584,7 +1723,30 @@
           return;
         }
 
+        const childItems = document.querySelectorAll('#register-children-container .child-item');
+        for (let item of childItems) {
+          const name = item.querySelector('.child-name').value.trim();
+          const age = item.querySelector('.child-age').value;
+          if (!name && !age) {
+            errorMessage.textContent = '请填写儿童姓名和年龄';
+            return;
+          }
+          if (!name) {
+            errorMessage.textContent = '请填写儿童姓名';
+            return;
+          }
+          if (!age) {
+            errorMessage.textContent = '请填写儿童年龄';
+            return;
+          }
+        }
+
         const children = getChildrenData('register-children-container');
+
+        if (children.length === 0) {
+          errorMessage.textContent = '请至少添加一个儿童信息';
+          return;
+        }
 
         for (let child of children) {
           if (child.age < 6 || child.age > 12) {

@@ -1067,7 +1067,7 @@
 
       function showGameOverModal(displayScore) {
         if (!displayScore && displayScore !== 0) displayScore = calculateSustainedAttentionScore(elapsedTime);
-        const difficultyText = currentDifficulty === 1 ? '简单' : currentDifficulty === 2 ? '中等' : '困难';
+        const difficultyText = currentDifficulty === 'easy' ? '简单' : currentDifficulty === 'medium' ? '中等' : '困难';
 
         const scoreDetails = {
           time: {
