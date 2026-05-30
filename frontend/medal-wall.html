@@ -1,1010 +1,1093 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>儿童注意力训练平台 - 勋章墙</title>
-    <!-- 预加载关键资源 -->
-    <link rel="preload" href="images/logo.webp" as="image" />
-    <link rel="preload" href="images/fox-medal.webp" as="image" />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>儿童注意力训练平台 - 勋章墙</title>
+  <!-- 预加载关键资源 -->
+  <link rel="preload" href="images/logo.webp" as="image" />
+  <link rel="preload" href="images/fox-medal.webp" as="image" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #818cf8;
+      --secondary: #f97316;
+      --secondary-light: #fdba74;
+      --bg-color: #eef2ff;
+      --card-bg: #ffffff;
+      --text-dark: #1e1b4b;
+      --text-light: #6366f1;
+      --accent-green: #ceefdd;
+      --accent-pink: #ec4899;
+      --accent-yellow: #f2e1c4;
+      --accent-cyan: #06b6d4;
+      --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+      --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    html,
+    body {
+      overflow: hidden;
+    }
+
+    body {
+      font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
+      background: #fff4a2;
+      color: var(--text-dark);
+      height: 100vh;
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+      padding-left: 194px;
+    }
+
+    /* 主内容加载状态 */
+    .main-content {
+      opacity: 1;
+      transition: opacity 0.5s ease-in;
+    }
+
+    /* 勋章墙内容初始隐藏，加载完成后显示 */
+    .medal-detail-section,
+    .medal-grid-wrapper,
+    .medal-grid-container,
+    .title-section,
+    .scroll-button {
+      opacity: 0;
+      transition: opacity 0.4s ease-in;
+    }
+
+    .medal-detail-section.loaded,
+    .medal-grid-wrapper.loaded,
+    .medal-grid-container.loaded,
+    .title-section.loaded,
+    .scroll-button.loaded {
+      opacity: 1;
+    }
+
+    /* 局部加载动画 */
+    .loading-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 244, 162, 0.95);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      border-radius: 20px;
+      transition:
+        opacity 0.5s ease-out,
+        visibility 0.5s ease-out;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loading-medal {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .loading-medal-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 4px solid transparent;
+      border-top-color: #4f46e5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-medal-ring:nth-child(2) {
+      width: 85%;
+      height: 85%;
+      top: 7.5%;
+      left: 7.5%;
+      border-top-color: #f97316;
+      animation-duration: 0.8s;
+      animation-direction: reverse;
+    }
+
+    .loading-medal-ring:nth-child(3) {
+      width: 70%;
+      height: 70%;
+      top: 15%;
+      left: 15%;
+      border-top-color: #ec4899;
+      animation-duration: 1.2s;
+    }
+
+    .loading-medal-core {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      top: 25%;
+      left: 25%;
+      background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
 
-      :root {
-        --primary: #4f46e5;
-        --primary-light: #818cf8;
-        --secondary: #f97316;
-        --secondary-light: #fdba74;
-        --bg-color: #eef2ff;
-        --card-bg: #ffffff;
-        --text-dark: #1e1b4b;
-        --text-light: #6366f1;
-        --accent-green: #ceefdd;
-        --accent-pink: #ec4899;
-        --accent-yellow: #f2e1c4;
-        --accent-cyan: #06b6d4;
-        --shadow-soft: 0 8px 32px rgba(79, 70, 229, 0.15);
-        --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8);
-        --shadow-pressed: inset 0 3px 8px rgba(0, 0, 0, 0.12);
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
       }
 
-      html,
-      body {
-        overflow: hidden;
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
+    .loading-text {
+      font-size: 16px;
+      color: #4f46e5;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .loading-progress {
+      width: 150px;
+      height: 6px;
+      background: rgba(79, 70, 229, 0.2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .loading-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #4f46e5, #f97316);
+      border-radius: 3px;
+      transition: width 0.3s ease-out;
+      width: 0%;
+    }
+
+    /* 左侧导航栏 - 粘土风格 */
+    .sidebar {
+      width: 130px;
+      height: calc(100vh - 48px);
+      background: #62b4a5;
+      box-shadow: var(--shadow-soft);
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      border-radius: 32px;
+      position: fixed;
+      top: 24px;
+      left: 40px;
+      z-index: 100;
+    }
+
+    .logo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 100px;
+      height: 100px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 28px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .logo:hover {
+      transform: translateY(-3px) scale(1.05);
+    }
+
+    .nav-item {
+      width: 85px;
+      height: 85px;
+      margin: 0 12px 12px;
+      border-radius: 24px;
+      background: #ffffff;
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 3px solid transparent;
+      box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        inset 0 2px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .nav-item:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .nav-item:hover .nav-icon {
+      transform: scale(1.1);
+    }
+
+    .nav-item.active {
+      background: #ffd387;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-item.active .nav-icon,
+    .nav-item.active .nav-label {
+      color: white;
+    }
+
+    .nav-item.switch-mode {
+      background: #d0ece4;
+    }
+
+    .nav-item.switch-mode:hover {
+      background: #ddf5ee;
+    }
+
+    .nav-item.switch-mode .nav-icon {
+      color: #2d5a4a;
+    }
+
+    .nav-item.switch-mode .nav-label {
+      color: #2d5a4a;
+      font-weight: 700;
+    }
+
+    .nav-icon {
+      width: 28px;
+      height: 28px;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-top: 4px;
+    }
+
+    .user-avatar-sidebar {
+      position: absolute;
+      bottom: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 3px solid var(--primary-light);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .user-avatar-sidebar:hover {
+      transform: scale(1.1);
+    }
+
+    .user-avatar-sidebar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0 24px;
+      height: calc(100vh - 48px);
+      overflow: hidden;
+    }
+
+    /* 标题区 */
+    .title-section {
+      margin-bottom: 60px;
+      margin-top: 40px;
+      flex-shrink: 0;
+    }
+
+    .page-title h1 {
+      font-size: 90px;
+      color: #51915f;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .page-title .subtitle {
+      font-size: 50px;
+      color: #51915f;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 4px;
+      margin-bottom: -30px;
+    }
+
+    /* 获得勋章的动画效果 */
+    @keyframes medalUnlock {
+      0% {
+        filter: grayscale(100%);
+        opacity: 0.6;
+        transform: scale(0.8) rotate(0deg);
       }
 
-      body {
-        font-family: '微软雅黑', 'Microsoft YaHei', 'Comic Sans MS', cursive !important;
-        background: #fff4a2;
-        color: var(--text-dark);
-        height: 100vh;
-        display: flex;
-        gap: 24px;
-        padding: 24px;
-        padding-left: 194px;
-      }
-
-      /* 主内容加载状态 */
-      .main-content {
+      50% {
+        filter: grayscale(0%);
         opacity: 1;
-        transition: opacity 0.5s ease-in;
+        transform: scale(1.2) rotate(180deg);
       }
 
-      /* 勋章墙内容初始隐藏，加载完成后显示 */
-      .medal-grid-container,
-      .title-section,
-      .scroll-button {
-        opacity: 0;
-        transition: opacity 0.4s ease-in;
-      }
-
-      .medal-grid-container.loaded,
-      .title-section.loaded,
-      .scroll-button.loaded {
+      100% {
+        filter: grayscale(0%);
         opacity: 1;
+        transform: scale(1) rotate(360deg);
+      }
+    }
+
+    /* 获得勋章的动画类 */
+    .medal-unlock-animation {
+      animation: medalUnlock 1.5s ease-in-out;
+    }
+
+    /* 获得勋章提示弹窗 */
+    .medal-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ffd38b;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      z-index: 2000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      animation:
+        fadeIn 0.3s ease,
+        slideIn 0.3s ease;
+    }
+
+    .medal-notification img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      margin-bottom: 15px;
+    }
+
+    .medal-notification p {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin: 0;
+    }
+
+    .fox-speech-bubble {
+      position: absolute;
+      bottom: 100%;
+      left: -60px;
+      margin-bottom: 24px;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px 28px;
+    }
+
+    .bubble-medal-img {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bubble-medal-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .bubble-medal-img.locked img {
+      filter: grayscale(100%);
+      opacity: 0.6;
+    }
+
+    .bubble-medal-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .fox-speech-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      right: 84px;
+      left: auto;
+      border: 14px solid transparent;
+      border-top-color: #fff;
+    }
+
+    .medal-detail-section {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: -40px;
+      margin-top: -10px;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .medal-detail-section .detail-medal-img {
+      width: 130px;
+      height: 130px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 50%;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .medal-detail-section .detail-medal-img img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      transition: all 0.4s ease;
+    }
+
+    .medal-detail-section .detail-medal-img.placeholder img {
+      filter: grayscale(50%);
+      opacity: 0.4;
+    }
+
+    .medal-detail-section .detail-medal-img.placeholder:empty {
+      box-shadow: none;
+    }
+
+    .medal-detail-section .detail-info {
+      width: fit-content;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 18px;
+      padding: 10px 20px;
+      text-align: center;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+    .medal-detail-section .detail-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1e1b4b;
+      line-height: 1.3;
+    }
+
+    .medal-detail-section .detail-howto {
+      font-size: 18px;
+      color: #1e1b4b;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    /* 狐狸气泡鼓励语 */
+    .fox-speech-bubble .bubble-encourage-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e1b4b;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* 勋章网格包裹层 */
+    .medal-grid-wrapper {
+      flex: 1;
+      min-height: 0;
+      min-width: 0;
+      position: relative;
+    }
+
+    /* 勋章网格容器 */
+    .medal-grid-container {
+      background: rgb(255, 255, 255, 0.8);
+      border-radius: 30px;
+      min-height: 0;
+      min-width: 0;
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+    }
+
+    .medal-grid-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* 勋章滚动容器 */
+    .medal-scroll-container {
+      display: flex;
+      gap: 40px;
+      padding: 0 20px;
+    }
+
+    /* 勋章组 - 竖着排列 */
+    .medal-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: max-content;
+      /* 确保容器宽度根据内容自动扩展 */
+    }
+
+    .medal-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      background: none;
+      border: none;
+      padding: 15px;
+      will-change: transform;
+    }
+
+    .medal-item:hover {
+      transform: scale(1.08);
+    }
+
+    .medal-item img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      will-change: filter, opacity;
+    }
+
+    .medal-item:not(.unlocked) img {
+      filter: grayscale(100%);
+      opacity: 0.6;
+    }
+
+    /* 滚动按钮 */
+    .scroll-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .scroll-button:hover {
+      transform: translateY(-50%) scale(1.1);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .scroll-button.left {
+      left: 10px;
+    }
+
+    .scroll-button.left:hover {
+      transform: translateY(-50%) scale(1.1) translateX(-5px);
+    }
+
+    .scroll-button.right {
+      right: 10px;
+    }
+
+    .scroll-button.right:hover {
+      transform: translateY(-50%) scale(1.1) translateX(5px);
+    }
+
+    .scroll-button svg {
+      width: 30px;
+      height: 30px;
+      fill: #51915f;
+    }
+
+    /* 装饰元素 */
+    .floating-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .shape {
+      position: absolute;
+      opacity: 0.12;
+      animation: float 30s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .shape-1 {
+      top: 10%;
+      left: 5%;
+      width: 200px;
+      height: 200px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation-delay: 0s;
+    }
+
+    .shape-2 {
+      top: 60%;
+      right: 5%;
+      width: 220px;
+      height: 220px;
+      background: var(--secondary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -2s;
+    }
+
+    .shape-3 {
+      bottom: 20%;
+      left: 20%;
+      width: 180px;
+      height: 180px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation-delay: -4s;
+    }
+
+    .shape-4 {
+      top: 30%;
+      right: 25%;
+      width: 160px;
+      height: 160px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -6s;
+    }
+
+    .shape-5 {
+      top: 70%;
+      left: 10%;
+      width: 150px;
+      height: 150px;
+      background: var(--primary);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -8s;
+    }
+
+    .shape-6 {
+      bottom: 10%;
+      right: 20%;
+      width: 170px;
+      height: 170px;
+      background: var(--secondary);
+      border-radius: 50%;
+      animation-delay: -10s;
+    }
+
+    .shape-7 {
+      top: 45%;
+      left: 35%;
+      width: 140px;
+      height: 140px;
+      background: var(--accent-green);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -12s;
+    }
+
+    .shape-8 {
+      bottom: 40%;
+      right: 10%;
+      width: 190px;
+      height: 190px;
+      background: var(--accent-pink);
+      border-radius: 50%;
+      animation-delay: -14s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
       }
 
-      /* 局部加载动画 */
-      .loading-overlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(255, 244, 162, 0.95);
-        z-index: 100;
-        display: flex;
+      25% {
+        transform: translateY(-20px) rotate(5deg);
+      }
+
+      50% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      75% {
+        transform: translateY(20px) rotate(-5deg);
+      }
+    }
+
+    /* 响应式 */
+    @media (max-width: 1200px) {
+      .medal-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 992px) {
+      .medal-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        border-radius: 20px;
-        transition:
-          opacity 0.5s ease-out,
-          visibility 0.5s ease-out;
+        padding: 16px;
+        gap: 16px;
+        height: auto;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
-      .loading-overlay.hidden {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-      }
-
-      .loading-medal {
-        width: 80px;
-        height: 80px;
-        position: relative;
-        margin-bottom: 20px;
-      }
-
-      .loading-medal-ring {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border: 4px solid transparent;
-        border-top-color: #4f46e5;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-
-      .loading-medal-ring:nth-child(2) {
-        width: 85%;
-        height: 85%;
-        top: 7.5%;
-        left: 7.5%;
-        border-top-color: #f97316;
-        animation-duration: 0.8s;
-        animation-direction: reverse;
-      }
-
-      .loading-medal-ring:nth-child(3) {
-        width: 70%;
-        height: 70%;
-        top: 15%;
-        left: 15%;
-        border-top-color: #ec4899;
-        animation-duration: 1.2s;
-      }
-
-      .loading-medal-core {
-        position: absolute;
-        width: 50%;
-        height: 50%;
-        top: 25%;
-        left: 25%;
-        background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-        animation: pulse 1.5s ease-in-out infinite;
-      }
-
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-
-        50% {
-          transform: scale(1.08);
-        }
-      }
-
-      .loading-text {
-        font-size: 16px;
-        color: #4f46e5;
-        font-weight: bold;
-        margin-bottom: 15px;
-      }
-
-      .loading-progress {
-        width: 150px;
-        height: 6px;
-        background: rgba(79, 70, 229, 0.2);
-        border-radius: 3px;
-        overflow: hidden;
-      }
-
-      .loading-progress-bar {
-        height: 100%;
-        background: linear-gradient(90deg, #4f46e5, #f97316);
-        border-radius: 3px;
-        transition: width 0.3s ease-out;
-        width: 0%;
-      }
-
-      /* 左侧导航栏 - 粘土风格 */
       .sidebar {
-        width: 130px;
-        height: calc(100vh - 48px);
-        background: #62b4a5;
-        box-shadow: var(--shadow-soft);
-        padding: 24px 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 30px;
-        border-radius: 32px;
-        position: fixed;
-        top: 24px;
-        left: 40px;
-        z-index: 100;
+        width: 100%;
+        flex-direction: row;
+        padding: 16px 20px;
+        border-radius: 24px;
+        overflow-x: auto;
+        position: relative;
+        top: auto;
+        left: auto;
+        height: auto;
       }
 
       .logo-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 20px;
+        flex-direction: row;
+        margin-bottom: 0;
+        margin-right: 8px;
       }
 
-      .logo {
-        width: 100px;
-        height: 100px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 800;
-        font-size: 28px;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        cursor: pointer;
-      }
-
-      .logo:hover {
-        transform: translateY(-3px) scale(1.05);
-      }
-
-      .nav-item {
-        width: 85px;
-        height: 85px;
-        margin: 0 12px 12px;
-        border-radius: 24px;
-        background: #ffffff;
-        font-size: 16px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        border: 3px solid transparent;
-        box-shadow:
-          0 4px 12px rgba(0, 0, 0, 0.06),
-          inset 0 2px 0 rgba(255, 255, 255, 0.8);
-      }
-
-      .nav-item:hover {
-        transform: translateY(-4px) scale(1.02);
-      }
-
-      .nav-item:hover .nav-icon {
-        transform: scale(1.1);
-      }
-
-      .nav-item.active {
-        background: #ffd387;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
-
-      .nav-item.active .nav-icon,
-      .nav-item.active .nav-label {
-        color: white;
-      }
-
-      .nav-item.switch-mode {
-        background: #d0ece4;
-      }
-
-      .nav-item.switch-mode:hover {
-        background: #ddf5ee;
-      }
-
-      .nav-item.switch-mode .nav-icon {
-        color: #2d5a4a;
-      }
-
-      .nav-item.switch-mode .nav-label {
-        color: #2d5a4a;
-        font-weight: 700;
-      }
-
-      .nav-icon {
-        width: 28px;
-        height: 28px;
-        transition: transform 0.3s ease;
-      }
-
-      .nav-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-dark);
-        margin-top: 4px;
+      .logo-text {
+        display: none;
       }
 
       .user-avatar-sidebar {
-        position: absolute;
-        bottom: 24px;
-        width: 56px;
-        height: 56px;
-        border-radius: 20px;
-        background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border: 3px solid var(--primary-light);
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: static;
+        margin-left: auto;
       }
 
-      .user-avatar-sidebar:hover {
-        transform: scale(1.1);
-      }
-
-      .user-avatar-sidebar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      /* 主内容区 */
       .main-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        padding: 0 24px;
-        height: calc(100vh - 48px);
-        overflow-y: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-
-      .main-content::-webkit-scrollbar {
-        display: none;
-      }
-
-      /* 标题区 */
-      .title-section {
-        margin-bottom: 60px;
-        margin-top: 40px;
-        flex-shrink: 0;
+        height: auto;
+        overflow-y: visible;
       }
 
       .page-title h1 {
-        font-size: 90px;
-        color: #51915f;
-        font-weight: 800;
-        line-height: 1;
-        letter-spacing: -1px;
+        font-size: 48px;
       }
 
       .page-title .subtitle {
-        font-size: 50px;
-        color: #51915f;
-        font-weight: 600;
-        letter-spacing: 4px;
-        text-transform: uppercase;
-        margin-top: 4px;
-        margin-bottom: -30px;
-      }
-
-      /* 获得勋章的动画效果 */
-      @keyframes medalUnlock {
-        0% {
-          filter: grayscale(100%);
-          opacity: 0.6;
-          transform: scale(0.8) rotate(0deg);
-        }
-
-        50% {
-          filter: grayscale(0%);
-          opacity: 1;
-          transform: scale(1.2) rotate(180deg);
-        }
-
-        100% {
-          filter: grayscale(0%);
-          opacity: 1;
-          transform: scale(1) rotate(360deg);
-        }
-      }
-
-      /* 获得勋章的动画类 */
-      .medal-unlock-animation {
-        animation: medalUnlock 1.5s ease-in-out;
-      }
-
-      /* 获得勋章提示弹窗 */
-      .medal-notification {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #ffd38b;
-        padding: 30px;
-        border-radius: 20px;
-        text-align: center;
-        z-index: 2000;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        animation:
-          fadeIn 0.3s ease,
-          slideIn 0.3s ease;
-      }
-
-      .medal-notification img {
-        width: 100px;
-        height: 100px;
-        object-fit: contain;
-        margin-bottom: 15px;
-      }
-
-      .medal-notification p {
-        font-size: 18px;
-        font-weight: 700;
-        color: #333;
-        margin: 0;
-      }
-
-      .fox-speech-bubble {
-        position: absolute;
-        bottom: 100%;
-        left: 0;
-        margin-bottom: 24px;
-        background: #fff;
-        border-radius: 24px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-        pointer-events: none;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        padding: 20px 28px;
-      }
-
-      .bubble-medal-img {
-        width: 100px;
-        height: 100px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .bubble-medal-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-
-      .bubble-medal-img.locked img {
-        filter: grayscale(100%);
-        opacity: 0.6;
-      }
-
-      .bubble-medal-name {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--text-dark);
-        text-align: center;
-        white-space: nowrap;
-      }
-
-      .fox-speech-bubble::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        right: 24px;
-        left: auto;
-        border: 14px solid transparent;
-        border-top-color: #fff;
-      }
-
-      /* 勋章网格容器 */
-      .medal-grid-container {
-        background: rgb(255, 255, 255, 0.8);
-        border-radius: 30px;
-        flex: 1;
-        min-height: 0;
-        width: 100%;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        position: relative;
-        overflow-x: auto;
-        overflow-y: hidden;
-        scrollbar-width: thin;
-        scrollbar-color: #51915f transparent;
-      }
-
-      .medal-grid-container::-webkit-scrollbar {
-        height: 6px;
-      }
-      .medal-grid-container::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .medal-grid-container::-webkit-scrollbar-thumb {
-        background: #51915f;
-        border-radius: 3px;
-      }
-
-      /* 勋章滚动容器 */
-      .medal-scroll-container {
-        display: flex;
-        gap: 40px;
-        padding: 0 20px;
-      }
-
-      /* 勋章组 - 竖着排列 */
-      .medal-group {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        width: max-content;
-        /* 确保容器宽度根据内容自动扩展 */
-      }
-
-      .medal-item {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        position: relative;
-        background: none;
-        border: none;
-        padding: 15px;
-        will-change: transform;
-      }
-
-      .medal-item:hover {
-        transform: scale(1.08);
-      }
-
-      .medal-item img {
-        width: 120px;
-        height: 120px;
-        object-fit: contain;
-        will-change: filter, opacity;
-      }
-
-      .medal-item:not(.unlocked) img {
-        filter: grayscale(100%);
-        opacity: 0.6;
-      }
-
-      /* 滚动按钮 */
-      .scroll-button {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 10;
-        backdrop-filter: blur(10px);
-      }
-
-      .scroll-button:hover {
-        transform: translateY(-50%) scale(1.1);
-        background: rgba(255, 255, 255, 0.6);
-      }
-
-      .scroll-button.left {
-        left: 10px;
-      }
-
-      .scroll-button.left:hover {
-        transform: translateY(-50%) scale(1.1) translateX(-5px);
-      }
-
-      .scroll-button.right {
-        right: 10px;
-      }
-
-      .scroll-button.right:hover {
-        transform: translateY(-50%) scale(1.1) translateX(5px);
-      }
-
-      .scroll-button svg {
-        width: 30px;
-        height: 30px;
-        fill: #51915f;
-      }
-
-      /* 装饰元素 */
-      .floating-shapes {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: -1;
-        overflow: hidden;
-      }
-
-      .shape {
-        position: absolute;
-        opacity: 0.12;
-        animation: float 30s ease-in-out infinite;
-        will-change: transform;
-      }
-
-      .shape-1 {
-        top: 10%;
-        left: 5%;
-        width: 200px;
-        height: 200px;
-        background: var(--primary);
-        border-radius: 50%;
-        animation-delay: 0s;
-      }
-
-      .shape-2 {
-        top: 60%;
-        right: 5%;
-        width: 220px;
-        height: 220px;
-        background: var(--secondary);
-        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-        animation-delay: -2s;
-      }
-
-      .shape-3 {
-        bottom: 20%;
-        left: 20%;
-        width: 180px;
-        height: 180px;
-        background: var(--accent-green);
-        border-radius: 50%;
-        animation-delay: -4s;
-      }
-
-      .shape-4 {
-        top: 30%;
-        right: 25%;
-        width: 160px;
-        height: 160px;
-        background: var(--accent-pink);
-        border-radius: 50%;
-        animation-delay: -6s;
-      }
-
-      .shape-5 {
-        top: 70%;
-        left: 10%;
-        width: 150px;
-        height: 150px;
-        background: var(--primary);
-        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-        animation-delay: -8s;
-      }
-
-      .shape-6 {
-        bottom: 10%;
-        right: 20%;
-        width: 170px;
-        height: 170px;
-        background: var(--secondary);
-        border-radius: 50%;
-        animation-delay: -10s;
-      }
-
-      .shape-7 {
-        top: 45%;
-        left: 35%;
-        width: 140px;
-        height: 140px;
-        background: var(--accent-green);
-        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-        animation-delay: -12s;
-      }
-
-      .shape-8 {
-        bottom: 40%;
-        right: 10%;
-        width: 190px;
-        height: 190px;
-        background: var(--accent-pink);
-        border-radius: 50%;
-        animation-delay: -14s;
-      }
-
-      @keyframes float {
-        0%,
-        100% {
-          transform: translateY(0) rotate(0deg);
-        }
-
-        25% {
-          transform: translateY(-20px) rotate(5deg);
-        }
-
-        50% {
-          transform: translateY(0) rotate(0deg);
-        }
-
-        75% {
-          transform: translateY(20px) rotate(-5deg);
-        }
-      }
-
-      /* 响应式 */
-      @media (max-width: 1200px) {
-        .medal-grid-container {
-          grid-template-columns: repeat(3, 1fr);
-        }
-      }
-
-      @media (max-width: 992px) {
-        .medal-grid-container {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-
-      @media (max-width: 768px) {
-        body {
-          flex-direction: column;
-          padding: 16px;
-          gap: 16px;
-          height: auto;
-          min-height: 100vh;
-          overflow-x: hidden;
-          overflow-y: auto;
-        }
-
-        .sidebar {
-          width: 100%;
-          flex-direction: row;
-          padding: 16px 20px;
-          border-radius: 24px;
-          overflow-x: auto;
-          position: relative;
-          top: auto;
-          left: auto;
-          height: auto;
-        }
-
-        .logo-section {
-          flex-direction: row;
-          margin-bottom: 0;
-          margin-right: 8px;
-        }
-
-        .logo-text {
-          display: none;
-        }
-
-        .user-avatar-sidebar {
-          position: static;
-          margin-left: auto;
-        }
-
-        .main-content {
-          height: auto;
-          overflow-y: visible;
-        }
-
-        .page-title h1 {
-          font-size: 48px;
-        }
-
-        .page-title .subtitle {
-          font-size: 28px;
-        }
-
-        .medal-grid-container {
-          grid-template-columns: repeat(2, 1fr);
-          padding: 20px;
-          gap: 20px;
-          flex: 0 0 auto;
-          height: auto;
-          min-height: 300px;
-        }
-      }
-
-      /* 家长端登录弹窗 */
-      .modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        animation: fadeIn 0.3s ease;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-
-        to {
-          opacity: 1;
-        }
-      }
-
-      .modal-content {
-        background: #ffd38b;
-        padding: 40px 30px;
-        border-radius: 24px;
-        width: 90%;
-        max-width: 400px;
-        text-align: center;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        animation: slideIn 0.3s ease;
-      }
-
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateY(-20px) scale(0.95);
-        }
-
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      .modal-content h3 {
         font-size: 28px;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 10px;
-        background: #fff;
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
       }
 
-      .modal-content p {
-        font-size: 16px;
-        color: #fff;
-        margin-bottom: 30px;
+      .medal-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 20px;
+        gap: 20px;
+        flex: 0 0 auto;
+        height: auto;
+        min-height: 300px;
+      }
+    }
+
+    /* 家长端登录弹窗 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
         opacity: 1;
       }
+    }
 
-      .modal-content input {
-        width: 100%;
-        padding: 15px;
-        border-radius: 12px;
-        font-size: 16px;
-        margin-bottom: 30px;
-        background: white;
-        transition: all 0.3s ease;
-        border: none;
+    .modal-content {
+      background: #ffd38b;
+      padding: 40px 30px;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
       }
 
-      .modal-content input:focus {
-        outline: none;
-        border-color: #ffd38b;
-        transform: translateY(-2px);
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
+    }
 
-      .modal-buttons {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-      }
+    .modal-content h3 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+      background: #fff;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
 
-      .modal-buttons button {
-        background: #ca6a16;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
+    .modal-content p {
+      font-size: 16px;
+      color: #fff;
+      margin-bottom: 30px;
+      opacity: 1;
+    }
 
-      .modal-buttons button:hover {
-        transform: translateY(-2px);
-      }
+    .modal-content input {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 30px;
+      background: white;
+      transition: all 0.3s ease;
+      border: none;
+    }
 
-      .modal-buttons button:last-child {
-        background: #ca6a16;
-        color: #fff;
-      }
+    .modal-content input:focus {
+      outline: none;
+      border-color: #ffd38b;
+      transform: translateY(-2px);
+    }
 
-      .modal-buttons button:last-child:hover {
-        transform: translateY(-2px);
-      }
-    </style>
-  </head>
+    .modal-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
 
-  <body>
-    <!-- 浮动装饰元素（优化后：减少到8个） -->
-    <div class="floating-shapes">
-      <div class="shape shape-1"></div>
-      <div class="shape shape-2"></div>
-      <div class="shape shape-3"></div>
-      <div class="shape shape-4"></div>
-      <div class="shape shape-5"></div>
-      <div class="shape shape-6"></div>
-      <div class="shape shape-7"></div>
-      <div class="shape shape-8"></div>
+    .modal-buttons button {
+      background: #ca6a16;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .modal-buttons button:hover {
+      transform: translateY(-2px);
+    }
+
+    .modal-buttons button:last-child {
+      background: #ca6a16;
+      color: #fff;
+    }
+
+    .modal-buttons button:last-child:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 浮动装饰元素（优化后：减少到8个） -->
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    <div class="shape shape-5"></div>
+    <div class="shape shape-6"></div>
+    <div class="shape shape-7"></div>
+    <div class="shape shape-8"></div>
+  </div>
+
+  <!-- 侧边栏导航 -->
+  <nav class="sidebar">
+    <div class="logo-section">
+      <div class="logo">
+        <img src="images/logo.webp" alt="注意力训练平台" style="width: 100%; height: 100%; object-fit: contain" />
+      </div>
     </div>
 
-    <!-- 侧边栏导航 -->
-    <nav class="sidebar">
-      <div class="logo-section">
-        <div class="logo">
-          <img src="images/logo.webp" alt="注意力训练平台" style="width: 100%; height: 100%; object-fit: contain" />
+    <div class="nav-item" onclick="window.location.href = 'child-home.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+      </svg>
+      <span class="nav-label">训练</span>
+    </div>
+
+    <div class="nav-item" onclick="window.location.href = 'detect/index.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 6v6l4 2"></path>
+      </svg>
+      <span class="nav-label">综合训练</span>
+    </div>
+
+    <div class="nav-item" onclick="window.location.href = 'today-training.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+      <span class="nav-label">今日训练</span>
+    </div>
+
+    <div class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="7"></circle>
+        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+      </svg>
+      <span class="nav-label">勋章墙</span>
+    </div>
+
+    <div class="nav-item switch-mode" onclick="window.location.href = 'child-document.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <span class="nav-label">家长报告</span>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 标题区 -->
+    <div class="title-section">
+      <div class="page-title">
+        <h1>勋章墙</h1>
+        <div class="subtitle">MEDAL WALL</div>
+      </div>
+    </div>
+
+    <!-- 勋章详情展示区 - 标题和勋章展示栏中间 -->
+    <div class="medal-detail-section" id="medalDetailSection">
+      <div class="detail-medal-img placeholder" id="detailMedalImg"></div>
+      <div class="detail-info">
+        <div class="detail-name" id="detailMedalName">点击下方勋章查看详情</div>
+      </div>
+    </div>
+
+    <!-- 勋章网格和狐狸勋章 -->
+    <div style="display: flex; align-items: flex-end; gap: 50px;">
+      <!-- 局部加载动画 -->
+      <div id="loading-overlay" class="loading-overlay"
+        style="position: relative; transform: none; top: auto; left: auto">
+        <div class="loading-medal">
+          <div class="loading-medal-ring"></div>
+          <div class="loading-medal-ring"></div>
+          <div class="loading-medal-ring"></div>
+          <div class="loading-medal-core">🏅</div>
+        </div>
+        <div class="loading-text">正在加载</div>
+        <div class="loading-progress">
+          <div id="loading-progress-bar" class="loading-progress-bar"></div>
         </div>
       </div>
 
-      <div class="nav-item" onclick="window.location.href = 'child-home.html'">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-        </svg>
-        <span class="nav-label">训练</span>
-      </div>
-
-      <div class="nav-item" onclick="window.location.href = 'detect/index.html'">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M12 6v6l4 2"></path>
-        </svg>
-        <span class="nav-label">综合训练</span>
-      </div>
-
-      <div class="nav-item" onclick="window.location.href = 'today-training.html'">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="16" y1="2" x2="16" y2="6"></line>
-          <line x1="8" y1="2" x2="8" y2="6"></line>
-          <line x1="3" y1="10" x2="21" y2="10"></line>
-        </svg>
-        <span class="nav-label">今日训练</span>
-      </div>
-
-      <div class="nav-item active">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="8" r="7"></circle>
-          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-        </svg>
-        <span class="nav-label">勋章墙</span>
-      </div>
-
-      <div class="nav-item switch-mode" onclick="window.location.href = 'child-document.html'">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-        <span class="nav-label">家长报告</span>
-      </div>
-    </nav>
-
-    <!-- 主内容区 -->
-    <main class="main-content">
-      <!-- 标题区 -->
-      <div class="title-section">
-        <div class="page-title">
-          <h1>勋章墙</h1>
-          <div class="subtitle">MEDAL WALL</div>
-        </div>
-      </div>
-
-      <!-- 勋章网格和狐狸勋章 -->
-      <div style="display: flex; align-items: flex-end; gap: 50px; margin-top: 12vh">
-        <!-- 局部加载动画 -->
-        <div
-          id="loading-overlay"
-          class="loading-overlay"
-          style="position: relative; transform: none; top: auto; left: auto"
-        >
-          <div class="loading-medal">
-            <div class="loading-medal-ring"></div>
-            <div class="loading-medal-ring"></div>
-            <div class="loading-medal-ring"></div>
-            <div class="loading-medal-core">🏅</div>
-          </div>
-          <div class="loading-text">正在加载</div>
-          <div class="loading-progress">
-            <div id="loading-progress-bar" class="loading-progress-bar"></div>
-          </div>
-        </div>
+      <!-- 勋章网格包裹层 -->
+      <div class="medal-grid-wrapper">
+        <!-- 左滚动按钮 -->
+        <button class="scroll-button left" onclick="scrollMedals(-1)">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
 
         <!-- 勋章网格 -->
         <div class="medal-grid-container">
-          <!-- 左滚动按钮 -->
-          <button class="scroll-button left" onclick="scrollMedals(-1)">
-            <svg viewBox="0 0 24 24">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-
           <!-- 勋章滚动容器 -->
           <div class="medal-scroll-container" id="medal-scroll-container">
             <!-- 第一组：太空小达人 + 垃圾小助手 -->
@@ -1030,31 +1113,16 @@
               <div class="medal-item" data-medal="5" data-desc="太阳追踪者" data-howto="成功完成追太阳所有难度关卡">
                 <img data-src="medal-image/game5.webp" class="medal-lazy" alt="太阳追踪者" />
               </div>
-              <div
-                class="medal-item"
-                data-medal="6"
-                data-desc="动物追踪员"
-                data-howto="成功完成森林小动物追踪所有难度关卡"
-              >
+              <div class="medal-item" data-medal="6" data-desc="动物追踪员" data-howto="成功完成森林小动物追踪所有难度关卡">
                 <img data-src="medal-image/game6.webp" class="medal-lazy" alt="动物追踪员" />
               </div>
             </div>
             <!-- 第四组：金牌甜品销售员 + 海底捉迷藏大师 -->
             <div class="medal-group">
-              <div
-                class="medal-item"
-                data-medal="7"
-                data-desc="金牌甜品销售员"
-                data-howto="成功完成甜品店小帮工所有难度关卡"
-              >
+              <div class="medal-item" data-medal="7" data-desc="金牌甜品销售员" data-howto="成功完成甜品店小帮工所有难度关卡">
                 <img data-src="medal-image/game7.webp" class="medal-lazy" alt="金牌甜品销售员" />
               </div>
-              <div
-                class="medal-item"
-                data-medal="8"
-                data-desc="海底捉迷藏大师"
-                data-howto="成功完成海底捉迷藏所有难度关卡"
-              >
+              <div class="medal-item" data-medal="8" data-desc="海底捉迷藏大师" data-howto="成功完成海底捉迷藏所有难度关卡">
                 <img data-src="medal-image/game8.webp" class="medal-lazy" alt="海底捉迷藏大师" />
               </div>
             </div>
@@ -1063,12 +1131,7 @@
               <div class="medal-item" data-medal="9" data-desc="分类小能手" data-howto="成功完成环保小卫士所有难度关卡">
                 <img data-src="medal-image/game9.webp" class="medal-lazy" alt="分类小能手" />
               </div>
-              <div
-                class="medal-item"
-                data-medal="10"
-                data-desc="冰雪信使"
-                data-howto="成功完成冰雪王国小邮差所有难度关卡"
-              >
+              <div class="medal-item" data-medal="10" data-desc="冰雪信使" data-howto="成功完成冰雪王国小邮差所有难度关卡">
                 <img data-src="medal-image/game10.webp" class="medal-lazy" alt="冰雪信使" />
               </div>
             </div>
@@ -1097,414 +1160,461 @@
               </div>
             </div>
           </div>
-
-          <!-- 右滚动按钮 -->
-          <button class="scroll-button right" onclick="scrollMedals(1)">
-            <svg viewBox="0 0 24 24">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
         </div>
 
-        <!-- 狐狸勋章 -->
-        <div style="position: relative; flex-shrink: 0; z-index: 10; margin-left: auto">
-          <div class="fox-speech-bubble" id="foxSpeechBubble">
-            <div class="bubble-medal-img" id="bubbleMedalImg"></div>
-            <div class="bubble-medal-name" id="bubbleMedalName">点击勋章查看名称</div>
-          </div>
-          <img src="images/fox-medal.webp" alt="狐狸勋章" style="height: 450px; object-fit: contain" />
-        </div>
+        <!-- 右滚动按钮 -->
+        <button class="scroll-button right" onclick="scrollMedals(1)">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
       </div>
-    </main>
 
-    <script src="utils.js"></script>
-    <script>
-      let currentChildId = null;
-      let medals = [];
-      let selectedMedalId = null;
-      let medalItems = null;
-      let imageObserver = null;
-      let isPageLoaded = false;
+      <!-- 狐狸勋章 -->
+      <div style="position: relative; flex-shrink: 0; z-index: 10; margin-left: auto">
+        <div class="fox-speech-bubble" id="foxSpeechBubble">
+          <div class="bubble-encourage-text" id="bubbleEncourageText">快来收集勋章吧！</div>
+        </div>
+        <img src="images/fox-medal.webp" alt="狐狸勋章" style="height: 450px; object-fit: contain" />
+      </div>
+    </div>
+  </main>
 
-      // 加载管理器
-      const LoadingManager = {
-        total: 0,
-        loaded: 0,
-        progressBar: null,
-        init() {
-          this.progressBar = document.getElementById('loading-progress-bar');
-          // 统计需要加载的资源
-          const images = document.querySelectorAll('img');
-          const criticalImages = ['images/logo.webp', 'images/fox-medal.webp'];
+  <script src="utils.js"></script>
+  <script>
+    let currentChildId = null;
+    let medals = [];
+    let selectedMedalId = null;
+    let medalItems = null;
+    let imageObserver = null;
+    let isPageLoaded = false;
 
-          // 统计关键图片
-          this.total = criticalImages.length;
+    // 加载管理器
+    const LoadingManager = {
+      total: 0,
+      loaded: 0,
+      progressBar: null,
+      init() {
+        this.progressBar = document.getElementById('loading-progress-bar');
+        // 统计需要加载的资源
+        const images = document.querySelectorAll('img');
+        const criticalImages = ['images/logo.webp', 'images/fox-medal.webp'];
 
-          // 预加载关键图片
-          criticalImages.forEach((src, index) => {
-            const img = new Image();
-            img.onload = () => {
-              this.loaded++;
-              this.updateProgress();
-            };
-            img.onerror = () => {
-              this.loaded++;
-              this.updateProgress();
-            };
-            img.src = src;
-          });
+        // 统计关键图片
+        this.total = criticalImages.length;
 
-          // 如果没有图片需要加载，直接完成
-          if (this.total === 0) {
-            this.complete();
-          }
-        },
-        updateProgress() {
-          if (this.progressBar && this.total > 0) {
-            const percent = Math.round((this.loaded / this.total) * 100);
-            this.progressBar.style.width = percent + '%';
-          }
-        },
-        complete() {
-          // 确保进度条显示100%
-          if (this.progressBar) {
-            this.progressBar.style.width = '100%';
-          }
+        // 预加载关键图片
+        criticalImages.forEach((src, index) => {
+          const img = new Image();
+          img.onload = () => {
+            this.loaded++;
+            this.updateProgress();
+          };
+          img.onerror = () => {
+            this.loaded++;
+            this.updateProgress();
+          };
+          img.src = src;
+        });
 
-          // 延迟一点时间让用户看到100%
-          setTimeout(() => {
-            this.hideLoading();
-          }, 300);
-        },
-        hideLoading() {
-          const overlay = document.getElementById('loading-overlay');
-
-          // 显示勋章墙内容
-          document.querySelectorAll('.medal-grid-container, .title-section, .scroll-button').forEach((el) => {
-            el.classList.add('loaded');
-          });
-
-          if (overlay) {
-            overlay.classList.add('hidden');
-          }
-
-          isPageLoaded = true;
-
-          // 移除加载动画元素
-          setTimeout(() => {
-            if (overlay && overlay.parentNode) {
-              overlay.parentNode.removeChild(overlay);
-            }
-          }, 500);
-        },
-      };
-
-      // 图片懒加载初始化（优化版本）
-      function initLazyLoad() {
-        if (!('IntersectionObserver' in window)) {
-          document.querySelectorAll('img.medal-lazy').forEach((img) => {
-            img.src = img.dataset.src;
-            img.classList.remove('medal-lazy');
-          });
-          return;
+        // 如果没有图片需要加载，直接完成
+        if (this.total === 0) {
+          this.complete();
+        }
+      },
+      updateProgress() {
+        if (this.progressBar && this.total > 0) {
+          const percent = Math.round((this.loaded / this.total) * 100);
+          this.progressBar.style.width = percent + '%';
+        }
+      },
+      complete() {
+        // 确保进度条显示100%
+        if (this.progressBar) {
+          this.progressBar.style.width = '100%';
         }
 
-        imageObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                const img = entry.target;
-                const src = img.dataset.src;
-                if (src) {
-                  const tempImg = new Image();
-                  tempImg.onload = () => {
-                    img.src = src;
-                    img.classList.remove('medal-lazy');
-                    imageObserver.unobserve(img);
-                  };
-                  tempImg.onerror = () => {
-                    img.src = src;
-                    img.classList.remove('medal-lazy');
-                    imageObserver.unobserve(img);
-                  };
-                  tempImg.src = src;
-                }
-              }
-            });
-          },
-          {
-            rootMargin: '200px',
-            threshold: 0.01,
-          },
-        );
+        // 延迟一点时间让用户看到100%
+        setTimeout(() => {
+          this.hideLoading();
+        }, 300);
+      },
+      hideLoading() {
+        const overlay = document.getElementById('loading-overlay');
 
+        // 显示勋章墙内容
+        document.querySelectorAll('.medal-detail-section, .medal-grid-wrapper, .medal-grid-container, .title-section, .scroll-button').forEach((el) => {
+          el.classList.add('loaded');
+        });
+
+        if (overlay) {
+          overlay.classList.add('hidden');
+        }
+
+        isPageLoaded = true;
+
+        // 移除加载动画元素
+        setTimeout(() => {
+          if (overlay && overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+          }
+        }, 500);
+      },
+    };
+
+    // 图片懒加载初始化（优化版本）
+    function initLazyLoad() {
+      if (!('IntersectionObserver' in window)) {
         document.querySelectorAll('img.medal-lazy').forEach((img) => {
-          imageObserver.observe(img);
-        });
-      }
-
-      // 延迟初始化非关键功能
-      function lazyInitNonCritical() {
-        if (typeof requestIdleCallback === 'function') {
-          requestIdleCallback(
-            () => {
-              bindScrollEvents();
-              bindKeyboardEvents();
-            },
-            { timeout: 2000 },
-          );
-        } else {
-          setTimeout(() => {
-            bindScrollEvents();
-            bindKeyboardEvents();
-          }, 1000);
-        }
-      }
-
-      function initPage() {
-        // 检查登录状态
-        if (!UserStateUtil.isLoggedIn()) {
-          window.location.href = 'index.html';
-          return;
-        }
-
-        currentChildId = UserStateUtil.getCurrentChildId();
-
-        // 缓存DOM引用
-        medalItems = document.querySelectorAll('.medal-item');
-
-        // 加载勋章数据
-        loadMedalData();
-
-        // 检查打卡进度
-        const unlockedCheckinMedals = MedalUtil.syncCheckinProgress(currentChildId, false);
-
-        // 更新UI
-        updateMedalWall();
-
-        // 显示通知
-        if (unlockedCheckinMedals.length > 0) {
-          unlockedCheckinMedals.forEach((medal) => {
-            setTimeout(() => MedalUtil.showUnlockNotification(medal), 500);
-          });
-        }
-
-        // 绑定勋章点击事件
-        bindMedalClickEvents();
-
-        // 延迟初始化非关键功能
-        lazyInitNonCritical();
-      }
-
-      // 加载勋章数据
-      function loadMedalData() {
-        medals = MedalUtil.loadMedals(currentChildId);
-      }
-
-      // 保存勋章数据
-      function saveMedalData() {
-        MedalUtil.saveMedals(medals, currentChildId);
-      }
-
-      // 检查并解锁勋章
-      function checkMedalUnlock() {
-        const unlockedMedals = MedalUtil.syncCheckinProgress(currentChildId, false);
-
-        loadMedalData();
-        updateMedalWall();
-
-        unlockedMedals.forEach((medal) => {
-          MedalUtil.showUnlockNotification(medal);
-          selectMedalItem(medal.id);
-        });
-
-        return unlockedMedals;
-      }
-
-      // 显示获得勋章的通知
-      function showMedalNotification(medal) {
-        MedalUtil.showUnlockNotification(medal);
-      }
-
-      // 更新勋章墙
-      function updateMedalWall() {
-        if (!medalItems) return;
-
-        requestAnimationFrame(() => {
-          medalItems.forEach((item) => {
-            const medalId = parseInt(item.dataset.medal, 10);
-            const medal = medals.find((m) => m.id === medalId);
-            item.classList.toggle('unlocked', medal && medal.unlocked);
-          });
-
-          if (selectedMedalId !== null) {
-            selectMedalItem(selectedMedalId);
-          }
-        });
-      }
-
-      // 记录游戏关卡完成
-      function recordGameLevelCompleted(gameId, level, options = {}) {
-        const result = MedalUtil.recordGameProgress(gameId, level, {
-          childId: currentChildId || UserStateUtil.getCurrentChildId(),
-          notify: false,
-          increment: Boolean(options.increment),
-        });
-
-        if (result) {
-          loadMedalData();
-          updateMedalWall();
-
-          if (result.justUnlocked) {
-            showMedalNotification(result.medal);
-            selectMedalItem(result.medal.id);
-          }
-        }
-
-        return result;
-      }
-
-      // 记录打卡
-      function recordCheckin() {
-        const result = MedalUtil.recordCheckin(currentChildId, false);
-        loadMedalData();
-        updateMedalWall();
-
-        if (result && result.unlockedMedals.length > 0) {
-          result.unlockedMedals.forEach((medal) => {
-            showMedalNotification(medal);
-            selectMedalItem(medal.id);
-          });
-        }
-
-        return result;
-      }
-
-      // 导出函数供其他页面调用
-      window.recordGameLevelCompleted = recordGameLevelCompleted;
-      window.recordCheckin = recordCheckin;
-      window.checkMedalUnlock = checkMedalUnlock;
-
-      function selectMedalItem(medalId) {
-        const item = document.querySelector(`.medal-item[data-medal="${medalId}"]`);
-        const medal = medals.find((m) => m.id === medalId);
-        if (!item || !medal) return;
-
-        // 确保勋章图片已加载
-        const img = item.querySelector('img');
-        if (img && img.dataset.src && !img.src) {
           img.src = img.dataset.src;
           img.classList.remove('medal-lazy');
-        }
+        });
+        return;
+      }
 
-        // 更新对话框
-        const medalImg = document.getElementById('bubbleMedalImg');
-        const medalName = document.getElementById('bubbleMedalName');
-        if (medalImg && img) {
-          medalImg.innerHTML = `<img src="${img.src}" alt="${medal.name}" />`;
-          medalImg.classList.toggle('locked', !medal.unlocked);
-        }
-        if (medalName) {
-          medalName.textContent = medal.name;
-        }
+      imageObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              const src = img.dataset.src;
+              if (src) {
+                const tempImg = new Image();
+                tempImg.onload = () => {
+                  img.src = src;
+                  img.classList.remove('medal-lazy');
+                  imageObserver.unobserve(img);
+                };
+                tempImg.onerror = () => {
+                  img.src = src;
+                  img.classList.remove('medal-lazy');
+                  imageObserver.unobserve(img);
+                };
+                tempImg.src = src;
+              }
+            }
+          });
+        },
+        {
+          rootMargin: '200px',
+          threshold: 0.01,
+        },
+      );
 
-        if (medalItems) {
-          medalItems.forEach((i) => (i.style.borderColor = 'transparent'));
-        }
-        item.style.borderColor = '#f9b39c';
-        selectedMedalId = medalId;
+      document.querySelectorAll('img.medal-lazy').forEach((img) => {
+        imageObserver.observe(img);
+      });
+    }
+
+    // 延迟初始化非关键功能
+    function lazyInitNonCritical() {
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(
+          () => {
+            bindScrollEvents();
+            bindKeyboardEvents();
+          },
+          { timeout: 2000 },
+        );
+      } else {
+        setTimeout(() => {
+          bindScrollEvents();
+          bindKeyboardEvents();
+        }, 1000);
+      }
+    }
+
+    function initPage() {
+      // 检查登录状态
+      if (!UserStateUtil.isLoggedIn()) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      currentChildId = UserStateUtil.getCurrentChildId();
+
+      // 缓存DOM引用
+      medalItems = document.querySelectorAll('.medal-item');
+
+      // 加载勋章数据
+      loadMedalData();
+
+      // 检查打卡进度
+      const unlockedCheckinMedals = MedalUtil.syncCheckinProgress(currentChildId, false);
+
+      // 更新UI
+      updateMedalWall();
+
+      // 显示通知
+      if (unlockedCheckinMedals.length > 0) {
+        unlockedCheckinMedals.forEach((medal) => {
+          setTimeout(() => MedalUtil.showUnlockNotification(medal), 500);
+        });
       }
 
       // 绑定勋章点击事件
-      function bindMedalClickEvents() {
-        if (!medalItems) return;
+      bindMedalClickEvents();
+
+      // 延迟初始化非关键功能
+      lazyInitNonCritical();
+    }
+
+    // 加载勋章数据
+    function loadMedalData() {
+      medals = MedalUtil.loadMedals(currentChildId);
+    }
+
+    // 保存勋章数据
+    function saveMedalData() {
+      MedalUtil.saveMedals(medals, currentChildId);
+    }
+
+    // 检查并解锁勋章
+    function checkMedalUnlock() {
+      const unlockedMedals = MedalUtil.syncCheckinProgress(currentChildId, false);
+
+      loadMedalData();
+      updateMedalWall();
+
+      unlockedMedals.forEach((medal) => {
+        MedalUtil.showUnlockNotification(medal);
+        selectMedalItem(medal.id);
+      });
+
+      return unlockedMedals;
+    }
+
+    // 显示获得勋章的通知
+    function showMedalNotification(medal) {
+      MedalUtil.showUnlockNotification(medal);
+    }
+
+    // 更新勋章墙
+    function updateMedalWall() {
+      if (!medalItems) return;
+
+      requestAnimationFrame(() => {
         medalItems.forEach((item) => {
-          item.addEventListener('click', () => {
-            selectMedalItem(parseInt(item.dataset.medal, 10));
-          });
+          const medalId = parseInt(item.dataset.medal, 10);
+          const medal = medals.find((m) => m.id === medalId);
+          item.classList.toggle('unlocked', medal && medal.unlocked);
+        });
+
+        updateFoxEncourageText();
+
+        if (selectedMedalId !== null) {
+          selectMedalItem(selectedMedalId);
+        }
+      });
+    }
+
+    // 记录游戏关卡完成
+    function recordGameLevelCompleted(gameId, level, options = {}) {
+      const result = MedalUtil.recordGameProgress(gameId, level, {
+        childId: currentChildId || UserStateUtil.getCurrentChildId(),
+        notify: false,
+        increment: Boolean(options.increment),
+      });
+
+      if (result) {
+        loadMedalData();
+        updateMedalWall();
+
+        if (result.justUnlocked) {
+          showMedalNotification(result.medal);
+          selectMedalItem(result.medal.id);
+        }
+      }
+
+      return result;
+    }
+
+    // 记录打卡
+    function recordCheckin() {
+      const result = MedalUtil.recordCheckin(currentChildId, false);
+      loadMedalData();
+      updateMedalWall();
+
+      if (result && result.unlockedMedals.length > 0) {
+        result.unlockedMedals.forEach((medal) => {
+          showMedalNotification(medal);
+          selectMedalItem(medal.id);
         });
       }
 
-      // 滚动勋章功能
-      const scrollStep = 300;
+      return result;
+    }
 
-      function scrollMedals(direction) {
+    // 导出函数供其他页面调用
+    window.recordGameLevelCompleted = recordGameLevelCompleted;
+    window.recordCheckin = recordCheckin;
+    window.checkMedalUnlock = checkMedalUnlock;
+
+    function selectMedalItem(medalId) {
+      const item = document.querySelector(`.medal-item[data-medal="${medalId}"]`);
+      const medal = medals.find((m) => m.id === medalId);
+      if (!item || !medal) return;
+
+      const img = item.querySelector('img');
+      if (img && img.dataset.src && !img.src) {
+        img.src = img.dataset.src;
+        img.classList.remove('medal-lazy');
+      }
+
+      const detailMedalImg = document.getElementById('detailMedalImg');
+      const detailMedalName = document.getElementById('detailMedalName');
+
+      if (detailMedalImg && img) {
+        detailMedalImg.innerHTML = `<img src="${img.src}" alt="${medal.name}" />`;
+        detailMedalImg.classList.toggle('placeholder', !medal.unlocked);
+      }
+      if (detailMedalName) {
+        if (medal.unlocked) {
+          detailMedalName.textContent = medal.name;
+          detailMedalName.className = 'detail-name';
+        } else {
+          detailMedalName.textContent = item.dataset.howto || item.dataset.desc || '';
+          detailMedalName.className = 'detail-howto';
+        }
+      }
+
+      if (medalItems) {
+        medalItems.forEach((i) => (i.style.borderColor = 'transparent'));
+      }
+      item.style.borderColor = '#f9b39c';
+      selectedMedalId = medalId;
+    }
+
+    function updateFoxEncourageText() {
+      const bubbleText = document.getElementById('bubbleEncourageText');
+      if (!bubbleText) return;
+
+      const unlockedCount = medals.filter((m) => m.unlocked).length;
+
+      let text = '';
+      if (unlockedCount === 0) {
+        text = '快来收集勋章吧！';
+      } else if (unlockedCount <= 2) {
+        const phrases = [
+          '小朋友真棒，已经获得' + unlockedCount + '个勋章了！',
+          '加油哦！已经收集了' + unlockedCount + '个勋章啦~',
+          '好厉害！已经有' + unlockedCount + '个勋章了呢！',
+        ];
+        text = phrases[unlockedCount - 1] || phrases[0];
+      } else if (unlockedCount <= 5) {
+        const phrases = [
+          '太厉害了！已经获得' + unlockedCount + '个勋章了！',
+          '你真聪明！已经收集了' + unlockedCount + '个勋章~',
+          '继续加油！已经有' + unlockedCount + '个勋章啦！',
+        ];
+        text = phrases[(unlockedCount - 3) % phrases.length];
+      } else if (unlockedCount <= 10) {
+        const phrases = [
+          '超级棒！已经获得' + unlockedCount + '个勋章了！',
+          '你是勋章小达人！已经收集' + unlockedCount + '个啦~',
+          '了不起！已经有' + unlockedCount + '个勋章了呢！',
+        ];
+        text = phrases[(unlockedCount - 6) % phrases.length];
+      } else if (unlockedCount < 15) {
+        text = '勋章大师！已经获得' + unlockedCount + '个勋章了！';
+      } else {
+        text = '勋章之王！全部' + unlockedCount + '个勋章都集齐啦！';
+      }
+
+      bubbleText.textContent = text;
+    }
+
+    // 绑定勋章点击事件
+    function bindMedalClickEvents() {
+      if (!medalItems) return;
+      medalItems.forEach((item) => {
+        item.addEventListener('click', () => {
+          selectMedalItem(parseInt(item.dataset.medal, 10));
+        });
+      });
+    }
+
+    // 滚动勋章功能
+    const scrollStep = 200;
+
+    function scrollMedals(direction) {
+      const container = document.querySelector('.medal-grid-container');
+      if (!container) return;
+
+      container.scrollBy({ left: direction * scrollStep, behavior: 'smooth' });
+    }
+
+    let scrollInterval = null;
+    let scrollDirection = 0;
+
+    function startScroll(direction) {
+      scrollDirection = direction;
+      if (scrollInterval) clearInterval(scrollInterval);
+      scrollInterval = setInterval(() => {
         const container = document.querySelector('.medal-grid-container');
-        if (!container) return;
+        if (container) {
+          container.scrollBy({ left: scrollDirection * 10 });
+        }
+      }, 50);
+    }
 
-        container.scrollBy({ left: direction * scrollStep, behavior: 'smooth' });
+    function stopScroll() {
+      if (scrollInterval) {
+        clearInterval(scrollInterval);
+        scrollInterval = null;
+      }
+    }
+
+    function bindScrollEvents() {
+      const leftButton = document.querySelector('.scroll-button.left');
+      const rightButton = document.querySelector('.scroll-button.right');
+
+      if (leftButton) {
+        leftButton.addEventListener('mouseenter', () => startScroll(-1));
+        leftButton.addEventListener('mouseleave', stopScroll);
       }
 
-      let scrollInterval = null;
-      let scrollDirection = 0;
+      if (rightButton) {
+        rightButton.addEventListener('mouseenter', () => startScroll(1));
+        rightButton.addEventListener('mouseleave', stopScroll);
+      }
+    }
 
-      function startScroll(direction) {
-        scrollDirection = direction;
-        if (scrollInterval) clearInterval(scrollInterval);
-        scrollInterval = setInterval(() => {
-          const container = document.querySelector('.medal-grid-container');
-          if (container) {
-            container.scrollBy({ left: scrollDirection * 20 });
+    function bindKeyboardEvents() {
+      document.querySelectorAll('.nav-item, .medal-item').forEach((el) => {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            el.click();
           }
-        }, 30);
-      }
-
-      function stopScroll() {
-        if (scrollInterval) {
-          clearInterval(scrollInterval);
-          scrollInterval = null;
-        }
-      }
-
-      function bindScrollEvents() {
-        const leftButton = document.querySelector('.scroll-button.left');
-        const rightButton = document.querySelector('.scroll-button.right');
-
-        if (leftButton) {
-          leftButton.addEventListener('mouseenter', () => startScroll(-1));
-          leftButton.addEventListener('mouseleave', stopScroll);
-        }
-
-        if (rightButton) {
-          rightButton.addEventListener('mouseenter', () => startScroll(1));
-          rightButton.addEventListener('mouseleave', stopScroll);
-        }
-      }
-
-      function bindKeyboardEvents() {
-        document.querySelectorAll('.nav-item, .medal-item').forEach((el) => {
-          el.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              el.click();
-            }
-          });
         });
+      });
+    }
+
+    // 页面初始化
+    document.addEventListener('DOMContentLoaded', function () {
+      // 1. 初始化加载管理器
+      LoadingManager.init();
+
+      // 2. 初始化懒加载
+      initLazyLoad();
+
+      // 3. 初始化页面
+      initPage();
+
+      // 4. 完成加载
+      LoadingManager.complete();
+    });
+
+    // 页面卸载时清理
+    window.addEventListener('beforeunload', function () {
+      if (imageObserver) {
+        imageObserver.disconnect();
+        imageObserver = null;
       }
+      stopScroll();
+    });
+  </script>
+</body>
 
-      // 页面初始化
-      document.addEventListener('DOMContentLoaded', function () {
-        // 1. 初始化加载管理器
-        LoadingManager.init();
-
-        // 2. 初始化懒加载
-        initLazyLoad();
-
-        // 3. 初始化页面
-        initPage();
-
-        // 4. 完成加载
-        LoadingManager.complete();
-      });
-
-      // 页面卸载时清理
-      window.addEventListener('beforeunload', function () {
-        if (imageObserver) {
-          imageObserver.disconnect();
-          imageObserver = null;
-        }
-        stopScroll();
-      });
-    </script>
-  </body>
 </html>
