@@ -138,18 +138,6 @@ def get_evaluation_data(child_id):
     }
 
 
-def get_history_evaluation_data(child_id, days=30):
-    stats = get_child_training_stats(child_id)
-    trend = get_child_training_trend(child_id, days)
-
-    return {
-        "training_count": stats.get("training_count", 0),
-        "total_time": stats.get("total_time", 0),
-        "avg_score": stats.get("avg_score", 0),
-        "trend": trend,
-    }
-
-
 def get_analysis_data(child_id):
     stats = get_child_training_stats(child_id)
     detection = get_child_detection_data(child_id)
@@ -195,18 +183,29 @@ def validate_json_response(response_text):
 
 def call_ai_service(system_prompt, user_prompt, expect_json=True):
     if not is_ai_configured():
-        return None, "AI 服务未配置，请在 backend/ai/config.py 中填写 base_url、api_key 和 model"
+        return None, "AI 服务未配置，请在 backend/ai/.env 中填写 base_url、api_key 和 model"
 
     try:
-        client = OpenAI(api_key=AI_CONFIG["api_key"], base_url=AI_CONFIG["base_url"], timeout=AI_CONFIG["timeout"])
+        client = OpenAI(
+            api_key=AI_CONFIG["api_key"],
+            base_url=AI_CONFIG["base_url"],
+            timeout=AI_CONFIG["timeout"],
+        )
 
-        response = client.chat.completions.create(
+        kwargs = dict(
             model=AI_CONFIG["model"],
-            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
             max_tokens=AI_CONFIG["max_tokens"],
             temperature=AI_CONFIG["temperature"],
-            extra_body={"thinking": {"type": "disabled"}},
         )
+
+        if expect_json:
+            kwargs["response_format"] = {"type": "json_object"}
+
+        response = client.chat.completions.create(**kwargs)
 
         content = response.choices[0].message.content
 
@@ -321,8 +320,9 @@ def format_training_data_for_prompt(child_id):
     return "\n".join(lines)
 
 
-def format_trend_data_for_prompt(child_id, days=30):
-    trend = get_child_training_trend(child_id, days)
+def format_trend_data_for_prompt(child_id, days=30, trend=None):
+    if trend is None:
+        trend = get_child_training_trend(child_id, days)
     if not trend:
         return "暂无训练趋势数据"
 
@@ -367,7 +367,11 @@ def generate_current_training_evaluation():
     if error_msg:
         return error_response(error_msg, "ACCESS_ERROR", error_code)
 
+    trend = get_child_training_trend(child_id)
+    trend_data_str = format_trend_data_for_prompt(child_id, trend=trend)
+
     evaluation_data = get_evaluation_data(child_id)
+    evaluation_data["trend"] = trend
 
     if is_empty_data(evaluation_data):
         return success_response(
@@ -401,6 +405,7 @@ def generate_current_training_evaluation():
         child_age=child_info.get("age", "未知"),
         training_data=format_training_data_for_prompt(child_id),
         detection_data=format_detection_data_for_prompt(child_id),
+        trend_data=trend_data_str,
     )
 
     if error:
@@ -422,85 +427,6 @@ def generate_current_training_evaluation():
             "is_cached": False,
         },
         "当前训练评价生成成功",
-    )
-
-
-@ai_bp.route("/api/ai/history-training-evaluation", methods=["POST"])
-@require_auth
-def generate_history_training_evaluation():
-    data = request.json
-    child_id = data.get("child_id")
-    days = data.get("days", 30)
-
-    if not child_id:
-        return error_response("child_id 不能为空", "VALIDATION_ERROR", 400)
-
-    child_info, error_msg, error_code = validate_child_access(child_id, request.user_id)
-    if error_msg:
-        return error_response(error_msg, "ACCESS_ERROR", error_code)
-
-    evaluation_data = get_history_evaluation_data(child_id, days)
-
-    if is_empty_data(evaluation_data):
-        return success_response(
-            {
-                "child_id": child_id,
-                "child_name": child_info.get("name"),
-                "evaluation": get_empty_report("history_training"),
-                "generated_at": datetime.now().isoformat(),
-                "data_period_days": days,
-                "is_cached": False,
-                "is_empty": True,
-            },
-            "暂无训练数据，返回预设报告",
-        )
-
-    cached_report = get_cached_report_if_unchanged(child_id, evaluation_data, CACHE_CONFIG, "history_training")
-    if cached_report:
-        return success_response(
-            {
-                "child_id": child_id,
-                "child_name": child_info.get("name"),
-                "evaluation": cached_report,
-                "generated_at": datetime.now().isoformat(),
-                "data_period_days": days,
-                "is_cached": True,
-            },
-            "返回缓存报告",
-        )
-
-    stats = get_child_training_stats(child_id)
-
-    prompts, error = build_prompt_from_template(
-        "history_training_evaluation",
-        child_name=child_info.get("name", "未知"),
-        child_age=child_info.get("age", "未知"),
-        training_count=stats.get("training_count", 0),
-        total_time=stats.get("total_time", 0),
-        avg_score=stats.get("avg_score", 0),
-        trend_data=format_trend_data_for_prompt(child_id, days),
-    )
-
-    if error:
-        return error_response(error, "PROMPT_ERROR", 500)
-
-    result, error = call_ai_service(prompts["system_prompt"], prompts["user_prompt"], expect_json=True)
-
-    if error:
-        return error_response(error, "AI_ERROR", 500)
-
-    cache_report(child_id, evaluation_data, result, "history_training")
-
-    return success_response(
-        {
-            "child_id": child_id,
-            "child_name": child_info.get("name"),
-            "evaluation": result,
-            "generated_at": datetime.now().isoformat(),
-            "data_period_days": days,
-            "is_cached": False,
-        },
-        "历史训练评价生成成功",
     )
 
 

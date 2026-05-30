@@ -815,8 +815,19 @@
         }
 
         // 展示家庭指导
-        document.getElementById('ai-home-guidance').textContent =
-          evaluation.home_guidance || '暂时没有指导哦！快去做训练吧！';
+        const guidanceEl = document.getElementById('ai-home-guidance');
+        guidanceEl.innerHTML = '';
+        const guidance = evaluation.home_guidance;
+        if (Array.isArray(guidance) && guidance.length > 0) {
+          guidance.forEach((item, i) => {
+            if (i > 0) guidanceEl.appendChild(document.createElement('br'));
+            guidanceEl.appendChild(document.createTextNode(item));
+          });
+        } else if (typeof guidance === 'string' && guidance) {
+          guidanceEl.textContent = guidance;
+        } else {
+          guidanceEl.textContent = '暂时没有指导哦！快去做训练吧！';
+        }
       }
 
       // 获取并展示 AI 评价
@@ -864,7 +875,7 @@
               strengths: ['暂无数据'],
               weaknesses: ['暂无数据'],
               suggestions: ['暂无数据'],
-              home_guidance: '完成训练后将生成专业建议',
+              home_guidance: ['完成训练后将生成专业建议'],
             };
             displayEvaluation(defaultEvaluation);
             loadingEl.style.display = 'none';
@@ -878,7 +889,7 @@
             strengths: ['暂无数据'],
             weaknesses: ['暂无数据'],
             suggestions: ['暂无数据'],
-            home_guidance: '完成训练后将生成专业建议',
+            home_guidance: ['完成训练后将生成专业建议'],
           };
           displayEvaluation(defaultEvaluation);
           loadingEl.style.display = 'none';
