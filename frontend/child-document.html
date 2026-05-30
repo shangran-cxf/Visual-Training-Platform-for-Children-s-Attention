@@ -648,35 +648,44 @@
           const child =
             childrenList && Array.isArray(childrenList) ? childrenList.find((c) => c.id === childId) || {} : {};
 
-          const latestDetection = Array.isArray(detection) && detection.length > 0 ? detection[0] : null;
-
-          // 雷达图数据优先级：检测数据(综合训练) > 趋势数据(日常训练) > 默认值
+          // 逐维度：所有成绩平等取平均（综合训练每条+日常训练每条）
+          const dimKeys = ['selective_attention', 'sustained_attention', 'visual_tracking', 'working_memory', 'inhibitory_control'];
+          const trendKeys = ['selective', 'sustained', 'tracking', 'memory', 'inhibitory'];
           let radarData = [0.5, 0.5, 0.5, 0.5, 0.5];
-          if (latestDetection) {
-            // 优先使用综合训练的检测数据（已包含视觉模型计算）
-            const det = latestDetection;
-            radarData = [
-              det.selective_attention != null ? det.selective_attention / 100 : 0.5,
-              det.sustained_attention != null ? det.sustained_attention / 100 : 0.5,
-              det.visual_tracking != null ? det.visual_tracking / 100 : 0.5,
-              det.working_memory != null ? det.working_memory / 100 : 0.5,
-              det.inhibitory_control != null ? det.inhibitory_control / 100 : 0.5,
-            ];
-            console.log('使用综合训练检测数据:', radarData);
-          } else if (trend && trend.trend) {
-            // 其次使用日常训练的聚合趋势数据
-            const trendData = trend.trend;
-            radarData = [
-              (trendData.selective?.avg_score || 50) / 100 || 0.5,
-              (trendData.sustained?.avg_score || 50) / 100 || 0.5,
-              (trendData.tracking?.avg_score || 50) / 100 || 0.5,
-              (trendData.memory?.avg_score || 50) / 100 || 0.5,
-              (trendData.inhibitory?.avg_score || 50) / 100 || 0.5,
-            ];
-            console.log('使用训练趋势数据:', radarData);
-          } else {
-            console.log('未获取到任何数据，使用默认值');
+
+          for (let i = 0; i < 5; i++) {
+            var allScores = [];
+
+            // 综合训练：每条检测记录算一个分数
+            if (Array.isArray(detection)) {
+              for (var d = 0; d < detection.length; d++) {
+                var v = detection[d][dimKeys[i]];
+                if (v != null && v > 0) allScores.push(v);
+              }
+            }
+
+            // 日常训练：每场独立分数（优先），降级用 records
+            var trendItem = (trend && trend.trend) ? trend.trend[trendKeys[i]] : null;
+            if (trendItem) {
+              if (trendItem.scores && trendItem.scores.length > 0) {
+                for (var s = 0; s < trendItem.scores.length; s++) {
+                  if (trendItem.scores[s] > 0) allScores.push(trendItem.scores[s]);
+                }
+              } else if (trendItem.records && trendItem.records.length > 0) {
+                for (var r = 0; r < trendItem.records.length; r++) {
+                  var rs = trendItem.records[r].score;
+                  if (rs != null && rs > 0) allScores.push(rs);
+                }
+              }
+            }
+
+            if (allScores.length > 0) {
+              var sum = 0;
+              for (var k = 0; k < allScores.length; k++) sum += allScores[k];
+              radarData[i] = (sum / allScores.length) / 100;
+            }
           }
+          console.log('雷达图数据(逐次平均):', radarData);
 
           const result = {
             info: {
