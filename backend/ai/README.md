@@ -6,7 +6,7 @@
 
 | 文件 | 职责 |
 |---|---|
-| `config.py` | AI 配置加载（从 `.env` 读取）、Prompt 模板（当前训练评估 + 历史训练评估，含结构化 JSON 输出 Schema） |
+| `config.py` | AI 配置加载（从 `.env` 读取）、Prompt 模板（训练综合评估，含结构化 JSON 输出 Schema） |
 | `analysis.py` | `ai_bp` Blueprint：当前训练评估、历史趋势分析、自定义生成、综合训练分析报告、AI 状态检查 |
 | `validator.py` | 数据指纹（MD5）缓存 + LRU 内存缓存（24h TTL）+ 空报告模板 |
 
@@ -25,7 +25,6 @@ AI_MODEL=deepseek-v4-flash
 | 路由 | 方法 | 用途 |
 |---|---|---|
 | `/api/ai/current-training-evaluation` | POST | 当前训练评估 |
-| `/api/ai/history-training-evaluation` | POST | 历史趋势分析 |
 | `/api/ai/generate` | POST | 自定义 Prompt 生成 |
 | `/api/ai/training-analysis` | POST | 综合训练分析报告 |
 | `/api/ai/status` | GET | AI 配置状态检查 |

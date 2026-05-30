@@ -232,6 +232,7 @@
       .today-training-container {
         display: grid;
         grid-template-columns: 1fr 0.5fr;
+        grid-template-rows: 1fr;
         gap: 30px;
         flex: 1;
         min-height: 0;
@@ -248,9 +249,8 @@
         display: flex;
         flex-direction: column;
         gap: 14px;
-        align-self: center;
+        align-self: start;
         min-height: 60vh;
-        max-height: calc(100vh - 160px);
         scrollbar-width: none;
         -ms-overflow-style: none;
       }
@@ -260,7 +260,7 @@
       }
 
       .card-title {
-        font-size: 30px;
+        font-size: 38px;
         font-weight: 700;
         color: var(--text-dark);
         margin-bottom: 4px;
@@ -337,6 +337,7 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        justify-content: center;
       }
 
       /* 日历头部 */
@@ -344,7 +345,6 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: auto;
         margin-bottom: 2px;
         flex-shrink: 0;
       }
@@ -397,8 +397,7 @@
         grid-template-columns: repeat(7, 1fr);
         gap: 8px;
         row-gap: 4px;
-        flex: 1;
-        align-content: end;
+        flex: 0 0 auto;
       }
 
       /* 日期单元格 */
@@ -609,8 +608,8 @@
         border: 2px solid rgba(220, 190, 100, 0.3);
         position: relative;
         min-height: 60vh;
-        max-height: calc(100vh - 160px);
         overflow-y: auto;
+        align-self: start;
         scrollbar-width: none;
         -ms-overflow-style: none;
       }
@@ -644,7 +643,7 @@
       }
 
       .recommend-title {
-        font-size: 28px;
+        font-size: 36px;
         font-weight: 800;
         color: #5c3d1e;
         position: relative;
@@ -856,7 +855,7 @@
         flex-direction: column;
         flex: 1;
         gap: 4px;
-        justify-content: center;
+        justify-content: space-around;
         position: relative;
         z-index: 1;
       }
@@ -868,12 +867,13 @@
       }
 
       .ability-bar-label {
-        font-size: 15px;
+        font-size: 17px;
         font-weight: 700;
         color: #6b4d2a;
-        width: 80px;
+        width: 90px;
         flex-shrink: 0;
         text-align: right;
+        white-space: nowrap;
       }
 
       .ability-bar-track {
@@ -911,12 +911,12 @@
       }
 
       .ability-bar-score {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 700;
         color: #8b6914;
-        width: 38px;
-        text-align: center;
+        width: 48px;
         flex-shrink: 0;
+        text-align: center;
       }
 
       .ability-bar-row.weak-row .ability-bar-fill {
@@ -2129,6 +2129,20 @@
         window.location.href = `training/${gamePath}`;
       }
 
+      // 使卡片底部与侧边栏底部对齐
+      function alignCardsToSidebar() {
+        var grid = document.querySelector('.today-training-container');
+        if (!grid) return;
+        var gridHeight = grid.getBoundingClientRect().height;
+        var vh = window.innerHeight;
+        var offset = Math.max(0, (gridHeight - 0.6 * vh) / 2);
+
+        document.querySelectorAll('.my-training-card, .recommend-training-card').forEach(function (card) {
+          card.style.marginTop = offset + 'px';
+          card.style.height = gridHeight - offset + 'px';
+        });
+      }
+
       // 页面加载初始化
       window.addEventListener('DOMContentLoaded', async () => {
         initPage();
@@ -2158,6 +2172,9 @@
         document.getElementById('training-modal').addEventListener('click', (e) => {
           if (e.target === e.currentTarget) closeModal();
         });
+
+        alignCardsToSidebar();
+        window.addEventListener('resize', alignCardsToSidebar);
       });
     </script>
   </body>

@@ -26,7 +26,7 @@
       .main-content {
         display: grid !important;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr auto;
+        grid-template-rows: 2fr 1fr;
         gap: 24px;
         overflow: hidden;
         flex: 1;
@@ -76,6 +76,9 @@
         grid-column: 2 / 3;
         grid-row: 2 / 3;
         background: #cdd4fd !important;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
       }
 
       /* 左侧卡片的标题样式 */
@@ -221,7 +224,8 @@
       /* 成长轨迹图容器 */
       .growth-chart-container {
         width: 100%;
-        height: 250px;
+        flex: 1;
+        min-height: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -824,8 +828,19 @@
         }
 
         // 展示家庭指导
-        document.getElementById('ai-home-guidance').textContent =
-          evaluation.home_guidance || '暂时没有指导哦！快去做训练吧！';
+        const guidanceEl = document.getElementById('ai-home-guidance');
+        guidanceEl.innerHTML = '';
+        const guidance = evaluation.home_guidance;
+        if (Array.isArray(guidance) && guidance.length > 0) {
+          guidance.forEach((item, i) => {
+            if (i > 0) guidanceEl.appendChild(document.createElement('br'));
+            guidanceEl.appendChild(document.createTextNode(item));
+          });
+        } else if (typeof guidance === 'string' && guidance) {
+          guidanceEl.textContent = guidance;
+        } else {
+          guidanceEl.textContent = '暂时没有指导哦！快去做训练吧！';
+        }
       }
 
       // 获取并展示 AI 评价
@@ -873,7 +888,7 @@
               strengths: ['暂无数据'],
               weaknesses: ['暂无数据'],
               suggestions: ['暂无数据'],
-              home_guidance: '完成训练后将生成专业建议',
+              home_guidance: ['完成训练后将生成专业建议'],
             };
             displayEvaluation(defaultEvaluation);
             loadingEl.style.display = 'none';
@@ -887,7 +902,7 @@
             strengths: ['暂无数据'],
             weaknesses: ['暂无数据'],
             suggestions: ['暂无数据'],
-            home_guidance: '完成训练后将生成专业建议',
+            home_guidance: ['完成训练后将生成专业建议'],
           };
           displayEvaluation(defaultEvaluation);
           loadingEl.style.display = 'none';

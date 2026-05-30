@@ -320,8 +320,9 @@ def format_training_data_for_prompt(child_id):
     return "\n".join(lines)
 
 
-def format_trend_data_for_prompt(child_id, days=30):
-    trend = get_child_training_trend(child_id, days)
+def format_trend_data_for_prompt(child_id, days=30, trend=None):
+    if trend is None:
+        trend = get_child_training_trend(child_id, days)
     if not trend:
         return "暂无训练趋势数据"
 
@@ -367,7 +368,7 @@ def generate_current_training_evaluation():
         return error_response(error_msg, "ACCESS_ERROR", error_code)
 
     trend = get_child_training_trend(child_id)
-    trend_data_str = format_trend_data_for_prompt(child_id)
+    trend_data_str = format_trend_data_for_prompt(child_id, trend=trend)
 
     evaluation_data = get_evaluation_data(child_id)
     evaluation_data["trend"] = trend

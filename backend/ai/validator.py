@@ -108,15 +108,11 @@ def get_empty_report(report_type: str = "current_training") -> dict[str, Any]:
             "strengths": ["暂无数据"],
             "weaknesses": ["暂无数据"],
             "suggestions": ["请先完成注意力训练测试", "训练后系统将自动生成个性化评价报告"],
-            "home_guidance": "建议家长引导孩子每天进行15-20分钟的注意力训练，循序渐进地提升注意力水平。",
-            "is_empty_report": True,
-        },
-        "history_training": {
-            "overall_progress": "暂无历史训练数据，无法分析进步趋势。",
-            "trend_analysis": [],
-            "milestones": ["暂无数据"],
-            "recommendations": ["建议定期进行训练以积累数据", "持续训练将帮助系统生成更准确的趋势分析"],
-            "encouragement": "开始训练之旅，每一步都是进步！",
+            "home_guidance": [
+                "请先完成至少一次注意力训练测试",
+                "训练后系统将自动生成个性化评价报告",
+                "建议家长引导孩子每天进行15-20分钟的训练",
+            ],
             "is_empty_report": True,
         },
         "training_analysis": {
