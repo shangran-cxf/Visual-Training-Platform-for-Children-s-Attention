@@ -1237,22 +1237,28 @@
     await videoElement.play();
     console.log('摄像头已启动');
 
-    await waitForFilesetResolver();
+    try {
+      await waitForFilesetResolver();
+      console.log('FilesetResolver 就绪，正在初始化 FaceLandmarker...');
 
-    const vision = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm');
-    faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath:
-          'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-        delegate: 'GPU',
-      },
-      runningMode: 'VIDEO',
-      numFaces: 1,
-      minFaceDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
-    isDetecting = true;
-    console.log('人脸检测模型已加载');
+      const vision = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm');
+      faceLandmarker = await FaceLandmarker.createFromModelPath(
+        vision,
+        'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+      );
+      await faceLandmarker.setOptions({
+        baseOptions: { delegate: 'GPU' },
+        runningMode: 'VIDEO',
+        numFaces: 1,
+        minFaceDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+      });
+      isDetecting = true;
+      console.log('人脸检测模型已加载');
+    } catch (err) {
+      console.error('MediaPipe 模型初始化失败:', err);
+      return;
+    }
   }
 
   function waitForFilesetResolver() {
@@ -1267,6 +1273,11 @@
           resolve();
         }
       }, 100);
+      // 超时保护，避免无限等待
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        resolve();
+      }, 5000);
     });
   }
 
@@ -1284,18 +1295,15 @@
         animationId = requestAnimationFrame(detect);
         return;
       }
-      if (videoElement.videoWidth && videoElement.videoHeight) {
-        try {
-          // 检查 faceLandmarker 是否有 detectForVideo 方法
-          if (!faceLandmarker || typeof faceLandmarker.detectForVideo !== 'function') {
-            animationId = requestAnimationFrame(detect);
-            return;
-          }
+      if (!videoElement.videoWidth || !videoElement.videoHeight) {
+        animationId = requestAnimationFrame(detect);
+        return;
+      }
+      try {
+        const results = faceLandmarker.detectForVideo(videoElement, performance.now());
 
-          const results = faceLandmarker.detectForVideo(videoElement, performance.now());
-
-          if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-            const landmarks = results.faceLandmarks[0];
+        if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+          const landmarks = results.faceLandmarks[0];
             const videoWidth = videoElement.videoWidth;
             const videoHeight = videoElement.videoHeight;
 
@@ -1408,11 +1416,9 @@
           };
 
           updateBallScore();
-          if (isPanelOpen) updatePanelData();
-        } catch (error) {
-          console.warn('检测过程中出错:', error);
-          // 出错时仍然继续检测，避免整个网站崩溃
-        }
+        if (isPanelOpen) updatePanelData();
+      } catch (error) {
+        console.warn('检测过程中出错:', error);
       }
       animationId = requestAnimationFrame(detect);
     }

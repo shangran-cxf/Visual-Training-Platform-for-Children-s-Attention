@@ -27,16 +27,17 @@
 
   function loadMediaPipe() {
     return new Promise((resolve) => {
-      if (window.FilesetResolver) {
+      if (window.FilesetResolver && window.FaceLandmarker) {
         resolve();
         return;
       }
 
+      // 使用 +esm 端点获取真正的 ES Module 版本
       const importMap = document.createElement('script');
       importMap.type = 'importmap';
       importMap.textContent = JSON.stringify({
         imports: {
-          '@mediapipe/tasks-vision': 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js',
+          '@mediapipe/tasks-vision': 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/+esm',
         },
       });
       document.head.appendChild(importMap);
@@ -44,23 +45,27 @@
       const moduleScript = document.createElement('script');
       moduleScript.type = 'module';
       moduleScript.textContent = `
-                import { FilesetResolver, FaceLandmarker } from '@mediapipe/tasks-vision';
-                window.FilesetResolver = FilesetResolver;
-                window.FaceLandmarker = FaceLandmarker;
-            `;
-      document.head.appendChild(moduleScript);
-
-      const checkInterval = setInterval(() => {
-        if (window.FilesetResolver) {
+        import * as mp from '@mediapipe/tasks-vision';
+        window.FilesetResolver = mp.FilesetResolver;
+        window.FaceLandmarker = mp.FaceLandmarker;
+      `;
+      moduleScript.onload = () => {
+        const checkInterval = setInterval(() => {
+          if (window.FilesetResolver && window.FaceLandmarker) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 50);
+        setTimeout(() => {
           clearInterval(checkInterval);
           resolve();
-        }
-      }, 100);
-
-      setTimeout(() => {
-        clearInterval(checkInterval);
+        }, 5000);
+      };
+      moduleScript.onerror = () => {
+        console.error('MediaPipe ESM 加载失败');
         resolve();
-      }, 10000);
+      };
+      document.head.appendChild(moduleScript);
     });
   }
 
